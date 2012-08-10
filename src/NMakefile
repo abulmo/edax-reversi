@@ -1,0 +1,38 @@
+#
+# makefile
+#
+# Compilation options for various compilers, with the best optimizations I know sofar.
+#
+# If you have a CPU supporting popcount (Intel Nehalem (i7) or AMD Barcelona or greater),
+# add -DPOPCOUNT to you favorite compiler option set.
+#
+
+# Microsoft Visual C++ 2008 or better for Windows (7 or Vista) 64bits.
+W64_VC_FLAGS = /I"..\include" /O2 /GL /fp:fast /favor:INTEL64 /arch:AVX\
+               /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__" /D "USE_MSVC_X64" /D "POPCOUNT"\
+               /MT
+
+# Microsoft Visual C++ 2008 of better for Windows (7 or Vista or xp) 32bits.
+W32_VC_FLAGS = /I"..\include" /O2 /GL /fp:fast\
+               /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__"  /D "USE_MASM_X86"\
+               /MT /L ws2_32
+
+win-vc-x64:
+	cl $(W64_VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.3
+
+win-vc-x86:
+	cl $(W32_VC_FLAGS) all.c /Fe..\bin\wEdax-w32.exe
+
+win-vc-pgo-x64:
+	set VCPROFILE_PATH=..\src
+	cl $(W64_VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /ltcg:pgi /machine:x64 /VERSION:4.3
+	cd ..\bin
+	wEdax-x64.exe -l 60 -solve problem/fforum-20-39.obf
+	wEdax-x64.exe -l 21 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-x64.exe /ltcg:pgo /machine:x64 /VERSION:4.3
+
+	 
+clean:
+	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj
+

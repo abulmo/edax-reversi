@@ -1,0 +1,28 @@
+TODO
+4.3) schedule august/september 2012
+DONE : code cleaning
+DONE : GGS cleaning : compile and work under windows.
+DONE : new move generator (thanks to Toshihiko Okuhara)
+
+4.4) schedule december 2012
+TODO :
+high priority:
+Update the hashcode, instead of computing it at every node
+-> flip hash function
+Allow more than two threads / splitpoint
+low priority:
+Make MultiPV work like Ntest (move/score display more frequently)
+Need to change many things in Search/Result structure and behaviour
+ 
+4.5 : schedule 2013
+Rewrite a new evaluation function
+Write a GUI !
+Write a distributed book builder
+
+5.0 : schedule 2014
+TODO
+Rewrite edax in C++ ?
+-> simpler Edax
+-> Remove function that goes to the GUI from edax
+
+
