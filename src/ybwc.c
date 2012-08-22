@@ -117,18 +117,18 @@ static bool get_helper(Node *master, Node *node, Move *move)
 			lock(master);
 			if (master->has_slave && master->is_waiting && !master->is_helping) {
 				master->is_helping = true;
-				node->has_slave = true;
 				task = master->help;
 				task_init(task) ;
 				task->is_helping = true;
 				task->node = node;
 				task->move = move;
 				search_clone(task->search, node->search);
+				node->has_slave = true;
 				node->slave = task->search;
 				task->run = true;
 				found = true;
 
-				condition_signal(master);
+				condition_broadcast(master);
 			}
 			unlock(master);
 		} else {
@@ -169,7 +169,7 @@ bool node_split(Node *node, Move *move)
 	if (search->allow_node_splitting // split only if parallelism is on
 	 && node->depth >= SPLIT_MIN_DEPTH // split if we are deep enough
 	 && node->n_moves_done // do not split first move (ybwc main principle).
-	 && !node->has_slave // do not split already splitted node
+	 && node->has_slave == false // Not splitted yet.
 	 && node->n_moves_todo >=  SPLIT_MIN_MOVES_TODO) {  // do not split the last move(s), to diminish waiting time
 		YBWC_STATS(atomic_add(&statistics.n_split_try, 1);)
 
@@ -177,10 +177,10 @@ bool node_split(Node *node, Move *move)
 			YBWC_STATS(atomic_add(&statistics.n_master_helper, 1);)
 			return true;
 		} else if ((task = task_stack_get_idle_task(search->tasks)) != NULL) {
-			node->has_slave = true;
 			task->node = node;
 			task->move = move;
 			search_clone(task->search, search);
+			node->has_slave = true;
 			node->slave = task->search;
 			YBWC_STATS(atomic_add(&statistics.n_split_success, 1);)
 
@@ -215,7 +215,7 @@ void node_wait_slaves(Node* node)
 	}
 
 	// wait slaves
-	YBWC_STATS(statistics.n_waited_slave += node->has_slave;)
+	YBWC_STATS(atomic_add(&statistics.n_waited_slave, node->has_slave);)
 	while (node->has_slave) {
 		node->is_waiting = true;
 		assert(node->is_helping == false);
@@ -358,10 +358,11 @@ void task_search(Task *task)
 
 	search_set_state(search, node->search->stop);
 
+	YBWC_STATS(++task->n_calls;)
+
 	while (move && !search->stop) {
 		const int alpha = node->alpha;
-
-		YBWC_STATS(++task->n_calls;)
+		if (alpha >= node->beta) break;
 
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
@@ -409,12 +410,13 @@ void task_search(Task *task)
 			}
 		}
 		search->parent->child_nodes += search_count_nodes(search);
+		YBWC_STATS(task->n_nodes += search->n_nodes;)
 	spin_unlock(search->parent);
 
 	lock(node);
 		task->run = false;
 		node->has_slave = false;
-		condition_signal(node);
+		condition_broadcast(node);
 	unlock(node);
 }
 
@@ -560,15 +562,17 @@ void task_stack_init(TaskStack *stack, const int n)
 
 		// init the tasks.
 		for (i = 0; i < stack->n; ++i) {
-			task_init(stack->task + i);
-			thread_create(&stack->task[i].thread, task_loop, stack->task + i);
-			if (options.cpu_affinity) thread_set_cpu(stack->task[i].thread, i + 1); /* CPU 1 to n */
+			if (i) {
+				task_init(stack->task + i);
+				thread_create(&stack->task[i].thread, task_loop, stack->task + i);
+				if (options.cpu_affinity) thread_set_cpu(stack->task[i].thread, i); /* CPU 0 to n - 1 */
+			}
 			stack->task[i].container = stack;
 			stack->stack[i] = NULL;
 		}
 
 		// put the tasks onto stack;
-		for (i = 0; i < stack->n; ++i) {
+		for (i = 1; i < stack->n; ++i) {
 			task_stack_put_idle_task(stack, stack->task + i);
 		}
 
@@ -586,7 +590,7 @@ void task_stack_init(TaskStack *stack, const int n)
 void task_stack_free(TaskStack *stack)
 {
 	int i;
-	for (i = 0; i < stack->n; ++i) {
+	for (i = 1; i < stack->n; ++i) {
 		task_free(stack->task + i);
 	}
 	free(stack->task); stack->task = NULL;
@@ -642,7 +646,6 @@ void task_stack_put_idle_task(TaskStack *stack, Task *task)
 	spin_lock(stack);
 
 	stack->stack[stack->n_idle++] = task;
-	YBWC_STATS(task->n_nodes += task->search->n_nodes;)
 
 	spin_unlock(stack);
 }

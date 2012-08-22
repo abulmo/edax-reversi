@@ -131,6 +131,8 @@ static void* ui_read_input_loop(void *v)
 		ui_read_input(ui);
 	}
 
+	info("<exit ui_read_input>\n");
+
 	return NULL;
 }
 

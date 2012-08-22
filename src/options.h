@@ -95,6 +95,7 @@ int options_read(const char*, const char*);
 void options_parse(const char*);
 void options_bound(void);
 void options_free(void);
+void options_dump(FILE *f);
 
 void version(void);
 void usage(void);

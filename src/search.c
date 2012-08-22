@@ -378,13 +378,13 @@ void search_init(Search *search)
 		fatal_error("Cannot allocate a task stack\n");
 	}
 	if (options.cpu_affinity) thread_set_cpu(thread_self(), 0);
-	task_stack_init(search->tasks, options.n_task - 1);
-	search->allow_node_splitting = (search->tasks->n > 0);
+	task_stack_init(search->tasks, options.n_task);
+	search->allow_node_splitting = (search->tasks->n > 1);
 
 	/* task associated with the current search */
-	search->task = (Task*) malloc(sizeof (Task));
-	lock_init(search->task);
-	condition_init(search->task);
+	search->task = search->tasks->task;
+//	lock_init(search->task);
+//	condition_init(search->task);
 	search->task->loop = false;
 	search->task->run = true;
 	search->task->node = NULL;
@@ -438,15 +438,15 @@ void search_init(Search *search)
  */
 void search_free(Search *search)
 {
+
 	hash_free(search->hash_table);
 	hash_free(search->pv_table);
 	hash_free(search->shallow_table);
 	eval_free(search->eval);
 
-	lock_free(search->task);
-	condition_free(search->task);
-	free(search->task);
-
+//	lock_free(search->task);
+//	condition_free(search->task);
+	
 	task_stack_free(search->tasks);
 	free(search->tasks);
 	spin_free(search);
@@ -709,8 +709,8 @@ void search_time_init(Search *search)
 		long long t = search->options.time;
 		const int sd = solvable_depth(t / 10, search_count_tasks(search)); // depth solvable with 10% of the time
 		const int d = MAX((search->n_empties - sd) / 2, 2); // unsolvable ply to play
-		t = MAX(t/d - 10, 100) / d; // keep 0.25 s./remaining move, make at least 1s. available
-		search->time.extra = t * 4 / 3;
+		t = MAX(t / d - 10, 100); // keep 0.25 s./remaining move, make at least 1s. available
+		search->time.extra = t;
 		search->time.maxi = t * 3 / 4;
 		search->time.mini = t / 4;
 		if (search->options.verbosity >= 2) {
@@ -748,8 +748,8 @@ void search_time_reset(Search *search, const Board *initial_board)
 		const int sd = solvable_depth(t / 10, search_count_tasks(search)); // depth solvable with 10% of the time
 		const int d = MAX((n_empties - sd) / 2, 2); // unsolvable ply to play
 		t = MAX(t / d - 10, 100); // keep 0.25 s./remaining move, make at least 0.1 s available
-		search->time.extra = spent + t * 4 / 3;
-		search->time.maxi = spent + t;
+		search->time.extra = spent + t;
+		search->time.maxi = spent + t * 3 / 4;
 		search->time.mini = spent + t / 4;
 		if (search->options.verbosity >= 2) {
 			info("<Time-reset: spent = %.2f rt = %.2f; sd = %d; d = %d; t = %.2f>\n", 0.001 * spent, 0.001 * search->options.time, sd, d, 0.001 * t);

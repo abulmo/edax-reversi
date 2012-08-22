@@ -175,22 +175,22 @@ ifeq ($(COMP),icc)
 	PGO_USE = -prof_use -wd11505
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -Ofast -DNDEBUG -rcd -DRCD=0.0 -fno-alias
+		CFLAGS += -Ofast -DNDEBUG -rcd -DRCD=0.0 -ansi-alias
 	else
-		CFLAGS += -O0 -g -DDEBUG
+		CFLAGS += -O0 -g -DDEBUG -rcd -DRCD=0.0
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -xHOST -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -xHOST -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
-		CFLAGS += -xHOST -DUSE_GAS_X64 
+		CFLAGS += -m64 -xHost -DUSE_GAS_X64 
 	endif
 	ifeq ($(ARCH),x32-modern)
-		CFLAGS += -xHOST -auto-ilp32 -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -xHost -ipo -auto-ilp32 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x86)
-		CFLAGS += -DUSE_GAS_X86
+		CFLAGS += -m32 -DUSE_GAS_X86
 	endif
 endif
 
@@ -220,7 +220,7 @@ ifeq ($(COMP),clang)
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O4 -ffast-math -DNDEBUG
+		CFLAGS += -O4 -ffast-math -fomit-frame-pointer -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -229,10 +229,10 @@ ifeq ($(COMP),clang)
 		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
-		CFLAGS += -m64 -march=generic -DUSE_GAS_X64 
+		CFLAGS += -m64 -DUSE_GAS_X64 
 	endif
 	ifeq ($(ARCH),x86)
-		CFLAGS += -DUSE_GAS_X86
+		CFLAGS += -m32 -DUSE_GAS_X86
 	endif
 
 	ifeq ($(OS),linux)

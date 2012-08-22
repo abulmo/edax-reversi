@@ -13,6 +13,7 @@
 #include "hash.h"
 #include "obftest.h"
 #include "options.h"
+#include "perft.h"
 #include "search.h"
 #include "stats.h"
 #include "ui.h"
@@ -51,6 +52,7 @@ void usage(void)
 	fprintf(stderr, " -edax     Edax's user interface (default)\n");
 	fprintf(stderr, " -ggs      Generic Game Server interface (play through internet)\n");
 	fprintf(stderr, " -gtp      Go Text Protocol.\n");
+	fprintf(stderr, " -xboard xboard/winboard protocol.\n");
 	fprintf(stderr, " -nboard NBoard protocol.\n");
 	fprintf(stderr, " -cassio Cassio protocol.\n");
 	fprintf(stderr, " -solve <problem_file>    Automatic problem solver/checker.\n");

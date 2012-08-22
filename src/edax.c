@@ -92,6 +92,10 @@
 #include "search.h"
 #include "util.h"
 #include "ui.h"
+#ifdef __linux__
+	#include <sys/time.h>
+	#include <sys/resource.h>
+#endif
 
 static Log edax_log[1];
 extern bool book_verbose;

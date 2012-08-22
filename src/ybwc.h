@@ -14,6 +14,7 @@
 
 #include "util.h"
 #include "const.h"
+#include "settings.h"
 
 #include <stdbool.h>
 
@@ -45,24 +46,24 @@ typedef struct Task {
  * parallel threads.
  */
 typedef struct Node {
-	struct Node *parent;         /**< master node */
-	struct Search *search;       /**< search structure */
-	struct Search *slave;        /**< search structure */
-	struct Move *move;           /**< move to search */
-	Task help[1];                /**< helper task */
-	volatile int alpha;          /**< alpha lower bound */
-	int beta;                    /**< beta upper bound (is constant after initialisation) */
-	int depth;                   /**< depth */
-	int height;                  /**< height */
-	bool pv_node;                /**< pv_node */
 	volatile int bestmove;       /**< bestmove */
 	volatile int bestscore;      /**< bestscore */
+	volatile int alpha;          /**< alpha lower bound */
+	int beta;                    /**< beta upper bound (is constant after initialisation) */
+	bool pv_node;                /**< pv_node */
+	volatile bool has_slave;	 /**< slave flag */
+	volatile bool stop_point;    /**< stop point flag */
+	volatile bool is_waiting;	 /**< waiting flag */
+	int depth;                   /**< depth */
+	int height;                  /**< height */
+	struct Search *search;       /**< master search structure */
+	struct Search *slave;        /**< slave search structure */
+	struct Node *parent;         /**< master node */
+	struct Move *move;           /**< move to search */
 	volatile int n_moves_done;   /**< search done */
 	volatile int n_moves_todo;   /**< search todo */
-	volatile bool has_slave;	 /**< slave flag */
-	volatile bool is_waiting;	 /**< waiting flag */
 	volatile bool is_helping;	 /**< waiting flag */
-	volatile bool stop_point;    /**< stop point flag */
+	Task help[1];                /**< helper task */
 	Lock lock;                   /**< mutex */
 	Condition cond;              /**< condition variable */
 } Node;

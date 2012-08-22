@@ -659,17 +659,17 @@ typedef struct {
 /**
  * Array of MBoard.
  */
-typedef struct {
+typedef struct MoveArray {
 	MBoard *item; /**< dynamic array */
 	int n;       /**< number of items in the array */
 	int size;    /**< capacity of the array */
-} MovArray;
+} MoveArray;
 
 /**
  * @brief array initialisation.
  * @param array Array of positions.
  */
-static void movearray_init(MovArray *array)
+static void movearray_init(MoveArray *array)
 {
 	array->item = NULL;
 	array->n = array->size = 0;
@@ -679,7 +679,7 @@ static void movearray_init(MovArray *array)
  * @brief array supression.
  * @param array Array of positions.
  */
-static void movearray_delete(MovArray *array)
+static void movearray_delete(MoveArray *array)
 {
 	free(array->item);
 }
@@ -691,7 +691,7 @@ static void movearray_delete(MovArray *array)
  * @param x Move.
  * @return true if a position is added to the array, false if it is already present.
  */
-static bool movearray_append(MovArray *array, const Board *b, const int x)
+static bool movearray_append(MoveArray *array, const Board *b, const int x)
 {
 	int i;
 	for (i = 0; i < array->n; ++i) {
@@ -709,15 +709,6 @@ static bool movearray_append(MovArray *array, const Board *b, const int x)
 }
 
 /**
- * HashTable of position + move
- */
-struct MoveHash {
-	MovArray *array;
-	int size;
-	int mask;
-};
-
-/**
  * @brief Initialisation of the hash table.
  * @param hash Hash table.
  * @param bitsize Hash table size (as log2(size)).
@@ -728,7 +719,7 @@ void movehash_init(MoveHash *hash, int bitsize)
 
 	hash->size = (1 << bitsize);
 	hash->mask = hash->size - 1;
-	hash->array = (MovArray*) malloc(hash->size * sizeof (MovArray));
+	hash->array = (MoveArray*) malloc(hash->size * sizeof (MoveArray));
 	if (hash->array == NULL) fatal_error("Cannot re-allocate board array.\n");
 	for (i = 0; i < hash->size; ++i) movearray_init(hash->array + i);
 }

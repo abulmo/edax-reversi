@@ -52,6 +52,7 @@ typedef struct OkoGame {
 void game_init(Game*);
 void game_copy(Game*, const Game*);
 bool game_get_board(const Game*, const int, Board*);
+bool game_update_board(Board *board, int x);
 bool game_check(Game*);
 bool game_equals(const Game*, const Game*);
 void wthor_to_game(const WthorGame*, Game*);

@@ -150,7 +150,7 @@ bool wthor_equals(const WthorGame *game_1, const WthorGame *game_2)
  * @brief update a board.
  *
  */
-static bool game_update_board(Board *board, int x)
+bool game_update_board(Board *board, int x)
 {
 	Move move[1];
 

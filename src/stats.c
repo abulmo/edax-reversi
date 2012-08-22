@@ -27,10 +27,6 @@ void statistics_init(void)
 {
 	int i, j;
 
-	for (i = 0; i < MAX_THREADS; ++i) {
-		statistics.n_task_nodes[i] = 0;
-		statistics.n_task[i] = 0;
-	}
 
 	statistics.n_hash_upgrade = 0;
 	statistics.n_hash_update = 0;
@@ -39,6 +35,11 @@ void statistics_init(void)
 	statistics.n_hash_search = 0;
 	statistics.n_hash_found = 0;
 
+	for (i = 0; i < MAX_THREADS; ++i) {
+		statistics.n_task_nodes[i] = 0;
+		statistics.n_task[i] = 0;
+	}
+	statistics.n_parallel_nodes = 0;
 	statistics.n_nodes = 0;
 	statistics.n_split_try = 0;
 	statistics.n_split_success = 0;
@@ -97,11 +98,13 @@ void statistics_sum_nodes(Search *search)
 {
 	int i;
 
+	statistics.n_parallel_nodes += search->child_nodes;
 	statistics.n_nodes += search->n_nodes;
 	for (i = 0; i < search->tasks->n; ++i) {
-		statistics.n_task_nodes[i] += search->tasks->task[i].n_nodes;
+		statistics.n_task_nodes[i] = search->tasks->task[i].n_nodes;
 		statistics.n_task[i] = search->tasks->task[i].n_calls;
 	}
+	
 }
 
 /**
@@ -114,6 +117,7 @@ void statistics_print(void)
 	statistics.n_split_success += statistics.n_master_helper;
 
 	if (statistics.n_split_success) {
+		unsigned long long n_helper_nodes = statistics.n_parallel_nodes;
 		printf("YBWC:\n");
 		printf("nodes splitted:      %12llu (%6.2f%%)\n", statistics.n_split_success, 100.0 * statistics.n_split_success / statistics.n_split_try);
 		printf("master helper tasks: %12llu (%6.2f%%)\n", statistics.n_master_helper, 100.0 * statistics.n_master_helper / statistics.n_split_success);
@@ -121,11 +125,14 @@ void statistics_print(void)
 		printf("slave master stopped:%12llu (%6.2f%%) = %12llu\n", statistics.n_stopped_master, 100.0 * statistics.n_stopped_master / statistics.n_split_success, statistics.n_wake_up);
 		printf("slave nodes waited:  %12llu (%6.2f%%)\n", statistics.n_waited_slave, 100.0 * statistics.n_waited_slave / statistics.n_split_success);
 		printf("main thread (%llu nodes)\n", statistics.n_nodes);
-		for (i = 0; i < options.n_task - 1; ++i) {
+		for (i = 1; i < options.n_task; ++i) {
 			printf("task %d called %llu times (%llu nodes)\n", i, statistics.n_task[i], statistics.n_task_nodes[i]);
+			n_helper_nodes -= statistics.n_task_nodes[i];
 		}
+		printf("helper (%llu nodes)\n", n_helper_nodes);
 		printf("\n\n");
 	}
+	
 
 	if (statistics.n_PVS_root) {
 		printf("Search:\n");

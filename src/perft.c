@@ -576,7 +576,7 @@ static void compact_board(const Board *b, CBoard *c) {
 /**
  * Array of position.
  */
-typedef struct {
+typedef struct PosArray {
 	CBoard *item; /**< dynamic array */
 	int n;       /**< number of items in the array */
 	int size;    /**< capacity of the array */
@@ -685,15 +685,6 @@ static bool boardcache_append(BoardCache *hash, const Board *b)
 
 	return true;
 }
-
-/**
- * HashTable of positions
- */
-struct PositionHash {
-	PosArray *array;
-	int size;
-	int mask;
-};
 
 /**
  * @brief Initialisation of the hash table.

@@ -932,16 +932,12 @@ static void ggs_event_init(GGSEvent *event)
 	}
 #endif
 
-#ifndef IPPROTO_TCP
-#define IPPROTO_TCP 6
-#endif
-
 	/* socket creation */
 	memset(&hints, 0, sizeof (struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_protocol = getprotobyname("tcp")->p_proto;
 	hints.ai_canonname = NULL;
 	hints.ai_addr = NULL;
 	hints.ai_next = NULL;

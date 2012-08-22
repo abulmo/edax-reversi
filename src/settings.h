@@ -20,8 +20,7 @@
 #define MOVE_GENERATOR_BITSCAN 4
 
 /**move generation. */
-#define MOVE_GENERATOR MOVE_GENERATOR_CARRY
-
+#define MOVE_GENERATOR MOVE_GENERATOR_KINDERGARTEN
 
 /** transposition cutoff usage. */
 #define USE_TC true
@@ -96,6 +95,9 @@
 
 /** Stop Node splitting (for parallel search) when few move remains.  */
 #define SPLIT_MIN_MOVES_TODO 1
+
+/** Stop Node splitting (for parallel search) when few move remains.  */
+#define MAX_SLAVES 1
 
 /** Branching factor (to adjust alloted time). */
 #define BRANCHING_FACTOR 2.24

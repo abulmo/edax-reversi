@@ -89,7 +89,12 @@ void line_copy(Line*, const Line*, const int);
 void line_print(const Line*, int, const char*, FILE*);
 char* line_to_string(const Line *line, int n, const char*, char *string);
 
-typedef struct MoveHash MoveHash;
+/** HashTable of position + move */
+typedef struct MoveHash {
+	struct MoveArray *array;
+	int size;
+	int mask;
+} MoveHash;
 void movehash_init(MoveHash*, int);
 void movehash_delete(MoveHash*);
 bool movehash_append(MoveHash*, const struct Board*, const int);

@@ -6,6 +6,7 @@
  * @version 4.3
  */
 
+#include "bit.h"
 #include "board.h"
 #include "move.h"
 #include "options.h"

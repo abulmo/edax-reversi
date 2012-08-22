@@ -29,7 +29,6 @@
 #include <assert.h>
 
 
-#include "flip_slow.c"
 #if MOVE_GENERATOR == MOVE_GENERATOR_CARRY
 	#ifdef __x86_64__
 		#include "flip_carry_64.c"
@@ -1089,7 +1088,7 @@ char* board_to_FEN(const Board *board, const int player, char *string)
 	const char *color = "bw";
 	int n_empties = 0;
 	char *s = string;
-	char local_string[80];
+	char local_string[128];
 
 	if (s == NULL) s = string = local_string;
 

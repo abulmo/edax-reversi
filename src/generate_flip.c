@@ -910,7 +910,7 @@ int main() {
 			fprintf(f, "\tindex_d = FLIPPED[%d][index_d];\n", d_flip_index(n));
 			fprintf(f, "\tflipped |= %s[index_d];\n\n", d_name(n));
 		} else if ((merge_diagonals[n] & MERGE_DIAGONALS) == 2) {
-			fprintf(f, "\tindex_d = OUTFLANK[%d][((O & 0x%016llxULL) + 0x%016llxULL & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 57] & ((P & 0x%016llxULL) + 0x%016llxULL & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 56;\n", v_flip_index(n), d_mask(n, 1, 6), d_add(n, 1, 6), d_mask(n, 0, 7), d_add(n, 0, 7));
+			fprintf(f, "\tindex_d = OUTFLANK[%d][(((O & 0x%016llxULL) + 0x%016llxULL) & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 57] & (((P & 0x%016llxULL) + 0x%016llxULL) & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 56;\n", v_flip_index(n), d_mask(n, 1, 6), d_add(n, 1, 6), d_mask(n, 0, 7), d_add(n, 0, 7));
 			fprintf(f, "\tindex_d = FLIPPED[%d][index_d];\n", v_flip_index(n));
 			fprintf(f, "\tflipped |= %s[index_d];\n\n", d_name(n));
 		} else {

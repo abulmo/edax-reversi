@@ -91,12 +91,12 @@ typedef struct Search {
 	volatile Stop stop;                           /**< thinking status */
 	bool allow_node_splitting;                    /**< allow parallelism */
 	struct {
-		long long  mini;                          /**< minimal alloted time */
-		long long  maxi;                          /**< maximal alloted time */
 		long long  extra;                         /**< extra alloted time */
 		volatile long long spent;                 /**< time spent thinking */
 		bool extended;                            /**< flag to extend time only once */
 		bool can_update;                          /**< flag allowing to extend time */
+		long long  mini;                          /**< minimal alloted time */
+		long long  maxi;                          /**< maximal alloted time */
 	} time;                                       /**< time */
 	MoveList movelist[1];                         /**< list of moves */
 	int height;                                   /**< search height from root */

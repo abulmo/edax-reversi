@@ -16,7 +16,7 @@
 
 /* To turn on a statistics, add an x to the end of the line.*/
 /** YBWC statistics on/off */
-#define YBWC_STATS(x)
+#define YBWC_STATS(x) 
 /** Hash statistics on/off */
 #define HASH_STATS(x)
 /** LockFree statistics on/off */
@@ -29,8 +29,6 @@
 #define CUTOFF_STATS(x)
 /** ProbCut statistics on/off */
 #define PROBCUT_STATS(x)
-/** NWS candidate statistics on/off*/
-#define NWS_CANDIDATE_STATS(x)
 
 /** how to count nodes... */
 #define COUNT_NODES 7
@@ -62,6 +60,7 @@ typedef struct Statistics {
 	unsigned long long n_nodes;
 	unsigned long long n_task_nodes[MAX_THREADS];
 	unsigned long long n_task[MAX_THREADS];
+	unsigned long long n_parallel_nodes;
 
 	unsigned long long n_hash_update;
 	unsigned long long n_hash_upgrade;

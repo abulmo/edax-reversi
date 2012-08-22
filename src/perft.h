@@ -19,7 +19,12 @@ void count_shapes(const struct Board*, const int, const int);
 void estimate_games(const struct Board*, const long long);
 void seek_highest_mobility(const struct Board*, const unsigned long long);
 
-typedef struct PositionHash PositionHash;
+/** HashTable of positions */
+typedef struct PositionHash {
+	struct PosArray *array;
+	int size;
+	int mask;
+} PositionHash;
 void positionhash_init(PositionHash*, int);
 void positionhash_delete(PositionHash*);
 bool positionhash_append(PositionHash*, const struct Board*);

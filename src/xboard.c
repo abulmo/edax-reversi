@@ -24,6 +24,12 @@
 
 Log xboard_log[1];
 
+typedef struct {
+	unsigned long long time;
+	unsigned long long n_nodes;
+	int n_games;
+} XBoardStats;
+
 /**
  * @brief Search oberver.
  * @param result Search Result.
@@ -145,7 +151,7 @@ static void xboard_send(const char *format, ...)
 
 static void xboard_setup(Play *play)
 {
-	char fen[80];
+	char fen[120];
 
 	xboard_send("setup (P.....p.....) %s\n", board_to_FEN(play->board, play->player, fen));
 }
@@ -245,7 +251,7 @@ static void xboard_check_game_over(Play *play)
 	int n_discs[2];
 	const Board *board = play->board;
 	const char *(color[2]) = {"Black", "White"};
-	const int player = WHITE; // play->initial_player;
+	const int player = WHITE; // !!!!
 	const int opponent = !player;
 
 	if (play_is_game_over(play)) {
@@ -260,10 +266,10 @@ static void xboard_check_game_over(Play *play)
 /**
  * Compute the hash tables size in MB
  */
-static inline int hash_size(int n) {
-	unsigned long long s = 16 << n;
-
-	return (((s << 1) + (s >> 4)) >> 20);
+static inline int hash_size(int n)
+{
+	unsigned long long s = sizeof (Hash) << n;
+	return ((s << 1) + (s >> 4) + sizeof (HashTable) * 3) >> 20;
 }
 
 /**
@@ -271,7 +277,7 @@ static inline int hash_size(int n) {
  *
  * @param ui User Interface.
  */
-static void xboard_go(UI *ui)
+static void xboard_go(UI *ui, XBoardStats *stats)
 {
 	Play *play = ui->play;
 	Search *search = play->search;
@@ -281,6 +287,9 @@ static void xboard_go(UI *ui)
 	xboard_move(play_get_last_move(play)->x);
 	if (ui->mode != 2) play_ponder(play);
 	xboard_check_game_over(play);
+	
+	stats->time += result->time;
+	stats->n_nodes += result->n_nodes;
 
 	if (log_is_open(xboard_log)) {
 		if (search->stop == STOP_TIMEOUT) fprintf(xboard_log->f, "edax search> stop on time-out\n");
@@ -431,6 +440,7 @@ void ui_loop_xboard(UI *ui)
 	Play *play = ui->play;
 	bool can_play = false;
 	bool alien_variant = false;
+	XBoardStats stats = {0, 0, 0};
 
 	// loop forever
 	for (;;) {
@@ -438,7 +448,7 @@ void ui_loop_xboard(UI *ui)
 
 		if (!ui_event_exist(ui) && !play_is_game_over(play) && (ui->mode == !play->player || ui->mode == 2) && can_play) {
 			log_print(xboard_log, "edax (auto_play)> mode = %d, can_play = %s\n", ui->mode, can_play ? "true":"false");
-			xboard_go(ui);
+			xboard_go(ui, &stats);
 
 		// proceed by reading a command
 		} else {
@@ -517,6 +527,7 @@ void ui_loop_xboard(UI *ui)
 
 			// quit
 			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0 || strcmp(cmd, "q") == 0) {
+				xboard_send("%d games played in %.2f s. %llu nodes searched\n", stats.n_games, 0.001 * stats.time, stats.n_nodes);
 				free(cmd); free(param);
 				return;
 
@@ -534,7 +545,7 @@ void ui_loop_xboard(UI *ui)
 			} else if (strcmp(cmd, "go") == 0) {
 				ui->mode = !play->player;
 				can_play = true;
-				xboard_go(ui);
+				xboard_go(ui, &stats);
 
 			// playother
 			} else if (strcmp(cmd, "playother") == 0) {
@@ -589,18 +600,18 @@ void ui_loop_xboard(UI *ui)
 			} else if ((strcmp(cmd, "nps") == 0)) {
 				xboard_error("(unknown command): %s %s", cmd, param);
 
-			// time : TODO a complete & better support
+			// time
 			} else if ((strcmp(cmd, "time") == 0)) {
 				int t;
 				t = string_to_int(param, 100); 
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				if (ui->mode < 2) play->time[!ui->mode].left = t * 9; // 90% of available time...
+				if (ui->mode < 2) play->time[!ui->mode].left = t * 10; // 100% of available time...
 
 			} else if ((strcmp(cmd, "otim") == 0)) {
 				int t;
 				t = string_to_int(param, 100);
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				if (ui->mode < 2) play->time[ui->mode].left = t * 9; // 90% of available time...
+				if (ui->mode < 2) play->time[ui->mode].left = t * 10; // 100% of available time...
 
 			// interrupt thinking
 			} else if (strcmp(cmd, "?") == 0) {
@@ -616,6 +627,7 @@ void ui_loop_xboard(UI *ui)
 		
 			// result		
 			} else if ((strcmp(cmd, "result") == 0)) {
+				++stats.n_games;
 				if (options.auto_store) {
 					long t = real_clock();
 					play->book->options.verbosity = play->book->search->options.verbosity = 0;				
@@ -683,7 +695,7 @@ void ui_loop_xboard(UI *ui)
 			} else if ((strcmp(cmd, "memory") == 0)) {
 				int size = string_to_int(param, 100);
 				
-				for (options.hash_table_size = 10; hash_size(options.hash_table_size) < size; ++options.hash_table_size) ;
+				for (options.hash_table_size = 10; hash_size(options.hash_table_size + 1) < size; ++options.hash_table_size) ;
 				BOUND(options.hash_table_size, 10, 30, "hash-table-size");
 				log_print(xboard_log, "edax setup> hash table size: 2**%d entries\n", options.hash_table_size);
 				play_stop_pondering(play);

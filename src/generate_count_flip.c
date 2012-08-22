@@ -459,7 +459,7 @@ int main() {
 		if (merge_diagonals[n] == 1) {
 			fprintf(f, "\tn_flipped += COUNT_FLIP[%d][(P & 0x%016llxULL) * 0x%016llxULL >> 56];\n", d_flip_index(n), d_mask(n), 0x0101010101010101ULL);
 		} else if (merge_diagonals[n] == 2) {
-			fprintf(f, "\tn_flipped += COUNT_FLIP[%d][((P & 0x%016llxULL) + 0x%016llxULL & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 56];\n", v_flip_index(n), d_mask(n), d_add(n));
+			fprintf(f, "\tn_flipped += COUNT_FLIP[%d][(((P & 0x%016llxULL) + 0x%016llxULL) & 0x8080808080808080ULL) * 0x0002040810204081ULL >> 56];\n", v_flip_index(n), d_mask(n), d_add(n));
 		} else {
 			if ((x < 6 && y > 1) || (x > 1 && y < 6)) {
 				if (n == H6 || n == G6 || n == C2 || n == C1) {
