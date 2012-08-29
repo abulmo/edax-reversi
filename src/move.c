@@ -613,15 +613,15 @@ void line_print(const Line *line, int width, const char *separator, FILE *f)
 	int i;
 	int player = line->color;
 	int w = 2 + (separator ? strlen(separator) : 0);
+	int len = abs(width);
 
-	for (i = 0; i < line->n_moves && width > w; ++i, width -= w) {
+	for (i = 0; i < line->n_moves && len > w; ++i, len -= w) {
 		player = !player;
 		if (separator && i) fputs(separator, f);
 		move_print(line->move[i], player, f);
 	}
-	while (width > w) {
+	for (len = MIN(len, width); len > w; len -= w) {
 		fputc(' ', f);fputc(' ', f); if (separator) fputs(separator, f);
-		width -= w;
 	}
 }
 

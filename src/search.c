@@ -847,7 +847,7 @@ void search_check_timeout(Search *search)
  */
 void search_set_task_number(Search *search, const int n)
 {
-	task_stack_resize(search->tasks, n > 0 ? n - 1 : 0);
+	task_stack_resize(search->tasks, n > 0 ? n : 1);
 }
 
 /**

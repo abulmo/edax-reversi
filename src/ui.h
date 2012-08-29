@@ -28,7 +28,7 @@ typedef struct UI {
 	struct GGSClient *ggs;     /**< GGS Client */
 	bool is_same_play;         /**< true if play[0] == play[1] */
 	int type;                  /**< type of UI */
-	int mode;                  /**< computer's color mode */
+	int mode;                  /**< computer's color mode TODO: remove me*/
 	Event event[1];            /**< event */
 
 	void (*init)(struct UI*);  /**< init function */

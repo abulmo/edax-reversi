@@ -29,8 +29,8 @@ typedef struct Play {
 	Result result[1];          /**< search result. */
 	Book *book;                /**< opening book */
 	int type;                  /**< ui type */
-	int player;                /**< current player. */
-	int initial_player;        /**< initial player. */
+	int player;                /**< current player's color. */
+	int initial_player;        /**< initial player's color. */
 	Move game[80];             /**< game (move sequence). */
 	int i_game;                /**< current move index. */
 	int n_game;                /**< last move index. */

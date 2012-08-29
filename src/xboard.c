@@ -42,8 +42,9 @@ static void xboard_observer(Result *result)
 	printf("%4d ", 100 * result->score);
 	printf("%6lld ", result->time / 10);
 	printf("%10lld ", result->n_nodes);
+	if (result->selectivity < 5) printf("@%2d%% ", selectivity_table[result->selectivity].percent);	
 	if (result->book_move) putchar('(');
-	line_print(result->pv, 32, " ", stdout);
+	line_print(result->pv, -200, " ", stdout);
 	if (result->book_move) putchar(')');
 	putchar('\n');
 	fflush(stdout);
@@ -53,8 +54,9 @@ static void xboard_observer(Result *result)
 		fprintf(xboard_log->f, "%4d ", 100 * result->score);
 		fprintf(xboard_log->f, "%6lld ", result->time / 10);
 		fprintf(xboard_log->f, "%10lld ", result->n_nodes);
+		if (result->selectivity < 5) fprintf(xboard_log->f, "@%2d%% ", selectivity_table[result->selectivity].percent);	
 		if (result->book_move) fputc('(', xboard_log->f);
-		line_print(result->pv, 32, " ", xboard_log->f);
+		line_print(result->pv, -200, " ", xboard_log->f);
 		if (result->book_move) fputc(')', xboard_log->f);
 		putc('\n', xboard_log->f);
 		fflush(xboard_log->f);
@@ -80,7 +82,6 @@ void ui_init_xboard(UI *ui)
 	book_load(ui->book, options.book_file);
 	search->id = 1;
 	search_set_observer(search, xboard_observer);
-	ui->mode = options.mode = 3;
 	options.level = 60;
 	play->type = ui->type;
 	play->ponder->verbose = true;
@@ -285,7 +286,7 @@ static void xboard_go(UI *ui, XBoardStats *stats)
 
 	play_go(play, true);
 	xboard_move(play_get_last_move(play)->x);
-	if (ui->mode != 2) play_ponder(play);
+	play_ponder(play);
 	xboard_check_game_over(play);
 	
 	stats->time += result->time;
@@ -438,16 +439,18 @@ void ui_loop_xboard(UI *ui)
 {
 	char *cmd = NULL, *param = NULL;
 	Play *play = ui->play;
-	bool can_play = false;
 	bool alien_variant = false;
 	XBoardStats stats = {0, 0, 0};
-
+	int edax_turn = BLACK;
+	const char *(color[2]) = {"black", "white"};
+	const char *(ok[2]) = {"yes", "no"};
+	
 	// loop forever
 	for (;;) {
 		errno = 0;
 
-		if (!ui_event_exist(ui) && !play_is_game_over(play) && (ui->mode == !play->player || ui->mode == 2) && can_play) {
-			log_print(xboard_log, "edax (auto_play)> mode = %d, can_play = %s\n", ui->mode, can_play ? "true":"false");
+		if (!ui_event_exist(ui) && !play_is_game_over(play) && (edax_turn == play->player)) {
+			log_print(xboard_log, "edax (auto_play)> turn = %s\n", color[edax_turn]);
 			xboard_go(ui, &stats);
 
 		// proceed by reading a command
@@ -510,7 +513,7 @@ void ui_loop_xboard(UI *ui)
 				options.level = 60;
 				play->initial_player = board_from_FEN(play->initial_board, "8/8/8/3Pp3/3pP3/8/8/8 w - - 0 1");
 				play_new(play);
-				ui->mode = play->player;
+				edax_turn = !play->player;
 				if (alien_variant) xboard_setup(play);
 
 			// variant
@@ -538,18 +541,16 @@ void ui_loop_xboard(UI *ui)
 			// random command
 			} else if ((strcmp(cmd, "force") == 0)) {
 				play_stop_pondering(play);
-				ui->mode = play->player;
-				can_play = false;
+				edax_turn = !play->player;
 
 			// go think!
 			} else if (strcmp(cmd, "go") == 0) {
-				ui->mode = !play->player;
-				can_play = true;
+				edax_turn = play->player;
 				xboard_go(ui, &stats);
 
 			// playother
 			} else if (strcmp(cmd, "playother") == 0) {
-				ui->mode = play->player;
+				edax_turn = play->player;
 				play_ponder(play);
 
 			// white turn (obsolete in protocol version 2)
@@ -605,13 +606,13 @@ void ui_loop_xboard(UI *ui)
 				int t;
 				t = string_to_int(param, 100); 
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				if (ui->mode < 2) play->time[!ui->mode].left = t * 10; // 100% of available time...
+				play->time[edax_turn].left = t * 10; // 100% of available time...
 
 			} else if ((strcmp(cmd, "otim") == 0)) {
 				int t;
 				t = string_to_int(param, 100);
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				if (ui->mode < 2) play->time[ui->mode].left = t * 10; // 100% of available time...
+				play->time[!edax_turn].left = t * 10; // 100% of available time...
 
 			// interrupt thinking
 			} else if (strcmp(cmd, "?") == 0) {
@@ -641,6 +642,7 @@ void ui_loop_xboard(UI *ui)
 				play_set_board_from_FEN(play, param);
 				if (play->initial_player == EMPTY) xboard_error("(bad FEN): %s\n", param);
 				xboard_check_game_over(play);
+				edax_turn = !play->player;
 
 			} else if ((strcmp(cmd, "edit") == 0)) {
 				xboard_error("(unknown command): %s %s", cmd, param);
@@ -660,7 +662,7 @@ void ui_loop_xboard(UI *ui)
 
 			} else if ((strcmp(cmd, "hard") == 0)) {
 				options.can_ponder = true;
-				if (ui->mode == play->player && can_play) play_ponder(play);
+				if (edax_turn != play->player) play_ponder(play);
 
 			} else if ((strcmp(cmd, "easy") == 0)) {
 				options.can_ponder = false;

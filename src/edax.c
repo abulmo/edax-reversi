@@ -489,6 +489,20 @@ void ui_loop_edax(UI *ui)
 				t = string_to_int(param, 10); BOUND(t, 1, 3600*24*365*10, "max time");
 
 				seek_highest_mobility(play->board, t);
+
+			// seek a position
+			} else if (strcmp(cmd, "seek") == 0) {
+				Board target;
+				Line solution;
+				
+				board_set(&target, param);
+				line_init(&solution, play->player);
+				
+				if (seek_position(&target, play->board, &solution)) {
+					printf("Solution found:\n");
+					line_print(&solution, 200, " ", stdout);
+					putchar('\n');
+				}
 			
 			// bench (a serie of low level tests).
 			} else if (strcmp(cmd, "bench") == 0) {
@@ -886,9 +900,9 @@ void ui_loop_edax(UI *ui)
 				ui->loop(ui);
 				return;
 
+#ifdef TUNE_EDAX
 			/* edax tuning */
 			} else if (strcmp(cmd, "tune") == 0) {
-#ifdef TUNE_EDAX
 				char problem[FILENAME_MAX];
 				char *w_name;
 				play_stop_pondering(play);

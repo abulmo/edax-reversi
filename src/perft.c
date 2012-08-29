@@ -1084,3 +1084,37 @@ void count_shapes(const Board *board, const int depth, const int size)
 	puts("----------------------------------------------------------");
 }
 
+
+
+/**
+ * @brief seek a game that reach to a position
+ *
+ * @param board Board.
+ */
+bool seek_position(const Board *target, const Board *board, Line *line) {
+ 	const unsigned long long mask = target->opponent | target->player;
+ 	unsigned long long moves;
+ 	int x;
+ 	Board next[1];
+ 	
+ 	if (board_equal(board, target)) return true;
+ 		
+ 	moves = get_moves(board->player, board->opponent);
+	if (moves) {
+		moves &= mask;
+		foreach_bit (x, moves) {
+			line_push(line, x);
+			board_next(board, x, next);
+			if (seek_position(target, next, line)) return true;
+			line_pop(line);
+		}
+	} else {
+		board_next(board, PASS, next);
+		if (can_move(next->player, next->opponent)) {
+			if (seek_position(target, next, line)) return true;
+		}
+	}
+	
+	return false;
+}
+
