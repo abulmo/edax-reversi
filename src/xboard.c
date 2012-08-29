@@ -443,7 +443,6 @@ void ui_loop_xboard(UI *ui)
 	XBoardStats stats = {0, 0, 0};
 	int edax_turn = BLACK;
 	const char *(color[2]) = {"black", "white"};
-	const char *(ok[2]) = {"yes", "no"};
 	
 	// loop forever
 	for (;;) {

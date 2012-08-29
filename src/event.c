@@ -45,11 +45,10 @@ void event_init(Event *event)
 void event_clear_messages(Event *event)
 {
 	int i;
-	const int size = event->size;
 
 	spin_lock(event);
 
-	for (i = 0; i < size; ++i) {
+	for (i = 0; i < event->size; ++i) {
 		free(event->ring[i]);
 		event->ring[i] = NULL;
 	}

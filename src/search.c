@@ -383,8 +383,6 @@ void search_init(Search *search)
 
 	/* task associated with the current search */
 	search->task = search->tasks->task;
-//	lock_init(search->task);
-//	condition_init(search->task);
 	search->task->loop = false;
 	search->task->run = true;
 	search->task->node = NULL;
@@ -443,9 +441,6 @@ void search_free(Search *search)
 	hash_free(search->pv_table);
 	hash_free(search->shallow_table);
 	eval_free(search->eval);
-
-//	lock_free(search->task);
-//	condition_free(search->task);
 	
 	task_stack_free(search->tasks);
 	free(search->tasks);

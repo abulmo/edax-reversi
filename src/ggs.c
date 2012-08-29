@@ -915,7 +915,6 @@ static void ggs_event_init(GGSEvent *event)
 {
 	struct addrinfo hints;
 	struct addrinfo *result, *rp = NULL;
-	int value;
 
 	lock_init(event);
 	event->loop = true;
@@ -925,7 +924,7 @@ static void ggs_event_init(GGSEvent *event)
 #ifdef _WIN32
 	{
 		WSADATA wsaData;
-		value = WSAStartup(MAKEWORD(2,2), &wsaData);
+		int value = WSAStartup(MAKEWORD(2,2), &wsaData);
 		if (value != NO_ERROR) {
 		  fatal_error("WSAStartup failed: %d \n", value);
 		}
@@ -955,11 +954,6 @@ static void ggs_event_init(GGSEvent *event)
 		}
   	  freeaddrinfo(result);
 	}
-/* TODO: remove useless options */
-	value = 0; setsockopt(event->socket, SOL_SOCKET, SO_KEEPALIVE, (void*) &value, sizeof (value));
-	value = 1; setsockopt(event->socket, SOL_SOCKET, SO_REUSEADDR, (void*) &value, sizeof (value));
-	value = 1; setsockopt(event->socket, SOL_SOCKET, SO_DONTROUTE, (void*) &value, sizeof (value));
-	value = 1; setsockopt(event->socket, IPPROTO_TCP, TCP_NODELAY, (void*) &value, sizeof (value));
 
 	thread_create(&event->thread, ggs_event_loop, event);
 }
