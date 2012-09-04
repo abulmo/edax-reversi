@@ -441,7 +441,7 @@ void ui_loop_xboard(UI *ui)
 	Play *play = ui->play;
 	bool alien_variant = false;
 	XBoardStats stats = {0, 0, 0};
-	int edax_turn = BLACK;
+	int edax_turn = EMPTY;
 	const char *(color[2]) = {"black", "white"};
 	
 	// loop forever
@@ -540,7 +540,7 @@ void ui_loop_xboard(UI *ui)
 			// random command
 			} else if ((strcmp(cmd, "force") == 0)) {
 				play_stop_pondering(play);
-				edax_turn = !play->player;
+				edax_turn = EMPTY;
 
 			// go think!
 			} else if (strcmp(cmd, "go") == 0) {
@@ -641,7 +641,6 @@ void ui_loop_xboard(UI *ui)
 				play_set_board_from_FEN(play, param);
 				if (play->initial_player == EMPTY) xboard_error("(bad FEN): %s\n", param);
 				xboard_check_game_over(play);
-				edax_turn = !play->player;
 
 			} else if ((strcmp(cmd, "edit") == 0)) {
 				xboard_error("(unknown command): %s %s", cmd, param);

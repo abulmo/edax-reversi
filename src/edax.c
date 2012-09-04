@@ -332,7 +332,8 @@ void ui_loop_edax(UI *ui)
 
 			// skip empty lines or commented lines
 			if (*cmd == '\0' || *cmd == '#') {
-			/* help */
+			
+			// help
 			} else if (strcmp(cmd, "help") == 0 || strcmp(cmd, "?") == 0) {
 				if (*param == '\0' || strcmp(param, "options") == 0) help_options();
 				if (*param == '\0' || strcmp(param, "commands") == 0) help_commands();
@@ -358,7 +359,11 @@ void ui_loop_edax(UI *ui)
 				play_save(play, param);
 
 			// quit
-			} else if (!options.auto_quit && (strcmp(cmd, "quit") == 0 || strcmp(cmd, "q") == 0 || strcmp(cmd, "exit") == 0 || (strcmp(cmd, "eof") == 0 && (ui->mode != 2 || play_is_game_over(play))))) {
+			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "q") == 0 || strcmp(cmd, "exit") == 0) {
+				free(cmd); free(param);
+				return;
+
+			} else if (!options.auto_quit && (strcmp(cmd, "eof") == 0 && (ui->mode != 2 || play_is_game_over(play)))){
 				free(cmd); free(param);
 				return;
 
