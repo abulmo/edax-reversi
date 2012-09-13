@@ -1,5 +1,5 @@
 /**
- * @file count_last_flip.c
+ * @file count_last_flip_kindergarten.c
  *
  *
  * A function is provided to count the number of fipped disc of the last move
@@ -11,7 +11,7 @@
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
  *  - COUNT_FLIP[square where we play][8-bits disc pattern].
-* The problem is thus to convert any line of a 64-bits disc pattern into an
+ * The problem is thus to convert any line of a 64-bits disc pattern into an
  * 8-bits disc pattern. A fast way to do this is to select the right line,
  * with a bit-mask, to gather the masked-bits into a continuous set by a simple
  * multiplication and to right-shift the result to scale it into a number

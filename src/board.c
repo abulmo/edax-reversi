@@ -43,6 +43,9 @@
 #elif MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN
 	#include "flip_bitscan.c"
 	#include "count_last_flip_bitscan.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_ROXANE
+	#include "flip_roxane.c"
+	#include "count_last_flip_kindergarten.c"
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
 	#include "count_last_flip_kindergarten.c"

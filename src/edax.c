@@ -8,74 +8,88 @@
  * evolution of the search engine. Here is a summary of the commands:
  *
  * Options:
- * Options must be entered in the form '&lt;set&gt; \&lt;option&gt; &lt;=&gt; \&lt;value&gt;', with &lt;set&gt; and &lt;=&gt; being optional.
- *   -verbose &lt;n&gt;          set Edax verbosity (default 1).
- *   -noise &lt;n&gt;            start displaying Edax search result from this depth (default 5).
- *   -witdh &lt;n&gt;            display edax search results using &lt;width&gt; characters (default 80).
- *   -hash-table-size &lt;n&gt;  set hashtable size (default 18 bits).
- *   -n-tasks &lt;n&gt;          control the number of parallel threads used in searching (default 1).
- *   -cpu &lt;n&gt;              set the cpu/core used (only if n-tasks = 1) (default 1).
- *   -l|level &lt;n&gt;          search using limited depth (default 21).
- *   -t|game-time &lt;time&gt;   search using limited time per game.
- *   -move-time &lt;time&gt;     search using limited time per move.
- *   -ponder &lt;on/off&gt;      set pondering on/off.
- *   -book-file &lt;file&gt;     use &lt;file&gt; as default book file (default data/book.dat).
- *   -book-usage &lt;on/off&gt;  use or do not use the opening book.
- *   -book-randomness &lt;n&gt;  play various but worse moves from the opening book.
- *   -auto-start &lt;on/off&gt;  automatically start a new game.
- *   -auto-swap &lt;on/off&gt;   automatically swap players between each game.
- *   -auto-store &lt;on/off&gt;  automatically store each game into the opening book.
+ * Options must be entered in the form '[set] <option> [=] <value>', with [set] and\n[=] being optional.
+ *   -verbose [n]          set Edax verbosity (default 1).
+ *   -noise [n]            start displaying Edax search result from this depth\n  (default 5).
+ *   -witdh [n]            display edax search results using <width> characters\n  (default 80).
+ *   -hash-table-size [n]  set hashtable size (default 18 bits).
+ *   -n-tasks [n]          control the number of parallel threads used in searching\n  (default 1).
+ *   -l|level [n]          search using limited depth (default 21).
+ *   -t|game-time <time>   search using limited time per game.
+ *   -move-time <time>     search using limited time per move.
+ *   -ponder [on/off]      set pondering on/off.
+ *   -book-file [file]     use [file] as default book file (default data/book.dat).
+ *   -book-usage [on/off]  use or do not use the opening book.
+ *   -book-randomness [n]  play various but worse moves from the opening book.
+ *   -auto-start [on/off]  automatically start a new game.
+ *   -auto-swap [on/off]   automatically swap players between each game.
+ *   -auto-store [on/off]  automatically store each game into the opening book.
  *
  * Commands:
- * Commands must be entered in the form '&lt;command&gt; &lt;parameter&gt;'.
+ * Commands must be entered in the form '<command> <parameters>'.
  *   -i|nit               start a new game from standard initial position.
  *   -n|ew                start a new game from a personalized position.
- *   -setboard &lt;board&gt;    set a personalized position to start from.
- *   -o|open|load &lt;file&gt;  load a played game.
- *   -s|save &lt;file&gt;       save a played game.
+ *   -setboard <board>    set a personalized position to start from.
+ *   -o|open|load [file]  load a played game.
+ *   -s|save [file]       save a played game.
  *   -q|quit|exit         quit from edax.
  *   -u|undo              undo the last played move.
  *   -r|redo              redo the last played move.
- *   -play &lt;moves&gt;        play a sequence of moves.
+ *   -play <moves>        play a sequence of moves.
+ *   -force <moves>       force to play an opening.
  *   -go                  ask edax to play.
  *   -stop                stop edax search.
- *   -hint &lt;n&gt;            ask edax to search the first bestmoves.
- *   -m|mode &lt;n&gt;          ask edax to automatically play (default = 3).
- *   -solve &lt;file&gt;        solve a set of positions.
- *   -a|analyze &lt;n&gt;       retro-analyze the game.
- *   -wtest &lt;file&gt;        check the theoric scores of a wthor base file.
- *   -count games &lt;n&gt;     compute the number of moves from the current position up to depth &lt;n&gt;.
- *   -count positions &lt;n&gt; compute the number of unique positions from the current position up to depth &lt;n&gt;.
- *   -count shapes &lt;n&gt;    compute the number of unique shapes from the current position up to depth &lt;n&gt;.
+ *   -hint [n]            ask edax to search the first bestmoves.
+ *   -m|mode [n]          ask edax to automatically play (default = 3).
+ *   -a|analyze [n]       retro-analyze the game.
  *   -?|help              show this message.
  *   -v|version           display the version number.
- *   -&lt;move&gt;              play a move.
  *
  * Book Commands:
- * Book Commands must be entered in the form 'b|book &lt;command&gt; &lt;parameter&gt;'.
- *   -new &lt;n1&gt; &lt;n2&gt;       create a new empty book with level &lt;n1&gt; and depth &lt;n2&gt;.
- *   -load &lt;file&gt;         load an opening book from a binary opening file.
- *   -merge &lt;file&gt;        merge an opening book with the current opening book.
- *   -save &lt;file&gt;         save an opening book to a binary opening file.
- *   -import &lt;file&gt;       load an opening book from a portable text file.
+ * Book Commands must be entered in the form 'b|book <command> <parameters>'.
+ *   -new <n1> <n2>       create a new empty book with level <n1> and depth <n2>.
+ *   -load [file]         load an opening book from a binary opening file.
+ *   -merge [file]        merge an opening book with the current opening book.
+ *   -save [file]         save an opening book to a binary opening file.
+ *   -import [file]       load an opening book from a portable text file.
+ *   -export [file]       save an opening book to a portable text file.
  *   -on                  use the opening book.
  *   -off                 do not use the opening book.
  *   -show                display details about the current position.
  *   -info                display book general information.
- *   -a|analyze &lt;n&gt;       retro-analyze the game using the opening book.
- *   -randomness &lt;n&gt;      play more various but worse move from the opening book.
- *   -depth &lt;n&gt;           change book depth (up to which to add positions).
- *   -deepen &lt;n&gt;          change book level & reevalute the whole book (very slow!).
- *   -fix                 fix the opening book: add missing links and negamax the whole book tree.
+ *   -a|analyze [n]       retro-analyze the game using the opening book.
+ *   -randomness [n]      play more various but worse move from the opening book.
+ *   -depth [n]           change book depth (up to which to add positions).
+ *   -deepen [n]          change book level & reevalute the whole book (very slow!).
+ *   -fix                 fix the opening book: add missing links and negamax the\n  whole book tree.
  *   -store               add the last played game to the opening book.
- *   -deviate &lt;n1&gt; &lt;n2&gt;   add positions by deviating with a relative error &lt;n1&gt; and an absolute error &lt;n2&gt;.
- *   -enhance &lt;n1&gt; &lt;n2&gt;   add positions by improving score accuracy with a midgame error &lt;n1&gt; and an endcut error &lt;n2&gt;.
- *   -fill &lt;n&gt;            add positions between existing positions.
- *   -prune               remove unreachable positions. *
- *   -add &lt;file&gt;          add positions from a game base file (txt, ggf, sgf or wthor format).
+ *   -deviate <n1> <n2>   add positions by deviating with a relative error <n1> and\n  an absolute error <n2>.
+ *   -enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n  error <n1> and an endcut error <n2>.
+ *   -fill [n]            add positions between existing positions.
+ *   -prune               remove unreachable positions.
+ *   -add [file]          add positions from a game base file (txt, ggf, sgf or\n  wthor format).
+ *
+ * Game DataBase Commands:
+ *   -convert [file_in] [file_out]     convert between different format.
+ *   -unique [file_in] [file_out]      remove doublons in the base.
+ *   -check [file_in] [n]              check error in the last <n> moves.
+ *   -correct [file_in] [n]            correct error in the last <n> moves.
+ *   -complete [file_in]               complete a database by playing the last\n  missing moves.
+ *   -problem [file_in] [n] [file_out] build a set of <n> problems from a game\n  database.
+ *
+ * Tests commands:
+ *   -solve [file]        solve a set of positions.
+ *   -obftest [file]      Test from an obf file.
+ *   -script-to-obf [file]Convert a script to an obf file.
+ *   -wtest [file]        check the theoric scores of a wthor base file.
+ *   -count games [d]     compute the number of moves from the current position up\n  to depth [d].
+ *   -perft [d]           same as above, but without hash table.
+ *   -estimate [d] [n]    estimate the number of moves from the current position up\n  to depth [d].
+ *   -count positions [d] compute the number of positions from the current position\n  up to depth [d].
+ *   -count shapes [d]    compute the number of shapes from the current position up\n  to depth [d].
  *
  *
- * @date 1998 - 2013
+ * @date 1998 - 2012
  * @author Richard Delorme
  * @version 4.3
  *

@@ -30,7 +30,7 @@
  * @date 1998 - 2012
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.2
+ * @version 4.3
  * 
  */
 

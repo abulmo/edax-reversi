@@ -147,6 +147,7 @@ int options_read(const char *option, const char *value)
 	else if (strcmp(option, "debug-cassio") == 0) options.debug_cassio = true;
 	else if (strcmp(option, "follow-cassio") == 0) options.transgress_cassio = false;
 	else if (strcmp(option, "?") == 0 || strcmp(option, "help") == 0) usage();
+	else if (strcmp(option, "cpu") == 0) options.cpu_affinity = true;
 	else {
 		read = 0;
 		if (value == NULL || *value == '\0') return read;
@@ -157,7 +158,6 @@ int options_read(const char *option, const char *value)
 
 		else if (strcmp(option, "h") == 0  || strcmp(option, "hash-table-size") == 0) options.hash_table_size = string_to_int(value, options.hash_table_size);
 		else if (strcmp(option, "n") == 0 || strcmp(option, "n-tasks") == 0) options.n_task = string_to_int(value, options.n_task);
-		else if (strcmp(option, "cpu") == 0) options.cpu_affinity = true;
 		else if (strcmp(option, "l") == 0 || strcmp(option, "level") == 0) {
 			options.level = string_to_int(value, options.level);
 			options.play_type = EDAX_FIXED_LEVEL;

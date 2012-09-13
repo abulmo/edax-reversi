@@ -1042,7 +1042,7 @@ void game_import_pgn(Game *game, FILE *f)
 					}
 					break;
 			}				
-		}  else  if  (isdigit(c)) {
+		}  else  if (isdigit(c)) {
 			switch(state) {
 			case STATE_BEGIN_SCORE:
 				score[1] = score[1] * 10 + (c - '0');
@@ -1205,6 +1205,8 @@ void game_export_pgn(const Game *game, FILE *f)
 	time_t t = time(NULL);
 	struct tm *date = localtime(&t);
 	int half_score = game_score(game) / 2;
+	const char *result = half_score < -32 ? "*" : (half_score < 0 ? "0-1" : (half_score > 0 ? "1-0" : "1/2-1/2"));
+	const char *winner = (half_score < 0 ?  game->name[WHITE]: (half_score > 0 ? game->name[BLACK] : NULL));
 	Board board[1];
 	char s[80];
 	int i, j, k;
@@ -1222,10 +1224,9 @@ void game_export_pgn(const Game *game, FILE *f)
 	fputs("[Round \"?\"]\n", f);
 	fprintf(f, "[Black \"%s\"]\n", game->name[BLACK]);
 	fprintf(f, "[White \"%s\"]\n", game->name[WHITE]);
-	if (half_score >= -32) fprintf(f, "[Result \"%d-%d\"]\n", 32 + half_score, 32 - half_score);
-	else fprintf(f, "[Result \"*\"]");
+	fprintf(f, "[Result \"%s\"]\n", result);
 	if (!board_equal(game->initial_board, board)) {
-		fprintf(f, "[Board \"%s\"]\n", board_to_string(game->initial_board, game->player, s));
+		fprintf(f, "[FEN \"%s\"]\n", board_to_FEN(game->initial_board, game->player, s));
 		*board = *game->initial_board;
 	}
 	fputc('\n', f);
@@ -1233,7 +1234,7 @@ void game_export_pgn(const Game *game, FILE *f)
 	player = game->player;
 	for (i = j = k = 0; i < 60 && game->move[i] != NOMOVE; ++i, ++k) {
 		if (!can_move(board->player, board->opponent)) {
-			s[0] = s[1] = '-'; --i;
+			s[0] = 'p'; s[1] = 'a'; s[2] = 's'; s[3] = 's'; s[4] = '\0'; --i;
 			board_pass(board);
 		} else if (game_update_board(board, game->move[i])) {
 			move_to_string(game->move[i], WHITE, s);
@@ -1249,8 +1250,9 @@ void game_export_pgn(const Game *game, FILE *f)
 		fputs(s, f); j += 2;
 		player = !player;
 	}
-	if (half_score >= -32) fprintf(f, " %d-%d\n\n\n", 32 + half_score, 32 - half_score);
-	else fprintf(f, "*\n\n\n");
+	if (winner) fprintf(f, "\n{%s wins %d-%d}", winner, 32 + half_score, 32 - half_score);
+	else if (half_score == 0) fprintf(f, "\n{Draw 32-32}");
+	fprintf(f, " %s\n\n\n", result);
 }
 
 /**

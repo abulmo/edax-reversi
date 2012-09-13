@@ -44,7 +44,7 @@ ifeq ($(COMP),gcc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=corei7 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x32-modern)
 		CFLAGS += -mx32 -march=native -DUSE_GAS_X64 -DPOPCOUNT
@@ -295,8 +295,8 @@ help:
 	@echo ""
 	@echo "Compilers:"
 	@echo "   gcc        GNU C compiler version >= 4.6"
-	@echo "   gcc-old    GNU C compiler version >= 3.0""
-	@echo "   g++        GNU C++ compiler version >= 4.6""
+	@echo "   gcc-old    GNU C compiler version >= 3.0"
+	@echo "   g++        GNU C++ compiler version >= 4.6"
 	@echo "   icc*       Intel C Compiler"
 	@echo "   clang      Clang Compiler"
 	@echo ""
@@ -326,6 +326,10 @@ pgo-rebuild:
 	@echo "rebuilding edax with pgo..."
 	$(CC) $(CFLAGS) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
 
+prof:
+	@echo "rebuilding edax with pgo..."
+	$(CC) $(CFLAGS) all.c -g -inline-level=0 -o $(BIN)/$(EXE) $(LIBS) -lprofiler
+
 debug:
 	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=debug build
 
@@ -344,7 +348,7 @@ clean:
 	rm -f pgopti* *.dyn all.gc* *~ *.o generate_flip generate_count_flip
 
 noip:
-	$(CC) $(CFLAGS) $(SRC) -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) -g $(CFLAGS) $(SRC) -o $(BIN)/$(EXE) $(LIBS)
 
 code:
 	$(CC) $(CFLAGS) generate_flip.c -o generate_flip

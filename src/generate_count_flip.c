@@ -389,7 +389,7 @@ int main() {
 	puts("Generating code..."); fflush(stdout);
 
 	fprintf(f, "/**\n");
-	fprintf(f, " * @file count_last_flip.c\n");
+	fprintf(f, " * @file count_last_flip_kindergarten.c\n");
 	fprintf(f, " *\n");
 	fprintf(f, " *\n");
 	fprintf(f, " * A function is provided to count the number of fipped disc of the last move\n");
@@ -401,7 +401,7 @@ int main() {
 	fprintf(f, " * The basic principle is to read into an array a precomputed result. Doing\n");
 	fprintf(f, " * this is easy for a single line ; as we can use arrays of the form:\n");
 	fprintf(f, " *  - COUNT_FLIP[square where we play][8-bits disc pattern].\n");
-	fprintf(f, "* The problem is thus to convert any line of a 64-bits disc pattern into an\n");
+	fprintf(f, " * The problem is thus to convert any line of a 64-bits disc pattern into an\n");
 	fprintf(f, " * 8-bits disc pattern. A fast way to do this is to select the right line,\n");
 	fprintf(f, " * with a bit-mask, to gather the masked-bits into a continuous set by a simple\n");
 	fprintf(f, " * multiplication and to right-shift the result to scale it into a number\n");

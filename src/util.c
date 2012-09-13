@@ -140,11 +140,11 @@ void time_print(long long t, bool justified, FILE* f)
 	h = t / 3600000; t -= h * 3600000;
 	m = t / 60000; t -= m * 60000;
 	s = t / 1000;
-	c = (t - s * 1000) / 10;
+	c = (t - s * 1000);
 
-	if (d) fprintf(f, "%2d:%02d:%02d:%02d.%02d", sign*d, h, m, s, c);
-	else if (h) fprintf(f, "%s%2d:%02d:%02d.%02d", space, sign*h, m, s, c);
-	else fprintf(f, "%s%s%2d:%02d.%02d", space, space, sign*m, s, c);
+	if (d) fprintf(f, "%2d:%02d:%02d:%02d.%03d", sign*d, h, m, s, c);
+	else if (h) fprintf(f, "%s%2d:%02d:%02d.%03d", space, sign*h, m, s, c);
+	else fprintf(f, "%s%s%2d:%02d.%03d", space, space, sign*m, s, c);
 }
 
 /**

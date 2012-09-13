@@ -18,9 +18,10 @@
 #define MOVE_GENERATOR_KINDERGARTEN 2
 #define MOVE_GENERATOR_SSE 3
 #define MOVE_GENERATOR_BITSCAN 4
+#define MOVE_GENERATOR_ROXANE 5
 
 /**move generation. */
-#define MOVE_GENERATOR MOVE_GENERATOR_KINDERGARTEN
+#define MOVE_GENERATOR MOVE_GENERATOR_ROXANE
 
 /** transposition cutoff usage. */
 #define USE_TC true
