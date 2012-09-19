@@ -123,7 +123,7 @@ typedef struct Position {
 	unsigned char todo;        /**< todo flag */
 } Position;
 
-static Position* book_probe(Book*, const Board*);
+static Position* book_probe(const Book*, const Board*);
 static void book_add(Book*, const Position*);
 static void position_print(const Position*, const Board*, FILE*);
 
@@ -1018,6 +1018,42 @@ static void position_enhance(Position *position, Book *book)
 }
 
 /**
+ * @brief Feed hash from a position.
+ *
+ * Go through the book sub-tree following the current position & feed the hash table from this position.
+ *
+ * @param position Position to expand.
+ * @param book Opening book.
+ * @param search Hashtables container.
+ */
+static void board_feed_hash(Board *board, const Book *book, Search *search, const bool is_pv)
+{
+	Position *position;
+	const unsigned long long hash_code = board_get_hash_code(board);
+	MoveList movelist[1];
+	Move *m;
+
+	position = book_probe(book, board);
+	if (position) {
+		const int n_empties = board_count_empties(position->board);
+		const int depth = LEVEL[position->level][n_empties].depth;
+		const int selectivity = LEVEL[position->level][n_empties].selectivity;
+		const int score = position->score.value;
+		int move = NOMOVE;
+
+		position_get_moves(position, board, movelist);
+		foreach_move(m, movelist) {
+			if (move == NOMOVE) move = m->x;
+			board_update(board, m);
+				board_feed_hash(board, book, search, is_pv && m->score == score);
+			board_restore(board, m);
+		}
+		hash_feed(search->hash_table, hash_code, depth, selectivity, score, score, move);
+		if (is_pv) hash_feed(search->pv_table, hash_code, depth, selectivity, score, score, move);
+	}
+}
+
+/**
  * @brief Fill the opening book.
  *
  * Add positions to link existing positions.
@@ -1243,7 +1279,7 @@ static double book_get_age(Book *book)
  * @param board Board to find in the array.
  * @return a position containg the board (or a symetry) or NULL is no position is found.
  */
-static Position* book_probe(Book *book, const Board *board)
+static Position* book_probe(const Book *book, const Board *board)
 {
 	Board unique[1];
 	board_unique(board, unique);
@@ -2495,3 +2531,13 @@ void book_stats(Book *book)
 	fflush(stdout);
 }
 
+/**
+ * @brief feed hash table from the opening book.
+ * 
+ * @param book Opening book.
+ * @param search HashTables container.
+ */
+void book_feed_hash(const Book *book, Board *board, Search *search)
+{
+	board_feed_hash(board, book, search, true);
+}

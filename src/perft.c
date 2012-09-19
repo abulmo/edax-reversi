@@ -661,12 +661,11 @@ static void boardcache_delete(BoardCache *hash)
  * @param hash Hash table.
  * @param b Position.
  */
-static bool boardcache_append(BoardCache *hash, const Board *b)
+static bool boardcache_undone(BoardCache *hash, const Board *b)
 {
 	Board u;
 	unsigned long long h;
-	int i, j;
-	int k, l;
+	int i;
 
 	board_unique(b, &u);
 	h = board_get_hash_code(&u);
@@ -676,14 +675,30 @@ static bool boardcache_append(BoardCache *hash, const Board *b)
 	 || board_compare(&u, hash->array + i + 2) == 0
 	 || board_compare(&u, hash->array + i + 3) == 0) return false;
 
+	return true;
+}
+
+
+static void boardcache_append(BoardCache *hash, const Board *b)
+{
+	Board u;
+	unsigned long long h;
+	int i, j, k, l;
+	
+	board_unique(b, &u);
+	h = board_get_hash_code(&u);
+	i = (h & hash->mask);
+	if (board_compare(&u, hash->array + i) == 0
+	 || board_compare(&u, hash->array + i + 1) == 0
+	 || board_compare(&u, hash->array + i + 2) == 0
+	 || board_compare(&u, hash->array + i + 3) == 0) return;
+
 	l = board_count_empties(hash->array + i); j = i;
 	k = board_count_empties(hash->array + ++i); if (k > l) {l = k; j = i;}
 	k = board_count_empties(hash->array + ++i); if (k > l) {l = k; j = i;}
 	k = board_count_empties(hash->array + ++i); if (k > l) {l = k; j = i;}
 
 	hash->array[j] = u;
-
-	return true;
 }
 
 /**
@@ -746,7 +761,7 @@ static unsigned long long count_position(PositionHash *hash, BoardCache *cache, 
 	int x;
 	Board next[1];
 
-	if (boardcache_append(cache, board)) {
+	if (boardcache_undone(cache, board)) {
 		if (depth == 0) return positionhash_append(hash, board);
 		moves = get_moves(board->player, board->opponent);
 
@@ -759,6 +774,7 @@ static unsigned long long count_position(PositionHash *hash, BoardCache *cache, 
 			board_next(board, PASS, next);
 			nodes += count_position(hash, cache, next, depth);
 		}
+		boardcache_append(cache, board);
 	}
 
 	return nodes;
@@ -778,7 +794,7 @@ static unsigned long long count_position_6x6(PositionHash *hash, BoardCache *cac
 	int x;
 	Board next[1];
 
-	if (boardcache_append(cache, board)) {
+	if (boardcache_undone(cache, board)) {
 		if (depth == 0) return positionhash_append(hash, board);
 		moves = get_moves_6x6(board->player, board->opponent);
 
@@ -791,6 +807,7 @@ static unsigned long long count_position_6x6(PositionHash *hash, BoardCache *cac
 			board_next(board, PASS, next);
 			nodes += count_position_6x6(hash, cache, next, depth);
 		}
+		boardcache_append(cache, board);
 	}
 
 	return nodes;
@@ -994,7 +1011,7 @@ static unsigned long long count_shape(ShapeHash *hash, BoardCache *cache, const 
 	int x;
 	Board next[1];
 
-	if (boardcache_append(cache, board)) {
+	if (boardcache_undone(cache, board)) {
 		if (depth == 0) return shapehash_append(hash, board);;
 		moves = get_moves(board->player, board->opponent);
 
@@ -1009,6 +1026,7 @@ static unsigned long long count_shape(ShapeHash *hash, BoardCache *cache, const 
 				nodes += count_shape(hash, cache, next, depth);
 			}
 		}
+		boardcache_append(cache, board);
 	}
 
 	return nodes;
@@ -1028,7 +1046,7 @@ static unsigned long long count_shape_6x6(ShapeHash *hash, BoardCache *cache, co
 	int x;
 	Board next[1];
 
-	if (boardcache_append(cache, board)) {
+	if (boardcache_undone(cache, board)) {
 		if (depth == 0) return shapehash_append(hash, board);
 		moves = get_moves_6x6(board->player, board->opponent);
 
@@ -1043,6 +1061,7 @@ static unsigned long long count_shape_6x6(ShapeHash *hash, BoardCache *cache, co
 				nodes += count_shape_6x6(hash, cache, next, depth);
 			}
 		}
+		boardcache_append(cache, board);
 	}
 
 	return nodes;

@@ -1088,9 +1088,9 @@ void result_print(Result *result, FILE *f)
 {
 	char bound;
 #ifdef _WIN32
-	const int PRINTED_WIDTH = 52;
+	const int PRINTED_WIDTH = 53;
 #else
-	const int PRINTED_WIDTH = 50;
+	const int PRINTED_WIDTH = 51;
 #endif
 
 	spin_lock(result);

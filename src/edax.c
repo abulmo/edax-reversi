@@ -786,6 +786,10 @@ void ui_loop_edax(UI *ui)
 				} else if (strcmp(book_cmd, "deepen") == 0) {
 					book_deepen(book);
 
+				// add book positions to the hash table
+				} else if (strcmp(book_cmd, "feed-hash") == 0) {
+					book_feed_hash(book, play->board, play->search);
+
 				// wrong command ?
 				} else {
 					warn("Unknown book command: \"%s %s\"\n", cmd, param);

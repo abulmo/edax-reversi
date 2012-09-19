@@ -1071,7 +1071,7 @@ char* board_to_string(const Board *board, const int player, char *s)
  */
 void board_print_FEN(const Board *board, const int player, FILE *f)
 {
-	char s[80];
+	char s[256];
 	fputs(board_to_FEN(board, player, s), f);
 }
 
@@ -1102,7 +1102,7 @@ char* board_to_FEN(const Board *board, const int player, char *string)
 				*s++ = n_empties + '0';
 				n_empties = 0;
 			}
-			if (r > 0) *s++ = '/';
+			*s++ = '/';
 		}
 		x = 8 * r + c;
 		if (player == BLACK) square = 2 - ((board->opponent >> x) & 1) - 2 * ((board->player >> x) & 1);
@@ -1117,6 +1117,10 @@ char* board_to_FEN(const Board *board, const int player, char *string)
 			}
 			*s++ = piece[square];
 		}
+	}
+	if (n_empties) {
+		*s++ = n_empties + '0';
+		n_empties = 0;
 	}
 	*s++ = ' ';
 	*s++ = color[player];

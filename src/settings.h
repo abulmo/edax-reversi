@@ -21,7 +21,7 @@
 #define MOVE_GENERATOR_ROXANE 5
 
 /**move generation. */
-#define MOVE_GENERATOR MOVE_GENERATOR_ROXANE
+#define MOVE_GENERATOR MOVE_GENERATOR_CARRY
 
 /** transposition cutoff usage. */
 #define USE_TC true

@@ -874,6 +874,7 @@ void base_to_FEN(Base *base, const int n_empties, const char *problem)
 	for (i = 0; i < base->n_games; ++i) {
 		if (game_get_board(base->game + i, 60 - n_empties, board)) {
 			board_print_FEN(board, n_empties & 1, f);
+			putc('\n', f);
 		}
 	}
 

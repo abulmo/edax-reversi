@@ -1019,7 +1019,7 @@ void play_print(Play *play, FILE *f)
 
 		switch(i) {
 		case 0:
-			fputs("  ", f); time_print(play->time[BLACK].spent, true, f); fputs("        ", f);
+			fputs("  ", f); time_print(play->time[BLACK].spent, true, f); fputs("       ", f);
 			break;
 		case 1:
 			fprintf(f,"   %2d discs  %2d moves   ", discs[BLACK], mobility[BLACK]);
