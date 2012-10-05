@@ -1090,7 +1090,7 @@ void result_print(Result *result, FILE *f)
 #ifdef _WIN32
 	const int PRINTED_WIDTH = 53;
 #else
-	const int PRINTED_WIDTH = 51;
+	const int PRINTED_WIDTH = 52;
 #endif
 
 	spin_lock(result);

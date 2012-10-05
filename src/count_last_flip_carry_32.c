@@ -1,5 +1,5 @@
 /**
- * @file count_last_flip.c
+ * @file count_last_flip_carry_32.c
  *
  *
  * A function is provided to count the number of fipped disc of the last move
@@ -22,7 +22,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * With Modifications by Valery ClaudePierre (merging diagonals).
+ * With 135 degree merge, instead of Valery ClaudePierre's modification.
  *
  * @date 1998 - 2012
  * @author Richard Delorme
@@ -379,9 +379,9 @@ static int count_last_flip_A3(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_2[(((LODWORD(P) & 0x01010101u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 24];
+	n_flipped  = COUNT_FLIP_2[((LODWORD(P) & 0x02010101u) * 0x01020404u + (HIDWORD(P) & 0x20100804u) * 0x04040404u) >> 24];	// A1A3F8
 	n_flipped += COUNT_FLIP_R[(LODWORD(P) >> 17) & 0x7f];
-	n_flipped += COUNT_FLIP_2[((((((LODWORD(P) & 0x02010204u) >> 2) + 0x0783c180u) & 0x08040201u) + ((HIDWORD(P) & 0x20100804u) << 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_5[((LODWORD(P) & 0x01010204u) * 0x20202010u + (HIDWORD(P) & 0x01010101u) * 0x08040201u) >> 24];	// C1A3A8
 
 	return n_flipped;
 }
@@ -396,9 +396,9 @@ static int count_last_flip_B3(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_2[(((LODWORD(P) & 0x02020202u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 24];
+	n_flipped  = COUNT_FLIP_2[((LODWORD(P) & 0x04020202u) * 0x00810202u + (HIDWORD(P) & 0x40201008u) * 0x02020202u) >> 24];	// B1B3G8
 	n_flipped += COUNT_FLIP_R[(LODWORD(P) >> 18) & 0x3f];
-	n_flipped += COUNT_FLIP_2[((((((LODWORD(P) & 0x04020408u) >> 3) + 0x0783c180u) & 0x08040201u) + ((HIDWORD(P) & 0x40201008u) << 1)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_5[((LODWORD(P) & 0x02020408u) * 0x10101008u + ((HIDWORD(P) & 0x02020202u) >> 1) * 0x08040201u) >> 24];	// D1B3B8
 
 	return n_flipped;
 }
@@ -485,9 +485,9 @@ static int count_last_flip_G3(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_2[(((HIDWORD(P) & 0x40404040u) + ((LODWORD(P) & 0x40404040u) >> 4)) * 0x00408102u) >> 24];
+	n_flipped  = COUNT_FLIP_2[(((LODWORD(P) & 0x40402010u) >> 4) * 0x01010102u + (HIDWORD(P) & 0x40404040u) * 0x00408102u) >> 24];	// E1G3G8
 	n_flipped += COUNT_FLIP_L[(LODWORD(P) >> 15) & 0x7e];
-	n_flipped += COUNT_FLIP_5[((((((LODWORD(P) & 0x20402010u) >> 1) + 0x00003078u) & 0x10204080u) + ((HIDWORD(P) & 0x02040810u) >> 1)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_5[(((LODWORD(P) & 0x20404040u) >> 1) * 0x04020101u + ((HIDWORD(P) & 0x02040810u) >> 1) * 0x01010101u) >> 24];	// G1G3B8
 
 	return n_flipped;
 }
@@ -502,9 +502,9 @@ static int count_last_flip_H3(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_2[(((HIDWORD(P) & 0x80808080u) + ((LODWORD(P) & 0x80808080u) >> 4)) * 0x00204081u) >> 24];
+	n_flipped  = COUNT_FLIP_2[(((LODWORD(P) & 0x80804020u) >> 4) * 0x00808081u + (HIDWORD(P) & 0x80808080u) * 0x00204081u) >> 24];	// F1H3H8
 	n_flipped += COUNT_FLIP_L[(LODWORD(P) >> 16) & 0x7f];
-	n_flipped += COUNT_FLIP_5[((((((LODWORD(P) & 0x40804020u) >> 2) + 0x00003078u) & 0x10204080u) + ((HIDWORD(P) & 0x04081020u) >> 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_5[(((LODWORD(P) & 0x40808080u) >> 2) * 0x04020101u + ((HIDWORD(P) & 0x04081020u) >> 2) * 0x01010101u) >> 24];	// H1H3C8
 
 	return n_flipped;
 }
@@ -519,9 +519,9 @@ static int count_last_flip_A4(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_3[(((LODWORD(P) & 0x01010101u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 24];
+	n_flipped  = COUNT_FLIP_3[((LODWORD(P) & 0x01010101u) * 0x01020408u + (HIDWORD(P) & 0x10080402u) * 0x08080808u) >> 24];	// A1A4E8
 	n_flipped += COUNT_FLIP_R[LODWORD(P) >> 25];
-	n_flipped += COUNT_FLIP_3[((((((LODWORD(P) & 0x01020408u) >> 3) + 0x07e3c180u) & 0x08040201u) + ((HIDWORD(P) & 0x10080402u) << 3)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_4[((LODWORD(P) & 0x01020408u) * 0x10101010u + (HIDWORD(P) & 0x01010101u) * 0x08040201u) >> 24];	// D1A4A8
 
 	return n_flipped;
 }
@@ -536,9 +536,9 @@ static int count_last_flip_B4(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_3[(((LODWORD(P) & 0x02020202u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 24];
+	n_flipped  = COUNT_FLIP_3[((LODWORD(P) & 0x02020202u) * 0x00810204u + (HIDWORD(P) & 0x20100804u) * 0x04040404u) >> 24];	// B1B4F8
 	n_flipped += COUNT_FLIP_R[LODWORD(P) >> 26];
-	n_flipped += COUNT_FLIP_3[((((((LODWORD(P) & 0x02040810u) >> 4) + 0x07e3c180u) & 0x08040201u) + ((HIDWORD(P) & 0x20100804u) << 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_4[((LODWORD(P) & 0x02040810u) * 0x08080808u + ((HIDWORD(P) & 0x02020202u) >> 1) * 0x08040201u) >> 24];	// E1B4B8
 
 	return n_flipped;
 }
@@ -625,9 +625,9 @@ static int count_last_flip_G4(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_3[(((HIDWORD(P) & 0x40404040u) + ((LODWORD(P) & 0x40404040u) >> 4)) * 0x00408102u) >> 24];
+	n_flipped  = COUNT_FLIP_3[(((LODWORD(P) & 0x40201008u) >> 3) * 0x01010101u + (HIDWORD(P) & 0x40404040u) * 0x00408102u) >> 24];	// D1G4G8
 	n_flipped += COUNT_FLIP_L[(LODWORD(P) >> 23) & 0x7e];
-	n_flipped += COUNT_FLIP_4[((((((LODWORD(P) & 0x40201008u) >> 2) + 0x00183c7eu) & 0x10204080u) + ((HIDWORD(P) & 0x04081020u) >> 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_4[(((LODWORD(P) & 0x40404040u) >> 2) * 0x08040201u + ((HIDWORD(P) & 0x04081020u) >> 2) * 0x01010101u) >> 24];	// G1G4C8
 
 	return n_flipped;
 }
@@ -642,9 +642,9 @@ static int count_last_flip_H4(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_3[(((HIDWORD(P) & 0x80808080u) + ((LODWORD(P) & 0x80808080u) >> 4)) * 0x00204081u) >> 24];
+	n_flipped  = COUNT_FLIP_3[(((LODWORD(P) & 0x80402010u) >> 4) * 0x01010101u + (HIDWORD(P) & 0x80808080u) * 0x00204081u) >> 24];	// E1H4H8
 	n_flipped += COUNT_FLIP_L[(LODWORD(P) >> 24) & 0x7f];
-	n_flipped += COUNT_FLIP_4[((((((LODWORD(P) & 0x80402010u) >> 3) + 0x00183c7eu) & 0x10204080u) + ((HIDWORD(P) & 0x08102040u) >> 3)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_4[(((LODWORD(P) & 0x80808080u) >> 3) * 0x08040201u + ((HIDWORD(P) & 0x08102040u) >> 3) * 0x01010101u) >> 24];	// H1H4D8
 
 	return n_flipped;
 }
@@ -659,9 +659,9 @@ static int count_last_flip_A5(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_4[(((LODWORD(P) & 0x01010101u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 24];
+	n_flipped  = COUNT_FLIP_4[((LODWORD(P) & 0x01010101u) * 0x01020408u + (HIDWORD(P) & 0x08040201u) * 0x10101010u) >> 24];	// A1A5D8
 	n_flipped += COUNT_FLIP_R[(HIDWORD(P) >> 1) & 0x7f];
-	n_flipped += COUNT_FLIP_3[((((((HIDWORD(P) & 0x08040201u) + 0x000c1e3fu) & 0x08102040u) >> 3) + ((LODWORD(P) & 0x02040810u) << 3)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_3[((LODWORD(P) & 0x02040810u) * 0x08080808u + (HIDWORD(P) & 0x01010101u) * 0x08040201u) >> 24];	// E1A5A8
 
 	return n_flipped;
 }
@@ -676,9 +676,9 @@ static int count_last_flip_B5(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_4[(((LODWORD(P) & 0x02020202u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 24];
+	n_flipped  = COUNT_FLIP_4[((LODWORD(P) & 0x02020202u) * 0x00810204u + (HIDWORD(P) & 0x10080402u) * 0x08080808u) >> 24];	// B1B5E8
 	n_flipped += COUNT_FLIP_R[(HIDWORD(P) >> 2) & 0x3f];
-	n_flipped += COUNT_FLIP_3[((((((HIDWORD(P) & 0x10080402u) + 0x00183c7eu) & 0x10204080u) >> 4) + ((LODWORD(P) & 0x04081020u) << 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_3[((LODWORD(P) & 0x04081020u) * 0x04040404u + ((HIDWORD(P) & 0x02020202u) >> 1) * 0x08040201u) >> 24];	// F1B5B8
 
 	return n_flipped;
 }
@@ -765,9 +765,9 @@ static int count_last_flip_G5(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_4[(((HIDWORD(P) & 0x40404040u) + ((LODWORD(P) & 0x40404040u) >> 4)) * 0x00408102u) >> 24];
+	n_flipped  = COUNT_FLIP_4[(((LODWORD(P) & 0x20100804u) >> 2) * 0x01010101u + (HIDWORD(P) & 0x40404040u) * 0x00408102u) >> 24];	// C1G5G8
 	n_flipped += COUNT_FLIP_L[(HIDWORD(P) << 1) & 0x7e];
-	n_flipped += COUNT_FLIP_4[((((((HIDWORD(P) & 0x08102040u) >> 2) + 0x7e3c1800u) & 0x80402010u) + ((LODWORD(P) & 0x20100804u) >> 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_3[(((LODWORD(P) & 0x40404040u) >> 3) * 0x10080402u + ((HIDWORD(P) & 0x08102040u) >> 3) * 0x01010101u) >> 24];	// G1G5D8
 
 	return n_flipped;
 }
@@ -782,9 +782,9 @@ static int count_last_flip_H5(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_4[(((HIDWORD(P) & 0x80808080u) + ((LODWORD(P) & 0x80808080u) >> 4)) * 0x00204081u) >> 24];
+	n_flipped  = COUNT_FLIP_4[(((LODWORD(P) & 0x40201008u) >> 3) * 0x01010101u + (HIDWORD(P) & 0x80808080u) * 0x00204081u) >> 24];	// D1H5H8
 	n_flipped += COUNT_FLIP_L[HIDWORD(P) & 0x7f];
-	n_flipped += COUNT_FLIP_4[((((((HIDWORD(P) & 0x10204080u) >> 3) + 0x7e3c1800u) & 0x80402010u) + ((LODWORD(P) & 0x40201008u) >> 3)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_3[(((LODWORD(P) & 0x80808080u) >> 4) * 0x10080402u + ((HIDWORD(P) & 0x10204080u) >> 4) * 0x01010101u) >> 24];	// H1H5E8
 
 	return n_flipped;
 }
@@ -799,9 +799,9 @@ static int count_last_flip_A6(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_5[(((LODWORD(P) & 0x01010101u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 24];
+	n_flipped  = COUNT_FLIP_5[((LODWORD(P) & 0x01010101u) * 0x01020408u + (HIDWORD(P) & 0x04020101u) * 0x10202020u) >> 24];	// A1A6C8
 	n_flipped += COUNT_FLIP_R[(HIDWORD(P) >> 9) & 0x7f];
-	n_flipped += COUNT_FLIP_2[((((((HIDWORD(P) & 0x04020102u) + 0x00060f1eu) & 0x04081020u) >> 2) + ((LODWORD(P) & 0x04081020u) << 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_2[((LODWORD(P) & 0x04081020u) * 0x04040404u + (HIDWORD(P) & 0x01010102u) * 0x04040201u) >> 24];	// F1A6A8
 
 	return n_flipped;
 }
@@ -816,9 +816,9 @@ static int count_last_flip_B6(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_5[(((LODWORD(P) & 0x02020202u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 24];
+	n_flipped  = COUNT_FLIP_5[((LODWORD(P) & 0x02020202u) * 0x00810204u + (HIDWORD(P) & 0x08040202u) * 0x08101010u) >> 24];	// B1B6D8
 	n_flipped += COUNT_FLIP_R[(HIDWORD(P) >> 10) & 0x3f];
-	n_flipped += COUNT_FLIP_2[((((((HIDWORD(P) & 0x08040204u) + 0x000c1e3cu) & 0x08102040u) >> 3) + ((LODWORD(P) & 0x08102040u) << 1)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_2[((LODWORD(P) & 0x08102040u) * 0x02020202u + ((HIDWORD(P) & 0x02020204u) >> 1) * 0x04040201u) >> 24];	// G1B6B8
 
 	return n_flipped;
 }
@@ -905,9 +905,9 @@ static int count_last_flip_G6(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_5[(((HIDWORD(P) & 0x40404040u) + ((LODWORD(P) & 0x40404040u) >> 4)) * 0x00408102u) >> 24];
+	n_flipped  = COUNT_FLIP_5[(((LODWORD(P) & 0x10080402u) >> 1) * 0x01010101u + (HIDWORD(P) & 0x40404020u) * 0x00808102u) >> 24];	// B1G6G8
 	n_flipped += COUNT_FLIP_L[(HIDWORD(P) >> 7) & 0x7e];
-	n_flipped += COUNT_FLIP_5[((((((HIDWORD(P) & 0x10204020u) >> 1) + 0x78300000u) & 0x80402010u) + ((LODWORD(P) & 0x10080402u) >> 1)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_2[(((LODWORD(P) & 0x40404040u) >> 4) * 0x20100804u + ((HIDWORD(P) & 0x10204040u) >> 4 ) * 0x02010101u) >> 24];	// G1G6E8
 
 	return n_flipped;
 }
@@ -922,9 +922,9 @@ static int count_last_flip_H6(const unsigned long long P)
 {
 	int n_flipped;
 
-	n_flipped  = COUNT_FLIP_5[(((HIDWORD(P) & 0x80808080u) + ((LODWORD(P) & 0x80808080u) >> 4)) * 0x00204081u) >> 24];
+	n_flipped  = COUNT_FLIP_5[(((LODWORD(P) & 0x20100804u) >> 2) * 0x01010101u + (HIDWORD(P) & 0x80808040u) * 0x00404081u) >> 24];	// C1H6H8
 	n_flipped += COUNT_FLIP_L[(HIDWORD(P) >> 8) & 0x7f];
-	n_flipped += COUNT_FLIP_5[((((((HIDWORD(P) & 0x20408040u) >> 2) + 0x78300000u) & 0x80402010u) + ((LODWORD(P) & 0x20100804u) >> 2)) * 0x01010101u) >> 24];
+	n_flipped += COUNT_FLIP_2[(((LODWORD(P) & 0x80808080u) >> 5) * 0x20100804u + ((HIDWORD(P) & 0x20408080u) >> 5) * 0x02010101u) >> 24];	// H1H6F8
 
 	return n_flipped;
 }

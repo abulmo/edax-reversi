@@ -3,7 +3,7 @@
  *
  * Edax : a strong Othello program.
  * - copyleft (c) 1998-2012
- * - version: 4.3 (2012-05-06)
+ * - version: 4.3.1 (2012-10-03)
  * - author: Richard A Delorme
  * - email: edax-reversi@orange.fr
  * - web site: http://abulmo.perso.neuf.fr/edax/4.3/index.htm
@@ -27,7 +27,7 @@
  *
  * @section dl Download
  * You can download the source with its documentation here:
- * http://abulmo.perso.neuf.fr/edax/4.3/edax.4-3.zip
+ * http://abulmo.perso.neuf.fr/edax/4.3/edax.4-3-1.zip
  *
  * @section pres Presentation
  * Edax is a very strong and fast Othello program.
@@ -114,7 +114,8 @@
  * event support to communicate with GUI.
  * - version 4.2.1: Several bug fixes.
  * - version 4.2.2: Several bug fixes. XBoard protocol should work OK now.
- * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
+ * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
+ *   Faster move generator provided by Toshihiko Okuhara.
  * - version 4.x: TODO: speed enhancement (is this possible ?). Book learning
      using a client/server approach. New Evaluation function.
  *

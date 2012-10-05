@@ -26,6 +26,10 @@ ifeq ($(OS),)
 	OS = linux
 endif
 
+ifeq ($(OS),win)
+	OS = windows
+endif
+
 ifeq ($(CC),cc)
 	CC = $(COMP)
 endif
@@ -44,7 +48,7 @@ ifeq ($(COMP),gcc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=corei7 -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x32-modern)
 		CFLAGS += -mx32 -march=native -DUSE_GAS_X64 -DPOPCOUNT
@@ -76,7 +80,7 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -mmacosx-version-min=10.4
 	endif
 	ifeq ($(OS),windows)
-		CFLAGS += -D__USE_MINGW_ANSI_STDIO
+		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x501
 		ifeq ($(ARCH),x86)
 			CFLAGS += -DUSE_PTHREAD
 		endif
@@ -160,7 +164,7 @@ ifeq ($(COMP),g++)
 		CFLAGS += -mmacosx-version-min=10.4 -mdynamic-no-pic
 	endif
 	ifeq ($(OS),windows)
-		CFLAGS += -D__USE_MINGW_ANSI_STDIO
+		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x501
 		ifeq ($(ARCH),x86)
 			CFLAGS += -DUSE_PTHREAD
 		endif

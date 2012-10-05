@@ -277,6 +277,7 @@ static inline int hash_size(int n)
  * Search for a move.
  *
  * @param ui User Interface.
+ * @param stats total nodes & time statistics.
  */
 static void xboard_go(UI *ui, XBoardStats *stats)
 {

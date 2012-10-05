@@ -126,8 +126,8 @@ int main(int argc, char **argv)
 	if (problem_file || wthor_file) {
 		Search search[1];
 		search_init(search);
-		search->options.header = " depth|score|       time   | nodes (N)  |   N/s    | principal variation";
-		search->options.separator = "------+-----+--------------+------------+----------+----------------------";
+		search->options.header = " depth|score|       time   |  nodes (N)  |   N/s    | principal variation";
+		search->options.separator = "------+-----+--------------+-------------+----------+---------------------";
 		if (options.verbosity) version();
 		if (problem_file) obf_test(search, problem_file, NULL);
 		if (wthor_file) wthor_test(wthor_file, search);

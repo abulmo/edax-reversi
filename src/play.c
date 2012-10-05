@@ -29,8 +29,8 @@ void play_init(Play *play, Book *book)
 	search_init(play->search);
 	play->book = book;
 	board_init(play->initial_board);
-	play->search->options.header = " depth|score|       time   | nodes (N)  |   N/s    | principal variation";
-	play->search->options.separator = "------+-----+--------------+------------+----------+-----------------------";
+	play->search->options.header = " depth|score|       time   |  nodes (N)  |   N/s    | principal variation";
+	play->search->options.separator = "------+-----+--------------+-------------+----------+----------------------";
 	play->player = play->initial_player = BLACK;
 	play->time[0].left = options.time;
 	play->time[0].extra = 0;

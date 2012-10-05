@@ -44,7 +44,16 @@
 /** kogge-stone parallel prefix algorithm usage.
  *  0 -> none, 1 -> move generator, 2 -> stability, 3 -> both.
  */
-#define KOGGE_STONE 3
+#define KOGGE_STONE 2
+
+/** 1 stage parallel prefix algorithm usage.
+ *  0 -> none, 1 -> move generator, 2 -> stability, 3 -> both.
+ */
+#define PARALLEL_PREFIX 1
+
+#if (KOGGE_STONE & PARALLEL_PREFIX)
+	#error "usage of 2 incompatible algorithms"
+#endif
 
 /** Internal Iterative Deepening. */
 #define USE_IID false

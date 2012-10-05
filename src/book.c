@@ -1022,9 +1022,10 @@ static void position_enhance(Position *position, Book *book)
  *
  * Go through the book sub-tree following the current position & feed the hash table from this position.
  *
- * @param position Position to expand.
+ * @param board Position to expand.
  * @param book Opening book.
  * @param search Hashtables container.
+ * @param is_pv Flag to tell if the position is from the principal variation.
  */
 static void board_feed_hash(Board *board, const Book *book, Search *search, const bool is_pv)
 {
@@ -2535,6 +2536,7 @@ void book_stats(Book *book)
  * @brief feed hash table from the opening book.
  * 
  * @param book Opening book.
+ * @param board Position to start from.
  * @param search HashTables container.
  */
 void book_feed_hash(const Book *book, Board *board, Search *search)

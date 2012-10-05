@@ -1108,7 +1108,9 @@ void count_shapes(const Board *board, const int depth, const int size)
 /**
  * @brief seek a game that reach to a position
  *
- * @param board Board.
+ * @param target position seeked
+ * @param board starting position.
+ * @param line line to reach the target position
  */
 bool seek_position(const Board *target, const Board *board, Line *line) {
  	const unsigned long long mask = target->opponent | target->player;
