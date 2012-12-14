@@ -110,10 +110,11 @@ typedef struct Search {
 		bool time_per_move;                       /**< time_per_move or per game ?*/
 		int verbosity;                            /**< verbosity level */
 		bool keep_date;                           /**< keep date */
-		const char *header;                             /**< array like header */
-		const char *separator;                          /**< array like separator */
+		const char *header;                       /**< header for search output */
+		const char *separator;                    /**< separator for search output */
 		bool guess_pv;                            /**< guess PV (in cassio mode only) */
 		int multipv_depth;                        /**< multi PV depth */
+		int hash_size;                            /**< hashtable size */                    
 	} options;                                    /**< local (threadable) options. */
 
 	Result *result;                               /**< shared result */
@@ -165,6 +166,7 @@ void search_update_midgame(Search*, const Move*);
 void search_restore_midgame(Search*, const Move*);
 void search_update_pass_midgame(Search*);
 void search_restore_pass_midgame(Search*);
+long long search_clock(Search*);
 long long search_time(Search*);
 unsigned long long search_count_nodes(Search*);
 void search_print_pv(Search*, const int, const char*, FILE*);

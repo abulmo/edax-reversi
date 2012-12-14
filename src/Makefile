@@ -331,7 +331,7 @@ pgo-rebuild:
 	$(CC) $(CFLAGS) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
 
 prof:
-	@echo "rebuilding edax with pgo..."
+	@echo "rebuilding edax for profiling..."
 	$(CC) $(CFLAGS) all.c -g -inline-level=0 -o $(BIN)/$(EXE) $(LIBS) -lprofiler
 
 debug:
@@ -339,9 +339,9 @@ debug:
 
 release:
 	$(MAKE) pgo-build ARCH=x64 OS=linux COMP=gcc 
-	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc-old CC='arm-linux-androideabi-gcc'
 	$(MAKE) build ARCH=x64 OS=windows COMP=gcc CC='x86_64-w64-mingw32-gcc'
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
+	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc-old CC='arm-linux-androideabi-gcc'
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 

@@ -236,7 +236,7 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 					move->score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha)) >> 1) * w_eval;  // 3 level score bonus
 					break;
 				default:
-					if (hash_get(search->hash_table, board_get_hash_code(search->board), dummy)) move->score += w_hash; // bonus if the position leads to a position stored in the hash-table
+					if (hash_get(search->hash_table, search->board, board_get_hash_code(search->board), dummy)) move->score += w_hash; // bonus if the position leads to a position stored in the hash-table
 					move->score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
 					break;
 				}

@@ -76,6 +76,8 @@ int main(int argc, char **argv)
 	char *problem_file = NULL;
 	char *wthor_file = NULL;
 	char *count_type = NULL;
+	int n_bench = 0;
+	FILE *stats;
 
 	// options.n_task default to system cpu number
 	options.n_task = get_cpu_number();
@@ -98,9 +100,10 @@ int main(int argc, char **argv)
 		if (strcmp(arg, "v") == 0 || strcmp(arg, "version") == 0) version();
 		else if (ui_switch(ui, arg)) ;
 		else if ((r = (options_read(arg, argv[i + 1]))) > 0) i += r - 1;
-		else if (strcmp(arg, "solve") == 0) problem_file = argv[++i];
-		else if (strcmp(arg, "wtest") == 0) wthor_file = argv[++i];
-		else if (strcmp(arg, "count") == 0) {
+		else if (strcmp(arg, "solve") == 0 && argv[i + 1]) problem_file = argv[++i];
+		else if (strcmp(arg, "wtest") == 0 && argv[i + 1]) wthor_file = argv[++i];
+		else if (strcmp(arg, "bench") == 0 && argv[i + 1]) n_bench = atoi(argv[++i]);
+		else if (strcmp(arg, "count") == 0 && argv[i + 1]) {
 			count_type = argv[++i];
 			if (argv[i + 1]) level = string_to_int(argv[++i], 0);
 			if (argv[i + 1] && strcmp(argv[i + 1], "6x6") == 0) {
@@ -120,10 +123,10 @@ int main(int argc, char **argv)
 	hash_move_init();
 	statistics_init();
 	eval_open(options.eval_file);
-	search_global_init();
+	search_global_init();	
 
 	// solver & tester
-	if (problem_file || wthor_file) {
+	if (problem_file || wthor_file || n_bench) {
 		Search search[1];
 		search_init(search);
 		search->options.header = " depth|score|       time   |  nodes (N)  |   N/s    | principal variation";
@@ -131,6 +134,7 @@ int main(int argc, char **argv)
 		if (options.verbosity) version();
 		if (problem_file) obf_test(search, problem_file, NULL);
 		if (wthor_file) wthor_test(wthor_file, search);
+		if (n_bench) obf_speed(search, n_bench);
 		search_free(search);
 
 	} else if (count_type){
@@ -153,7 +157,8 @@ int main(int argc, char **argv)
 	}
 
 	// display statistics
-	statistics_print();
+	statistics_print(stdout);
+	
 
 	// free;
 	eval_close();

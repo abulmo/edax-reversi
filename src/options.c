@@ -45,6 +45,7 @@ Options options = {
 	3, // mode
 
 	10000000,  // speed (default = 10e6)
+	0,         // nps (default = 0)
 
 	SCORE_MIN, // alpha
 	SCORE_MAX, // beta
@@ -179,6 +180,7 @@ int options_read(const char *option, const char *value)
 
 		else if (strcmp(option, "o") == 0 || strcmp(option, "option-file") == 0) options_parse(value);
 		else if (strcmp(option, "speed") == 0) options.speed = string_to_real(value, options.speed);
+		else if (strcmp(option, "nps") == 0) options.nps = 0.001 * string_to_real(value, options.nps);
 		else if (strcmp(option, "ponder") == 0) parse_boolean(value, &options.can_ponder);
 		else if (strcmp(option, "mode") == 0) parse_int(value, &options.mode);
 
@@ -350,6 +352,7 @@ void options_dump(FILE *f)
 	fprintf(f, "\tsearch depth: %d\n", options.depth);
 	fprintf(f, "\tsearch selectivity: %d\n", options.selectivity);
 	fprintf(f, "\tsearch speed %.0f N/s\n", options.speed);
+	fprintf(f, "\tsearch nps %.0f N/s\n", options.nps);
 	fprintf(f, "\tsearch alpha: %d\n", options.alpha);
 	fprintf(f, "\tsearch beta: %d\n", options.beta);
 	fprintf(f, "\tsearch all best moves: %s\n", boolean[options.all_best]);

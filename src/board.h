@@ -22,6 +22,7 @@ typedef struct Board {
 } Board;
 
 struct Move;
+struct Random;
 
 /* function declarations */
 void board_init(Board*);
@@ -32,6 +33,7 @@ bool board_equal(const Board*, const Board*);
 void board_symetry(const Board*, const int, Board*);
 int board_unique(const Board*, Board*);
 void board_check(const Board*);
+void board_rand(Board*, int, struct Random*);
 
 int board_count_last_flips(const Board*, const int);
 unsigned long long board_get_move(const Board*, const int, struct Move*);

@@ -475,7 +475,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 	// transposition cutoff
 	hash_code = board_get_hash_code(board);
-	if (hash_get(hash_table, hash_code, hash_data) && search_TC_NWS(hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
+	if (hash_get(hash_table, board, hash_code, hash_data) && search_TC_NWS(hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
 
 	search_get_movelist(search, movelist);
 
@@ -512,7 +512,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 	if (!search->stop) {
 		cost += search->n_nodes;
-		hash_store(hash_table, hash_code, search->n_empties, NO_SELECTIVITY, last_bit(cost), alpha, beta, bestmove->score, bestmove->x);
+		hash_store(hash_table, board, hash_code, search->n_empties, NO_SELECTIVITY, last_bit(cost), alpha, beta, bestmove->score, bestmove->x);
 		if (SQUARE_STATS(1) + 0) {
 			foreach_move(move, movelist)
 				++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];

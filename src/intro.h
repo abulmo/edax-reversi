@@ -3,7 +3,7 @@
  *
  * Edax : a strong Othello program.
  * - copyleft (c) 1998-2012
- * - version: 4.3.1 (2012-10-03)
+ * - version: 4.4 (2012-10-10)
  * - author: Richard A Delorme
  * - email: edax-reversi@orange.fr
  * - web site: http://abulmo.perso.neuf.fr/edax/4.3/index.htm
@@ -27,7 +27,7 @@
  *
  * @section dl Download
  * You can download the source with its documentation here:
- * http://abulmo.perso.neuf.fr/edax/4.3/edax.4-3-1.zip
+ * http://abulmo.perso.neuf.fr/edax/4.4/edax.4-4.zip
  *
  * @section pres Presentation
  * Edax is a very strong and fast Othello program.

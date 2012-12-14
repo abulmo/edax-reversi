@@ -328,13 +328,14 @@ void search_global_init(void)
 }
 
 void search_resize_hashtable(Search *search) {
-	if (search->hash_table->size != options.hash_table_size) {
+	if (search->options.hash_size != options.hash_table_size) {
 		const int hash_size = 1u << options.hash_table_size;
 		const int pv_size = hash_size > 16 ? hash_size >> 4 : 16;
 
 		hash_init(search->hash_table, hash_size);
 		hash_init(search->pv_table, pv_size);
 		hash_init(search->shallow_table, hash_size);
+		search->options.hash_size = options.hash_table_size;
 	}
 }
 
@@ -353,7 +354,7 @@ void search_init(Search *search)
 	search->stop = STOP_END;
 
 	/* hash_table */
-	search->hash_table->size = 0;
+	search->options.hash_size = 0;
 	search->hash_table->hash = NULL;
 	search->hash_table->hash_mask = 0;
 	search->pv_table->hash = NULL;
@@ -1033,6 +1034,19 @@ bool is_depth_solving(const int depth, const int n_empties)
 }
 
 
+
+/**
+ * @brief Return the time spent by the search
+ *
+ * @param search  Search.
+ * @return time (in milliseconds).
+ */
+long long search_clock(Search *search)
+{
+	if (options.nps > 0) return search_count_nodes(search) / options.nps;
+	else return time_clock();
+}
+
 /**
  * @brief Return the time spent by the search
  *
@@ -1041,7 +1055,7 @@ bool is_depth_solving(const int depth, const int n_empties)
  */
 long long search_time(Search *search)
 {
-	if (search->stop != STOP_END) return time_clock() + search->time.spent;
+	if (search->stop != STOP_END) return search_clock(search) + search->time.spent;
 	else return search->time.spent;
 }
 
@@ -1106,7 +1120,7 @@ void result_print(Result *result, FILE *f)
 	time_print(result->time, true, f);
 	if (result->n_nodes) {
 		fprintf(f, " %13lld ", result->n_nodes);
-		if (result->time > 0) fprintf(f, "%9.0f  ", 1000.0 * result->n_nodes / result->time);
+		if (result->time > 0) fprintf(f, "%10.0f ", 1000.0 * result->n_nodes / result->time);
 		else fprintf(f, "           ");
 	} else fputs("                          ", f);
 	line_print(result->pv, options.width - PRINTED_WIDTH, " ", f);
@@ -1263,17 +1277,17 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
 				*score = 2 * get_stability(next->opponent, next->player) - SCORE_MAX;
 				if (*score > alpha) {
-					hash_store(hash_table, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
+					hash_store(hash_table, search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
 			}
 
 			etc_hash_code = board_get_hash_code(next);
-			if (USE_TC && hash_get(hash_table, etc_hash_code, etc) && etc->selectivity >= selectivity && etc->depth >= etc_depth) {
+			if (USE_TC && hash_get(hash_table, next, etc_hash_code, etc) && etc->selectivity >= selectivity && etc->depth >= etc_depth) {
 				*score = -etc->upper;
 				if (*score > alpha) {
-					hash_store(hash_table, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
+					hash_store(hash_table, search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}
@@ -1352,8 +1366,8 @@ int search_guess(Search *search, const Board *board)
 	HashData hash_data[1];
 	int move = NOMOVE;
 
-	if (hash_get(search->pv_table, board_get_hash_code(board), hash_data)) move = hash_data->move[0];
-	if (move == NOMOVE && hash_get(search->hash_table, board_get_hash_code(board), hash_data)) move = hash_data->move[0];
+	if (hash_get(search->pv_table, board, board_get_hash_code(board), hash_data)) move = hash_data->move[0];
+	if (move == NOMOVE && hash_get(search->hash_table, board, board_get_hash_code(board), hash_data)) move = hash_data->move[0];
 
 	return move;
 }

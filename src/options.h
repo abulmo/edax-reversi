@@ -47,6 +47,7 @@ typedef struct {
 	int mode;                             /**< mode play (human/edax, etc.) */
 
 	double speed;                         /**< edax speed in N/S (for a more accurate time management) */
+	double nps;                           /**< edax assumed speed (for nps based timing */                           
 
 	int alpha;                            /**< alpha bound */
 	int beta;                             /**< beta bound */

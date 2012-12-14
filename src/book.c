@@ -1049,8 +1049,8 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
-		hash_feed(search->hash_table, hash_code, depth, selectivity, score, score, move);
-		if (is_pv) hash_feed(search->pv_table, hash_code, depth, selectivity, score, score, move);
+		hash_feed(search->hash_table, board, hash_code, depth, selectivity, score, score, move);
+		if (is_pv) hash_feed(search->pv_table, board, hash_code, depth, selectivity, score, score, move);
 	}
 }
 
@@ -1375,6 +1375,7 @@ void book_init(Book *book)
 	for (i = 0; i < book->n; ++i) position_array_init(book->array + i);
 
 	book->n_nodes = 0;
+	random_seed(book->random, real_clock());
 	book->need_saving = false;
 }
 

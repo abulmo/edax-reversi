@@ -23,6 +23,7 @@
  * disc, to facilitate the computation of disc difference.
  *
  * With Modifications by Valéry ClaudePierre (merging diagonals).
+ * @todo 135° merge as done by Toshihiko Okuhara
  *
  * @date 1998 - 2012
  * @author Richard Delorme

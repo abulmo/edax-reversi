@@ -62,7 +62,7 @@
 #define USE_PREVIOUS_SEARCH true
 
 /** LockFree Hash Table */
-#define USE_HASH_LOCK false
+#define USE_HASH_LOCK true
 
 /** Allow type puning */
 #ifndef USE_TYPE_PUNING

@@ -368,6 +368,36 @@ int board_unique(const Board *board, Board *unique)
 	return s;
 }
 
+/** 
+ * @brief Get a random board by playing random moves.
+ * 
+ * @param board The output board.
+ * @param n_ply The number of random move to generate.
+ * @param r The random generator.
+ */
+void board_rand(Board *board, int n_ply, Random *r)
+{
+	Move move[1];
+	unsigned long long moves;
+	int ply;
+
+	board_init(board);
+	for (ply = 0; ply < n_ply; ply++) {
+		moves = get_moves(board->player, board->opponent);
+		if (!moves) {
+			board_pass(board);
+			moves = get_moves(board->player, board->opponent);
+			if (!moves) {
+				break;
+			}
+		}
+		;
+		board_get_move(board, get_rand_bit(moves, r), move);
+		board_update(board, move);
+	}
+}
+
+
 /**
  * @brief Compute a move.
  *

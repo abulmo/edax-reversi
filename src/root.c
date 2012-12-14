@@ -50,7 +50,7 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 	x = bestmove->x;
 	fprintf(f, "pv = %s ", move_to_string(x, player, s));
 	hash_code = board_get_hash_code(board);
-	if (hash_get(search->pv_table, hash_code, hash_data)) {
+	if (hash_get(search->pv_table, board, hash_code, hash_data)) {
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data->depth, selectivity_table[hash_data->selectivity].percent, hash_data->lower, hash_data->upper);
 	}
 	while (x != NOMOVE) {
@@ -59,10 +59,10 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 		player ^= 1;
 
 		hash_code = board_get_hash_code(board);
-		if (hash_get(search->pv_table, hash_code, hash_data)) {
+		if (hash_get(search->pv_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
 			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data->depth, selectivity_table[hash_data->selectivity].percent, hash_data->lower, hash_data->upper);
-		} else if (hash_get(search->hash_table, hash_code, hash_data)) {
+		} else if (hash_get(search->hash_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
 			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data->depth, selectivity_table[hash_data->selectivity].percent, hash_data->lower, hash_data->upper);
 		} else x = NOMOVE;
@@ -97,9 +97,9 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 		board_update(board, move);
 
 		hash_code = board_get_hash_code(board);
-		if (hash_get(search->pv_table, hash_code, hash_data)) {
+		if (hash_get(search->pv_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
-		} else if (hash_get(search->hash_table, hash_code, hash_data)) {
+		} else if (hash_get(search->hash_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
 		} else break;
 		if (hash_data->depth < search_depth || hash_data->selectivity < search->selectivity || hash_data->lower != hash_data->upper) return false;
@@ -128,7 +128,7 @@ static int guess_move(Search *search, Board *board)
 	*search->board = *board; search_setup(search);
 
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->n_empties, 6));
-	hash_get(search->shallow_table, board_get_hash_code(board), hash_data);
+	hash_get(search->shallow_table, board, board_get_hash_code(board), hash_data);
 
 	*search->board = saved; search_setup(search);
 
@@ -200,7 +200,7 @@ void record_best_move(Search *search, const Board *init_board, const Move *bestm
 			line_push(result->pv, move->x);
 
 			hash_code = board_get_hash_code(board);
-			if ((hash_get(search->pv_table, hash_code, hash_data) || hash_get(search->hash_table, hash_code, hash_data)) 
+			if ((hash_get(search->pv_table, board, hash_code, hash_data) || hash_get(search->hash_table, board, hash_code, hash_data)) 
 			 && (hash_data->depth >= expected_depth && hash_data->selectivity >= expected_selectivity)
 			 && (hash_data->upper <= expected_bound.upper && hash_data->lower >= expected_bound.lower)) {
 				x = hash_data->move[0];
@@ -308,7 +308,7 @@ int search_get_pv_cost(Search *search)
 	HashData hash_data[1];
 	const unsigned long long hash_code = board_get_hash_code(search->board);
 
-	if ((hash_get(pv_table, hash_code, hash_data) || hash_get(hash_table, hash_code, hash_data) || hash_get(shallow_table, hash_code, hash_data))) {
+	if ((hash_get(pv_table, search->board, hash_code, hash_data) || hash_get(hash_table, search->board, hash_code, hash_data) || hash_get(shallow_table, search->board, hash_code, hash_data))) {
 		return writeable_level(hash_data);
 	}
 	return 0;
@@ -419,7 +419,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 
 	if (!search->stop) {
-		hash_get(search->pv_table, hash_code, hash_data);
+		hash_get(search->pv_table, board, hash_code, hash_data);
 		if (depth < search->options.multipv_depth) movelist_sort(movelist);
 		else movelist_sort_cost(movelist, hash_data);
 		movelist_sort_bestmove(movelist, node->bestmove);
@@ -427,9 +427,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 		if (movelist->n_moves == get_mobility(board->player, board->opponent)) {
 			cost += search_count_nodes(search);
-			hash_store(search->hash_table, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
-			if (search->options.guess_pv) hash_force(search->pv_table, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
-			else hash_store(search->pv_table, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+			hash_store(search->hash_table, board, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+			if (search->options.guess_pv) hash_force(search->pv_table, board, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+			else hash_store(search->pv_table, board, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
 		}
 
 		assert(SCORE_MIN <= node->bestscore && node->bestscore <= SCORE_MAX);
@@ -587,9 +587,9 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 
 	for (i = 0; i < 4; ++i) {
 		hash_code = board_get_hash_code(board);
-		if (hash_get(search->pv_table, hash_code, hash_data)) {
+		if (hash_get(search->pv_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
-		} else if (hash_get(search->hash_table, hash_code, hash_data)) {
+		} else if (hash_get(search->hash_table, board, hash_code, hash_data)) {
 			x = hash_data->move[0];
 		} else break;
 
@@ -680,7 +680,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	}
 
 	// reuse last search ?
-	if (hash_get(search->pv_table, board_get_hash_code(board), hash_data)) {
+	if (hash_get(search->pv_table, board, board_get_hash_code(board), hash_data)) {
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",
@@ -818,9 +818,9 @@ void* search_run(void *v)
 	search->stop = RUNNING;
 
 	//initialisations
-	search->time.spent = -time_clock();
 	search->n_nodes = 0;
 	search->child_nodes = 0;
+	search->time.spent = -search_clock(search);
 	search_time_init(search);
 	if (!search->options.keep_date) {
 		hash_clear(search->hash_table);
@@ -873,11 +873,11 @@ void* search_run(void *v)
 	}
 
 	if (search->stop == RUNNING) search->stop = STOP_END;
-	search->time.spent += time_clock();
+	search->time.spent += search_clock(search);
 	search->result->time = search->time.spent;
 
 	statistics_sum_nodes(search);
-	if (search->options.verbosity >= 3) statistics_print();
+	if (search->options.verbosity >= 3) statistics_print(stdout);
 
 	assert(search->height == 0);
 

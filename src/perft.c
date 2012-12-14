@@ -183,7 +183,7 @@ void estimate_games(const Board *board, const long long n)
 	Random r;
 
 	t = -cpu_clock();
-	random_seed(&r, time(NULL));
+	random_seed(&r, real_clock());
 	M = S = EM = ES = 0.0;
 	for (i = 0; i < 128; ++i) m[i] = s[i] = 0.0;
 	for (i = 0; i < 128; ++i) em[i] = es[i] = en[i] = 0.0;
@@ -298,7 +298,7 @@ void seek_highest_mobility(const Board *board, const unsigned long long t)
 	int x[128];
 	Random r;
 
-	random_seed(&r, time(NULL));
+	random_seed(&r, real_clock());
 
 	while (cpu_clock() < t_max) {
 		i = bucket;

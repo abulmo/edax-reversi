@@ -301,7 +301,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	if (player != search->player || !board_equal(search->board, board)) {
 		search_set_board(search, board, player);
 
-		if (hash_get(search->pv_table, board_get_hash_code(board), hash_data)) {
+		if (hash_get(search->pv_table, board, board_get_hash_code(board), hash_data)) {
 			if (hash_data->lower == -SCORE_INF && hash_data->upper < SCORE_INF) score = hash_data->upper;
 			else if (hash_data->upper == +SCORE_INF && hash_data->lower > -SCORE_INF) score = hash_data->lower;
 			else score = (hash_data->upper + hash_data->lower) / 2;
@@ -413,8 +413,8 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 {
 	const unsigned long long hash_code = board_get_hash_code(board);
 
-	hash_feed(search->hash_table, hash_code, depth, selectivity, lower, upper, move);
-	hash_feed(search->pv_table, hash_code, depth, selectivity, lower, upper, move);	
+	hash_feed(search->hash_table, board, hash_code, depth, selectivity, lower, upper, move);
+	hash_feed(search->pv_table, board, hash_code, depth, selectivity, lower, upper, move);	
 }
 
 /**
@@ -530,8 +530,8 @@ static bool skip_search(Engine *engine, int *old_score)
 	
 	*old_score = 0;
 	
-	if (hash_get(search->pv_table, hash_code, hash_data)
-	|| hash_get(search->hash_table, hash_code, hash_data)) {
+	if (hash_get(search->pv_table, board, hash_code, hash_data)
+	|| hash_get(search->hash_table, board, hash_code, hash_data)) {
 		// compute bounds
 		if (alpha < hash_data->lower) alpha = *old_score = hash_data->lower;
 		if (beta > hash_data->upper) beta = *old_score = hash_data->upper;

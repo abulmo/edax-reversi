@@ -157,7 +157,7 @@ static void obf_search(Search *search, OBF *obf, int n)
 {
 	int i, j;
 
-//	search_cleanup(search);
+	search_cleanup(search);
 	search_set_board(search, obf->board, obf->player);
 	search_set_level(search, options.level, search->n_empties);
 	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->n_empties);
@@ -270,8 +270,8 @@ static void obf_build(Search *search, OBF *obf, int n)
 		if (obf->best_score < search->result->score) obf->best_score = search->result->score;
 		++obf->n_moves;
 
-		hash_exclude_move(search->pv_table, board_get_hash_code(search->board), search->result->move);
-		hash_exclude_move(search->hash_table, board_get_hash_code(search->board), search->result->move);
+		hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), search->result->move);
+		hash_exclude_move(search->hash_table,  search->board, board_get_hash_code(search->board), search->result->move);
 		movelist_exclude(search->movelist, search->result->move);
 	}
 
@@ -299,7 +299,7 @@ void obf_test(Search *search, const char *obf_file, const char *wrong_file)
 	bool print_summary = false;
 
 	// add observers
-	search_cleanup(search);
+//	search_cleanup(search);
 	search_set_observer(search, search_observer);
 	search->options.verbosity = (options.verbosity == 1 ? 0 : options.verbosity);
 	options.width -= 4;
@@ -474,3 +474,45 @@ void obf_filter(const char *input_file, const char *output_file)
 	fclose(out);
 }
 
+/**
+ * @brief Test edax speed by running for at least 1 minutes on problems deeper and deeper.
+ * @param search Search.
+ */
+void obf_speed(Search *search, const int n)
+{
+	int i;
+	unsigned long long t = real_clock();
+	unsigned long long T = 0, n_nodes = 0;
+	const int level = options.level;
+	Random r[1];
+	OBF obf = {.n_moves = 0, .best_score = -SCORE_INF};
+	
+	random_seed(r, 42);
+	options.level = 60;
+	search_set_observer(search, search_observer);
+	search->options.verbosity = (options.verbosity == 1 ? 0 : options.verbosity);
+	options.width -= 4;
+	
+	if (options.verbosity == 1) {
+		if (search->options.header) printf(" # |%s\n", search->options.header);
+		if (search->options.separator) printf("---+%s\n", search->options.separator);
+	}
+	
+	for (i = 0; n == - 1 ? real_clock() - t < 60000 : i < n; ++i) {
+		const int ply = MAX(30, 40 - i / 5);
+		obf.player = ply & 1;
+		board_rand(obf.board, ply, r);
+		obf_search(search, &obf, i + 1);
+		T += search_time(search);
+		n_nodes += search_count_nodes(search);
+	}
+	printf("%d positions solved: ", i);
+	if (n_nodes) printf("%llu nodes in ", n_nodes);
+	time_print(T, false, stdout);
+	if (T > 0 && n_nodes > 0) printf(" (%8.0f nodes/s).", 1000.0 * n_nodes / T);
+	putchar('\n');
+	
+	options.level = level;
+	options.width += 4;
+	
+}

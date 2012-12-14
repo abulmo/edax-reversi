@@ -14,7 +14,9 @@
 #include "const.h"
 #include "util.h"
 
-/* To turn on a statistics, add an x to the end of the line.*/
+#include <stdio.h>
+
+/* To turn on a statistics, add an x to the end of the line starting with #define .*/
 /** YBWC statistics on/off */
 #define YBWC_STATS(x) 
 /** Hash statistics on/off */
@@ -68,6 +70,7 @@ typedef struct Statistics {
 	unsigned long long n_hash_remove;
 	unsigned long long n_hash_search;
 	unsigned long long n_hash_found;
+	unsigned long long n_hash_collision;
 
 	unsigned long long n_PVS_root;
 	unsigned long long n_PVS_midgame;
@@ -117,7 +120,7 @@ struct Search;
 
 void statistics_init(void);
 void statistics_sum_nodes(struct Search*);
-void statistics_print(void);
+void statistics_print(FILE*);
 
 #endif
 

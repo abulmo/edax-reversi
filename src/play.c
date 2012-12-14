@@ -707,8 +707,8 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 	search_set_board(search, play->board, play->player);
 	if (A1 <= played->x && played->x <= H8) {
 		movelist_exclude(search->movelist, played->x);
-		hash_exclude_move(search->pv_table, board_get_hash_code(search->board), played->x);
-		hash_exclude_move(search->hash_table, board_get_hash_code(search->board), played->x);
+		hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), played->x);
+		hash_exclude_move(search->hash_table, search->board, board_get_hash_code(search->board), played->x);
 		// also remove moves leading to symetrical positions
 		board_next(play->board, played->x, board);
 		board_unique(board,  excluded);
@@ -716,8 +716,8 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 			board_next(play->board, move->x, board);
 			board_unique(board, unique);
 			if (board_equal(excluded, unique)) {
-				hash_exclude_move(search->pv_table, board_get_hash_code(search->board), move->x);
-				hash_exclude_move(search->hash_table, board_get_hash_code(search->board), move->x);
+				hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), move->x);
+				hash_exclude_move(search->hash_table, search->board, board_get_hash_code(search->board), move->x);
 				move = movelist_exclude(search->movelist, move->x);
 			}
 		}

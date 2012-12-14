@@ -262,7 +262,8 @@ void help_base(void)
 void help_test(void) 
 {
 	printf("\nTests:\n");
-	printf("  solve [file]        solve a set of positions.\n");
+	printf("  bench               test edax speed.\n");
+	printf("  microbench          test CPU cycle speed of some major functions.\n");
 	printf("  obftest [file]      Test from an obf file.\n");
 	printf("  script-to-obf [file]Convert a script to an obf file.\n");
 	printf("  wtest [file]        check the theoric scores of a wthor base file.\n");
@@ -523,9 +524,14 @@ void ui_loop_edax(UI *ui)
 					putchar('\n');
 				}
 			
+			// microbench (a serie of low level tests).
+			} else if (strcmp(cmd, "microbench") == 0) {
+				bench();
+
 			// bench (a serie of low level tests).
 			} else if (strcmp(cmd, "bench") == 0) {
-				bench();
+				int n = string_to_int(param, -1); BOUND(n, -1, 100, "n_problems");
+				obf_speed(play->search, n);
 
 			// wtest test the engine against wthor theoretical scores
 			} else if (strcmp(cmd, "wtest") == 0) {
@@ -612,6 +618,7 @@ void ui_loop_edax(UI *ui)
 				book->search = play->search;
 				book->search->options.verbosity = book->options.verbosity;
 				book_param = parse_word(param, book_cmd, FILENAME_MAX);
+
 				// store the last played game
 				if (strcmp(book_cmd, "store") == 0) {
 					play_store(play);

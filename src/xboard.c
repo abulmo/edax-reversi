@@ -485,6 +485,7 @@ void ui_loop_xboard(UI *ui)
 		                   "myname=\"%s\" "
 						   "variants=\"reversi\" "
 						   "colors=0 "
+		                   "nps=1 "
 		                   "memory=1 "
 		                   "smp=1 "
 		                   "done=1\n", options.name);
@@ -532,6 +533,7 @@ void ui_loop_xboard(UI *ui)
 			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0 || strcmp(cmd, "q") == 0) {
 				xboard_send("%d games played in %.2f s. %llu nodes searched\n", stats.n_games, 0.001 * stats.time, stats.n_nodes);
 				free(cmd); free(param);
+				if (log_is_open(xboard_log)) statistics_print(xboard_log->f);
 				return;
 
 			// random command
@@ -599,7 +601,7 @@ void ui_loop_xboard(UI *ui)
 
 			// nps
 			} else if ((strcmp(cmd, "nps") == 0)) {
-				xboard_error("(unknown command): %s %s", cmd, param);
+				options.nps = 0.001 * string_to_real(param, options.nps);
 
 			// time
 			} else if ((strcmp(cmd, "time") == 0)) {

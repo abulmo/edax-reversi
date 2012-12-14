@@ -204,7 +204,7 @@ void relax(int t)
 #if defined(__unix__) || defined(__APPLE__)
 	struct timespec ts;
 	ts.tv_sec = t / 1000;
-	ts.tv_nsec = t % 1000;
+	ts.tv_nsec = (t % 1000) * 1000000;
 	nanosleep(&ts, NULL);
 #elif defined(_WIN32)
 	Sleep(t);

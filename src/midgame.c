@@ -324,7 +324,7 @@ int NWS_shallow(Search *search, const int alpha, int depth, HashTable *hash_tabl
 
 	// transposition cutoff
 	hash_code = board_get_hash_code(board);
-	if (hash_get(hash_table, hash_code, hash_data) && search_TC_NWS(hash_data, depth, search->selectivity, alpha, &score)) return score;
+	if (hash_get(hash_table, board, hash_code, hash_data) && search_TC_NWS(hash_data, depth, search->selectivity, alpha, &score)) return score;
 	search_get_movelist(search, movelist);
 
 	if (movelist_is_empty(movelist)) { // no moves ?
@@ -358,7 +358,7 @@ int NWS_shallow(Search *search, const int alpha, int depth, HashTable *hash_tabl
 
 	// save the best result in hash tables
 	cost += search_count_nodes(search);
-	hash_store(hash_table, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, bestscore, bestmove);
+	hash_store(hash_table, board, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, bestscore, bestmove);
  	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 
 	return bestscore;
@@ -404,7 +404,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 	// transposition cutoff
 	hash_code = board_get_hash_code(board);
-	if (hash_get(hash_table, hash_code, hash_data) && search_TC_PVS(hash_data, depth, search->selectivity, &alpha, &beta, &score)) return score;
+//	if (hash_get(hash_table, board, hash_code, hash_data) && search_TC_PVS(hash_data, depth, search->selectivity, &alpha, &beta, &score)) return score;
 
 	search_get_movelist(search, movelist);
 
@@ -448,7 +448,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 	// save the best result in hash tables
 	cost += search_count_nodes(search);
-	hash_store(hash_table, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, bestscore, bestmove);
+	hash_store(hash_table, board, hash_code, depth, search->selectivity, last_bit(cost), alpha, beta, bestscore, bestmove);
  	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 
 	return bestscore;
@@ -503,7 +503,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 
 	// transposition cutoff
 	hash_code = board_get_hash_code(board);
-	if ((hash_get(hash_table, hash_code, hash_data) || hash_get(pv_table, hash_code, hash_data)) && search_TC_NWS(hash_data, depth, search->selectivity, alpha, &score)) return score;
+	if ((hash_get(hash_table, board, hash_code, hash_data) || hash_get(pv_table, board, hash_code, hash_data)) && search_TC_NWS(hash_data, depth, search->selectivity, alpha, &score)) return score;
 
 	search_get_movelist(search, movelist);
 
@@ -522,7 +522,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 
 		// sort the list of moves
 		if (movelist->n_moves > 1) {
-			if (hash_data->move[0] == NOMOVE) hash_get(hash_table, hash_code, hash_data);
+			if (hash_data->move[0] == NOMOVE) hash_get(hash_table, board, hash_code, hash_data);
 			movelist_evaluate(movelist, search, hash_data, alpha, depth + options.inc_sort_depth[search->node_type[search->height]]);
 			movelist_sort(movelist) ;
 		}
@@ -549,8 +549,8 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 		cost += search_count_nodes(search);
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_selectivity = NO_SELECTIVITY; // hack
 		else hash_selectivity = search->selectivity;
-		if (search->height <= PV_HASH_HEIGHT) hash_store(pv_table, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
-		hash_store(hash_table, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+		if (search->height <= PV_HASH_HEIGHT) hash_store(pv_table, board, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+		hash_store(hash_table, board, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
 		SQUARE_STATS(foreach_move(move, movelist))
 		SQUARE_STATS(++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];)
 		SQUARE_STATS(if (node->bestscore > alpha) ++statistics.n_good_square[search->n_empties][SQUARE_TYPE[node->bestmove]];)
@@ -635,7 +635,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	} else { // normal PVS
 		if (movelist->n_moves > 1) {
 			//IID
-			if (!hash_get(pv_table, hash_code, hash_data)) hash_get(hash_table, hash_code, hash_data);
+			if (!hash_get(pv_table, board, hash_code, hash_data)) hash_get(hash_table, board, hash_code, hash_data);
 			if (USE_IID && hash_data->move[0] == NOMOVE) {
 				if (depth == search->n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
 				else reduced_depth = depth - 2;
@@ -644,7 +644,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 					depth_pv_extension = search->depth_pv_extension;
 					search->depth_pv_extension = 0;
 					PVS_midgame(search, SCORE_MIN, SCORE_MAX, reduced_depth, parent);
-					hash_get(pv_table, hash_code, hash_data);
+					hash_get(pv_table, board, hash_code, hash_data);
 					search->depth_pv_extension = depth_pv_extension;
 					search->selectivity = saved_selectivity;
 				}
@@ -685,8 +685,8 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		cost += search_count_nodes(search);
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_selectivity = NO_SELECTIVITY;
 		else hash_selectivity = search->selectivity;
-		hash_store(hash_table, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
-		hash_store(pv_table, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+		hash_store(hash_table, board, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
+		hash_store(pv_table, board, hash_code, depth, hash_selectivity, last_bit(cost), alpha, beta, node->bestscore, node->bestmove);
 
 		SQUARE_STATS(foreach_move(move, movelist))
 			SQUARE_STATS(++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];)
