@@ -37,10 +37,10 @@
  * If the OUTFLANK search is in MSB to LSB direction, GCC's __builtin_clz(ll)
  * is used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.3
+ * @version 4.4
  */
 
 /** outflank array (indexed with inner 6 bits) */

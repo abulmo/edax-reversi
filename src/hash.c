@@ -17,9 +17,9 @@
  * When doing parallel search with a shared hashtable, a locked implementation
  * avoid concurrency collisions.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "bit.h"
@@ -415,7 +415,7 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, const i
 		}
 		spin_unlock(lock);
 	}
-	return false;
+	return ok;
 }
 
 /**
@@ -600,7 +600,7 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 bool hash_get(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashData *data)
 {
 	register int i;
-	const Hash *hash;
+	Hash *hash;
 	HashLock *lock;
 	bool ok = false;
 
@@ -614,6 +614,7 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 				*data = hash->data;
 				HASH_STATS(++statistics.n_hash_found;)
 				ok = (data->date > 0);
+				if (ok) hash->data.date = hash_table->date;
 			}
 			spin_unlock(lock);
 			if (ok) return true;

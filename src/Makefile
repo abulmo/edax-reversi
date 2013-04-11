@@ -239,10 +239,6 @@ ifeq ($(COMP),clang)
 		CFLAGS += -m32 -DUSE_GAS_X86
 	endif
 
-	ifeq ($(OS),linux)
-		CFLAGS += -Xlinker -plugin /usr/lib64/llvm/LLVMgold.so
-	endif
-
 	ifeq ($(OS),osx)
 		CFLAGS += -mmacosx-version-min=10.4 -mdynamic-no-pic
 	endif

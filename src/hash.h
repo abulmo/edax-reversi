@@ -3,9 +3,9 @@
  *
  * Hash table's header.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #ifndef EDAX_HASH_H
@@ -13,10 +13,8 @@
 
 #include "board.h"
 #include "settings.h"
+#include "util.h"
 
-#if (USE_HASH_LOCK)
-	#include "util.h"
-#endif
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -38,12 +36,10 @@ typedef struct Hash {
 	HashData data;
 } Hash;
 
-#if (USE_HASH_LOCK)
 /** HashLock : lock for table entries */
 typedef struct HashLock {
 	SpinLock spin;
 } HashLock;
-#endif
 
 /** HashTable: position storage */
 typedef struct HashTable {

@@ -10,9 +10,9 @@
  * with two bounds from retropropagated error.
  * Several algorithms are present to add positions in the book, in the most usefull way.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "book.h"

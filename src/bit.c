@@ -6,9 +6,9 @@
  * a macro needs to be defined to chose between different flavors of the
  * algorithm.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "bit.h"

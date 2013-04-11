@@ -5,7 +5,7 @@
  *
  * @date 2002 - 2012
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "board.h"
@@ -1461,7 +1461,6 @@ void ui_loop_ggs(UI *ui) {
 		}
 
 		text_print(text, stdout);
-		if (ggs_log->f) text_print(text, ggs_log->f);
 
 		/* login */
 		if (ggs_login(text)) {

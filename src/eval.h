@@ -3,9 +3,9 @@
  *
  * Evaluation function's header.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #ifndef EDAX_EVAL_H

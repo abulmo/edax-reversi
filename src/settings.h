@@ -3,9 +3,9 @@
  *
  * Various macro / constants to control algorithm usage.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 
@@ -60,9 +60,6 @@
 
 /** Use previous search result */
 #define USE_PREVIOUS_SEARCH true
-
-/** LockFree Hash Table */
-#define USE_HASH_LOCK true
 
 /** Allow type puning */
 #ifndef USE_TYPE_PUNING

@@ -6,9 +6,9 @@
  * The purpose of these functions is to gather performance
  * statistics on some algorithms or code.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "stats.h"
@@ -34,7 +34,6 @@ void statistics_init(void)
 	statistics.n_hash_remove = 0;
 	statistics.n_hash_search = 0;
 	statistics.n_hash_found = 0;
-	statistics.n_hash_collision = 0;
 
 	for (i = 0; i < MAX_THREADS; ++i) {
 		statistics.n_task_nodes[i] = 0;
@@ -65,7 +64,6 @@ void statistics_init(void)
 	statistics.n_search_eval_1 = 0;
 	statistics.n_search_eval_2 = 0;
 
-	statistics.n_concurrent_garbage = 0;
 	statistics.n_hash_try = 0;
 	statistics.n_hash_low_cutoff = 0;
 	statistics.n_hash_high_cutoff = 0;
@@ -157,10 +155,6 @@ void statistics_print(FILE *f)
 		fprintf(f, "New: %llu   Update: %llu   Ugrade: %llu   Remove: %llu\n",
 			statistics.n_hash_new, statistics.n_hash_update, statistics.n_hash_upgrade, statistics.n_hash_remove);
 	}
-	if (statistics.n_hash_collision) {
-		fprintf(f, "Collision: %llu\n", statistics.n_hash_collision);
-	}
-		
 
 	if (SQUARE_STATS(1) +0) {
 		for (j = 0; j < BOARD_SIZE; ++j) {
@@ -205,10 +199,6 @@ void statistics_print(FILE *f)
 			statistics.n_probcut_low_cutoff, 100.0 * statistics.n_probcut_low_cutoff / statistics.n_probcut_try, 100.0 * statistics.n_probcut_low_cutoff / statistics.n_probcut_low_try,
 			statistics.n_probcut_high_try, 100.0 * statistics.n_probcut_high_try / statistics.n_probcut_try,
 			statistics.n_probcut_high_cutoff, 100.0 * statistics.n_probcut_high_cutoff / statistics.n_probcut_try, 100.0 * statistics.n_probcut_high_cutoff / statistics.n_probcut_high_try);
-	}
-
-	if (statistics.n_concurrent_garbage) {
-		fprintf(f, "Concurrency garbage detected = %llu\n\n\n", statistics.n_concurrent_garbage);
 	}
 
 	if (statistics.n_NWS_candidate) {

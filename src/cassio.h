@@ -3,9 +3,9 @@
  *
  * A simple protocol to communicate with Cassio.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #ifndef CASSIO_H

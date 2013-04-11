@@ -3,9 +3,9 @@
  *
  * Opening Name aliasing.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "opening.h"
@@ -1279,7 +1279,7 @@ static bool match(const char *s1, const char *s2)
 		while (isspace(*s1) || ispunct(*s1)) ++s1;
 		while (isspace(*s2) || ispunct(*s2)) ++s2;
 	
-		if (*s1 == '\0' || *s2 == '\0') return (*s1 == '\0');
+		if (*s1 == '\0' || *s2 == '\0') return (*s2 == '\0');
 
 		c1 = tolower(*s1);
 		c2 = tolower(*s2);

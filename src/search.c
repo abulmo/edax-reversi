@@ -52,9 +52,9 @@
  * -# Reinsfeld A. (1983) An Improvement Of the Scout Tree-Search Algorithm. ICCA
  *     journal, 6(4), pp. 4-14.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "search.h"
@@ -1318,7 +1318,7 @@ void search_share(const Search *src, Search *dest)
  */
 int search_count_tasks(const Search *search)
 {
-	return search->tasks->n + 1;
+	return search->tasks->n;
 }
 
 /**

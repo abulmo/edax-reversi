@@ -11,9 +11,9 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "board.h"
@@ -535,7 +535,22 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 static inline unsigned long long get_some_moves(const unsigned long long P, const unsigned long long mask, const int dir)
 {
 
-#if KOGGE_STONE & 1
+#if PARALLEL_PREFIX & 1
+	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
+	// 6 << + 6 >> + 7 | + 9 &
+	register unsigned long long flip_l, flip_r;
+	register unsigned long long mask_l, mask_r;
+	const unsigned long long dir2 = dir + dir;
+
+	flip_l  = mask & (P << dir);          flip_r  = mask & (P >> dir);
+	flip_l |= mask & (flip_l << dir);     flip_r |= mask & (flip_r >> dir);
+	mask_l  = mask & (mask << dir);       mask_r  = mask & (mask >> dir);
+	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
+	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
+
+	return (flip_l << dir) | (flip_r >> dir);
+
+#elif KOGGE_STONE & 1
 	// kogge-stone algorithm
  	// 6 << + 6 >> + 12 & + 7 |
 	// + better instruction independency
@@ -556,22 +571,6 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
 	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
 
 	return ((flip_l & mask) << dir) | ((flip_r & mask) >> dir);
-	
-
-#elif PARALLEL_PREFIX & 1
-	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
-	// 6 << + 6 >> + 7 | + 9 &
-	register unsigned long long flip_l, flip_r;
-	register unsigned long long mask_l, mask_r;
-	const unsigned long long dir2 = dir + dir;
-
-	flip_l  = mask & (P << dir);          flip_r  = mask & (P >> dir);
-	flip_l |= mask & (flip_l << dir);     flip_r |= mask & (flip_r >> dir);
-	mask_l  = mask & (mask << dir);       mask_r  = mask & (mask >> dir);
-	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
-	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
-
-	return (flip_l << dir) | (flip_r >> dir);
 
 #else
 

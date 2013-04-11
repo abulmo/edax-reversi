@@ -3,9 +3,9 @@
  *
  * @brief Statistics header.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #ifndef EDAX_STATS_H
@@ -21,8 +21,6 @@
 #define YBWC_STATS(x) 
 /** Hash statistics on/off */
 #define HASH_STATS(x)
-/** LockFree statistics on/off */
-#define LOCKFREE_STATS(x)
 /** Search statistics on/off */
 #define SEARCH_STATS(x)
 /** Square type statistics on/off */
@@ -70,7 +68,6 @@ typedef struct Statistics {
 	unsigned long long n_hash_remove;
 	unsigned long long n_hash_search;
 	unsigned long long n_hash_found;
-	unsigned long long n_hash_collision;
 
 	unsigned long long n_PVS_root;
 	unsigned long long n_PVS_midgame;
@@ -99,7 +96,6 @@ typedef struct Statistics {
 	unsigned long long n_stopped_master;
 	unsigned long long n_wake_up;
 
-	unsigned long long n_concurrent_garbage;
 	unsigned long long n_hash_try, n_hash_low_cutoff, n_hash_high_cutoff;
 	unsigned long long n_stability_try, n_stability_low_cutoff;
 	unsigned long long n_probcut_try;

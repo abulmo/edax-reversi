@@ -5,9 +5,9 @@
  *
  * Of course, only the "reversi" variant is supported.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  *
  */
 
@@ -443,6 +443,7 @@ void ui_loop_xboard(UI *ui)
 	bool alien_variant = false;
 	XBoardStats stats = {0, 0, 0};
 	int edax_turn = EMPTY;
+	int last_edax_turn = !play->player;
 	const char *(color[2]) = {"black", "white"};
 	
 	// loop forever
@@ -543,6 +544,7 @@ void ui_loop_xboard(UI *ui)
 			// random command
 			} else if ((strcmp(cmd, "force") == 0)) {
 				play_stop_pondering(play);
+				last_edax_turn = edax_turn;
 				edax_turn = EMPTY;
 
 			// go think!
@@ -608,13 +610,13 @@ void ui_loop_xboard(UI *ui)
 				int t;
 				t = string_to_int(param, 100); 
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				play->time[edax_turn].left = t * 10; // 100% of available time...
+				play->time[edax_turn == EMPTY ? last_edax_turn : edax_turn].left = t * 10; // 100% of available time...
 
 			} else if ((strcmp(cmd, "otim") == 0)) {
 				int t;
 				t = string_to_int(param, 100);
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
-				play->time[!edax_turn].left = t * 10; // 100% of available time...
+				play->time[edax_turn == EMPTY ? !last_edax_turn : !edax_turn].left = t * 10; // 100% of available time...
 
 			// interrupt thinking
 			} else if (strcmp(cmd, "?") == 0) {

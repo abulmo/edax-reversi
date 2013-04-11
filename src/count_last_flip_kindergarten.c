@@ -25,9 +25,9 @@
  * With Modifications by Valéry ClaudePierre (merging diagonals).
  * @todo 135° merge as done by Toshihiko Okuhara
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  *
  */
 

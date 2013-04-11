@@ -3,9 +3,9 @@
  *
  * @brief Main file.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "board.h"
@@ -77,7 +77,6 @@ int main(int argc, char **argv)
 	char *wthor_file = NULL;
 	char *count_type = NULL;
 	int n_bench = 0;
-	FILE *stats;
 
 	// options.n_task default to system cpu number
 	options.n_task = get_cpu_number();
@@ -123,7 +122,7 @@ int main(int argc, char **argv)
 	hash_move_init();
 	statistics_init();
 	eval_open(options.eval_file);
-	search_global_init();	
+	search_global_init();
 
 	// solver & tester
 	if (problem_file || wthor_file || n_bench) {
@@ -158,7 +157,7 @@ int main(int argc, char **argv)
 
 	// display statistics
 	statistics_print(stdout);
-	
+
 
 	// free;
 	eval_close();

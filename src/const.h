@@ -3,9 +3,9 @@
  *
  * Constants as macros, enums, or global consts.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2013
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #ifndef EDAX_CONST_H
