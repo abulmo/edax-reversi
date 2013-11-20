@@ -69,7 +69,6 @@ const unsigned long long NEIGHBOUR[] = {
  * @param b 64-bit integer to count bits of.
  * @return the number of bits set.
  */
-
 int bit_count(unsigned long long b)
 {
 #if defined(POPCOUNT)
@@ -130,6 +129,7 @@ int bit_count(unsigned long long b)
 
 #endif
 }
+
 
 /**
  * @brief count the number of discs, counting the corners twice.

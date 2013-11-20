@@ -55,7 +55,7 @@ bool board_is_pass(const Board*);
 bool board_is_game_over(const Board*);
 int board_count_empties(const Board *board);
 
-extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
+int count_last_flip(const int, const unsigned long long);
 extern unsigned long long (*flip[BOARD_SIZE + 2])(const unsigned long long, const unsigned long long);
 unsigned long long get_moves(const unsigned long long, const unsigned long long);
 bool can_move(const unsigned long long, const unsigned long long);

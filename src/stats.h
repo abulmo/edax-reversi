@@ -18,9 +18,11 @@
 
 /* To turn on a statistics, add an x to the end of the line starting with #define .*/
 /** YBWC statistics on/off */
-#define YBWC_STATS(x) 
+#define YBWC_STATS(x)
 /** Hash statistics on/off */
 #define HASH_STATS(x)
+/** Hash collision on/off */
+#define HASH_COLLISIONS(x)
 /** Search statistics on/off */
 #define SEARCH_STATS(x)
 /** Square type statistics on/off */
@@ -68,6 +70,8 @@ typedef struct Statistics {
 	unsigned long long n_hash_remove;
 	unsigned long long n_hash_search;
 	unsigned long long n_hash_found;
+	unsigned long long n_hash_collision;
+	unsigned long long n_hash_n;
 
 	unsigned long long n_PVS_root;
 	unsigned long long n_PVS_midgame;

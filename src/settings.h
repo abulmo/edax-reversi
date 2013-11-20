@@ -103,8 +103,8 @@
 /** Stop Node splitting (for parallel search) when few move remains.  */
 #define SPLIT_MIN_MOVES_TODO 1
 
-/** Stop Node splitting (for parallel search) when few move remains.  */
-#define MAX_SLAVES 1
+/** Stop Node splitting (for parallel search) after a few splitting.  */
+#define SPLIT_MAX_SLAVES 3
 
 /** Branching factor (to adjust alloted time). */
 #define BRANCHING_FACTOR 2.24

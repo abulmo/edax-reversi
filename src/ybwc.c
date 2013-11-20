@@ -58,6 +58,8 @@ extern Log search_log[1];
  */
 void node_init(Node* node, Search *search, const int alpha, const int beta, const int depth, const int n_moves, Node* parent)
 {
+	int i;
+	
 	assert(node != NULL);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 	assert(SCORE_MIN <= beta && beta <= SCORE_MAX);
@@ -78,8 +80,8 @@ void node_init(Node* node, Search *search, const int alpha, const int beta, cons
 	node->n_moves_done = 0;
 	node->parent = parent;
 	node->search = search;
-	node->slave = NULL;
-	node->has_slave = false;
+	for (i = 0; i < SPLIT_MAX_SLAVES; ++i) node->slave[i] = NULL;
+	node->n_slave = 0;
 	node->is_waiting = false;
 	node->is_helping = false;
 	node->stop_point = false;
@@ -115,7 +117,7 @@ static bool get_helper(Node *master, Node *node, Move *move)
 	if (master) {
 		if (master->is_waiting && !master->is_helping) {
 			lock(master);
-			if (master->has_slave && master->is_waiting && !master->is_helping) {
+			if (master->n_slave && master->is_waiting && !master->is_helping) {
 				master->is_helping = true;
 				task = master->help;
 				task_init(task) ;
@@ -123,8 +125,9 @@ static bool get_helper(Node *master, Node *node, Move *move)
 				task->node = node;
 				task->move = move;
 				search_clone(task->search, node->search);
-				node->has_slave = true;
-				node->slave = task->search;
+				lock(node);
+					node->slave[node->n_slave++] = task->search;
+				unlock(node);			
 				task->run = true;
 				found = true;
 
@@ -169,7 +172,7 @@ bool node_split(Node *node, Move *move)
 	if (search->allow_node_splitting // split only if parallelism is on
 	 && node->depth >= SPLIT_MIN_DEPTH // split if we are deep enough
 	 && node->n_moves_done // do not split first move (ybwc main principle).
-	 && node->has_slave == false // Not splitted yet.
+	 && node->n_slave < SPLIT_MAX_SLAVES // do not split too much at the same point.
 	 && node->n_moves_todo >=  SPLIT_MIN_MOVES_TODO) {  // do not split the last move(s), to diminish waiting time
 		YBWC_STATS(atomic_add(&statistics.n_split_try, 1);)
 
@@ -180,8 +183,9 @@ bool node_split(Node *node, Move *move)
 			task->node = node;
 			task->move = move;
 			search_clone(task->search, search);
-			node->has_slave = true;
-			node->slave = task->search;
+			lock(node);
+				node->slave[node->n_slave++] = task->search;
+			unlock(node);
 			YBWC_STATS(atomic_add(&statistics.n_split_success, 1);)
 
 			lock(task);
@@ -207,16 +211,20 @@ bool node_split(Node *node, Move *move)
  */
 void node_wait_slaves(Node* node)
 {
+	int i;
+
 	lock(node);
-	// stop slave ?
-	if ((node->alpha >= node->beta || node->search->stop) && node->has_slave) {
-		search_stop_all(node->slave, STOP_PARALLEL_SEARCH);
-		YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+	// stop slaves ?
+	if ((node->alpha >= node->beta || node->search->stop) && node->n_slave) {
+		for (i = 0; i < node->n_slave; ++i) {
+			search_stop_all(node->slave[i], STOP_PARALLEL_SEARCH);
+			YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+		}
 	}
 
 	// wait slaves
-	YBWC_STATS(atomic_add(&statistics.n_waited_slave, node->has_slave);)
-	while (node->has_slave) {
+	YBWC_STATS(atomic_add(&statistics.n_waited_slave, node->n_slave > 0);)
+	while (node->n_slave) {
 		node->is_waiting = true;
 		assert(node->is_helping == false);
 		condition_wait(node);
@@ -254,6 +262,7 @@ void node_update(Node* node, Move *move)
 {
 	Search *search = node->search;
 	const int score = move->score;
+	int i;
 
 	lock(node);
 	if (!search->stop && score > node->bestscore) {
@@ -265,9 +274,11 @@ void node_update(Node* node, Move *move)
 		}
 		if (score > node->alpha) node->alpha = score;
 	}
-	if (node->alpha >= node->beta  && node->has_slave) { // stop slave ?
-		search_stop_all(node->slave, STOP_PARALLEL_SEARCH);
-		YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+	if (node->alpha >= node->beta  && node->n_slave) { // stop slave ?
+		for (i = 0; i < node->n_slave; ++i) {
+			search_stop_all(node->slave[i], STOP_PARALLEL_SEARCH);
+			YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+		}
 	}
 	unlock(node);	
 }
@@ -415,7 +426,13 @@ void task_search(Task *task)
 
 	lock(node);
 		task->run = false;
-		node->has_slave = false;
+		for (i = 0; i < node->n_slave; ++i) {
+			if (node->slave[i] == search) {
+				--node->n_slave;
+				node->slave[i] = node->slave[node->n_slave];
+				break;
+			}
+		}
 		condition_broadcast(node);
 	unlock(node);
 }

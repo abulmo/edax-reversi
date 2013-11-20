@@ -5,15 +5,12 @@
  *
  * The hash table is an efficient memory system to remember the previously
  * analysed positions and re-use the collected data when needed.
- * The hash table contains entries of analysed data where the board is uniquely
- * identified through a 64-bit key and the results of the recorded analysis are
- * two score bounds, the level of the analysis and the best move found.
- * The implementation is now a multi-way hashtable. It both tries to keep the
- * deepest records and to always add the latest one.
- * The following implementation may suffer from hash collision: two different
- * positions may share the same hashcode. Fortunately, this is very improbable
- * with hascode on 64 bits, and, thanks to alphabeta robustness, it propagates
- * even less often to the root.
+ * The hash table contains entries of analysed data where the board is stored
+ * and the results of the recorded analysis are two score bounds, the level of
+ * the analysis and the best move found.
+ * The implementation is now a multi-way (or bucket based) hashtable. It both
+ * tries to keep the deepest records and to always add the latest one.
+ * The following implementation store the whole board to avoid collision. 
  * When doing parallel search with a shared hashtable, a locked implementation
  * avoid concurrency collisions.
  *
@@ -135,6 +132,7 @@ void hash_cleanup(HashTable *hash_table)
 
 	info("< cleaning hashtable >\n");
 	for (i = 0; i <= hash_table->hash_mask + HASH_N_WAY; ++i) {
+		HASH_COLLISIONS(hash_table->hash[i].key = 0;)
 		hash_table->hash[i].board.player = hash_table->hash[i].board.opponent = 0; 
 		hash_table->hash[i].data = HASH_DATA_INIT;
 	}
@@ -291,11 +289,16 @@ static void data_new(HashData *data, const int date, const int depth, const int 
  * @param score Best score.
  * @param move Best move.
  */
+#if (HASH_COLLISIONS(1)+0)
+static void hash_new(Hash *hash, HashLock *lock, const unsigned long long hash_code, const Board* board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+#else
 static void hash_new(Hash *hash, HashLock *lock, const Board* board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+#endif
 {
 	spin_lock(lock);
 	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
+	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
 	data_new(&hash->data, date, depth, selectivity, cost, alpha, beta, score, move);
 	spin_unlock(lock);
@@ -320,11 +323,16 @@ static void hash_new(Hash *hash, HashLock *lock, const Board* board, const int d
  * @param upper Upper score bound.
  * @param move Best move.
  */
-void hash_set(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int lower, const int upper, const int move)
+#if (HASH_COLLISIONS(1)+0)
+static void hash_set(Hash *hash, HashLock *lock, const unsigned long long hash_code, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int lower, const int upper, const int move)
+#else
+static void hash_set(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int lower, const int upper, const int move)
+#endif
 {
 	spin_lock(lock);
 	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
+	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
 	hash->data.upper = (signed char) upper;
 	hash->data.lower = (signed char) lower;
@@ -481,25 +489,28 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, const int
 void hash_feed(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
 	Hash *hash, *worst;
-	HashLock *lock, *w_lock; 
+	HashLock *lock; 
 	int i;
 	int date = hash_table->date ? hash_table->date : 1;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	w_lock = lock = hash_table->lock + (hash_code & hash_table->lock_mask);
+	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	if (hash_reset(hash, lock, board, date, depth, selectivity, lower, upper, move)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
-		++hash; ++lock;
+		++hash;
 		if (hash_reset(hash, lock, board, date, depth, selectivity, lower, upper, move)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
-			w_lock = lock;
 		}
 	}
 
 	// new entry
-	hash_set(worst, w_lock, board, date, depth, selectivity, 0, lower, upper, move);
+#if (HASH_COLLISIONS(1)+0) 
+	hash_set(worst, lock, hash_code, board, date, depth, selectivity, 0, lower, upper, move);
+#else 
+	hash_set(worst, lock, board, date, depth, selectivity, 0, lower, upper, move);
+#endif
 }
 
 /**
@@ -534,22 +545,24 @@ void hash_store(HashTable *hash_table, const Board *board, const unsigned long l
 {
 	register int i;
 	Hash *worst, *hash;
-	HashLock *lock, *w_lock;
+	HashLock *lock;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	w_lock = lock = hash_table->lock + (hash_code & hash_table->lock_mask);
+	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	if (hash_update(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
-		++hash; ++lock;
+		++hash;
 		if (hash_update(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
-			w_lock = lock;
 		}
 	}
-
-	hash_new(worst, w_lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#if (HASH_COLLISIONS(1)+0) 
+	hash_new(worst, lock, hash_code, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#else 
+	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#endif
 }
 
 /**
@@ -571,22 +584,25 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 {
 	register int i;
 	Hash *worst, *hash;
-	HashLock *lock, *w_lock;
+	HashLock *lock;
 	
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	w_lock = lock = hash_table->lock + (hash_code & hash_table->lock_mask);
+	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
 	
 	for (i = 1; i < HASH_N_WAY; ++i) {
-		++hash; ++lock;
+		++hash;
 		if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
-			w_lock = lock;
 		}
 	}
 	
-	hash_new(worst, w_lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#if (HASH_COLLISIONS(1)+0) 
+	hash_new(worst, lock, hash_code, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#else 
+	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#endif
 }
 
 /**
@@ -605,21 +621,32 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 	bool ok = false;
 
 	HASH_STATS(++statistics.n_hash_search;)
+	HASH_COLLISIONS(++statistics.n_hash_n;)
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
+		HASH_COLLISIONS(if (hash->key == hash_code) {)
+		HASH_COLLISIONS(	spin_lock(lock);)
+		HASH_COLLISIONS(	if (hash->key == hash_code && (hash->board.player != board->player || hash->board.opponent != board->opponent)) {)
+		HASH_COLLISIONS(		++statistics.n_hash_collision;)
+		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
+		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
+		HASH_COLLISIONS(		board_print(&hash->board, WHITE, stdout);)
+		HASH_COLLISIONS(	})
+		HASH_COLLISIONS(	spin_unlock(lock);)
+		HASH_COLLISIONS(})
 		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
 			spin_lock(lock);
 			if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
 				*data = hash->data;
 				HASH_STATS(++statistics.n_hash_found;)
-				ok = (data->date > 0);
-				if (ok) hash->data.date = hash_table->date;
+				hash->data.date = hash_table->date;
+				ok = true;
 			}
 			spin_unlock(lock);
 			if (ok) return true;
 		}
-		++hash; ++lock;
+		++hash;
 	}
 	*data = HASH_DATA_INIT;
 	return false;
@@ -655,7 +682,7 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
 			spin_unlock(lock);
 			return;
 		}
-		++hash; ++lock;
+		++hash;
 	}
 }
 

@@ -32,6 +32,7 @@ typedef struct HashData {
 
 /** Hash  : item stored in the hash table*/
 typedef struct Hash {
+	HASH_COLLISIONS(unsigned long long key;)
 	Board board;
 	HashData data;
 } Hash;

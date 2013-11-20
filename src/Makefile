@@ -221,7 +221,7 @@ endif
 
 #clang
 ifeq ($(COMP),clang)
-	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1
+	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -Wno-invalid-source-encoding
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O4 -ffast-math -fomit-frame-pointer -DNDEBUG
@@ -263,6 +263,20 @@ ifeq ($(OS),osx)
 	EXE = mEdax
 	LIBS += -lpthread
 endif
+
+ifeq ($(ARCH),x64)
+	CFLAGS += -DHAS_CPU_64
+endif
+ifeq ($(ARCH),x64-modern)
+	CFLAGS += -DHAS_CPU_64
+endif
+ifeq ($(ARCH),x32)
+	CFLAGS += -DHAS_CPU_64
+endif
+ifeq ($(ARCH),x32-modern)
+	CFLAGS += -DHAS_CPU_64
+endif
+
 
 #SRC
 SRC= bit.c board.c move.c hash.c ybwc.c eval.c endgame.c midgame.c root.c search.c \

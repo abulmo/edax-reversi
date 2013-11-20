@@ -1254,7 +1254,7 @@ static int count_last_flip_pass(const unsigned long long P)
 }
 
 /** Array of functions to count flipped discs of the last move */
-int (*count_last_flip[])(const unsigned long long) = {
+int (*COUNT_LAST_FLIP[])(const unsigned long long) = {
 	count_last_flip_A1, count_last_flip_B1, count_last_flip_C1, count_last_flip_D1,
 	count_last_flip_E1, count_last_flip_F1, count_last_flip_G1, count_last_flip_H1,
 	count_last_flip_A2, count_last_flip_B2, count_last_flip_C2, count_last_flip_D2,
@@ -1273,4 +1273,9 @@ int (*count_last_flip[])(const unsigned long long) = {
 	count_last_flip_E8, count_last_flip_F8, count_last_flip_G8, count_last_flip_H8,
 	count_last_flip_pass,
 };
+
+int count_last_flip(const int x, const unsigned long long P)
+{
+	return COUNT_LAST_FLIP[x](P);
+}
 

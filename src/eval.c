@@ -244,7 +244,7 @@ static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
  */
 static int opponent_feature(int l, int d)
 {
-	const int o[] = {1, 0 ,2};
+	static const int o[] = {1, 0, 2};
 	int f = o[l % 3];
 
 	if (d > 1) f += opponent_feature(l / 3, d - 1) * 3;
@@ -680,7 +680,7 @@ static void eval_update_1(Eval *eval, const Move *move)
 
 void eval_update(Eval *eval, const Move *move)
 {
-	void (*eval_update_f[])(Eval*, const Move*) = {eval_update_0, eval_update_1};
+	static void (*eval_update_f[])(Eval*, const Move*) = {eval_update_0, eval_update_1};
 	assert(move->flipped);
 	assert(WHITE == eval->player || BLACK == eval->player);
 	eval_update_f[eval->player](eval, move);
@@ -809,7 +809,7 @@ static void eval_restore_1(Eval *eval, const Move *move)
 
 void eval_restore(Eval *eval, const Move *move)
 {
-	void (*eval_restore_f[])(Eval*, const Move*) = {eval_restore_0, eval_restore_1};
+	static void (*eval_restore_f[])(Eval*, const Move*) = {eval_restore_0, eval_restore_1};
 	assert(move->flipped);
 	eval_swap(eval);
 	assert(WHITE == eval->player || BLACK == eval->player);

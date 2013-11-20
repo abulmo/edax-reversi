@@ -99,19 +99,18 @@ inline int board_score_1(const Board *board, const int beta, const int x)
 
 	score = 2 * bit_count(board->opponent) - SCORE_MAX;
 
-	if ((n_flips = count_last_flip[x](board->player)) != 0) {
+	if ((n_flips = count_last_flip(x, board->player)) != 0) {
 		score -= n_flips;
 	} else {
 		if (score >= 0) {
 			score += 2;
 			if (score < beta) { // lazy cut-off
-				if ((n_flips = count_last_flip[x](board->opponent)) != 0) {
-					score += n_flips;
-				}
+				n_flips = count_last_flip(x, board->opponent);
+				score += n_flips;
 			}
 		} else {
 			if (score < beta) { // lazy cut-off
-				if ((n_flips = count_last_flip[x](board->opponent)) != 0) {
+				if ((n_flips = count_last_flip(x, board->opponent)) != 0) {
 					score += n_flips + 2;
 				}
 			}
@@ -480,7 +479,6 @@ int NWS_endgame(Search *search, const int alpha)
 	search_get_movelist(search, movelist);
 
 	cost = -search->n_nodes;
-
 	// special cases
 	if (movelist_is_empty(movelist)) {
 		bestmove = movelist->move->next = movelist->move + 1;

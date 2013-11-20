@@ -43,7 +43,7 @@
  * @version 4.4
  */
 
-#include <emmintrin.h>
+#include <x86intrin.h>
 
 /** outflank array (indexed with inner 6 bits) */
 /* static const unsigned char OUTFLANK_0[64] = {

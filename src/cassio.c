@@ -49,6 +49,7 @@ typedef struct Engine {
 		Board board[ENGINE_N_POSITION];    /** Last position */
 		int n;               /** # of last position */
 	} last_position;
+	bool is_searching;
 } Engine;
 
 
@@ -109,13 +110,13 @@ static void engine_get_input(Engine *engine)
 		// stop or quit: Interrupt immediately the current search & remove unprocessed messages.
 		if (strcmp(cmd, "stop") == 0) {
 			event_clear_messages(event);
-			if (engine->search && engine->search->stop == RUNNING) {
+			if (engine->is_searching) {
 				engine_stop(engine->search);
 			} else {
 				engine_send("ready."); 
 			}
 		} else if (strcmp(cmd, "get-search-infos") == 0) {
-			if (engine->search && engine->search->stop == RUNNING) {
+			if (engine->is_searching) {
 				engine_send("node %lld, time %.3f", search_count_nodes(engine->search), 0.001 * search_time(engine->search));
 			} else {
 				engine_send("ready."); 
@@ -134,7 +135,7 @@ static void engine_get_input(Engine *engine)
 
 		}
 	} else if (*protocol == '\0') {
-		if (engine->search && engine->search->stop == RUNNING) {
+		if (engine->is_searching) {
 			engine_send("ok.");
 		} else {
 			engine_send("ready.");
@@ -384,6 +385,7 @@ void* engine_init(void)
 		engine_send("bye bye!");
 		exit(EXIT_FAILURE);
 	}
+	engine->is_searching = false;
 	engine->search = engine_create_search();
 	event_init(engine->event);
 	
@@ -593,6 +595,7 @@ double engine_midgame_search(void *v, const char *position, const double alpha, 
 		return -SCORE_INF;
 	}
 	
+	engine->is_searching = true;
 	player = board_set(board, position);
 	
 	old_score = engine_open(search, board, player, floor(alpha), ceil(beta), depth, precision);
@@ -607,6 +610,7 @@ double engine_midgame_search(void *v, const char *position, const double alpha, 
 	}
 
 	engine_close(search);
+	engine->is_searching = false;
 
 	return search->result->score * 1.0f;
 }
@@ -637,6 +641,7 @@ int engine_endgame_search(void *v, const char *position, const int  alpha, const
 		return -SCORE_INF;
 	}
 	
+	engine->is_searching = true;
 	player = board_set(board, position);
 	depth = board_count_empties(board);
 	
@@ -650,7 +655,9 @@ int engine_endgame_search(void *v, const char *position, const int  alpha, const
 		cassio_debug("aspiration search.\n");
 		aspiration_search(search, options.alpha, options.beta, search->depth, old_score);
 	}
+	
 	engine_close(search);
+	engine->is_searching = false;
 	
 	return search->result->score;
 }

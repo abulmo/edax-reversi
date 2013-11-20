@@ -17,6 +17,7 @@
 #include "opening.h"
 #include "play.h"
 #include "search.h"
+#include "stats.h"
 #include "util.h"
 #include "ui.h"
 

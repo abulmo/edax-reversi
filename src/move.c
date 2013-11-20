@@ -496,7 +496,6 @@ void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
 		else if (iter->x == hash_data->move[1]) iter->cost = INT_MAX - 1;
 	}
 	for (iter =  move_next_most_expensive(movelist->move); iter; iter = move_next_most_expensive(iter));
-
 }
 
 /**

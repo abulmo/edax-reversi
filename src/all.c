@@ -8,11 +8,17 @@
  * @version 4.4
  */
 
+/* miscellaneous utilities */
+#include "options.c"
+#include "util.c"
+#include "stats.c"
 #include "bit.c"
+
+/* move generation */
 #include "board.c"
 #include "move.c"
 
-#include "stats.c"
+/* eval & search */
 #include "eval.c"
 #include "hash.c"
 #include "ybwc.c"
@@ -21,20 +27,19 @@
 #include "midgame.c"
 #include "root.c"
 
-#include "options.c"
-#include "util.c"
-
+/* miscellaneous tests */
 #include "perft.c"
 #include "obftest.c"
 #include "histogram.c"
 #include "bench.c"
 
+/* opening book & game database */
 #include "book.c"
-
 #include "game.c"
 #include "base.c"
 #include "opening.c"
 
+/* game play with various protocols */
 #include "play.c"
 #include "event.c"
 #include "ui.c"
@@ -45,4 +50,6 @@
 #include "nboard.c"
 #include "xboard.c"
 
+/* main */
 #include "main.c"
+

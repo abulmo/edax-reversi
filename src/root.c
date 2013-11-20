@@ -341,10 +341,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	assert(SCORE_MIN <= beta && beta <= SCORE_MAX);
 	assert(depth > 0 && depth <= search->n_empties);
 
-	// allow parallelism ?
-	search->allow_node_splitting = (search->tasks->n > 0);
 	search->probcut_level = 0;
-	
 	search->result->n_moves_left = search->result->n_moves;
 
 	cassio_debug("PVS_root [%d, %d], %d@%d%%\n", alpha, beta, depth, selectivity_table[search->selectivity].percent);
@@ -360,7 +357,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	search->node_type[0] = PV_NODE;
 	search->time.can_update = false;
 	
-	// special cases
+	// special cases: pass or game over
 	if (movelist_is_empty(movelist)) {
 		move = movelist->move->next = movelist->move + 1;
 		move->flipped = 0;
@@ -499,7 +496,7 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	for (i = 0; i < 10; ++i) {
 		old_score = score;
 	
-		// if in multipv mode the alphabeta window is already small, search directly
+		// if in multipv mode or the alphabeta window is already small, search directly
 		if (depth <= search->options.multipv_depth || beta - alpha <= 2 * width) {
 			log_print(search_log, "direct root_PVS [%d, %d]:\n", low, high);
 			score = PVS_root(search, alpha, beta, depth);

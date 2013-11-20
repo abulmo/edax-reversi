@@ -220,7 +220,7 @@ void relax(int t)
  */
 char* format_scientific(double v, const char *unit, char *f)
 {
-	static const char *multiple = "EPTGMk mµnpfa"; //
+	static const char *multiple = "EPTGMk mÂµnpfa"; //
 	int u;
 
 	if (fabs(v) < 1e-24) {

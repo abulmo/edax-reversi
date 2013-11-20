@@ -60,7 +60,6 @@ typedef struct GameStats {
 	unsigned long long n_lines;      /**< unterminated line count */
 } GameStats;
 
-
 void book_init(Book*);
 void book_free(Book*);
 
@@ -89,7 +88,6 @@ bool book_get_moves(Book*, const Board*, MoveList*);
 bool book_get_random_move(Book*, const Board*, Move*, const int);
 void book_get_game_stats(Book*, const Board*, GameStats*);
 void book_get_line(Book*, const Board*, const Move*, Line*);
-
 
 void book_add_board(Book*, const Board*);
 void book_add_game(Book*, const Game*);

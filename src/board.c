@@ -30,7 +30,7 @@
 
 
 #if MOVE_GENERATOR == MOVE_GENERATOR_CARRY
-	#ifdef __x86_64__
+	#ifdef HAS_CPU_64
 		#include "flip_carry_64.c"
 		#include "count_last_flip_carry_64.c"
 	#else 
@@ -391,7 +391,6 @@ void board_rand(Board *board, int n_ply, Random *r)
 				break;
 			}
 		}
-		;
 		board_get_move(board, get_rand_bit(moves, r), move);
 		board_update(board, move);
 	}
@@ -476,7 +475,6 @@ void board_restore(Board *board, const Move *move)
 void board_pass(Board *board)
 {
 	board_swap_players(board);
-
 	board_check(board);
 }
 
@@ -537,10 +535,10 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
 
 #if PARALLEL_PREFIX & 1
 	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
-	// 6 << + 6 >> + 7 | + 9 &
+	// 6 << + 6 >> + 7 | + 10 &
 	register unsigned long long flip_l, flip_r;
 	register unsigned long long mask_l, mask_r;
-	const unsigned long long dir2 = dir + dir;
+	const int dir2 = dir + dir;
 
 	flip_l  = mask & (P << dir);          flip_r  = mask & (P >> dir);
 	flip_l |= mask & (flip_l << dir);     flip_r |= mask & (flip_r >> dir);
@@ -556,27 +554,21 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
 	// + better instruction independency
 	register unsigned long long flip_l, flip_r;
 	register unsigned long long mask_l, mask_r;
-	register int d;
+	const int dir2 = dir << 1;
+	const int dir4 = dir << 2;
 
-	flip_l = flip_r = P;
-	mask_l = mask_r = mask;
-	d = dir;
-
-	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
-	mask_l &= (mask_l << d);            mask_r &= (mask_r >> d);
-	d <<= 1;
-	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
-	mask_l &= (mask_l << d);            mask_r &= (mask_r >> d);
-	d <<= 1;
-	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
+	flip_l  = P | (mask & (P << dir));    flip_r  = P | (mask & (P >> dir));
+	mask_l  = mask & (mask << dir);       mask_r  = mask & (mask >> dir);
+	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
+	mask_l &= (mask_l << dir2);           mask_r &= (mask_r >> dir2);
+	flip_l |= mask_l & (flip_l << dir4);  flip_r |= mask_r & (flip_r >> dir4);
 
 	return ((flip_l & mask) << dir) | ((flip_r & mask) >> dir);
-
+	
 #else
-
  	// sequential algorithm
  	// 7 << + 7 >> + 6 & + 12 |
-//	register unsigned long long flip;
+	register unsigned long long flip;
 
 	flip = (((P << dir) | (P >> dir)) & mask);
 	flip |= (((flip << dir) | (flip >> dir)) & mask);
@@ -959,26 +951,37 @@ static inline unsigned long long get_full_lines(const unsigned long long line, c
 #if KOGGE_STONE & 2
 
 	// kogge-stone algorithm
- 	// 5 << + 5 >> + 8 & + 10 |
+ 	// 5 << + 5 >> + 7 & + 10 |
 	// + better instruction independency
 	register unsigned long long full_l, full_r, edge_l, edge_r;
-	register int d;
+	const  unsigned long long edge = 0xff818181818181ffULL;
+	const int dir2 = dir << 1;
+	const int dir4 = dir << 2;
 
-	full_l = full_r = line;
-	edge_l = edge_r = line & 0xff818181818181ffULL;
-	d = dir;
-
-	full_l &= edge_l | (full_l >> d); full_r &= edge_r | (full_r << d);
-	edge_l |= edge_l >> d;            edge_r |= edge_r << d;
-	d <<= 1;
-
-	full_l &= edge_l | (full_l >> d); full_r &= edge_r | (full_r << d);
-	edge_l |= edge_l >> d;            edge_r |= edge_r << d;
-	d <<= 1;
-
-	full_l &= edge_l | (full_l >> d);  full_r &= edge_r | (full_r << d);
+	full_l = line & (edge | (line >> dir)); full_r  = line & (edge | (line << dir));
+	edge_l = edge | (edge >> dir);        edge_r  = edge | (edge << dir);
+	full_l &= edge_l | (full_l >> dir2);  full_r &= edge_r | (full_r << dir2);
+	edge_l |= edge_l >> dir2;             edge_r |= edge_r << dir2;
+	full_l &= edge_l | (full_l >> dir4);  full_r &= edge_r | (full_r << dir4);
 
 	return full_r & full_l;
+
+#elif PARALLEL_PREFIX & 2
+
+	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
+	// 5 << + 5 >> + 7 & + 10 |
+	register unsigned long long full_l, full_r;
+	register unsigned long long edge_l, edge_r;
+	const  unsigned long long edge = 0xff818181818181ffULL;
+	const int dir2 = dir + dir;
+
+	full_l  = edge | (line << dir);       full_r  = edge | (line >> dir);
+	full_l &= edge | (full_l << dir);     full_r &= edge | (full_r >> dir);
+	edge_l  = edge | (edge << dir);       edge_r  = edge | (edge >> dir);
+	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
+	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
+
+	return full_l & full_r;
 
 #else
 
@@ -1102,27 +1105,27 @@ int get_corner_stability(const unsigned long long P)
  */
 unsigned long long board_get_hash_code(const Board *board)
 {
-	unsigned long long h;
+	unsigned long long h1, h2;
 	const unsigned char *p = (const unsigned char*)board;
 
-	h  = hash_rank[0][p[0]];
-	h ^= hash_rank[1][p[1]];
-	h ^= hash_rank[2][p[2]];
-	h ^= hash_rank[3][p[3]];
-	h ^= hash_rank[4][p[4]];
-	h ^= hash_rank[5][p[5]];
-	h ^= hash_rank[6][p[6]];
-	h ^= hash_rank[7][p[7]];
-	h ^= hash_rank[8][p[8]];
-	h ^= hash_rank[9][p[9]];
-	h ^= hash_rank[10][p[10]];
-	h ^= hash_rank[11][p[11]];
-	h ^= hash_rank[12][p[12]];
-	h ^= hash_rank[13][p[13]];
-	h ^= hash_rank[14][p[14]];
-	h ^= hash_rank[15][p[15]];
+	h1  = hash_rank[0][p[0]];
+	h2  = hash_rank[1][p[1]];
+	h1 ^= hash_rank[2][p[2]];
+	h2 ^= hash_rank[3][p[3]];
+	h1 ^= hash_rank[4][p[4]];
+	h2 ^= hash_rank[5][p[5]];
+	h1 ^= hash_rank[6][p[6]];
+	h2 ^= hash_rank[7][p[7]];
+	h1 ^= hash_rank[8][p[8]];
+	h2 ^= hash_rank[9][p[9]];
+	h1 ^= hash_rank[10][p[10]];
+	h2 ^= hash_rank[11][p[11]];
+	h1 ^= hash_rank[12][p[12]];
+	h2 ^= hash_rank[13][p[13]];
+	h1 ^= hash_rank[14][p[14]];
+	h2 ^= hash_rank[15][p[15]];
 
-	return h;
+	return h1 ^ h2;
 }
 
 /**

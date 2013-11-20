@@ -140,13 +140,13 @@ static void bench_count_last_flip()
 		
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
-			count_last_flip[x](board.player);
+			count_last_flip(x, board.player);
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
-			count_last_flip[x](board.player);
+			count_last_flip(x, board.player);
 		}
 		c += click();
 

@@ -485,7 +485,10 @@ void obf_speed(Search *search, const int n)
 	unsigned long long T = 0, n_nodes = 0;
 	const int level = options.level;
 	Random r[1];
-	OBF obf = {.n_moves = 0, .best_score = -SCORE_INF};
+	OBF obf;
+	
+	obf.n_moves = 0;
+	obf.best_score = -SCORE_INF;
 	
 	random_seed(r, 42);
 	options.level = 60;

@@ -27,13 +27,14 @@ void statistics_init(void)
 {
 	int i, j;
 
-
 	statistics.n_hash_upgrade = 0;
 	statistics.n_hash_update = 0;
 	statistics.n_hash_new = 0;
 	statistics.n_hash_remove = 0;
 	statistics.n_hash_search = 0;
 	statistics.n_hash_found = 0;
+	statistics.n_hash_collision = 0;
+	statistics.n_hash_n = 0;
 
 	for (i = 0; i < MAX_THREADS; ++i) {
 		statistics.n_task_nodes[i] = 0;
@@ -103,7 +104,6 @@ void statistics_sum_nodes(Search *search)
 		statistics.n_task_nodes[i] = search->tasks->task[i].n_nodes;
 		statistics.n_task[i] = search->tasks->task[i].n_calls;
 	}
-	
 }
 
 /**
@@ -156,6 +156,10 @@ void statistics_print(FILE *f)
 			statistics.n_hash_new, statistics.n_hash_update, statistics.n_hash_upgrade, statistics.n_hash_remove);
 	}
 
+	if (statistics.n_hash_n) {
+		fprintf(f, "HashTable collision:\n");
+		fprintf(f, "Probes: %llu   Collisions: %llu (%6.2f%%)\n", statistics.n_hash_n, statistics.n_hash_collision, 100.0 * statistics.n_hash_collision / statistics.n_hash_n);
+	}
 	if (SQUARE_STATS(1) +0) {
 		for (j = 0; j < BOARD_SIZE; ++j) {
 			fprintf(f, "\n%2d: ", j);

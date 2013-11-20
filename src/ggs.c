@@ -3,7 +3,7 @@
  *
  *  A ggs client in C language.
  *
- * @date 2002 - 2012
+ * @date 2002 - 2013
  * @author Richard Delorme
  * @version 4.4
  */
@@ -926,7 +926,7 @@ static void ggs_event_init(GGSEvent *event)
 		WSADATA wsaData;
 		int value = WSAStartup(MAKEWORD(2,2), &wsaData);
 		if (value != NO_ERROR) {
-		  fatal_error("WSAStartup failed: %d \n", value);
+			fatal_error("WSAStartup failed: %d \n", value);
 		}
 	}
 #endif
@@ -946,13 +946,18 @@ static void ggs_event_init(GGSEvent *event)
 			event->socket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 			if (event->socket != -1) {
 				if (connect(event->socket, rp->ai_addr, rp->ai_addrlen) != -1) break; /* Success */
+#ifdef _WIN32
+				closesocket(event->socket);
+				WSACleanup();
+#else
 				close(event->socket);
+#endif
 			}
 		}
 		if (rp == NULL) {
 			fatal_error("Could not connect to %s %s\n", options.ggs_host, options.ggs_port);
 		}
-  	  freeaddrinfo(result);
+  		freeaddrinfo(result);
 	}
 
 	thread_create(&event->thread, ggs_event_loop, event);

@@ -714,11 +714,11 @@ void game_export_ggf(const Game *game, FILE *f)
 {
 	Board board[1];
 	int player;
-	const char *board_color = "*O-?";
+	static const char board_color[] = "*O-?";
 	int i, x, square;
 //	time_t t:
 //	struct tm *date;
-	const char *move_color = "BW";
+	static const char move_color[] = "BW";
 	char move_string[3] = "xx";
 
 	fputs("(;GM[othello]PC[Edax]", f);
@@ -871,7 +871,7 @@ void game_save_sgf(const Game *game, FILE *f, const bool multiline)
 {
 	Board board[1];
 	int player;
-	char color[2] = {'B', 'W'};
+	static const char color[2] = {'B', 'W'};
 	char s[8];
 	int i;
 	time_t t = time(NULL);

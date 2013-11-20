@@ -20,7 +20,7 @@
 
 /** global options with default value */
 Options options = {
-	20, // hash table size
+	21, // hash table size
 
 	{0,-2,-3}, // inc_sort_depth
 
@@ -306,7 +306,7 @@ void options_bound(void)
 	BOUND(options.alpha, SCORE_MIN, SCORE_MAX, "alpha");
 	BOUND(options.beta, SCORE_MIN, SCORE_MAX, "beta");
 
-	BOUND(options.speed, 1e6, 1e9, "speed");
+	BOUND(options.speed, 1e5, 1e12, "speed");
 
 	if (options.alpha > options.beta) {
 		fprintf(stderr, "WARNING: alphabeta [%d, %d] will be inverted.\n", options.alpha, options.beta);
