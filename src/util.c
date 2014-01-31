@@ -671,6 +671,41 @@ char* parse_game(const char *string, const Board *board_init, Line *line)
 }
 
 /**
+ * @brief Parse a Tag/value ggf pair from a string.
+ *
+ * @param string An input string.
+ * @param tag The tag field.
+ * @param value The value field.
+ * @return The unprocessed remaining part of the string.
+ */
+char* parse_tag(const char *string, char *tag, char *value)
+{
+	const char *s;
+	int n;
+
+	s = parse_skip_spaces(string);
+	if ((s[0] == '(' && s[1] == ';') || (s[0] == ';' && s[1] == ')')) {
+		tag[0] = *s++;
+		tag[1] = *s++;
+		tag[2] = *value = '\0';
+	} else {
+		n = 3; while (*s && *s != '[' && n--) *tag++ = toupper(*s++);
+		*tag = '\0';
+		if (*s == '[') {
+			++s;
+			n = 255; while (*s && *s != ']' && n--) *value++ = tolower(*s++);
+			if (*s == ']') ++s;
+			else s = string;
+		} else s = string;
+		*value = '\0';
+	}
+
+	return (char*) s;
+}
+
+
+
+/**
  * @brief Parse a board.
  *
  * @param string String to parse
