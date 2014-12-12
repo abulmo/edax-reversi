@@ -1,0 +1,14 @@
+syntax: glob
+*.o
+*.s
+*~
+pgopti*
+*.dyn
+all.gc*
+generate_flip
+generate_count_flip
+bin/
+doc/
+
+syntax: regexp
+.*\#.*\#$
