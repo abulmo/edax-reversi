@@ -1288,7 +1288,7 @@ char* board_to_FEN(const Board *board, const int player, char *string)
 	const char *color = "bw";
 	int n_empties = 0;
 	char *s = string;
-	char local_string[128];
+	static char local_string[128];
 
 	if (s == NULL) s = string = local_string;
 
