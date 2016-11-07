@@ -286,6 +286,9 @@ void search_global_init(void)
 			if (n_empties <= 30) {
 				LEVEL[level][n_empties].depth = n_empties;
 				LEVEL[level][n_empties].selectivity = 5;
+			} else if (n_empties <= 33) {
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= 36) {
 				LEVEL[level][n_empties].depth = n_empties;
 				LEVEL[level][n_empties].selectivity = 3;
