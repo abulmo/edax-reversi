@@ -38,7 +38,7 @@ void version(void)
 	fprintf(stderr, "\n");
 #endif
 
-	fprintf(stderr, "copyright 1998 - 2013 Richard Delorme\n\n");
+	fprintf(stderr, "copyright 1998 - 2016 Richard Delorme\n\n");
 }
 
 
