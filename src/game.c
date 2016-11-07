@@ -621,6 +621,88 @@ void game_import_ggf(Game* game, FILE* f)
 	return;
 }
 
+/**
+ * @brief Parse a Tag/value ggf pair from a string.
+ *
+ * @param string An input string.
+ * @param tag The tag field.
+ * @param value The value field.
+ * @return The unprocessed remaining part of the string.
+ */
+static const char* parse_tag(const char *string, char *tag, char *value)
+{
+	const char *s;
+	int n;
+
+	s = parse_skip_spaces(string);
+	if ((s[0] == '(' && s[1] == ';') || (s[0] == ';' && s[1] == ')')) {
+		tag[0] = *s++;
+		tag[1] = *s++;
+		tag[2] = *value = '\0';
+	} else {
+		n = 3; while (*s && *s != '[' && n--) *tag++ = toupper(*s++);
+		*tag = '\0';
+		if (*s == '[') {
+			++s;
+			n = 255; while (*s && *s != ']' && n--) *value++ = tolower(*s++);
+			if (*s == ']') ++s;
+			else s = string;
+		} else s = string;
+		*value = '\0';
+	}
+
+	return s;
+}
+
+/**
+ * @brief Parse a ggf game from a string.
+ *
+ * @param game The output game.
+ * @param string An input string.
+ * @return The unprocessed remaining part of the string.
+ */
+char* parse_ggf(Game *game, const char *string)
+{
+	const char *s = string;
+	const char *next;
+	char tag[4], value[256];
+	int i = 0;
+
+	game_init(game);
+
+	while ((next = parse_tag(s, tag, value)) != s && strcmp(tag, "(;") != 0) s = next;
+
+	if (strcmp(tag, "(;") == 0) {
+		s = next;
+		while ((next = parse_tag(s, tag, value)) != s && strcmp(tag, ";)") != 0) {
+			s = next;
+
+			if (strcmp(tag, "GM") == 0 && strcmp(value, "othello") != 0) {
+				s = string;
+				break;
+			} else if (strcmp(tag, "BO") == 0) {
+				if (value[0] != '8') {
+					s = string;
+					break;
+				}
+				game->player = board_set(game->initial_board, value + 2);
+			} else if (strcmp(tag, "PB") == 0) {
+				memcpy(game->name[BLACK], value, 31);
+				game->name[BLACK][31] = '\0';
+			} else if (strcmp(tag, "PW") == 0) {
+				memcpy(game->name[WHITE], value, 31);
+				game->name[WHITE][31] = '\0';
+			} else if (i < 60 && (strcmp(tag, "B") == 0 || strcmp(tag, "W") == 0)) {
+				if (strncmp("pa", value, 2) == 0) continue;
+				game->move[i++] = string_to_coordinate(value);
+			}
+		}
+	}
+
+	if (!game_check(game)) s = string;
+
+	return (char*) s;
+}
 
 /**
  * @brief Write a game to the Generic Game Format (ggf) file.
