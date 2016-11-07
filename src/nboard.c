@@ -18,11 +18,6 @@
 
 static Log nboard_log[1];
 
-/**
- * Send data to the gui.
- * @param format string format.
- * @param ... data to output.
- */
 static void nboard_send(const char *format, ...)
 {
 	va_list args;
@@ -41,11 +36,6 @@ static void nboard_send(const char *format, ...)
 	}
 }
 
-/**
- * Send an error to the gui.
- * @param format string format.
- * @param ... data to output.
- */
 static void nboard_fail(const char *format, ...)
 {
 	va_list args;
@@ -65,10 +55,6 @@ static void nboard_fail(const char *format, ...)
 	}
 }
 
-/**
- * Send a move to the gui.
- * @param Result search result
- */
 static void nboard_send_move(Result *result)
 {
 	char move[4];
@@ -77,54 +63,6 @@ static void nboard_send_move(Result *result)
 	nboard_send("=== %s %.2f %.1f", move, 1.0 * result->score, 0.001 * result->time);
 }
 
-/**
- * @brief Parse a ggf game from a string.
- *
- * @param ui User interface
- * @param string Input string.
- * @return The unprocessed remaining part of the string.
- */
-static char* nboard_set_game(UI *ui, const char *string)
-{
-	const char *s = string;
-	const char *next;
-	char tag[4], value[256];
-	Play *play = ui->play;
-
-	while ((next = parse_tag(s, tag, value)) != s && strcmp(tag, "(;") != 0) s = next;
-
-	if (strcmp(tag, "(;") == 0) {
-		s = next;
-		while ((next = parse_tag(s, tag, value)) != s && strcmp(tag, ";)") != 0) {
-			s = next;
-
-			if (strcmp(tag, "GM") == 0 && strcmp(value, "othello") != 0) {
-				s = string;
-				break;
-			} else if (strcmp(tag, "BO") == 0) {
-				if (value[0] != '8') {
-					s = string;
-					break;
-				}
-				play_set_board(play, value + 2);
-			} else if (strcmp(tag, "PB") == 0) {
-			} else if (strcmp(tag, "PW") == 0) {
-			} else if ((strcmp(tag, "B") == 0 || strcmp(tag, "W") == 0)) {
-				if (!play_move(play, string_to_coordinate(value))) {
-					nboard_fail("illegal move %s[%s] in set game", tag, value);
-				}
-			}
-		}
-	}
-
-	return (char*) s;
-}
-
-
-/**
- * Nboard search observer
- * @param Result search result
- */
 static void nboard_observer(Result *result)
 {
 	if (log_is_open(nboard_log)) {
@@ -198,7 +136,11 @@ void ui_loop_nboard(UI *ui)
 			nboard_send("set myname Edax%d", options.level);
 
 		} else if (strcmp(cmd, "game") == 0) {
-			if (nboard_set_game(ui, param) == param) {
+			Game game[1];
+			if (parse_ggf(game, param) != param) {
+				game_get_board(game, 60, play->initial_board);
+				play_new(play);
+			} else {
 				nboard_fail("Cannot parse game \"%s\"", param);
 			}
 
