@@ -158,7 +158,8 @@ long long time_read(FILE *f)
 	long long t = 0;
 	int n, c;
 
-	while ((c = getc(f)) != EOF && isspace(c)) ; ungetc(c, f);
+	while (isspace(c = getc(f)));
+	ungetc(c, f);
 	n = 0; while (isdigit(c = getc(f))) n = n * 10 + (c - '0');
 	if (c == ':') {
 		t = 60 * n; //  time has the form MM:SS ?
@@ -669,41 +670,6 @@ char* parse_game(const char *string, const Board *board_init, Line *line)
 
 	return (char *) string;
 }
-
-/**
- * @brief Parse a Tag/value ggf pair from a string.
- *
- * @param string An input string.
- * @param tag The tag field.
- * @param value The value field.
- * @return The unprocessed remaining part of the string.
- */
-char* parse_tag(const char *string, char *tag, char *value)
-{
-	const char *s;
-	int n;
-
-	s = parse_skip_spaces(string);
-	if ((s[0] == '(' && s[1] == ';') || (s[0] == ';' && s[1] == ')')) {
-		tag[0] = *s++;
-		tag[1] = *s++;
-		tag[2] = *value = '\0';
-	} else {
-		n = 3; while (*s && *s != '[' && n--) *tag++ = toupper(*s++);
-		*tag = '\0';
-		if (*s == '[') {
-			++s;
-			n = 255; while (*s && *s != ']' && n--) *value++ = tolower(*s++);
-			if (*s == ']') ++s;
-			else s = string;
-		} else s = string;
-		*value = '\0';
-	}
-
-	return (char*) s;
-}
-
-
 
 /**
  * @brief Parse a board.
