@@ -1012,7 +1012,7 @@ static unsigned long long count_shape(ShapeHash *hash, BoardCache *cache, const 
 	Board next[1];
 
 	if (boardcache_undone(cache, board)) {
-		if (depth == 0) return shapehash_append(hash, board);;
+		if (depth == 0) return shapehash_append(hash, board);
 		moves = get_moves(board->player, board->opponent);
 
 		if (moves) {
