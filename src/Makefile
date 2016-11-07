@@ -9,6 +9,7 @@
 # Default settings
 BIN = ../bin
 LIBS = -lm
+PGO = echo
 
 ifeq ($(BUILD),)
 	BUILD = optimize
@@ -222,9 +223,12 @@ endif
 #clang
 ifeq ($(COMP),clang)
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -Wno-invalid-source-encoding
+	PGO_GEN = -fprofile-instr-generate
+	PGO_USE = -fprofile-instr-use=edax.profdata
+	PGO = llvm-profdata-3.5 merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O4 -ffast-math -fomit-frame-pointer -DNDEBUG
+		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG -fuse-ld=gold
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -334,6 +338,7 @@ pgo-build:
 	cd $(BIN); ./$(EXE) -l 60 -solve problem/fforum-20-39.obf
 	cd $(BIN); ./$(EXE) -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
 	rm -f ../bin/book.pgo ../bin/book.pgo.store
+	$(PGO)	
 	$(CC) $(CFLAGS) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
 
 pgo-rebuild:
@@ -359,7 +364,7 @@ android:
 	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc-old CC='arm-linux-androideabi-gcc'
 
 clean:
-	rm -f pgopti* *.dyn all.gc* *~ *.o generate_flip generate_count_flip
+	rm -f pgopti* *.dyn all.gc* *~ *.o generate_flip generate_count_flip *.prof*
 
 noip:
 	$(CC) -g $(CFLAGS) $(SRC) -o $(BIN)/$(EXE) $(LIBS)
