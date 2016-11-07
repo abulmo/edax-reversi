@@ -114,6 +114,7 @@
 static Log edax_log[1];
 extern bool book_verbose;
 
+void version(void);
 void bench(void);
 
 /**
@@ -239,6 +240,7 @@ void help_book(void)
 	printf("  enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n  error <n1> and an endcut error <n2>.\n");
 	printf("  fill [n]            add positions between existing positions.\n");
 	printf("  prune               remove unreachable positions.\n");
+	printf("  subtree             only keep positions from the current position.\n");
 	printf("  add [file]          add positions from a game base file (txt, ggf, sgf or\n  wthor format).\n");
 }
 
@@ -565,6 +567,10 @@ void ui_loop_edax(UI *ui)
 			} else if (strcmp(cmd, "stop") == 0) {
 				ui->mode = 3;
 
+			// stop thinking
+			} else if (strcmp(cmd, "version") == 0 || strcmp(cmd, "v") == 0) {
+				version();
+
 			// user move
 			} else if (play_user_move(play, cmd)) {
 				printf("\nYou play "); move_print(play_get_last_move(play)->x, 0, stdout); putchar('\n');
@@ -707,6 +713,14 @@ void ui_loop_edax(UI *ui)
 				// prune an opening book
 				} else if (strcmp(book_cmd, "prune") == 0) {
 					book_prune(book); // remove unreachable lines.
+					book_fix(book); // do nothing (or edax is buggy)
+					book_link(book); // links nodes
+					book_negamax(book); // negamax nodes
+					book_sort(book); // sort moves
+
+				// subtree an opening book
+				} else if (strcmp(book_cmd, "subtree") == 0) {
+					book_subtree(book, play->board); // remove unreachable lines.
 					book_fix(book); // do nothing (or edax is buggy)
 					book_link(book); // links nodes
 					book_negamax(book); // negamax nodes
