@@ -692,6 +692,8 @@ static void position_search(Position *position, Book *book)
 	Search *search = book->search;
 	Link *l;
 	const int n_moves = get_mobility(position->board->player, position->board->opponent);
+	long long time;
+	bool time_per_move;
 
 	if (position->leaf.move != NOMOVE && position_add_link(position, &position->leaf)) {
 		book->need_saving = true;
@@ -711,8 +713,16 @@ static void position_search(Position *position, Book *book)
 			puts(search->options.header);
 			puts(search->options.separator);
 		}
-		
+
+		time = search->options.time;
+		time_per_move = search->options.time_per_move;
+		search->options.time = TIME_MAX;
+		search->options.time_per_move = true;
+
 		search_run(search);
+
+		search->options.time = time;
+		search->options.time_per_move = time_per_move;
 
 		position->leaf.score = search->result->score;
 		position->leaf.move = search->result->move;
@@ -1983,6 +1993,36 @@ void book_prune(Book *book)
 		bprint("done\n");
 	}
 }
+
+/**
+ * @brief Prune a book.
+ *
+ * Remove positions Edax cannot reach.
+ *
+ * @param book opening book.
+ */
+void book_subtree(Book *book, const Board *board)
+{
+	PositionArray *a;
+	Position *p;
+	Position *root = book_probe(book, board);
+	int i;
+
+	if (root) {
+		book_clean(book);
+		position_negamax(root, book);
+
+		book_clean(book);
+		position_prune(root, book, 2*SCORE_INF, 2*SCORE_INF, -SCORE_INF, SCORE_INF);
+		position_print(root, root->board, stdout);
+		bprint("Book subtree %d... done\n", book->stats.n_todo);
+		for (a = book->array; a < book->array + book->n; ++a)
+		for (i = 0; i < a->n; ++i) if (!a->positions[i].done) {book_remove(book, a->positions + i); --i;}
+		foreach_position(p, a, book) position_remove_links(p, book);
+		bprint("done\n");
+	}
+}
+
 
 /**
  * @brief Enhance a book.
