@@ -618,7 +618,7 @@ void task_stack_free(TaskStack *stack)
 }
 
 /**
- * @brief Free resources used by the stack of tasks
+ * @brief Resize the stack of tasks
  *
  * @param stack Stack to resize.
  * @param n New stack size.
