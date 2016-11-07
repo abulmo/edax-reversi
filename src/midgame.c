@@ -365,7 +365,7 @@ int NWS_shallow(Search *search, const int alpha, int depth, HashTable *hash_tabl
 }
 
 /**
- * @brief Evaluate a midgame position with a Null Window Search algorithm.
+ * @brief Evaluate a midgame position at shallow depth.
  *
  * This function is used when there are still many empty squares on the board. Move
  * ordering, hash table cutoff, enhanced transposition cutoff, etc. are used in
