@@ -57,7 +57,6 @@ double string_to_real(const char*, const double);
  */
 char* parse_word(const char*, char*, unsigned int);
 char* parse_field(const char*, char*, unsigned int, char);
-char* parse_tag(const char*, char*, char*);
 char* parse_line(const char*, char*, unsigned int);
 char* parse_board(const char*, struct Board*, int*);
 char* parse_move(const char*, const struct Board*, struct Move*);
@@ -257,7 +256,7 @@ typedef CRITICAL_SECTION SpinLock;
 
 #ifndef _MSC_VER
 
-typedef DWORD CONDITION_VARIABLE;
+//typedef DWORD CONDITION_VARIABLE;
 void InitializeConditionVariable(CONDITION_VARIABLE*);
 void WakeConditionVariable(CONDITION_VARIABLE*);
 void WakeAllConditionVariable(CONDITION_VARIABLE*);
