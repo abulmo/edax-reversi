@@ -64,8 +64,9 @@ All SSE/AVX/MMX stuff belongs to board.c are moved into separate board_sse.c (fo
 
 I used GCC 4.7.2, Athlon X4 605e, Windows 8 (64) / XP (32), Clang 3.4, Core i5-4260U (Haswell), OSX 10.9.4 and Clang 1.7, Core2, OSX 10.6.8 for the benchmark.
 
-##1. Mobility (board_sse.c, board_mmx.c)
-###1.1 new SSE2 version of get_moves
+## 1. Mobility (board_sse.c, board_mmx.c)
+
+### 1.1 new SSE2 version of get_moves
 Diagonals are SIMD'd using vertical mirroring by bswap.
 
     Athlon -get_moves_sse
@@ -81,17 +82,18 @@ Diagonals are SIMD'd using vertical mirroring by bswap.
     problem/fforum-20-39.obf: 111349635 nodes in 0:09.978 (11159514 nodes/s).
     mobility: 60.84 < 61.19 +/- 0.13 < 61.47
 
-###1.2 can_move
+### 1.2 can_move
 Now calls SIMD'd get_moves for x86/x64 build.
 
-##2. Stability (board.c, board_sse.c, board_mmx.c)
-###2.1 get_full_lines_h, get_full_lines_v
+## 2. Stability (board.c, board_sse.c, board_mmx.c)
+
+### 2.1 get_full_lines_h, get_full_lines_v
 get_full_lines for horizontal and vertical are simplified. The latter is compiled into rotation instrunction.
 
-###2.2 rearranged loop
+### 2.2 rearranged loop
 The last while loop is rearranged not to call bit_count in case stable == 0.
 
-###2.3 new SSE2 version with bswap and pcmpeqb
+### 2.3 new SSE2 version with bswap and pcmpeqb
     Athlon -get_stability_sse
     stability: 90.10 < 90.28 +/- 0.24 < 91.20
     Athlon +get_stability_sse
@@ -101,13 +103,13 @@ The last while loop is rearranged not to call bit_count in case stable == 0.
     Core2 +get_stability_sse
     stability: 71.80 < 71.85 +/- 0.06 < 72.07
 
-###2.4 get_corner_stability
+### 2.4 get_corner_stability
 Kindergarten version eliminates bit_count call.
 
-###2.5 find_edge_stable
+### 2.5 find_edge_stable
 Loop optimization and flip using carry propagation. One time execution but affect total solving time.
 
-##3. eval.c
+## 3. eval.c
 Switch cases and table sizes are optimized. This small change slightly imploves endgame solving. I guess this should improve midgame too.
 
     Athlon -eval
@@ -119,13 +121,13 @@ Switch cases and table sizes are optimized. This small change slightly imploves 
     Core2 +eval
     problem/fforum-20-39.obf: 111349635 nodes in 0:09.978 (11159514 nodes/s).
 
-##4. hash.c
+## 4. hash.c
 I think hash->data.move[0] on line 677 should be hash->data.move[1].
 
-##5. board_symetry, board_unique (board.c, board_sse.c)
+## 5. board_symetry, board_unique (board.c, board_sse.c)
 SSE optimization and mirroring reduction. (Not used in solving game)
 
-##6. AVX2 versions (x64-modern build only)
+## 6. AVX2 versions (x64-modern build only)
 In many cases AVX2 version is simplest, thanks to variable shift instructions (although they are 3 micro-op instructions).
 
 Benchmarks are on Core i5-4260U (Haswell) 1.4GHz (TB 2.7GHz) single thread.
@@ -141,6 +143,6 @@ Benchmarks are on Core i5-4260U (Haswell) 1.4GHz (TB 2.7GHz) single thread.
     +count_last_flip_sse.c
     problem/fforum-20-39.obf: 111349635 nodes in 0:04.906 (22696624 nodes/s).
 
-##7. makefile
+## 7. makefile
 gcc-old, x86 build should be -m32, not -m64. Some flags and defines added for optimization.
 >>>>>>> b9d48c1 (Create README.md)
