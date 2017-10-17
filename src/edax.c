@@ -392,7 +392,7 @@ void ui_loop_edax(UI *ui)
 			// redo last move
 			} else if (strcmp(cmd, "r") == 0 || strcmp(cmd, "redo") == 0) {
 				play_redo(play);
-				if (ui->mode == 0 || ui->mode == 1) play_undo(play);
+				if (ui->mode == 0 || ui->mode == 1) play_redo(play);
 
 			// mode
 			} else if (strcmp(cmd, "m") == 0 || strcmp(cmd, "mode") == 0) {
