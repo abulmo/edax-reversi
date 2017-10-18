@@ -3,7 +3,7 @@
  *
  *  A ggs client in C language.
  *
- * @date 2002 - 2013
+ * @date 2002 - 2017
  * @author Richard Delorme
  * @version 4.4
  */

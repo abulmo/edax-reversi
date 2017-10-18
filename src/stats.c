@@ -6,7 +6,7 @@
  * The purpose of these functions is to gather performance
  * statistics on some algorithms or code.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */

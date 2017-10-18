@@ -37,7 +37,7 @@
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.4

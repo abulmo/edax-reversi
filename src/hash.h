@@ -3,7 +3,7 @@
  *
  * Hash table's header.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */
@@ -14,6 +14,7 @@
 #include "board.h"
 #include "settings.h"
 #include "util.h"
+#include "stats.h"
 
 
 #include <stdbool.h>

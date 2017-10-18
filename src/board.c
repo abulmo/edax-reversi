@@ -11,7 +11,7 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */

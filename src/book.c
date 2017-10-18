@@ -10,7 +10,7 @@
  * with two bounds from retropropagated error.
  * Several algorithms are present to add positions in the book, in the most usefull way.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */

@@ -3,7 +3,7 @@
  *
  * Chris Welty's NBoard Protocol
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */

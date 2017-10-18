@@ -19,7 +19,7 @@
  *
  * @date 1998 - 2012
  * @author Richard Delorme
- * @version 4.3
+ * @version 4.4
  */
 
 #include "bit.h"

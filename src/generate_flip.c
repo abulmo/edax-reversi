@@ -3,7 +3,7 @@
  *
  * This program generates the flip_kindergarten.c file.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @version 4.4
  */
@@ -757,7 +757,7 @@ int main() {
 	fputs(" * returned to generate moves.\n", f);
 	fputs(" *\n", f);
 	fputs(" * File automatically generated\n", f);
-	fputs(" * @date 1998 - 2013\n", f);
+	fputs(" * @date 1998 - 2017\n", f);
 	fputs(" * @author Richard Delorme\n", f);
 	fputs(" * @version 4.4\n", f);
 	fputs(" */\n\n", f);

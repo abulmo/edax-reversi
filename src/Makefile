@@ -225,7 +225,7 @@ ifeq ($(COMP),clang)
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -Wno-invalid-source-encoding
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
-	PGO = llvm-profdata-3.5 merge -output=edax.profdata $(BIN)/*.profraw
+	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG -fuse-ld=gold

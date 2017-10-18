@@ -414,7 +414,7 @@ int main() {
 	fprintf(f, " *\n");
 	fprintf(f, " * With Modifications by Valéry ClaudePierre (merging diagonals).\n");
 	fprintf(f, " *\n");
-	fprintf(f, " * @date 1998 - 2013\n");
+	fprintf(f, " * @date 1998 - 2017\n");
 	fprintf(f, " * @author Richard Delorme\n");
 	fprintf(f, " * @version 4.4\n");
 	fprintf(f, " *\n");

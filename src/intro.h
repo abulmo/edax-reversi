@@ -114,7 +114,7 @@
  * event support to communicate with GUI.
  * - version 4.2.1: Several bug fixes.
  * - version 4.2.2: Several bug fixes. XBoard protocol should work OK now.
- * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
+ * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
  *   Faster move generator provided by Toshihiko Okuhara.
  * - version 4.x: TODO: speed enhancement (is this possible ?). Book learning
      using a client/server approach. New Evaluation function.

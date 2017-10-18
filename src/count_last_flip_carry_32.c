@@ -24,7 +24,7 @@
  *
  * With 135 degree merge, instead of Valery ClaudePierre's modification.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.4

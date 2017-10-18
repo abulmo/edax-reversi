@@ -35,7 +35,7 @@
  * If the OUTFLANK search is in LSB to MSB direction, carry propagation 
  * can be used to determine contiguous discs.
  *
- * @date 1998 - 2013
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.2
