@@ -108,7 +108,7 @@ bool play_load(Play *play, const char *file)
 	}
 
 	*play->initial_board = *game->initial_board;
-	play->player = game->player;
+	play->initial_player = game->player;
 	play_new(play);
 	for (i = 0; i < 60 && game->move[i] != NOMOVE; ++i) {
 		if (play_must_pass(play)) play_move(play, PASS);
@@ -138,7 +138,7 @@ void play_save(Play *play, const char *file)
 
 	game_init(game);
 	*game->initial_board = *play->initial_board;
-	game->player = play->player;
+	game->player = play->initial_player;
 	for (i = j = 0; i < play->n_game; ++i) {
 		if (play->game[i].x != PASS) {
 			game->move[j++] = play->game[i].x;
