@@ -361,6 +361,8 @@ void ui_loop_edax(UI *ui)
 			// new game from standard position
 			} else if (strcmp(cmd, "i") == 0 || strcmp(cmd, "init") == 0) {
 				board_init(play->initial_board);
+				play->initial_player = BLACK;
+				play_force_init(play, "F5");
 				play_new(play);
 
 			// new game from personnalized position
