@@ -56,6 +56,18 @@ void play_free(Play *play)
 }
 
 /**
+ * @brief Initialization for init command.
+ * @param play Play.
+ * @param book Opening book.
+ */
+void play_init_to_initial_board(Play *play)
+{
+	board_init(play->initial_board);
+	play->initial_player = BLACK;
+	play_force_init(play, "F5");
+}
+
+/**
  * @brief Start a new game.
  * @param play Play.
  */
@@ -138,7 +150,7 @@ void play_save(Play *play, const char *file)
 
 	game_init(game);
 	*game->initial_board = *play->initial_board;
-	game->player = play->player;
+	game->player = play->initial_player;
 	for (i = j = 0; i < play->n_game; ++i) {
 		if (play->game[i].x != PASS) {
 			game->move[j++] = play->game[i].x;

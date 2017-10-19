@@ -360,7 +360,7 @@ void ui_loop_edax(UI *ui)
 
 			// new game from standard position
 			} else if (strcmp(cmd, "i") == 0 || strcmp(cmd, "init") == 0) {
-				board_init(play->initial_board);
+				play_init_to_initial_board(play);
 				play_new(play);
 
 			// new game from personnalized position
