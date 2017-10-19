@@ -56,6 +56,18 @@ void play_free(Play *play)
 }
 
 /**
+ * @brief Initialization for init command.
+ * @param play Play.
+ * @param book Opening book.
+ */
+void play_init_to_initial_board(Play *play)
+{
+	board_init(play->initial_board);
+	play->initial_player = BLACK;
+	play_force_init(play, "F5");
+}
+
+/**
  * @brief Start a new game.
  * @param play Play.
  */

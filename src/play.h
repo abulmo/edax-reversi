@@ -64,6 +64,7 @@ bool play_is_game_over(Play*);
 bool play_must_pass(Play *play);
 void play_init(Play*, Book*);
 void play_free(Play*);
+void play_init_to_initial_board(Play*);
 void play_new(Play*);
 void play_ggs_init(Play*, const char*);
 bool play_load(Play*, const char*);
