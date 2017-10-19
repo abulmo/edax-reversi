@@ -150,7 +150,7 @@ void play_save(Play *play, const char *file)
 
 	game_init(game);
 	*game->initial_board = *play->initial_board;
-	game->player = play->player;
+	game->player = play->initial_player;
 	for (i = j = 0; i < play->n_game; ++i) {
 		if (play->game[i].x != PASS) {
 			game->move[j++] = play->game[i].x;
