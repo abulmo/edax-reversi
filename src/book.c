@@ -1524,12 +1524,12 @@ void book_import(Book *book, const char *file)
 		}
 		bprint("importing book from %s... %d positions", file, book->n_nodes);
 
-		book->options.n_empties = 0;
+		book->options.n_empties = 60;
 		book->options.level = 0;
 		foreach_position(p, a, book) {
 			n_empties = board_count_empties(p->board);
 			if (p->level > book->options.level) book->options.level = p->level;
-			if (n_empties > book->options.n_empties) book->options.n_empties = n_empties;
+			if (n_empties < book->options.n_empties) book->options.n_empties = n_empties;
 		}
 
 		random_seed(book->random, real_clock());
