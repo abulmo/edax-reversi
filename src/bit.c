@@ -270,7 +270,7 @@ int last_bit(unsigned long long b)
 
 #elif defined(USE_MSVC_X64)
 
-	unsigned long long index;
+	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
 
