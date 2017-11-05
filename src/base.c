@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <time.h>
 
 /**
  * @brief Set wthor header.
