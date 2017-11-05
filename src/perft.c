@@ -554,7 +554,7 @@ void quick_count_games(const Board *board, const int depth, const int size)
 /**
  * Compact board 13 bytes
  */
-#pragma pack(0)
+#pragma pack(1)
 typedef struct CBoard {
 	unsigned char x[13];
 } CBoard;
