@@ -32,7 +32,11 @@ ifeq ($(OS),win)
 endif
 
 ifeq ($(CC),cc)
+ifeq ($(COMP),gcc-old)
+	CC = gcc
+else
 	CC = $(COMP)
+endif
 endif
 
 
