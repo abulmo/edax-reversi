@@ -69,7 +69,7 @@ const unsigned long long NEIGHBOUR[] = {
  * @param b 64-bit integer to count bits of.
  * @return the number of bits set.
  */
-int bit_count(unsigned long long b)
+DLL_API int bit_count(unsigned long long b)
 {
 #if defined(POPCOUNT)
 
@@ -170,7 +170,7 @@ int bit_weighted_count(const unsigned long long v)
  * @param b 64-bit integer.
  * @return the index of the first bit set.
  */
-int first_bit(unsigned long long b)
+DLL_API int first_bit(unsigned long long b)
 {
 #if defined(USE_GAS_X64)
 
@@ -261,7 +261,7 @@ int next_bit(unsigned long long *b)
  * @param b 64-bit integer.
  * @return the index of the last bit set.
  */
-int last_bit(unsigned long long b)
+DLL_API int last_bit(unsigned long long b)
 {
 #if defined(USE_GAS_X64)
 

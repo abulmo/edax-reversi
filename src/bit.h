@@ -13,14 +13,20 @@
 
 #include <stdio.h>
 
+#ifdef DLL_BUILD
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API
+#endif
+
 struct Random;
 
 /* declaration */
-int bit_count(unsigned long long);
+DLL_API int bit_count(unsigned long long);
 int bit_weighted_count(const unsigned long long);
-int first_bit(unsigned long long);
+DLL_API int first_bit(unsigned long long);
 int next_bit(unsigned long long*);
-int last_bit(unsigned long long);
+DLL_API int last_bit(unsigned long long);
 void bitboard_write(const unsigned long long, FILE*);
 unsigned long long transpose(unsigned long long);
 unsigned long long vertical_mirror(unsigned long long);

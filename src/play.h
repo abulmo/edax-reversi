@@ -71,6 +71,9 @@ void play_save(Play*, const char*);
 void play_auto_save(Play*);
 void play_go(Play*, const bool);
 void play_hint(Play*, int);
+void play_hint_for_lib(Play*, int, HintList*); // add for libedax by lavox. 2018/1/17
+void play_hint_prepare(Play*); // add for libedax by lavox. 2018/1/17
+void play_hint_next(Play*, Hint*); // add for libedax by lavox. 2018/1/17
 void play_stop(Play*);
 void* play_ponder_run(void*);
 void play_ponder(Play*);
@@ -82,6 +85,7 @@ void play_undo(Play*);
 void play_redo(Play*);
 void play_set_board(Play*, const char*);
 void play_set_board_from_FEN(Play*, const char*);
+void play_set_board_from_obj(Play*, const Board*, const int); // add for libedax by lavox. 2018/1/16
 void play_game(Play*, const char*);
 bool play_move(Play*, int);
 bool play_user_move(Play*, const char*);

@@ -244,6 +244,34 @@ int board_from_FEN(Board *board, const char *string)
 	return EMPTY;
 }
 
+
+/**
+ * @brief Set a board from a Board object.
+ *
+ * @param board the board to set
+ * @param obj object describing the board. assumes player attribute as black, opponent attribute as white
+ * @param turn turn's color
+ * @return turn's color.
+ * @date 2018
+ * @author lavox
+ */
+int board_from_obj(Board *board, const Board *obj, const int turn)
+{
+	board->player = obj->player;
+	board->opponent = obj->opponent;
+	board_check(board);
+	switch (turn) {
+	case BLACK:
+		return BLACK;
+	case WHITE:
+		board_swap_players(board);
+		return WHITE;
+	default:
+		break;
+	}
+	return EMPTY;
+}
+
 /**
  * @brief Set a board to the starting position.
  *
@@ -590,7 +618,7 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
  * @param O bitboard with opponent's discs.
  * @return all legal moves in a 64-bit unsigned integer.
  */
-unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
+DLL_API unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
 #if defined(USE_GAS_MMX)
  			/* mm7: P, mm6: O */
@@ -766,7 +794,7 @@ unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long
  * @param O bitboard with opponent's discs.
  * @return true or false.
  */
-bool can_move(const unsigned long long P, const unsigned long long O)
+DLL_API bool can_move(const unsigned long long P, const unsigned long long O)
 {
 	const unsigned long long E = ~(P|O); // empties
 

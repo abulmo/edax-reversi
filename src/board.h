@@ -16,6 +16,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#ifdef DLL_BUILD
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API
+#endif
+
 /** Board : board representation */
 typedef struct Board {
 	unsigned long long player, opponent;     /**< bitboard representation */
@@ -28,6 +34,7 @@ struct Random;
 void board_init(Board*);
 int board_set(Board*, const char*);
 int board_from_FEN(Board*, const char*);
+int board_from_obj(Board*, const Board*, const int); // add for libedax by lavox. 2018/1/16
 int board_compare(const Board*, const Board*);
 bool board_equal(const Board*, const Board*);
 void board_symetry(const Board*, const int, Board*);
@@ -57,8 +64,8 @@ int board_count_empties(const Board *board);
 
 int count_last_flip(const int, const unsigned long long);
 extern unsigned long long (*flip[BOARD_SIZE + 2])(const unsigned long long, const unsigned long long);
-unsigned long long get_moves(const unsigned long long, const unsigned long long);
-bool can_move(const unsigned long long, const unsigned long long);
+DLL_API unsigned long long get_moves(const unsigned long long, const unsigned long long);
+DLL_API bool can_move(const unsigned long long, const unsigned long long);
 unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
 bool can_move_6x6(const unsigned long long, const unsigned long long);
 int get_mobility(const unsigned long long, const unsigned long long);

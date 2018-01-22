@@ -389,7 +389,7 @@ void* engine_init(void)
 	engine->search = engine_create_search();
 	event_init(engine->event);
 	
-	thread_create(&engine->event->thread, engine_input_loop, engine);
+	thread_create2(&engine->event->thread, engine_input_loop, engine); // modified for iOS by lavox. 2018/1/16
 	thread_detach(engine->event->thread);
 	
 	return engine;

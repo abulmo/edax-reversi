@@ -207,7 +207,7 @@ void ui_event_init(UI *ui)
 {
 	event_init(ui->event);
 	
-	thread_create(&ui->event->thread, ui_read_input_loop, ui);
+	thread_create2(&ui->event->thread, ui_read_input_loop, ui); // modified for iOS by lavox. 2018/1/16
 	thread_detach(ui->event->thread);
 }
 

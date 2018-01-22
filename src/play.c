@@ -428,6 +428,173 @@ void play_hint(Play *play, int n)
 }
 
 /**
+ * @brief hint for libEdax
+ *
+ * Evaluate first best moves of the position.
+ *
+ * @param play Play.
+ * @param n Number of (best) moves to evaluate.
+ * @param hintlist result (out parameter)
+ */
+void play_hint_for_lib(Play *play, int n, HintList* hintlist)
+{
+	Line pv[1];
+	Move *m;
+	Search *search = play->search;
+	MoveList book_moves[1];
+
+	Hint *hint = hintlist->hint + 1;
+	hintlist->n_hints = 0;
+
+	if (play_is_game_over(play)) return;
+
+	play_stop_pondering(play);
+
+	play->state = IS_THINKING;
+
+	search->options.verbosity = options.verbosity;
+	search_set_board(search, play->board, play->player);
+	search_set_level(search, options.level, search->n_empties);
+	if (n > search->movelist->n_moves) n = search->movelist->n_moves;
+
+	if (options.book_allowed && book_get_moves(play->book, play->board, book_moves)) {
+		foreach_move (m, book_moves) if (n) {
+			--n;
+			line_init(pv, play->player);
+			book_get_line(play->book, play->board, m, hint->pv);
+
+			hint->depth = 0;
+			hint->selectivity = 0;
+			hint->move = m->x;
+			hint->score = m->score;
+			hint->upper = 0;
+			hint->lower = 0;
+			hint->time = 0;
+			hint->n_nodes = 0;
+			hint->book_move = true;
+			++hint;
+			++(hintlist->n_hints);
+
+			movelist_exclude(search->movelist, m->x);
+		}
+	}
+
+	while (n--) {
+		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
+		else search_set_game_time(search, play->time[play->player].left);
+		if (n) search->options.multipv_depth = 60;
+		search_run(search);
+		search->options.multipv_depth = MULTIPV_DEPTH;
+
+		hint->depth = search->result->depth;
+		hint->selectivity = search->result->selectivity;
+		hint->move = search->result->move;
+		hint->score = search->result->score;
+		hint->upper = search->result->bound[search->result->move].upper;
+		hint->lower = search->result->bound[search->result->move].lower;
+		line_copy(hint->pv, search->result->pv, 0);
+		hint->time = search->result->time;
+		hint->n_nodes = search->result->n_nodes;
+		hint->book_move = false;
+		++hint;
+		++(hintlist->n_hints);
+
+		if (search->stop != STOP_END) break;
+		movelist_exclude(search->movelist, search->result->move);
+	}
+}
+
+/**
+ * @brief prepare hint for libEdax
+ *
+ * @param play Play.
+ */
+void play_hint_prepare(Play *play)
+{
+	Search *search = play->search;
+
+	if (play_is_game_over(play)) return;
+
+	play_stop_pondering(play);
+
+	play->state = IS_THINKING;
+
+	search->options.verbosity = options.verbosity;
+	search_set_board(search, play->board, play->player);
+	search_set_level(search, options.level, search->n_empties);
+}
+
+
+/**
+ * @brief get next hint
+ *
+ * Evaluate first best moves of the position among rest moves.
+ *
+ * @param play Play.
+ * @param hint result (out parameter)
+ */
+void play_hint_next(Play *play, Hint* hint)
+{
+	Line pv[1];
+	Move *m;
+	Search *search = play->search;
+	MoveList book_moves[1];
+
+	hint->depth = 0;
+	hint->selectivity = 0;
+	hint->move = NOMOVE;
+	hint->score = 0;
+	hint->upper = 0;
+	hint->lower = 0;
+	hint->time = 0;
+	hint->n_nodes = 0;
+	hint->book_move = false;
+
+	if (play_is_game_over(play)) return;
+	if (movelist_is_empty(search->movelist)) return;
+
+	if (options.book_allowed && book_get_moves(play->book, play->board, book_moves)) {
+		foreach_move (m, book_moves) {
+			line_init(pv, play->player);
+			book_get_line(play->book, play->board, m, hint->pv);
+
+			hint->depth = 0;
+			hint->selectivity = 0;
+			hint->move = m->x;
+			hint->score = m->score;
+			hint->upper = 0;
+			hint->lower = 0;
+			hint->time = 0;
+			hint->n_nodes = 0;
+			hint->book_move = true;
+
+			if ( movelist_exclude(search->movelist, m->x) != NULL ) {
+				return;
+			}
+		}
+	}
+
+	if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
+	else search_set_game_time(search, play->time[play->player].left);
+	search->options.multipv_depth = 60;
+	search_run(search);
+	search->options.multipv_depth = MULTIPV_DEPTH;
+
+	hint->depth = search->result->depth;
+	hint->selectivity = search->result->selectivity;
+	hint->move = search->result->move;
+	hint->score = search->result->score;
+	hint->upper = search->result->bound[search->result->move].upper;
+	hint->lower = search->result->bound[search->result->move].lower;
+	line_copy(hint->pv, search->result->pv, 0);
+	hint->time = search->result->time;
+	hint->n_nodes = search->result->n_nodes;
+	hint->book_move = false;
+
+	movelist_exclude(search->movelist, search->result->move);
+}
+
+/**
  * @brief do ponderation.
  *
  * Ponderation (thinking during opponent time) is done within a thread.
@@ -513,7 +680,7 @@ void play_ponder(Play *play)
 		play->ponder->board->player = play->ponder->board->opponent = 0;
 		play->state = IS_PONDERING;		
 		info("\n[start ponderation]\n");
-		thread_create(&play->ponder->thread, play_ponder_run, play);
+		thread_create2(&play->ponder->thread, play_ponder_run, play); // modified for iOS by lavox. 2018/1/16
 		play->ponder->launched = true;
 	}
 }
@@ -613,6 +780,29 @@ void play_set_board_from_FEN(Play *play, const char *board)
 		play_force_init(play, "");
 		play_new(play);
 	}
+}
+
+/**
+ * @brief Set a new board.
+ * @param play Play.
+ * @param board A new board.
+ * @param turn player to play
+ * @author lavox
+ * @date 2018
+ */
+void play_set_board_from_obj(Play *play, const Board *board, const int turn)
+{
+	play_stop_pondering(play);
+	play->initial_player = board_from_obj(play->initial_board, board, turn);
+	if (play->initial_board->player & play->initial_board->opponent) { /* bad board */
+		play->initial_board->opponent &= (~play->initial_board->player);
+	}
+	if (play->initial_player == EMPTY) { /* bad turn */
+		play->initial_player = (board_count_empties(play->initial_board) & 1);
+		if (play->initial_player == WHITE) board_swap_players(play->initial_board);
+	}
+	play_force_init(play, "");
+	play_new(play);
 }
 
 /**

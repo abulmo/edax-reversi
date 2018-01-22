@@ -53,6 +53,37 @@ typedef struct Result {
 	SpinLock spin;
 } Result;
 
+/**
+ * Hint (for libEdax)
+ *
+ * @author lavox
+ * @date 2018/1/17
+ */
+typedef struct Hint {
+	int depth;                   /**< searched depth(except book moves) */
+	int selectivity;             /**< searched selectivity(except book moves) */
+	int move;                    /**< best move found */
+	int score;                   /**< best score */
+	int upper;                   /**< upper score(except book moves) */
+	int lower;                   /**< lower score(except book moves) */
+	Line pv[1];                  /**< principal variation */
+	long long time;              /**< searched time(except book moves) */
+	unsigned long long n_nodes;  /**< searched node count(except book moves) */
+	bool book_move;              /**< book move origin */
+} Hint;
+
+/**
+ * Hint list (for libEdax)
+ *
+ * @author lavox
+ * @date 2018/1/17
+ */
+typedef struct HintList {
+	Hint hint[MAX_MOVE + 2];   /**< array of hints */
+	int n_hints;
+} HintList;
+
+
 /** levels */
 extern struct Level {
 	int depth;         /** search depth */

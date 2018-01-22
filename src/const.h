@@ -111,7 +111,8 @@ enum {
 	UI_GGS,
 	UI_GTP,
 	UI_NBOARD,
-	UI_XBOARD
+	UI_XBOARD,
+	UI_LIBEDAX // add for libedax by lavox. 2018/1/16
 };
 
 #endif

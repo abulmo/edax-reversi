@@ -581,7 +581,7 @@ void task_stack_init(TaskStack *stack, const int n)
 		for (i = 0; i < stack->n; ++i) {
 			if (i) {
 				task_init(stack->task + i);
-				thread_create(&stack->task[i].thread, task_loop, stack->task + i);
+				thread_create2(&stack->task[i].thread, task_loop, stack->task + i); // modified for iOS by lavox. 2018/1/16
 				if (options.cpu_affinity) thread_set_cpu(stack->task[i].thread, i); /* CPU 0 to n - 1 */
 			}
 			stack->task[i].container = stack;

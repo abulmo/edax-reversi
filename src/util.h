@@ -21,6 +21,11 @@ struct Board;
 struct Move;
 struct Line;
 
+// for winsock & winsock2 collision
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 /*
  * Time management
  */
@@ -239,7 +244,6 @@ typedef pthread_mutex_t SpinLock;
 
 #elif defined(_WIN32)
 
-#include <winsock2.h>
 #include <windows.h>
 
 /** Typedef to a personalized Thread type for portability */
@@ -314,7 +318,7 @@ typedef CONDITION_VARIABLE Condition;
 
 #endif
 
-void thread_create(Thread*, void* (*f)(void*), void*);
+void thread_create2(Thread*, void* (*f)(void*), void*); // modified for iOS by lavox. 2018/1/16
 void thread_join(Thread);
 void thread_set_cpu(Thread, int);
 Thread thread_self(void);

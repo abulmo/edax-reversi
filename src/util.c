@@ -919,7 +919,7 @@ char* file_add_ext(const char *base, const char *ext, char *file)
  * @param function Function to run in parallel.
  * @param data Data for the function.
  */
-void thread_create(Thread *thread, void* (*function)(void*), void *data)
+void thread_create2(Thread *thread, void* (*function)(void*), void *data) // modified for iOS by lavox. 2018/1/16
 {
 #if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
 	pthread_create(thread, NULL, function, data);

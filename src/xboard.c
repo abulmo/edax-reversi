@@ -352,7 +352,7 @@ static void xboard_analyze(Play *play)
 		play->state = IS_ANALYZING;		
 		search_cleanup(play->search);
 		log_print(xboard_log, "edax (analyze)> start\n");
-		thread_create(&play->ponder->thread, play_ponder_run, play);
+		thread_create2(&play->ponder->thread, play_ponder_run, play); // modified for iOS by lavox. 2018/1/16
 		play->ponder->launched = true;
 	}
 }

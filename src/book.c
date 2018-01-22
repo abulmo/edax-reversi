@@ -53,14 +53,6 @@ static void bprint(const char *format, ...)
 	}
 }
 
-/** struct Link
- * @brief a move (with its score) linking to another Position.
- */
-typedef struct Link {
-	signed char score; /**< move score */
-	unsigned char move; /**< move coordinate */
-} Link;
-
 const Link BAD_LINK = {-SCORE_INF, NOMOVE};
 
 /**
@@ -101,27 +93,6 @@ static inline bool link_is_bad(const Link *link)
 {
 	return link->score == -SCORE_INF;
 }
-
-/**
- * struct Position
- * @brief A position stored in the book.
- */
-typedef struct Position {
-	Board board[1];            /**< (unique) board */
-	Link leaf;                 /**< best remaining move */
-	Link* link;                /**< linking moves */
-	unsigned int n_wins;       /**< game win count */
-	unsigned int n_draws;      /**< game draw count */
-	unsigned int n_losses;     /**< game loss count */
-	unsigned int n_lines;      /**< unterminated line count */
-	struct {
-		short value, lower, upper;
-	} score;                   /**< Position value & bounds */
-	unsigned char n_link;      /**< linking moves number */
-	unsigned char level;       /**< search level */
-	unsigned char done;        /**< done/undone flag */
-	unsigned char todo;        /**< todo flag */
-} Position;
 
 static Position* book_probe(const Book*, const Board*);
 static void book_add(Book*, const Position*);

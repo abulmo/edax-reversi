@@ -42,6 +42,10 @@
 /* game play with various protocols */
 #include "play.c"
 #include "event.c"
+// add for libedax by lavox. 2018/1/16
+#ifdef LIB_BUILD
+	#include "libedax.c"
+#endif
 #include "ui.c"
 #include "edax.c"
 #include "cassio.c"

@@ -249,8 +249,11 @@ ifeq ($(COMP),clang)
 endif
 
 #EXE & LIBS
+LIBFLAGS = -DLIB_BUILD -fPIC -shared
 ifeq ($(OS),linux)
 	EXE = lEdax-$(ARCH)
+	# add for libedax by lavox.2018/1/16
+	LIB = libedax.so
  	LIBS += -lrt -lpthread
 endif
 ifeq ($(OS),android)
@@ -258,13 +261,19 @@ ifeq ($(OS),android)
 endif
 ifeq ($(OS),windows)
 	EXE = wEdax-$(ARCH).exe
+	# add for libedax by lavox.2018/1/16
+	LIB = libedax-$(ARCH).dll
+	LIBFLAGS += -DDLL_BUILD
 	LIBS += -lws2_32
 	ifeq ($(ARCH),x86)
 		LIBS += -lpthread
 	endif
+	# add for libedax by lavox.2018/1/16
 endif
 ifeq ($(OS),osx)
 	EXE = mEdax
+	# add for libedax by lavox.2018/1/16
+	LIB = libedax.dylib
 	LIBS += -lpthread
 endif
 
@@ -281,7 +290,6 @@ ifeq ($(ARCH),x32-modern)
 	CFLAGS += -DHAS_CPU_64
 endif
 
-
 #SRC
 SRC= bit.c board.c move.c hash.c ybwc.c eval.c endgame.c midgame.c root.c search.c \
 book.c opening.c game.c base.c bench.c perft.c obftest.c util.c event.c histogram.c \
@@ -296,6 +304,7 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "   build*     Build optimized version"
+	@echo "   libbuiild  Build library"
 	@echo "   pgo-build  Build PGO-optimized version"
 	@echo "   release    Cross compile for linux/windows/mac (from fedora only)"
 	@echo "   debug      Build debug version."
@@ -329,6 +338,10 @@ help:
 build:
 	@echo "building edax..."
 	$(CC) $(CFLAGS) all.c -o $(BIN)/$(EXE) $(LIBS)
+
+# add for libedax by lavox. 2018/1/16 
+libbuild:
+	$(CC) $(CFLAGS) $(LIBFLAGS) all.c -o $(BIN)/$(LIB) $(LIBS)
 
 pgo-build:
 	@echo "building edax with pgo..."

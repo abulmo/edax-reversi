@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #ifdef _WIN32
 	#include <winsock.h>
+	#include <winerror.h>
 	#include <ws2tcpip.h>
 	#define SHUT_RDWR SD_BOTH
 #else
@@ -960,7 +961,7 @@ static void ggs_event_init(GGSEvent *event)
   		freeaddrinfo(result);
 	}
 
-	thread_create(&event->thread, ggs_event_loop, event);
+	thread_create2(&event->thread, ggs_event_loop, event); // modified for iOS by lavox. 2018/1/16
 }
 
 /**
