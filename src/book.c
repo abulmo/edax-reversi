@@ -2102,6 +2102,18 @@ void book_show(Book *book, Board *board)
 	}
 }
 
+// add for libedax by lavox. 2018/5/20
+/**
+ * @brief Display a position from the book.
+ *
+ * @param book opening book.
+ * @param board position to display.
+ */
+Position* book_show_for_api(Book *book, Board *board)
+{
+    return book_probe(book, board);
+}
+
 /**
  * @brief Get a list of moves from the book.
  *

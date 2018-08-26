@@ -114,6 +114,7 @@ void book_play(Book*);
 
 void book_info(Book*);
 void book_show(Book*, Board*);
+Position* book_show_for_api(Book*, Board*);// add for libedax by lavox. 2018/5/20
 void book_stats(Book *book);
 bool book_get_moves(Book*, const Board*, MoveList*);
 bool book_get_random_move(Book*, const Board*, Move*, const int);

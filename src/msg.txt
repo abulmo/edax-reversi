@@ -1,0 +1,6 @@
+gcc -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -Ofast -fwhole-program -flto -DNDEBUG -m32 -mtune=generic -DUSE_GAS_X86 -fomit-frame-pointer -D__USE_MINGW_ANSI_STDIO -DWINVER=0x501 -DUSE_PTHREAD -DLIB_BUILD -fPIC -shared -DDLL_BUILD all.c -o ../bin/libedax-x86.dll -lm -lws2_32 -lpthread
+In file included from all.c:47:0:
+libedax.c: In function 'libedax_observer':
+libedax.c:104:38: warning: unused parameter 'result' [-Wunused-parameter]
+ static void libedax_observer(Result *result)
+                                      ^~~~~~

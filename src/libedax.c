@@ -491,14 +491,22 @@ DLL_API void edax_hint(const int n, HintList* hintlist) {
 }
 
 /**
+ * @brief get book moves.
+ * @param move_list result (out parameter).
+ */
+DLL_API void edax_get_bookmove(MoveList* move_list) {
+    play_get_bookmove(g_ui->play, move_list);
+}
+
+/**
  * @brief hint command.
  * Call edax_hint_next after calling this function.
  */
-DLL_API void edax_hint_prepare() {
+DLL_API void edax_hint_prepare(MoveList* exclude_list) {
 	if (g_ui == NULL) return;
 	Play *play = g_ui->play;
 	// prepare hint
-	play_hint_prepare(play);
+	play_hint_prepare(play, exclude_list);
 }
 
 /**
@@ -524,10 +532,12 @@ DLL_API void edax_stop() {
 	g_ui->mode = 3;
 }
 
-//TODO:
-//			// stop thinking
-//			} else if (strcmp(cmd, "version") == 0 || strcmp(cmd, "v") == 0) {
-//				version();
+/**
+ * @brief version command.
+ */
+DLL_API void edax_version() {
+    version();
+}
 
 /**
  * @brief user move command.
@@ -868,7 +878,7 @@ DLL_API void edax_book_show(Position *position) {
 	book_cmd_pre_process(g_ui);
 
 	// show the current position as stored in the book
-	Position *p = book_probe(book, play->board);
+	Position *p = book_show_for_api(book, play->board);
 	memcpy(position, p, sizeof(Position));
 
 	book_cmd_post_process(g_ui);

@@ -37,6 +37,9 @@ void version(void)
 #else
 	fprintf(stderr, "\n");
 #endif
+#ifdef DEBUG
+    fprintf(stderr, " This is debug module.\n\n");
+#endif
 
 	fprintf(stderr, "copyright 1998 - 2017 Richard Delorme\n\n");
 }

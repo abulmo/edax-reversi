@@ -438,7 +438,6 @@ void play_hint(Play *play, int n)
  */
 void play_hint_for_lib(Play *play, int n, HintList* hintlist)
 {
-	Line pv[1];
 	Move *m;
 	Search *search = play->search;
 	MoveList book_moves[1];
@@ -460,7 +459,7 @@ void play_hint_for_lib(Play *play, int n, HintList* hintlist)
 	if (options.book_allowed && book_get_moves(play->book, play->board, book_moves)) {
 		foreach_move (m, book_moves) if (n) {
 			--n;
-			line_init(pv, play->player);
+			line_init(hint->pv, play->player);
 			book_get_line(play->book, play->board, m, hint->pv);
 
 			hint->depth = 0;
@@ -485,6 +484,7 @@ void play_hint_for_lib(Play *play, int n, HintList* hintlist)
 		if (n) search->options.multipv_depth = 60;
 		search_run(search);
 		search->options.multipv_depth = MULTIPV_DEPTH;
+		line_init(hint->pv, play->player);
 
 		hint->depth = search->result->depth;
 		hint->selectivity = search->result->selectivity;
@@ -505,12 +505,34 @@ void play_hint_for_lib(Play *play, int n, HintList* hintlist)
 }
 
 /**
+ * @brief get book move for libEdax
+ *
+ * @param play Play
+ * @param book_moves result(out parameter)
+ */
+void play_get_bookmove(Play *play, MoveList* book_moves)
+{
+    if (play_is_game_over(play)) return;
+    
+    play_stop_pondering(play);
+    
+    play->state = IS_THINKING;
+    
+    if (options.book_allowed) {
+        book_get_moves(play->book, play->board, book_moves);
+    } else {
+        book_moves->n_moves = 0;
+    }
+}
+
+/**
  * @brief prepare hint for libEdax
  *
  * @param play Play.
  */
-void play_hint_prepare(Play *play)
+void play_hint_prepare(Play *play, MoveList* exclude_list)
 {
+    Move* m;
 	Search *search = play->search;
 
 	if (play_is_game_over(play)) return;
@@ -522,6 +544,14 @@ void play_hint_prepare(Play *play)
 	search->options.verbosity = options.verbosity;
 	search_set_board(search, play->board, play->player);
 	search_set_level(search, options.level, search->n_empties);
+    if (options.depth >= 0) search->options.depth = MIN(options.depth, search->n_empties);
+    if (options.selectivity >= 0) search->options.selectivity = options.selectivity;
+    
+    if ( exclude_list ) {
+        foreach_move (m, exclude_list) {
+            movelist_exclude(search->movelist, m->x);
+        }
+    }
 }
 
 
@@ -535,7 +565,6 @@ void play_hint_prepare(Play *play)
  */
 void play_hint_next(Play *play, Hint* hint)
 {
-	Line pv[1];
 	Move *m;
 	Search *search = play->search;
 	MoveList book_moves[1];
@@ -555,7 +584,7 @@ void play_hint_next(Play *play, Hint* hint)
 
 	if (options.book_allowed && book_get_moves(play->book, play->board, book_moves)) {
 		foreach_move (m, book_moves) {
-			line_init(pv, play->player);
+			line_init(hint->pv, play->player);
 			book_get_line(play->book, play->board, m, hint->pv);
 
 			hint->depth = 0;
@@ -578,6 +607,7 @@ void play_hint_next(Play *play, Hint* hint)
 	else search_set_game_time(search, play->time[play->player].left);
 	search->options.multipv_depth = 60;
 	search_run(search);
+	line_init(hint->pv, play->player);
 	search->options.multipv_depth = MULTIPV_DEPTH;
 
 	hint->depth = search->result->depth;
@@ -802,7 +832,7 @@ void play_set_board_from_obj(Play *play, const Board *board, const int turn)
 		if (play->initial_player == WHITE) board_swap_players(play->initial_board);
 	}
 	play_force_init(play, "");
-	play_new(play);
+    play_new(play);
 }
 
 /**
