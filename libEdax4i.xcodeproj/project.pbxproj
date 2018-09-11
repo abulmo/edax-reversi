@@ -563,6 +563,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"_GNU_SOURCE=1",
 					LIB_BUILD,
+					NDEBUG,
+					POPCOUNT,
+					HAS_CPU_64,
+					USE_GCC_X64,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -574,9 +578,9 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"-pedantic",
-					"-fwhole-program",
 					"-flto",
 					"-fomit-frame-pointer",
+					"-Wno-invalid-source-encoding",
 				);
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

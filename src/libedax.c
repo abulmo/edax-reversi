@@ -520,7 +520,22 @@ DLL_API void edax_hint_next(Hint* hint) {
 	if (g_ui == NULL) return;
 	Play *play = g_ui->play;
 	// get next hint
-	play_hint_next(play, hint);
+	play_hint_next(play, hint, true);
+}
+
+/**
+ * @brief hint command.
+ * Gets hint one by one. If there are no more hints, hint will be NOMOVE.
+ * Call edax_hint_prepare before calling this function.
+ * This command is for analyze use.
+ * @param n number of hints.
+ * @param hintlist result (out parameter).
+ */
+DLL_API void edax_hint_next_no_multipv_depth(Hint* hint) {
+    if (g_ui == NULL) return;
+    Play *play = g_ui->play;
+    // get next hint
+    play_hint_next(play, hint, false);
 }
 
 /**

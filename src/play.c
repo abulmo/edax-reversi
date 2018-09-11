@@ -563,7 +563,7 @@ void play_hint_prepare(Play *play, MoveList* exclude_list)
  * @param play Play.
  * @param hint result (out parameter)
  */
-void play_hint_next(Play *play, Hint* hint)
+void play_hint_next(Play *play, Hint* hint, bool multiPvDepthMax)
 {
 	Move *m;
 	Search *search = play->search;
@@ -605,10 +605,10 @@ void play_hint_next(Play *play, Hint* hint)
 
 	if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 	else search_set_game_time(search, play->time[play->player].left);
-	search->options.multipv_depth = 60;
+    if ( multiPvDepthMax ) search->options.multipv_depth = 60;
 	search_run(search);
 	line_init(hint->pv, play->player);
-	search->options.multipv_depth = MULTIPV_DEPTH;
+    if ( multiPvDepthMax ) search->options.multipv_depth = MULTIPV_DEPTH;
 
 	hint->depth = search->result->depth;
 	hint->selectivity = search->result->selectivity;
