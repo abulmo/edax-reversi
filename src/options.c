@@ -202,6 +202,8 @@ int options_read(const char *option, const char *value)
 
 		else if (strcmp(option, "game-file") == 0) options.game_file = string_duplicate(value);
 
+		else if (strcmp(option, "eval-file") == 0) options.eval_file = string_duplicate(value);
+		
 		else if (strcmp(option, "book-file") == 0) options.book_file = string_duplicate(value);
 		else if (strcmp(option, "book-usage") == 0) parse_boolean(value, &options.book_allowed);
 		else if (strcmp(option, "book-randomness") == 0) parse_int(value, &options.book_randomness);
