@@ -545,6 +545,8 @@ DLL_API void edax_stop() {
 	if (g_ui == NULL) return;
 	// stop thinking
 	g_ui->mode = 3;
+    Play *play = g_ui->play;
+    play_stop(play);
 }
 
 /**
