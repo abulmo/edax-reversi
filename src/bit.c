@@ -135,7 +135,7 @@ int bit_count(unsigned long long b)
  * @brief count the number of discs, counting the corners twice.
  *
  * This is a variation of the above algorithm to count the mobility and favour
- * the corners. This function is usefull for move sorting.
+ * the corners. This function is useful for move sorting.
  *
  * @param v 64-bit integer to count bits of.
  * @return the number of bit set, counting the corners twice.
