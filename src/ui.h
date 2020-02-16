@@ -42,6 +42,16 @@ typedef struct UI {
 	void (*free)(struct UI*);  /**< free resources function */
 } UI;
 
+/**
+ * Bench result structure
+ */
+typedef struct BenchResult {
+    unsigned long long T;
+    unsigned long long n_nodes;
+    int positions;
+    Lock lock;
+} BenchResult;
+
 bool ui_switch(UI*, const char*);
 
 void ui_event_init(UI*);
@@ -95,6 +105,8 @@ DLL_API void edax_rotate(const int);
 DLL_API void edax_symetry(const int);
 DLL_API void edax_play(char*);
 DLL_API void edax_force(char*);
+DLL_API void edax_bench(BenchResult*, int);
+DLL_API void edax_bench_get_result(BenchResult*);
 DLL_API void edax_go(void);
 DLL_API void edax_hint(const int, HintList*);
 DLL_API void edax_get_bookmove(MoveList*);

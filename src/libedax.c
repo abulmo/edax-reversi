@@ -30,6 +30,7 @@ void version(void);
 //void bench(void);
 
 UI* g_ui;
+BenchResult* g_bench_result;
 
 /**
  * @brief edax init function for library use.
@@ -444,11 +445,36 @@ DLL_API void edax_force(char* moves) {
 //			} else if (strcmp(cmd, "microbench") == 0) {
 //				bench();
 //
-//			// bench (a serie of low level tests).
-//			} else if (strcmp(cmd, "bench") == 0) {
-//				int n = string_to_int(param, -1); BOUND(n, -1, 100, "n_problems");
-//				obf_speed(play->search, n);
-//
+
+/**
+ * @brief bench (a serie of low level tests). command.
+ */
+DLL_API void edax_bench(BenchResult* result, int n) {
+    result->n_nodes = 0;
+    result->T = 0;
+    result->positions = 0;
+    lock_init(result);
+    g_bench_result = result;
+    BOUND(n, -1, 100, "n_problems");
+    if (g_ui == NULL) return;
+    Play *play = g_ui->play;
+    _obf_speed(play->search, n, g_bench_result);
+    lock(result);
+    g_bench_result = NULL;
+    unlock(result);
+    lock_free(result);
+}
+
+DLL_API void edax_bench_get_result(BenchResult* result) {
+    if ( g_bench_result != NULL ) {
+        lock(g_bench_result);
+        result->T = g_bench_result->T;
+        result->n_nodes = g_bench_result->n_nodes;
+        result->positions = g_bench_result->positions;
+        unlock(g_bench_result);
+    }
+}
+
 //			// wtest test the engine against wthor theoretical scores
 //			} else if (strcmp(cmd, "wtest") == 0) {
 //				wthor_test(param, play->search);

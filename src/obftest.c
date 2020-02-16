@@ -22,6 +22,9 @@
 #include "options.h"
 #include "const.h"
 #include "settings.h"
+#ifdef LIB_BUILD
+    #include "ui.h"
+#endif
 
 
 /** OBF structure: Othello Board File */
@@ -478,7 +481,7 @@ void obf_filter(const char *input_file, const char *output_file)
  * @brief Test edax speed by running for at least 1 minutes on problems deeper and deeper.
  * @param search Search.
  */
-void obf_speed(Search *search, const int n)
+void _obf_speed(Search *search, const int n, BenchResult *result)
 {
 	int i;
 	unsigned long long t = real_clock();
@@ -508,6 +511,15 @@ void obf_speed(Search *search, const int n)
 		obf_search(search, &obf, i + 1);
 		T += search_time(search);
 		n_nodes += search_count_nodes(search);
+#ifdef LIB_BUILD
+        if ( result != NULL ) {
+            lock(result);
+            result->T = T;
+            result->n_nodes = n_nodes;
+            result->positions = i + 1;
+            unlock(result);
+        }
+#endif
 	}
 	printf("%d positions solved: ", i);
 	if (n_nodes) printf("%llu nodes in ", n_nodes);
@@ -518,4 +530,8 @@ void obf_speed(Search *search, const int n)
 	options.level = level;
 	options.width += 4;
 	
+}
+void obf_speed(Search *search, const int n)
+{
+    _obf_speed(search, n, NULL);
 }
