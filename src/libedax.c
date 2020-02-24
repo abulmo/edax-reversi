@@ -525,6 +525,14 @@ DLL_API void edax_get_bookmove(MoveList* move_list) {
 }
 
 /**
+ * @brief get book moves.
+ * @param move_list result (out parameter).
+ */
+DLL_API void edax_get_bookmove_with_position(MoveList* move_list, Position* position) {
+    play_get_bookmove_with_position(g_ui->play, move_list, position);
+}
+
+/**
  * @brief hint command.
  * Call edax_hint_next after calling this function.
  */

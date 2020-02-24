@@ -2133,6 +2133,26 @@ bool book_get_moves(Book *book, const Board *board, MoveList *movelist)
 }
 
 /**
+ * @brief Get a list of moves from the book.
+ *
+ * @param book Opening book.
+ * @param board Position to display.
+ * @param movelist List of moves.
+ * @param position position.
+ */
+bool book_get_moves_with_position(Book *book, const Board *board, MoveList *movelist, Position *position)
+{
+    Position *p = book_probe(book, board);
+    if (p) {
+        position_get_moves(p, board, movelist);
+        memcpy(position, p, sizeof(Position));
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Get a variation from the book.
  *
  * @param book Opening book.
