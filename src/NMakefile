@@ -132,6 +132,9 @@ VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE\
 vc-w64-modern:
 	cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /machine:x64 /VERSION:4.4
 
+vc-w64-popcnt:
+	cl $(VC_FLAGS) /D HAS_CPU_64 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /machine:x64 /VERSION:4.4
+
 vc-w64:
 	cl $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
 
@@ -158,6 +161,15 @@ vc-pgo-w64-modern:
 	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
 	cd ..\src
 	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-modern.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+
+vc-pgo-w64-popcnt:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cd ..\bin
+	wEdax-w64-popcnt -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-popcnt -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-popcnt.exe /ltcg:pgo /machine:x64 /VERSION:4.4
 
 vc-pgo-w64:
 	set VCPROFILE_PATH=..\src

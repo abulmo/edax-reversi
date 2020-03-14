@@ -69,6 +69,9 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
+	ifeq ($(ARCH),x64-popcnt)
+		CFLAGS += -m64 -mpopcnt -mtune=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT
+	endif
 	ifeq ($(ARCH),x32-modern)
 		CFLAGS += -mx32 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
