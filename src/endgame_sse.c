@@ -876,6 +876,7 @@ static inline int TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
 #else
 #define	EXTRACT_B3(X)	(_mm_cvtsi128_si32(X) >> 24)
 static inline int TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
+#define _mm_cvtepu8_epi16(X)	_mm_unpacklo_epi8((X), _mm_setzero_si128())
 #endif
 
 // in count_last_flip_sse.c
@@ -1006,7 +1007,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
  * @param n_nodes Node counter.
  * @return The final score, as a disc difference.
  */
-static int vectorcall board_solve_sse_2(__m128i OP, __m128i empties, int alpha, volatile unsigned long long *n_nodes)
+static int vectorcall board_solve_sse_2(__m128i OP, int alpha, volatile unsigned long long *n_nodes, __m128i empties)
 {
 	__m128i flipped, PO;
 	int score, bestscore, nodes;
@@ -1056,8 +1057,8 @@ static int vectorcall board_solve_sse_2(__m128i OP, __m128i empties, int alpha, 
 	}
 
 	*n_nodes += nodes;
- 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
- 	assert((bestscore & 1) == 0);
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert((bestscore & 1) == 0);
 	return bestscore;
 }
 
@@ -1073,7 +1074,7 @@ static int vectorcall board_solve_sse_2(__m128i OP, __m128i empties, int alpha, 
  * @param n_nodes Node counter.
  * @return The final score, as a disc difference.
  */
-static int vectorcall search_solve_sse_3(__m128i OP, __m128i empties, int alpha, unsigned int sort3, volatile unsigned long long *n_nodes)
+static int vectorcall search_solve_sse_3(__m128i OP, int alpha, unsigned int sort3, volatile unsigned long long *n_nodes, __m128i empties)
 {
 	__m128i flipped, PO;
 	int score, bestscore, x;
@@ -1083,7 +1084,7 @@ static int vectorcall search_solve_sse_3(__m128i OP, __m128i empties, int alpha,
 	SEARCH_STATS(++statistics.n_search_solve_3);
 	SEARCH_UPDATE_INTERNAL_NODES(*n_nodes);
 
-	empties = _mm_unpacklo_epi8(empties, _mm_setzero_si128());	// to ease shuffle
+	empties = _mm_cvtepu8_epi16(empties);	// to ease shuffle
 	// parity based move sorting
 	if (sort3 & 0x03) {
 #ifndef __AVX__
@@ -1099,20 +1100,20 @@ static int vectorcall search_solve_sse_3(__m128i OP, __m128i empties, int alpha,
 	bb = EXTRACT_O(OP);	// opponent
 	x = _mm_extract_epi16(empties, 2);
 	if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
-		bestscore = -board_solve_sse_2(board_next_sse(OP, x, flipped), empties, -(alpha + 1), n_nodes);
+		bestscore = -board_solve_sse_2(board_next_sse(OP, x, flipped), -(alpha + 1), n_nodes, empties);
 		if (bestscore > alpha) return bestscore;
 	}
 
 	x = _mm_extract_epi16(empties, 1);
 	if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
-		score = -board_solve_sse_2(board_next_sse(OP, x, flipped), _mm_shufflelo_epi16(empties, 0xd8), -(alpha + 1), n_nodes);
+		score = -board_solve_sse_2(board_next_sse(OP, x, flipped), -(alpha + 1), n_nodes, _mm_shufflelo_epi16(empties, 0xd8));
 		if (score > alpha) return score;
 		else if (score > bestscore) bestscore = score;
 	}
 
 	x = _mm_extract_epi16(empties, 0);
 	if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
-		score = -board_solve_sse_2(board_next_sse(OP, x, flipped), _mm_shufflelo_epi16(empties, 0xc9), -(alpha + 1), n_nodes);
+		score = -board_solve_sse_2(board_next_sse(OP, x, flipped), -(alpha + 1), n_nodes, _mm_shufflelo_epi16(empties, 0xc9));
 		if (score > bestscore) bestscore = score;
 	}
 
@@ -1124,20 +1125,20 @@ static int vectorcall search_solve_sse_3(__m128i OP, __m128i empties, int alpha,
 		PO = _mm_shuffle_epi32(OP, SWAP64);
 		x = _mm_extract_epi16(empties, 2);
 		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			bestscore = board_solve_sse_2(board_next_sse(PO, x, flipped), empties, alpha, n_nodes);
+			bestscore = board_solve_sse_2(board_next_sse(PO, x, flipped), alpha, n_nodes, empties);
 			if (bestscore <= alpha) return bestscore;
 		}
 
 		x = _mm_extract_epi16(empties, 1);
 		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			score = board_solve_sse_2(board_next_sse(PO, x, flipped), _mm_shufflelo_epi16(empties, 0xd8), alpha, n_nodes);
+			score = board_solve_sse_2(board_next_sse(PO, x, flipped), alpha, n_nodes, _mm_shufflelo_epi16(empties, 0xd8));
 			if (score <= alpha) return score;
 			else if (score < bestscore) bestscore = score;
 		}
 
 		x = _mm_extract_epi16(empties, 0);
 		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			score = board_solve_sse_2(board_next_sse(PO, x, flipped), _mm_shufflelo_epi16(empties, 0xc9), alpha, n_nodes);
+			score = board_solve_sse_2(board_next_sse(PO, x, flipped), alpha, n_nodes, _mm_shufflelo_epi16(empties, 0xc9));
 			if (score < bestscore) bestscore = score;
 		}
 
@@ -1298,14 +1299,14 @@ int search_solve_4(Search *search, const int alpha)
 	opp = EXTRACT_O(OP);
 	x1 = EXTRACT_B3(empties_series);
 	if ((NEIGHBOUR[x1] & opp) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
-		bestscore = -search_solve_sse_3(board_next_sse(OP, x1, flipped), empties_series, -(alpha + 1), sort3, &search->n_nodes);
+		bestscore = -search_solve_sse_3(board_next_sse(OP, x1, flipped), -(alpha + 1), sort3, &search->n_nodes, empties_series);
 		if (bestscore > alpha) return bestscore;
 	}
 
 	empties_series = _mm_shuffle_epi32(empties_series, 0x39);
 	x2 = EXTRACT_B3(empties_series);
 	if ((NEIGHBOUR[x2] & opp) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-		score = -search_solve_sse_3(board_next_sse(OP, x2, flipped), empties_series, -(alpha + 1), sort3 >> 4, &search->n_nodes);
+		score = -search_solve_sse_3(board_next_sse(OP, x2, flipped), -(alpha + 1), sort3 >> 4, &search->n_nodes, empties_series);
 		if (score > alpha) return score;
 		else if (score > bestscore) bestscore = score;
 	}
@@ -1313,7 +1314,7 @@ int search_solve_4(Search *search, const int alpha)
 	empties_series = _mm_shuffle_epi32(empties_series, 0x39);
 	x3 = EXTRACT_B3(empties_series);
 	if ((NEIGHBOUR[x3] & opp) && !TESTZ_FLIP(flipped = mm_Flip(OP, x3))) {
-		score = -search_solve_sse_3(board_next_sse(OP, x3, flipped), empties_series, -(alpha + 1), sort3 >> 8, &search->n_nodes);
+		score = -search_solve_sse_3(board_next_sse(OP, x3, flipped), -(alpha + 1), sort3 >> 8, &search->n_nodes, empties_series);
 		if (score > alpha) return score;
 		else if (score > bestscore) bestscore = score;
 	}
@@ -1321,7 +1322,7 @@ int search_solve_4(Search *search, const int alpha)
 	empties_series = _mm_shuffle_epi32(empties_series, 0x39);
 	x4 = EXTRACT_B3(empties_series);
 	if ((NEIGHBOUR[x4] & opp) && !TESTZ_FLIP(flipped = mm_Flip(OP, x4))) {
-		score = -search_solve_sse_3(board_next_sse(OP, x4, flipped), empties_series, -(alpha + 1), sort3 >> 12, &search->n_nodes);
+		score = -search_solve_sse_3(board_next_sse(OP, x4, flipped), -(alpha + 1), sort3 >> 12, &search->n_nodes, empties_series);
 		if (score > bestscore) bestscore = score;
 	}
 
