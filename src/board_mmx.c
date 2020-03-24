@@ -845,8 +845,8 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
 	static const unsigned long long MFF = 0xffffffffffffffff;
 	static const unsigned long long edge = 0xff818181818181ffULL;
-	static const unsigned long long e7[] = { 0xffff8383838383ff, 0xffffffff8f8f8fff, 0xffc1c1c1c1c1ffff, 0xfff1f1f1ffffffff };
-	static const unsigned long long e9[] = { 0xffffc1c1c1c1c1ff, 0xff8f8f8ff1f1f1ff, 0xff8383838383ffff };
+	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
 
 	P = *(__m64 *) &P_;
 	O = *(__m64 *) &O_;
@@ -868,8 +868,8 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 7)));
 	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 7)));
 	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[0], _m_psrlqi(full_l, 14)));
-	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[2], _m_psllqi(full_r, 14)));
-	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[1], _m_psrlqi(full_l, 28)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[1], _m_psllqi(full_r, 14)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[2], _m_psrlqi(full_l, 28)));
 	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[3], _m_psllqi(full_r, 28)));
 	full_d7 = _m_pand(full_l, full_r);
 	stable = _m_pand(stable, full_d7);
@@ -879,8 +879,8 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 9)));
 	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 9)));
 	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e9[0], _m_psrlqi(full_l, 18)));
-	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e9[2], _m_psllqi(full_r, 18)));
-	full_d9 = _m_pand(_m_pand(full_l, full_r), _m_por(*(__m64 *) &e9[1], _m_por(_m_psrlqi(full_l, 36), _m_psllqi(full_r, 36))));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e9[1], _m_psllqi(full_r, 18)));
+	full_d9 = _m_pand(_m_pand(full_l, full_r), _m_por(*(__m64 *) &e9[2], _m_por(_m_psrlqi(full_l, 36), _m_psllqi(full_r, 36))));
 	stable = _m_pand(stable, full_d9);
 
 	// compute the exact stable edges (from precomputed tables)
@@ -931,11 +931,11 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 		"pand	%2, %%mm0\n\t"		"pand	%2, %%mm1\n\t"\
 		"movq	%%mm0, %%mm2\n\t"	"movq	%%mm1, %%mm3\n\t"\
 		"psrlq	%4, %%mm0\n\t"		"psllq	%4, %%mm1\n\t"\
-		"por	%7, %%mm0\n\t"		"por	%9, %%mm1\n\t"\
+		"por	%7, %%mm0\n\t"		"por	%8, %%mm1\n\t"\
 		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm3, %%mm1\n\t"\
 		"movq	%%mm0, %%mm2\n\t"	"pand	%%mm1, %%mm0\n\t"\
 		"psrlq	%5, %%mm2\n\t"		"psllq	%5, %%mm1\n\t"\
-		"por	%8, %%mm2\n\t"		"por	%10, %%mm1\n\t"\
+		"por	%9, %%mm2\n\t"		"por	%10, %%mm1\n\t"\
 		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm1, %%mm0\n\t"\
 		"movq	%%mm0, %0\n\t"\
 		"pand	%%mm0, %1"\
@@ -952,10 +952,8 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 #endif
 	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
 	static const unsigned long long e0 = 0xff818181818181ffULL;
-	// static const unsigned long long e1[] = { 0xffc1c1c1c1c1c1ffULL, 0xfff1f1f1f1f1f1ffULL, 0xff838383838383ffULL, 0xff8f8f8f8f8f8fffULL };
-	// static const unsigned long long e8[] = { 0xffff8181818181ffULL, 0xffffffff818181ffULL, 0xff8181818181ffffULL, 0xff818181ffffffffULL };
-	static const unsigned long long e7[] = { 0xffff8383838383ffULL, 0xffffffff8f8f8fffULL, 0xffc1c1c1c1c1ffffULL, 0xfff1f1f1ffffffffULL };
-	static const unsigned long long e9[] = { 0xffffc1c1c1c1c1ffULL, 0xfffffffff1f1f1ffULL, 0xff8383838383ffffULL, 0xff8f8f8fffffffffULL };
+	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0xfffffffff0f0f0f0, 0x0f0f0f0fffffffff };
 
 	__asm__ (
 		"movd	%2, %0\n\t"		"movd	%4, %1\n\t"		// (movd for store-forwarding)
