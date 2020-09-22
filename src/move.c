@@ -186,7 +186,7 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 	const int w_mid_parity = 1 << 2;
 	const int w_high_parity = 1 << 1;
 #endif	
-
+	int	empties, parity_weight;
 	HashData dummy[1];
 	Eval Ev0;
 
@@ -196,9 +196,11 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 	else {
 
 		move->score = SQUARE_VALUE[move->x]; // square type
-		if (search->eval.n_empties < 12 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_low_parity; // parity
-		else if (search->eval.n_empties < 21 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_mid_parity; // parity
-		else if (search->eval.n_empties < 30 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_high_parity; // parity
+		empties = search->eval.n_empties;
+		if (empties < 30) {	// https://eukaryote.hateblo.jp/entry/2020/05/16/082757
+			parity_weight = (empties < 12) ? w_low_parity : ((empties < 21) ? w_mid_parity : w_high_parity);
+			move->score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0;
+		}
 
 		if (sort_depth < 0) {
 			board_update(&search->board, move);
