@@ -20,3 +20,10 @@ cd src
 make build ARCH=x64 COMP=gcc OS=osx
 ./bin/mEdax
 ```
+
+## Document
+
+```sh
+cd src
+doxygen
+```
