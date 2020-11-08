@@ -16,6 +16,7 @@ Only 64 bit executable with popcount support are provided.
 mkdir -p bin
 cd src
 
-# sample
+# e.g. OS X sample
 make build ARCH=x64 COMP=gcc OS=osx
+./bin/mEdax
 ```
