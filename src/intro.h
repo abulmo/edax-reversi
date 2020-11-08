@@ -25,8 +25,8 @@
  *
  *
  * @section dl Download
- * You can download the source with its documentation here:
- * http://abulmo.perso.neuf.fr/edax/4.4/edax.4-4.zip
+ * You can download the source here:
+ * https://github.com/abulmo/edax-reversi
  *
  * @section pres Presentation
  * Edax is a very strong and fast Othello program.
