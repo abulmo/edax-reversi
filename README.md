@@ -12,13 +12,36 @@ Edax is a very strong othello program. Its main features are:
 From [the release section of github](https://github.com/abulmo/edax-reversi/releases), you must 7unzip both an executable of your favorite OS, and the evaluation weights (data/eval.dat) in the same directory.
 Only 64 bit executable with popcount support are provided.
 
+## Run
+
+### local
+
 ```sh
 mkdir -p bin
 cd src
 
 # e.g. OS X sample
 make build ARCH=x64 COMP=gcc OS=osx
+cd ..
 ./bin/mEdax
+```
+
+### docker
+
+```sh
+docker build . -t edax
+docker run --name "edax" -v "$(pwd)/:/home/edax/" -it edax
+
+cd /home/edax/
+mkdir -p bin
+cd src
+make build ARCH=x64 COMP=gcc OS=linux
+
+cd ..
+curl -OL https://github.com/abulmo/edax-reversi/releases/download/v4.4/eval.7z # e.g. use v4.4 eval.dat
+7z x eval.7z
+
+./bin/lEdax-x64
 ```
 
 ## Document
@@ -26,4 +49,5 @@ make build ARCH=x64 COMP=gcc OS=osx
 ```sh
 cd src
 doxygen
+open ../doc/index.html
 ```
