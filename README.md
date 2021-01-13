@@ -49,5 +49,5 @@ curl -OL https://github.com/abulmo/edax-reversi/releases/download/v4.4/eval.7z #
 ```sh
 cd src
 doxygen
-open ../doc/index.html
+open ../doc/html/index.html
 ```
