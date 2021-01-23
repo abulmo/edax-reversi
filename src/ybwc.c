@@ -573,7 +573,7 @@ void task_stack_init(TaskStack *stack, const int n)
 		if (stack->task == NULL) {
 			fatal_error("Cannot allocate an array of %d tasks\n", stack->n);
 		}
-		if (stack->task == NULL) {
+		if (stack->stask == NULL) {
 			fatal_error("Cannot allocate a stack of %d entries\n", stack->n);
 		}
 
