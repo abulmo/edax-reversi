@@ -44,7 +44,7 @@ ifeq ($(COMP),gcc)
 	
 	ifeq ($(BUILD),optimize)
 		# modify for libedax by sensuikan1973.20121/1/21
-		CFLAGS += -O2 -flto -DNDEBUG
+		CFLAGS += -Ofast -flto -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -95,7 +95,7 @@ ifeq ($(COMP),gcc-old)
 	
 	ifeq ($(BUILD),optimize)
 		# modify for libedax by sensuikan1973.20121/1/21
-		CFLAGS += -O2 -DNDEBUG
+		CFLAGS += -O3 -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -146,7 +146,7 @@ ifeq ($(COMP),g++)
 
 	ifeq ($(BUILD),optimize)
 		# modify for libedax by sensuikan1973.20121/1/21
-		CFLAGS += -O2 -flto -DNDEBUG
+		CFLAGS += -Ofast -flto -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -183,7 +183,7 @@ ifeq ($(COMP),icc)
 	PGO_USE = -prof_use -wd11505
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O2 -DNDEBUG -rcd -DRCD=0.0 -ansi-alias
+		CFLAGS += -Ofast -DNDEBUG -rcd -DRCD=0.0 -ansi-alias
 	else
 		CFLAGS += -O0 -g -DDEBUG -rcd -DRCD=0.0
 	endif
@@ -231,7 +231,7 @@ ifeq ($(COMP),clang)
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O2 -flto -ffast-math -fomit-frame-pointer -DNDEBUG -fuse-ld=gold
+		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG -fuse-ld=gold
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
