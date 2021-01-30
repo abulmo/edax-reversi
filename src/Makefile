@@ -43,7 +43,8 @@ ifeq ($(COMP),gcc)
 	PGO_USE = -fprofile-correction -fprofile-use
 	
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -Ofast -fwhole-program -flto -DNDEBUG
+		# modify for libedax by sensuikan1973.20121/1/21
+		CFLAGS += -Ofast -flto -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -93,7 +94,8 @@ ifeq ($(COMP),gcc-old)
 	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1
 	
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O3 -fwhole-program -DNDEBUG
+		# modify for libedax by sensuikan1973.20121/1/21
+		CFLAGS += -O3 -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -143,7 +145,8 @@ ifeq ($(COMP),g++)
 	PGO_USE = -fprofile-correction -fprofile-use
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -Ofast -fwhole-program -flto -DNDEBUG
+		# modify for libedax by sensuikan1973.20121/1/21
+		CFLAGS += -Ofast -flto -DNDEBUG
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
