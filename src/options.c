@@ -202,11 +202,12 @@ int options_read(const char *option, const char *value)
 
 		else if (strcmp(option, "game-file") == 0) options.game_file = string_duplicate(value);
 
+		else if (strcmp(option, "eval-file") == 0) options.eval_file = string_duplicate(value);
+		
 		else if (strcmp(option, "book-file") == 0) options.book_file = string_duplicate(value);
 		else if (strcmp(option, "book-usage") == 0) parse_boolean(value, &options.book_allowed);
 		else if (strcmp(option, "book-randomness") == 0) parse_int(value, &options.book_randomness);
 
-		else if (strcmp(option, "eval-file") == 0) options.eval_file = string_duplicate(value); // add for libedax by lavox. 2018/1/16
 		else if (strcmp(option, "search-log-file") == 0) options.search_log_file = string_duplicate(value);
 		else if (strcmp(option, "ui-log-file") == 0) options.ui_log_file = string_duplicate(value);
 		else if (strcmp(option, "ggs-log-file") == 0) options.ggs_log_file = string_duplicate(value);

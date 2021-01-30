@@ -92,6 +92,7 @@ typedef struct Position {
 
 void book_init(Book*);
 void book_free(Book*);
+void book_preprocess(Book*);// add for libedax by lavox. 2021/1/23
 
 void book_new(Book*, int, int);
 void book_load(Book*, const char*);

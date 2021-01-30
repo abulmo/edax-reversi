@@ -1152,6 +1152,34 @@ DLL_API void edax_book_feed_hash() {
 }
 
 /**
+ * @brief book add board preprocess.
+ */
+DLL_API void edax_book_add_board_pre_process() {
+    if (g_ui == NULL) return;
+    book_cmd_pre_process(g_ui);
+    Book *book = g_ui->play->book;
+    book_preprocess(book);
+}
+
+/**
+ * @brief book add board postprocess.
+ */
+DLL_API void edax_book_add_board_post_process() {
+    if (g_ui == NULL) return;
+    book_cmd_post_process(g_ui);
+}
+
+/**
+ * @brief book add board.
+ * @param board board to add.
+ */
+DLL_API void edax_book_add_board(const Board* board) {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_add_board(book, board);
+}
+
+/**
  * @brief base problem command.
  * @param base_file game database file.
  * @param n_empties number of empties.

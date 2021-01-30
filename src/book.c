@@ -1375,6 +1375,16 @@ void book_free(Book *book)
 }
 
 /**
+ * @brief clean opening book.
+ *
+ * @param book Opening book.
+ */
+void book_preprocess(Book *book)
+{
+    book_clean(book);
+}
+
+/**
  * @brief Create a new opening book.
  *
  * Create an opening book with the initial position & a single non link move.
