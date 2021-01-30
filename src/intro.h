@@ -6,7 +6,6 @@
  * - version: 4.4 (2012-10-10)
  * - author: Richard A Delorme
  * - email: edax-reversi@orange.fr
- * - web site: http://abulmo.perso.neuf.fr/edax/4.3/index.htm
  *
  *
  * @section lic Licence
@@ -26,8 +25,8 @@
  *
  *
  * @section dl Download
- * You can download the source with its documentation here:
- * http://abulmo.perso.neuf.fr/edax/4.4/edax.4-4.zip
+ * You can download the source here:
+ * https://github.com/abulmo/edax-reversi
  *
  * @section pres Presentation
  * Edax is a very strong and fast Othello program.
@@ -37,7 +36,7 @@
  * standard features were necessary, such as time management or multi-threading
  * capabilities. In such cases, code was made to be easily portable, at least
  * between MS-Windows and Unix. It does compile with most of the C compiler
- * available under Windows, linux  & mac OS X. 
+ * available under Windows, linux  & mac OS X.
  *    -# I used the C language as a very high language. I wrote very modular
  * code. I privileged small functions over long pieces of code. I avoided
  * global variables. Instead I organize data into structures passed to functions
@@ -114,7 +113,7 @@
  * event support to communicate with GUI.
  * - version 4.2.1: Several bug fixes.
  * - version 4.2.2: Several bug fixes. XBoard protocol should work OK now.
- * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
+ * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  *   Faster move generator provided by Toshihiko Okuhara.
  * - version 4.x: TODO: speed enhancement (is this possible ?). Book learning
      using a client/server approach. New Evaluation function.
@@ -147,5 +146,3 @@
  * -# Feldmann R., Monien B., Mysliwietz P. Vornberger O. (1989) Distributed Game-Tree %Search. ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  *
  */
-
-
