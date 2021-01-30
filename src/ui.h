@@ -147,6 +147,10 @@ DLL_API void edax_book_fill(int);
 DLL_API void edax_book_play(void);
 DLL_API void edax_book_deepen(void);
 DLL_API void edax_book_feed_hash(void);
+DLL_API void edax_book_add_board_pre_process(void);
+DLL_API void edax_book_add_board_post_process(void);
+DLL_API void edax_book_add_board(const Board*);
+
 DLL_API void edax_base_problem(const char*, const int, const char*);
 DLL_API void edax_base_tofen(const char*, const int, const char*);
 DLL_API void edax_base_correct(const char*, const int);
