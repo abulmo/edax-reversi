@@ -1,0 +1,38 @@
+name: build
+
+on:
+  pull_request:
+    paths: ['src/**', 'include/**', '.github/workflows/build.yaml']
+  push:
+    branches: [ master ]
+    paths: ['src/**', 'include/**', '.github/workflows/build.yaml']
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false # We want results from all OSes even if one fails.
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            build_command: make build ARCH=x64-modern COMP=gcc OS=linux
+          - os: windows-latest
+            build_command: make build ARCH=x64 COMP=gcc OS=windows
+          - os: macos-latest
+            build_command: make build ARCH=x64-modern COMP=gcc OS=osx
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build
+      run: |-
+        mkdir -p bin
+        cd src
+        ${{ matrix.build_command }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: artifact_${{ runner.os }}
+        path: bin
