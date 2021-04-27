@@ -545,7 +545,7 @@ DLL_API void edax_get_bookmove_with_position_by_moves(const char* moves, MoveLis
     string_to_lowercase(moves);
     play_game(play, moves);
     play_get_bookmove_with_position(play, move_list, position);
-    free(play);
+    play_free(play);
 }
 
 /**
