@@ -540,7 +540,8 @@ DLL_API void edax_get_bookmove_with_position(MoveList* move_list, Position* posi
 DLL_API void edax_get_bookmove_with_position_by_moves(const char* moves, MoveList* move_list, Position* position) {
     Play *play;
 		play = (Play*) malloc(sizeof (Play));
-    play_new(play);
+		play_init(play, g_ui->book);
+    // play_new(play);
     play_game(play, moves);
     play_get_bookmove_with_position(play, move_list, position);
 }
