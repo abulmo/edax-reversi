@@ -527,25 +527,29 @@ DLL_API void edax_get_bookmove(MoveList* move_list) {
 /**
  * @brief get book moves.
  * @param move_list result (out parameter).
+ * @return symetry. If -1, it means "no book" or "game over".
  */
-DLL_API void edax_get_bookmove_with_position(MoveList* move_list, Position* position) {
-    play_get_bookmove_with_position(g_ui->play, move_list, position);
+DLL_API int edax_get_bookmove_with_position(MoveList* move_list, Position* position) {
+    return play_get_bookmove_with_position(g_ui->play, move_list, position);
 }
 
 /**
  * @brief get book moves.
  * @param move_list result (out parameter).
  * @param position result (out parameter).
+ * @return symetry. If -1, it means "no book" or "game over".
  */
-DLL_API void edax_get_bookmove_with_position_by_moves(const char* moves, MoveList* move_list, Position* position) {
+DLL_API int edax_get_bookmove_with_position_by_moves(const char* moves, MoveList* move_list, Position* position) {
     Play *play;
     play = (Play*) malloc(sizeof (Play));
     play_init(play, g_ui->book);
     // play_new(play);
     string_to_lowercase(moves);
     play_game(play, moves);
-    play_get_bookmove_with_position(play, move_list, position);
+		int sym;
+    sym = play_get_bookmove_with_position(play, move_list, position);
     play_free(play);
+		return sym;
 }
 
 /**

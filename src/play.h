@@ -73,7 +73,7 @@ void play_go(Play*, const bool);
 void play_hint(Play*, int);
 void play_hint_for_lib(Play*, int, HintList*); // add for libedax by lavox. 2018/1/17
 void play_get_bookmove(Play*, MoveList*); // add for libedax by lavox. 2018/5/26
-void play_get_bookmove_with_position(Play*, MoveList*, Position*); // add for libedax by lavox. 2020/2/24
+int play_get_bookmove_with_position(Play*, MoveList*, Position*); // add for libedax by lavox. 2020/2/24
 void play_hint_prepare(Play*, MoveList*); // add for libedax by lavox. 2018/1/17
 void play_hint_next(Play*, Hint*, const bool); // add for libedax by lavox. 2018/1/17
 void play_stop(Play*);
