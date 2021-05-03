@@ -2149,17 +2149,19 @@ bool book_get_moves(Book *book, const Board *board, MoveList *movelist)
  * @param board Position to display.
  * @param movelist List of moves.
  * @param position position.
+ * @return symetry. If -1, it means "no book".
  */
 bool book_get_moves_with_position(Book *book, const Board *board, MoveList *movelist, Position *position)
 {
     Position *p = book_probe(book, board);
     if (p) {
-        position_get_moves(p, board, movelist);
+        int sym;
+        sym = position_get_moves(p, board, movelist);
         memcpy(position, p, sizeof(Position));
-        return true;
+        return sym;
     }
 
-    return false;
+    return -1;
 }
 
 /**

@@ -532,18 +532,19 @@ void play_get_bookmove(Play *play, MoveList* book_moves)
  * @param book_moves result(out parameter)
  * @param position position(out parameter)
  */
-void play_get_bookmove_with_position(Play *play, MoveList* book_moves, Position* position)
+int play_get_bookmove_with_position(Play *play, MoveList* book_moves, Position* position)
 {
-    if (play_is_game_over(play)) return;
+    if (play_is_game_over(play)) return -1;
     
     play_stop_pondering(play);
     
     play->state = IS_THINKING;
     
     if (options.book_allowed) {
-        book_get_moves_with_position(play->book, play->board, book_moves, position);
+        return book_get_moves_with_position(play->book, play->board, book_moves, position);
     } else {
         book_moves->n_moves = 0;
+        return -1;
     }
 }
 

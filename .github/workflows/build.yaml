@@ -17,11 +17,11 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            build_command: make build ARCH=x64-modern COMP=gcc OS=linux
+            build_command: make libbuild ARCH=x64-modern COMP=gcc OS=linux
           - os: windows-latest
-            build_command: make build ARCH=x64 COMP=gcc OS=windows
+            build_command: make libbuild ARCH=x64 COMP=gcc OS=windows
           - os: macos-latest
-            build_command: make build ARCH=x64-modern COMP=gcc OS=osx
+            build_command: make libbuild ARCH=x64-modern COMP=gcc OS=osx
 
     steps:
     - uses: actions/checkout@v2
