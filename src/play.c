@@ -544,7 +544,7 @@ int play_get_bookmove_with_position(Play *play, MoveList* book_moves, Position* 
         return book_get_moves_with_position(play->book, play->board, book_moves, position);
     } else {
         book_moves->n_moves = 0;
-				return -1;
+        return -1;
     }
 }
 

@@ -2155,7 +2155,7 @@ bool book_get_moves_with_position(Book *book, const Board *board, MoveList *move
 {
     Position *p = book_probe(book, board);
     if (p) {
-				int sym;
+        int sym;
         sym = position_get_moves(p, board, movelist);
         memcpy(position, p, sizeof(Position));
         return sym;
