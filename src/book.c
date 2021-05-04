@@ -2151,7 +2151,7 @@ bool book_get_moves(Book *book, const Board *board, MoveList *movelist)
  * @param position position.
  * @return symetry. If -1, it means "no book".
  */
-bool book_get_moves_with_position(Book *book, const Board *board, MoveList *movelist, Position *position)
+int book_get_moves_with_position(Book *book, const Board *board, MoveList *movelist, Position *position)
 {
     Position *p = book_probe(book, board);
     if (p) {
