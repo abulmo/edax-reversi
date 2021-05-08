@@ -111,7 +111,7 @@ DLL_API void edax_go(void);
 DLL_API void edax_hint(const int, HintList*);
 DLL_API void edax_get_bookmove(MoveList*);
 DLL_API int edax_get_bookmove_with_position(MoveList*, Position*);
-DLL_API int edax_get_bookmove_with_position_by_moves(const char* moves, MoveList*, Position*);
+DLL_API int edax_get_bookmove_with_position_by_moves(const char*, MoveList*, Position*);
 DLL_API void edax_hint_prepare(MoveList*);
 DLL_API void edax_hint_next(Hint*);
 DLL_API void edax_hint_next_no_multipv_depth(Hint*);
