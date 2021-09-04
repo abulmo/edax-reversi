@@ -980,6 +980,26 @@ DLL_API void edax_book_info(Book *book) {
 	book_cmd_post_process(g_ui);
 }
 
+/**
+ * @brief count the number of best paths in book.
+ * @param board board to count the number of best paths.
+ * @param position the number of best paths(out parameter)
+ */
+DLL_API void edax_book_count_bestpath(Board *board, Position *position) {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_count_bestpath(book , board, position);
+}
+/**
+ * @brief stop counting the number of best paths in book.
+ */
+DLL_API void edax_book_stop_count_bestpath() {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_stop_count_bestpath(book);
+}
+
+
 //TODO:
 //				// show book general information
 //				} else if (strcmp(book_cmd, "stats") == 0) {

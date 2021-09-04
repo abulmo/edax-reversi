@@ -48,7 +48,7 @@
 		0D1076F121323893003CB5D0 /* event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D1076A021323891003CB5D0 /* event.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0D1076FE21323894003CB5D0 /* histogram.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D1076AD21323893003CB5D0 /* histogram.h */; };
 		0D1076FF21323894003CB5D0 /* hash.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D1076AE21323893003CB5D0 /* hash.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		0D10770421323ABA003CB5D0 /* eval.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D10770221323A9C003CB5D0 /* eval.dat */; };
+		0D32160A26CBB4F1002BE693 /* eval.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D32160926CBA635002BE693 /* eval.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,7 +58,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
-				0D10770421323ABA003CB5D0 /* eval.dat in CopyFiles */,
+				0D32160A26CBB4F1002BE693 /* eval.dat in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,7 +157,7 @@
 		0D1076AC21323893003CB5D0 /* ybwc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ybwc.c; sourceTree = "<group>"; };
 		0D1076AD21323893003CB5D0 /* histogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = histogram.h; sourceTree = "<group>"; };
 		0D1076AE21323893003CB5D0 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
-		0D10770221323A9C003CB5D0 /* eval.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = eval.dat; sourceTree = "<group>"; };
+		0D32160926CBA635002BE693 /* eval.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = eval.dat; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,7 +176,7 @@
 			children = (
 				0D10744C213233B9003CB5D0 /* libEdax4i */,
 				0D10744B213233B9003CB5D0 /* Products */,
-				0D10770121323A8B003CB5D0 /* data */,
+				0D32160826CBA635002BE693 /* data */,
 				0D107509213236F4003CB5D0 /* include */,
 				0D10750B213236F5003CB5D0 /* LICENSE */,
 				0D10750C213236F5003CB5D0 /* problem */,
@@ -310,10 +310,10 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		0D10770121323A8B003CB5D0 /* data */ = {
+		0D32160826CBA635002BE693 /* data */ = {
 			isa = PBXGroup;
 			children = (
-				0D10770221323A9C003CB5D0 /* eval.dat */,
+				0D32160926CBA635002BE693 /* eval.dat */,
 			);
 			path = data;
 			sourceTree = "<group>";

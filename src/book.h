@@ -47,6 +47,7 @@ typedef struct Book {
 	bool need_saving;
 	Random random[1];
 	Search *search;
+    volatile Stop count_bestpath_stop;  // add by lavox. 2021/8/24
 } Book;
 
 /**
@@ -88,6 +89,8 @@ typedef struct Position {
 	unsigned char level;       /**< search level */
 	unsigned char done;        /**< done/undone flag */
 	unsigned char todo;        /**< todo flag */
+    unsigned short n_player_bestpaths;    /**< count of best paths for player */ // add for libedax by lavox. 2021/8/22
+    unsigned short n_opponent_bestpaths;  /**< count of best paths for opponent */ // add for libedax by lavox. 2021/8/22
 } Position;
 
 void book_init(Book*);
@@ -115,6 +118,8 @@ void book_play(Book*);
 
 void book_info(Book*);
 void book_show(Book*, Board*);
+void book_count_bestpath(Book*, Board*, Position*); // add for libedax by lavox. 2021/8/22
+void book_stop_count_bestpath(Book*); // add for libedax by lavox. 2021/8/24
 Position* book_show_for_api(Book*, Board*);// add for libedax by lavox. 2018/5/20
 void book_stats(Book *book);
 bool book_get_moves(Book*, const Board*, MoveList*);

@@ -237,6 +237,9 @@ static void position_init(Position *position)
 	position->level = 0;
 	position->done = true;
 	position->todo = false;
+    
+    // add by lavox 2021/8/22
+    position->n_player_bestpaths = position->n_opponent_bestpaths = 0;
 }
 
 /**
@@ -308,6 +311,8 @@ static bool position_read(Position *position, FILE *f)
 	if (r != 11) return false;
 
 	position->done = position->todo = false;
+    // add by lavox 2021/8/22
+    position->n_player_bestpaths = position->n_opponent_bestpaths = 0;
 
 	if (position->n_link) {
 		position->link = (Link*) malloc(sizeof (Link) * position->n_link);
@@ -1152,6 +1157,9 @@ static bool position_array_add(PositionArray *a, const Position *p)
 	a->positions[a->n] = *p;
 	a->positions[a->n].done = true;
 	a->positions[a->n].todo = false;
+    // add by lavox 2021/8/21
+    a->positions[a->n].n_player_bestpaths = 0;
+    a->positions[a->n].n_opponent_bestpaths = 0;
 	++a->n;
 	return true;
 }
@@ -1310,7 +1318,10 @@ static void book_clean(Book *book)
 	PositionArray *a;
 	Position *p;
 	book->stats.n_nodes = book->stats.n_links = book->stats.n_todo = 0;
-	foreach_position(p, a, book) p->done = p->todo = false;
+    foreach_position(p, a, book) {
+        p->done = p->todo = false;
+        p->n_player_bestpaths = p->n_opponent_bestpaths = 0;  // add by lavox 2021/8/22
+    }
 }
 
 /**
@@ -2122,6 +2133,86 @@ void book_show(Book *book, Board *board)
 Position* book_show_for_api(Book *book, Board *board)
 {
     return book_probe(book, board);
+}
+
+// add by lavox 2021/8/22
+/**
+ * @brief count the number of best paths in book.
+ *
+ * @param book Opening book.
+ * @param board Starting position.
+ * @param n_player the number of best paths for player (out parameter)
+ * @param n_opponent the number of best paths for player (out parameter)
+ * @param verbose print output
+ */
+void count_bestpath(Book *book, Board *board, unsigned short *n_player, unsigned short *n_opponent, bool verbose)
+{
+    MoveList movelist[1];
+    Move *move;
+    int bestscore;
+    unsigned short n_next_player;
+    unsigned short n_next_opponent;
+
+    Position *position = book_probe(book, board);
+    if (position) {
+        if ( position->n_player_bestpaths != 0 && position->n_opponent_bestpaths != 0 ) {
+            *n_player = position->n_player_bestpaths;
+            *n_opponent = position->n_opponent_bestpaths;
+        } else {
+            position_get_moves(position, board, movelist);
+            bestscore = position->score.value;
+            *n_player = USHRT_MAX;
+            *n_opponent = 0;
+            foreach_move(move, movelist) {
+                if (move->score != bestscore) continue;
+                if (book->count_bestpath_stop) break;
+                
+                board_update(board, move);
+                count_bestpath(book, board, &n_next_player, &n_next_opponent, false);
+                *n_player = MIN(*n_player, n_next_opponent);
+                if ( n_next_player <= USHRT_MAX - *n_opponent ) *n_opponent += n_next_player;
+                else *n_opponent = USHRT_MAX;
+                board_restore(board, move);
+            }
+            if (book->count_bestpath_stop) return;
+            if ( *n_opponent == 0 ) *n_player = *n_opponent = 1;
+            position->n_player_bestpaths = *n_player;
+            position->n_opponent_bestpaths = *n_opponent;
+        }
+    } else {
+        *n_player = *n_opponent = 1;
+    }
+
+    if ( verbose ) {
+        bprint("\nplayer bestpaths count   : %d\n", *n_player);
+        bprint("opponent bestpaths count : %d\n", *n_opponent);
+    }
+}
+
+// add by lavox 2021/8/22
+/**
+ * @brief count the number of best paths in book.
+ *
+ * @param book Opening book.
+ * @param board Starting position.
+ * @param position the number of best paths(out parameter)
+ */
+void book_count_bestpath(Book *book, Board *board, Position *position)
+{
+    unsigned short n_player;
+    unsigned short n_opponent;
+    
+    book->count_bestpath_stop = RUNNING;
+    count_bestpath(book, board, &n_player, &n_opponent, false);
+    Position *p = book_probe(book, board);
+    if (p) {
+        memcpy(position, p, sizeof(Position));
+    } else {
+        position->n_player_bestpaths = position->n_opponent_bestpaths = 1;
+    }
+}
+void book_stop_count_bestpath(Book *book) {
+    book->count_bestpath_stop = STOP_PONDERING;
 }
 
 /**
