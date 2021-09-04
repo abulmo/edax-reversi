@@ -137,6 +137,8 @@ DLL_API void edax_book_prune(void);
 DLL_API void edax_book_subtree(void);
 DLL_API void edax_book_show(Position*);
 DLL_API void edax_book_info(Book*);
+DLL_API void edax_book_count_bestpath(Board*, Position*);
+DLL_API void edax_book_stop_count_bestpath(void);
 DLL_API void edax_book_verbose(const int);
 DLL_API void edax_book_add(const char*);
 DLL_API void edax_book_check(const char*);
