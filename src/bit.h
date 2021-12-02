@@ -98,7 +98,8 @@ extern const unsigned long long NEIGHBOUR[];
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 /** Return a bitboard with bit x set. */
-#ifdef __aarch64__ // 1% slower on Sandy Bridge
+// https://eukaryote.hateblo.jp/entry/2020/04/12/054905
+#if 1 // 1% slower on Sandy Bridge
 #define x_to_bit(x) (1ULL << (x))
 #else
 #define x_to_bit(x) X_TO_BIT[x]

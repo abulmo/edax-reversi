@@ -532,7 +532,7 @@ void board_update(Board *board, const Move *move)
 #endif
 =======
 	unsigned long long O = board->opponent;
-	board->opponent = board->player ^ (move->flipped | x_to_bit(move->x));
+	board->opponent = board->player ^ (move->flipped | X_TO_BIT[move->x]);
 	board->player = O ^ move->flipped;
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_check(board);
@@ -570,7 +570,7 @@ void board_restore(Board *board, const Move *move)
 #endif
 =======
 	unsigned long long P = board->player;
-	board->player = board->opponent ^ (move->flipped | x_to_bit(move->x));
+	board->player = board->opponent ^ (move->flipped | X_TO_BIT[move->x]);
 	board->opponent = P ^ move->flipped;
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_check(board);
