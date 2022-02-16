@@ -790,6 +790,7 @@ static int position_negamax(Position *position, Book *book)
 	Link *l;
 	Board target[1];
 	Position *child;
+    int tmp_upper, tmp_lower;
 
 	if (!position->done) {
 		GameStats stat = {0,0,0,0};
@@ -823,19 +824,42 @@ static int position_negamax(Position *position, Book *book)
 		foreach_link(l, position) {
 			board_next(position->board, l->move, target);
 			child = book_probe(book, target);
-			position_negamax(child, book);
-			if (l->score != -child->score.value) {
-				l->score = -child->score.value;
-				book->need_saving = true;
-			}
-			if (l->score > position->score.value) position->score.value = l->score;
-			if (-child->score.upper > position->score.lower) position->score.lower = -child->score.upper;
-			if (-child->score.lower > position->score.upper) position->score.upper = -child->score.lower;
+            if ( child ) {
+                position_negamax(child, book);
+                if (l->score != -child->score.value) {
+                    l->score = -child->score.value;
+                    book->need_saving = true;
+                }
+                if (l->score > position->score.value) position->score.value = l->score;
+                if (-child->score.upper > position->score.lower) position->score.lower = -child->score.upper;
+                if (-child->score.lower > position->score.upper) position->score.upper = -child->score.lower;
 
-			stat.n_wins += child->n_losses;
-			stat.n_draws += child->n_draws;
-			stat.n_losses += child->n_wins;
-			stat.n_lines += child->n_lines;
+                stat.n_wins += child->n_losses;
+                stat.n_draws += child->n_draws;
+                stat.n_losses += child->n_wins;
+                stat.n_lines += child->n_lines;
+            } else if (l->score > -SCORE_INF) {
+                if (l->score > position->score.value) position->score.value = l->score;
+
+                // is solving
+                if (search_depth == n_empties && LEVEL[position->level][n_empties].selectivity == NO_SELECTIVITY) {
+                    tmp_lower = tmp_upper = position->score.value;
+                    if (l->score > 0) ++stat.n_wins;
+                    else if (l->score < 0) ++stat.n_losses;
+                    else ++stat.n_draws;
+                // is pre-solving
+                } else if (search_depth == n_empties) {
+                    tmp_lower = position->score.value - book->options.endcut_error;
+                    tmp_upper = position->score.value + book->options.endcut_error;
+                } else { // midgame
+                    tmp_lower = position->score.value - book->options.midgame_error - bias;
+                    tmp_upper = position->score.value + book->options.midgame_error - bias;
+                }
+                ++stat.n_lines;
+
+                if (tmp_upper > position->score.lower) position->score.lower = tmp_upper;
+                if (tmp_lower > position->score.upper) position->score.upper = tmp_lower;
+            }
 		}
 
 		position->n_wins = (unsigned int) MIN(UINT_MAX, stat.n_wins);
