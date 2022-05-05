@@ -4,4 +4,6 @@ doc/
 
 *.7z
 
+.vscode 
+
 .DS_Store

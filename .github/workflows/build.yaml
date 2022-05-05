@@ -21,7 +21,9 @@ jobs:
           - os: windows-latest
             build_command: make libbuild ARCH=x64 COMP=gcc OS=windows
           - os: macos-latest
-            build_command: make libbuild ARCH=x64-modern COMP=gcc OS=osx
+            build_command: |
+              make libbuild ARCH=x64-modern COMP=gcc OS=osx
+              make universal_osx_libbuild
 
     steps:
     - uses: actions/checkout@v2
