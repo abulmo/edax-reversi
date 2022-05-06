@@ -1465,3 +1465,14 @@ DLL_API int edax_get_mobility_count(const int color) {
 			get_mobility(board->player, board->opponent) :
 			get_mobility(board->opponent, board->player);
 }
+
+/**
+ * @brief print play.
+ */
+DLL_API void edax_play_print()
+{
+	if (g_ui == NULL)
+		return;
+	Play *play = g_ui->play;
+	play_print(play, stdout);
+}
