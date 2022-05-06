@@ -1474,9 +1474,5 @@ DLL_API void edax_play_print()
 	if (g_ui == NULL)
 		return;
 	Play *play = g_ui->play;
-	// ref: edax.c#ui_loop_edax
-	putchar('\n');
 	play_print(play, stdout);
-	if (play_is_game_over(play)) printf("\n*** Game Over ***\n");
-	putchar('\n');
 }
