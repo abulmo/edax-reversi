@@ -1468,7 +1468,6 @@ DLL_API int edax_get_mobility_count(const int color) {
 
 /**
  * @brief print play.
- * @param moves moves.
  */
 DLL_API void edax_play_print()
 {
