@@ -118,6 +118,7 @@ DLL_API void edax_hint_next_no_multipv_depth(Hint*);
 DLL_API void edax_stop(void);
 DLL_API void edax_version(void);
 DLL_API int edax_move(const char*);
+DLL_API void edax_options_dump(void);
 DLL_API const char* edax_opening(void);
 DLL_API const char* edax_ouverture(void);
 DLL_API void edax_book_store(void);
