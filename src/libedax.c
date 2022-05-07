@@ -104,7 +104,7 @@ DLL_API void libedax_terminate()
  */
 static void libedax_observer(Result *result)
 {
-	// do nothing
+	search_observer(result);
 }
 
 /**
