@@ -1485,11 +1485,8 @@ DLL_API void edax_play_print()
  */
 DLL_API void edax_enable_book_verbose() {
 	if (g_ui == NULL) return;
-	Book *book = g_ui->play->book;
 	book_cmd_pre_process(g_ui);
-
 	book_verbose = true;
-
 	book_cmd_post_process(g_ui);
 }
 
@@ -1498,10 +1495,7 @@ DLL_API void edax_enable_book_verbose() {
  */
 DLL_API void edax_disable_book_verbose() {
 	if (g_ui == NULL) return;
-	Book *book = g_ui->play->book;
 	book_cmd_pre_process(g_ui);
-
 	book_verbose = false;
-
 	book_cmd_post_process(g_ui);
 }
