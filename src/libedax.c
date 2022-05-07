@@ -1479,3 +1479,23 @@ DLL_API void edax_play_print()
 	Play *play = g_ui->play;
 	play_print(play, stdout);
 }
+
+/**
+ * @brief enable book_verbose to get stdout by bprint.
+ */
+DLL_API void edax_enable_book_verbose() {
+	if (g_ui == NULL) return;
+	book_cmd_pre_process(g_ui);
+	book_verbose = true;
+	book_cmd_post_process(g_ui);
+}
+
+/**
+ * @brief disable book_verbose not to get stdout by bprint.
+ */
+DLL_API void edax_disable_book_verbose() {
+	if (g_ui == NULL) return;
+	book_cmd_pre_process(g_ui);
+	book_verbose = false;
+	book_cmd_post_process(g_ui);
+}

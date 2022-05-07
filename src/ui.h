@@ -172,6 +172,8 @@ DLL_API int edax_get_current_player(void);
 DLL_API int edax_get_disc(const int);
 DLL_API int edax_get_mobility_count(const int);
 DLL_API void edax_play_print(void);
+DLL_API void edax_enable_book_verbose(void);
+DLL_API void edax_disable_book_verbose(void);
 
 // internal functions
 static void libedax_observer(Result*);
