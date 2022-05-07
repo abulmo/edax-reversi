@@ -625,9 +625,12 @@ DLL_API int edax_move(const char* move) {
 	return 1;
 }
 
-//TODO:
-//			} else if (strcmp(cmd, "options") == 0) {
-//					options_dump(stdout);
+/**
+ * @brief dump options.
+ */
+DLL_API void edax_options_dump() {
+    options_dump(stdout);
+}
 
 /**
  * @brief opening command.
