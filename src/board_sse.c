@@ -1351,7 +1351,7 @@ int get_stability_fulls_given(const unsigned long long P, const unsigned long lo
 {
 	unsigned long long stable, P_central;
 	__m128i	v2_stable, v2_old_stable, v2_P_central;
-	__m256i	v4_stable;
+	__m256i	v4_stable, v4_full;
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
 
 <<<<<<< HEAD
@@ -1394,10 +1394,11 @@ int get_stability_fulls_given(const unsigned long long P, const unsigned long lo
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 	v2_stable = _mm_cvtsi64_si128(stable);
 	v2_P_central = _mm_cvtsi64_si128(P_central);
+	v4_full = _mm256_loadu_si256((__m256i *) full);
 	do {
 		v2_old_stable = v2_stable;
 		v4_stable = _mm256_broadcastq_epi64(v2_stable);
-		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), *(__m256i *) full);
+		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), v4_full);
 		v2_stable = _mm_and_si128(_mm256_castsi256_si128(v4_stable), _mm256_extracti128_si256(v4_stable, 1));
 		v2_stable = _mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable));
 		v2_stable = _mm_or_si128(v2_old_stable, _mm_and_si128(v2_stable, v2_P_central));
