@@ -666,6 +666,7 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
  * @param pos    Last empty square to play.
  * @return       The final opponent score, as a disc difference.
  */
+#if 1
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	unsigned char	n_flips;
@@ -677,7 +678,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	__m128i	II;
 
 	// n_flips = last_flip(pos, P);
-#ifdef AVXLASTFLIP
+  #ifdef AVXLASTFLIP
 	__m256i M = mask_dvhd[pos].v4;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
 
@@ -686,7 +687,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 	t >>= 16;
-#else
+  #else
 	__m128i M0 = mask_dvhd[pos].v2[0];
 	__m128i M1 = mask_dvhd[pos].v2[1];
 	__m128i	PP = _mm_shuffle_epi32(PO, DUPHI);
@@ -696,7 +697,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
 	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, M1)));
-#endif
+  #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 
@@ -710,14 +711,14 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(pos, ~P);
-#ifdef AVXLASTFLIP
+  #ifdef AVXLASTFLIP
 			PP = _mm256_andnot_si256(PP, M);
 			II = _mm_sad_epu8(_mm256_castsi256_si128(PP), _mm_setzero_si128());
 			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(PP, 1)));
-#else
+  #else
 			II = _mm_sad_epu8(_mm_andnot_si128(PP, M0), _mm_setzero_si128());
 			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(PP, M1)));
-#endif
+  #endif
 			n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 			n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
 			n_flips += COUNT_FLIP_Y[t >> 8];
@@ -730,6 +731,38 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 	return score;
 }
+
+#else
+// experimental bruteforce AVX2 version (slower on icc, par on msvc)
+// https://eukaryote.hateblo.jp/entry/2020/05/10/033228
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	unsigned char	p_flip, o_flip;
+	unsigned int	tP, tO, h;
+	unsigned long long P;
+	int	score, score2;
+	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+	__m256i M = mask_dvhd[pos].v4;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+
+	(void) beta;	// no lazy cut-off
+	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	tP = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
+	tO = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256(PP, M)));
+	h = (P >> (pos & 0x38)) & 0xFF;
+	p_flip  = COUNT_FLIP_X[h];			o_flip  = COUNT_FLIP_X[h ^ 0xFF];
+	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip += COUNT_FLIP_Y[tO & 0xFF];
+	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip += COUNT_FLIP_Y[(tO >> 16) & 0xFF];
+	p_flip += COUNT_FLIP_Y[tP >> 24];		o_flip += COUNT_FLIP_Y[tO >> 24];
+
+	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
+	score2 = score + o_flip + (int)(((o_flip - 1) & score) >= 0) * 2;	// ((o_flip > 0) | (score >= 0))
+	score -= p_flip;
+	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
+}
+#endif
 
 // from bench.c
 int board_score_1(const unsigned long long player, const int beta, const int x)
