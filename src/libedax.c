@@ -971,6 +971,19 @@ DLL_API void edax_book_count_bestpath(Board *board, Position *position) {
     book_count_bestpath(book , board, position);
 }
 /**
+ * @brief count the number of best paths in book.
+ * @param board board to count the number of best paths.
+ * @param position the number of best paths(out parameter)
+ * @param upper upper limit
+ * @param lower lower limit
+ * @param turn turn
+ */
+DLL_API void edax_book_count_broad_bestpath(Board *board, Position *position, const int upper, const int lower, const int turn) {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_count_broad_bestpath(book , board, position, upper, lower, turn);
+}
+/**
  * @brief stop counting the number of best paths in book.
  */
 DLL_API void edax_book_stop_count_bestpath() {
