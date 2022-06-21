@@ -235,8 +235,9 @@ static void position_init(Position *position)
 
 	position->n_link = 0;
 	position->level = 0;
-	position->done = true;
-	position->todo = false;
+	//position->done = true;
+	//position->todo = false;
+    position->flag = FLAG_DONE;
     
     // add by lavox 2021/8/22
     position->n_player_bestpaths = position->n_opponent_bestpaths = 0;
@@ -310,7 +311,8 @@ static bool position_read(Position *position, FILE *f)
 
 	if (r != 11) return false;
 
-	position->done = position->todo = false;
+	//position->done = position->todo = false;
+    position->flag = 0;
     // add by lavox 2021/8/22
     position->n_player_bestpaths = position->n_opponent_bestpaths = 0;
 
@@ -792,13 +794,15 @@ static int position_negamax(Position *position, Book *book)
 	Position *child;
     int tmp_upper, tmp_lower;
 
-	if (!position->done) {
+	//if (!position->done) {
+    if (!(position->flag & FLAG_DONE) ) {
 		GameStats stat = {0,0,0,0};
 		const int n_empties = board_count_empties(position->board);
 		const int search_depth = LEVEL[position->level][n_empties].depth;
 		const int bias = (search_depth & 1) - (n_empties & 1);
 
-		position->done = 1;
+		//position->done = 1;
+        position->flag |= FLAG_DONE;
 
 		position->score.value = position->score.lower = position->score.upper = -SCORE_INF;
 
@@ -890,7 +894,8 @@ static void position_prune(Position *position, Book *book, const int player_devi
 
 	// if position is not done yet & good enough & inside the book height limit
 	if (lower <= position->score.value && position->score.value <= upper && board_count_empties(position->board) >= book->options.n_empties - 1) {
-		position->done = true; book->stats.n_todo++;
+		//position->done = true; book->stats.n_todo++;
+        position->flag |= FLAG_DONE; book->stats.n_todo++;
 
 		// prune all children close to the best move
 		foreach_link(l, position) {
@@ -954,8 +959,10 @@ static void position_deviate(Position *position, Book *book, const int player_de
 	Position *child;
 
 	// if position is not done yet & good enough & inside the book height limit
-	if (!position->done && lower <= position->score.value && position->score.value <= upper && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
-		position->done = true;
+	//if (!position->done && lower <= position->score.value && position->score.value <= upper && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
+    if (!(position->flag & FLAG_DONE) && lower <= position->score.value && position->score.value <= upper && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
+		//position->done = true;
+        position->flag |= FLAG_DONE;
 
 		// deviate all children close to the best move
 		foreach_link(l, position) {
@@ -968,7 +975,8 @@ static void position_deviate(Position *position, Book *book, const int player_de
 
 		// expand the best remaining move
 		if (position->score.value - position->leaf.score <= player_deviation && lower <= position->leaf.score && position->leaf.score <= upper) {
-			position->todo = true; book->stats.n_todo++;
+			//position->todo = true; book->stats.n_todo++;
+            position->flag |= FLAG_TODO; book->stats.n_todo++;
 			if (book->stats.n_todo % 10 == 0) bprint("Book deviate %d todo\r", book->stats.n_todo);
 		}
 	}
@@ -992,8 +1000,10 @@ static void position_enhance(Position *position, Book *book)
 	Board target[1];
 	Position *child;
 
-	if (!position->done && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
-		position->done = true;
+	//if (!position->done && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
+    if (!(position->flag & FLAG_DONE) && board_count_empties(position->board) >= book->options.n_empties && !board_is_game_over(position->board)) {
+		//position->done = true;
+        position->flag |= FLAG_DONE;
 
 		foreach_link(l, position) {
 			board_next(position->board, l->move, target);
@@ -1021,7 +1031,8 @@ static void position_enhance(Position *position, Book *book)
 			}
 
 			if (lower >= position->score.lower || upper >= position->score.upper) {
-				position->todo = true;
+				//position->todo = true;
+                position->flag |= FLAG_TODO;
 			}
 		}
 	}
@@ -1179,8 +1190,10 @@ static bool position_array_add(PositionArray *a, const Position *p)
 		a->positions = n;
 	}
 	a->positions[a->n] = *p;
-	a->positions[a->n].done = true;
-	a->positions[a->n].todo = false;
+	//a->positions[a->n].done = true;
+	//a->positions[a->n].todo = false;
+    a->positions[a->n].flag |= FLAG_DONE;
+    a->positions[a->n].flag &= ~FLAG_TODO;
     // add by lavox 2021/8/21
     a->positions[a->n].n_player_bestpaths = 0;
     a->positions[a->n].n_opponent_bestpaths = 0;
@@ -1343,9 +1356,15 @@ static void book_clean(Book *book)
 	Position *p;
 	book->stats.n_nodes = book->stats.n_links = book->stats.n_todo = 0;
     foreach_position(p, a, book) {
-        p->done = p->todo = false;
+        //p->done = p->todo = false;
+        p->flag &= ~(FLAG_DONE|FLAG_TODO|FLAG_BESTPATH_BLACK);
         p->n_player_bestpaths = p->n_opponent_bestpaths = 0;  // add by lavox 2021/8/22
     }
+}
+
+void book_stats_clean(Book *book)
+{
+    book_clean(book);
 }
 
 /**
@@ -1820,7 +1839,8 @@ static void book_expand(Book *book, const char *action, const char *tmp_file)
 	for (a = book->array; a < book->array + book->n; ++a)
 	for (k = 0; k < a->n; ++k) { // do not use foreach_positions here! a->positions may change!
 		p = a->positions + k;
-		if (p->todo) {
+		//if (p->todo) {
+        if (p->flag & FLAG_TODO) {
 			position_expand(p, book);
 			bprint("%s...%d/%d done: %d positions, %d links\r", action, ++i, book->stats.n_todo, book->stats.n_nodes, book->stats.n_links);
 			if (book->search->options.verbosity >= 2) putchar('\n'); else putchar('\r');
@@ -1872,9 +1892,11 @@ void book_play(Book *book)
 		book->stats.n_nodes = book->stats.n_links = book->stats.n_todo = 0;
 		foreach_position(p, a, book) {
 			if (p->n_link == 0 && board_count_empties(p->board) >= book->options.n_empties && !board_is_game_over(p->board)) {
-				p->todo = true; ++book->stats.n_todo;
+				//p->todo = true; ++book->stats.n_todo;
+                p->flag |= FLAG_TODO; ++book->stats.n_todo;
 			} else {
-				p->todo = false;
+				//p->todo = false;
+                p->flag &= ~FLAG_TODO;
 			}
 			if (book->stats.n_todo && book->stats.n_todo % BOOK_INFO_RESOLUTION == 0) bprint("Book play...%d todo\r", book->stats.n_todo);
 		}
@@ -2004,7 +2026,8 @@ void book_prune(Book *book)
 		position_prune(root, book, 0, 2*SCORE_INF, -SCORE_INF, SCORE_INF);
 		bprint("Book prune %d... done\n", book->stats.n_todo);
 		for (a = book->array; a < book->array + book->n; ++a)
-		for (i = 0; i < a->n; ++i) if (!a->positions[i].done) {book_remove(book, a->positions + i); --i;}
+		//for (i = 0; i < a->n; ++i) if (!a->positions[i].done) {book_remove(book, a->positions + i); --i;}
+        for (i = 0; i < a->n; ++i) if (!(a->positions[i].flag & FLAG_DONE)) {book_remove(book, a->positions + i); --i;}
 		foreach_position(p, a, book) position_remove_links(p, book);
 		bprint("done\n");
 	}
@@ -2033,7 +2056,8 @@ void book_subtree(Book *book, const Board *board)
 		position_print(root, root->board, stdout);
 		bprint("Book subtree %d... done\n", book->stats.n_todo);
 		for (a = book->array; a < book->array + book->n; ++a)
-		for (i = 0; i < a->n; ++i) if (!a->positions[i].done) {book_remove(book, a->positions + i); --i;}
+		//for (i = 0; i < a->n; ++i) if (!a->positions[i].done) {book_remove(book, a->positions + i); --i;}
+        for (i = 0; i < a->n; ++i) if (!(a->positions[i].flag & FLAG_DONE)) {book_remove(book, a->positions + i); --i;}
 		foreach_position(p, a, book) position_remove_links(p, book);
 		bprint("done\n");
 	}
@@ -2212,6 +2236,67 @@ void count_bestpath(Book *book, Board *board, unsigned short *n_player, unsigned
         bprint("opponent bestpaths count : %d\n", *n_opponent);
     }
 }
+// add by lavox 2022/6/12
+/**
+ * @brief count the number of "broad" best paths in book.
+ *
+ * @param book Opening book.
+ * @param board Starting position.
+ * @param p_lower lower limit for player (BESTPATH_BEST:best moves only)
+ * @param o_lower lower limit for opponent (BESTPATH_BEST:best moves only)
+ * @param turn turn of the position
+ * @param n_player the number of best paths for player (out parameter)
+ * @param n_opponent the number of best paths for player (out parameter)
+ * @param verbose print output
+ */
+void count_board_bestpath(Book *book, Board *board, const int p_lower, const int o_lower, const int turn, unsigned short *n_player, unsigned short *n_opponent, bool verbose)
+{
+    MoveList movelist[1];
+    Move *move;
+    unsigned short n_next_player;
+    unsigned short n_next_opponent;
+    int turn_flag = turn == BLACK ? FLAG_BESTPATH_BLACK : 0;
+
+    Position *position = book_probe(book, board);
+    if (position) {
+        if ( position->n_player_bestpaths != 0 && position->n_opponent_bestpaths != 0 && (position->flag & FLAG_BESTPATH_BLACK) == turn_flag ) {
+            *n_player = position->n_player_bestpaths;
+            *n_opponent = position->n_opponent_bestpaths;
+        } else {
+            position_get_moves(position, board, movelist);
+            int lower = p_lower == BESTPATH_BEST ? position->score.value : p_lower;
+            *n_player = USHRT_MAX;
+            *n_opponent = 0;
+            foreach_move(move, movelist) {
+                if (move->score < lower) continue;
+                if (book->count_bestpath_stop) break;
+                
+                board_update(board, move);
+                count_board_bestpath(book, board, o_lower, p_lower, 1 - turn, &n_next_player, &n_next_opponent, false);
+                *n_player = MIN(*n_player, n_next_opponent);
+                if ( n_next_player <= USHRT_MAX - *n_opponent ) *n_opponent += n_next_player;
+                else *n_opponent = USHRT_MAX;
+                board_restore(board, move);
+            }
+            if (book->count_bestpath_stop) return;
+            if ( *n_opponent == 0 ) *n_player = *n_opponent = 1;
+            position->n_player_bestpaths = *n_player;
+            position->n_opponent_bestpaths = *n_opponent;
+            if ( turn == BLACK ) {
+                position->flag |= FLAG_BESTPATH_BLACK;
+            } else {
+                position->flag &= ~FLAG_BESTPATH_BLACK;
+            }
+        }
+    } else {
+        *n_player = *n_opponent = 1;
+    }
+
+    if ( verbose ) {
+        bprint("\nplayer bestpaths count   : %d\n", *n_player);
+        bprint("opponent bestpaths count : %d\n", *n_opponent);
+    }
+}
 
 // add by lavox 2021/8/22
 /**
@@ -2237,6 +2322,32 @@ void book_count_bestpath(Book *book, Board *board, Position *position)
 }
 void book_stop_count_bestpath(Book *book) {
     book->count_bestpath_stop = STOP_PONDERING;
+}
+
+// add by lavox 2022/6/12
+/**
+ * @brief count the number of "broad" best paths in book.
+ *
+ * @param book Opening book.
+ * @param board Starting position.
+ * @param position the number of best paths(out parameter)
+ * @param p_lower lower limit for player (BESTPATH_BEST:best moves only)
+ * @param o_lower lower limit for opponent (BESTPATH_BEST:best moves only)
+ * @param turn turn of the position
+ */
+void book_count_board_bestpath(Book *book, Board *board, Position *position, const int p_lower, const int o_lower, const int turn)
+{
+    unsigned short n_player;
+    unsigned short n_opponent;
+    
+    book->count_bestpath_stop = RUNNING;
+    count_board_bestpath(book, board, p_lower, o_lower, turn, &n_player, &n_opponent, false);
+    Position *p = book_probe(book, board);
+    if (p) {
+        memcpy(position, p, sizeof(Position));
+    } else {
+        position->n_player_bestpaths = position->n_opponent_bestpaths = 1;
+    }
 }
 
 /**

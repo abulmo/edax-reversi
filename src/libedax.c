@@ -942,6 +942,20 @@ DLL_API void edax_book_subtree() {
 }
 
 /**
+ * @brief book stats clean command.
+ */
+DLL_API void edax_book_stats_clean() {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_cmd_pre_process(g_ui);
+
+    // clean book stats
+    book_stats_clean(book);
+
+    book_cmd_post_process(g_ui);
+}
+
+/**
  * @brief book show command.
  * @param position position information(out parameter).
  */
@@ -992,6 +1006,19 @@ DLL_API void edax_book_count_bestpath(Board *board, Position *position) {
     if (g_ui == NULL) return;
     Book *book = g_ui->play->book;
     book_count_bestpath(book , board, position);
+}
+/**
+ * @brief count the number of best paths in book.
+ * @param board board to count the number of best paths.
+ * @param position the number of best paths(out parameter)
+ * @param p_lower lower limit for player (BESTPATH_BEST:best moves only)
+ * @param o_lower lower limit for opponent (BESTPATH_BEST:best moves only)
+ * @param turn turn
+ */
+DLL_API void edax_book_count_board_bestpath(Board *board, Position *position, const int p_lower, const int o_lower, const int turn) {
+    if (g_ui == NULL) return;
+    Book *book = g_ui->play->book;
+    book_count_board_bestpath(book , board, position, p_lower, o_lower, turn);
 }
 /**
  * @brief stop counting the number of best paths in book.
