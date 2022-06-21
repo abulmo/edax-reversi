@@ -115,6 +115,9 @@ enum {
 	UI_LIBEDAX // add for libedax by lavox. 2018/1/16
 };
 
+// add for libedax by lavox 2022/6/18
+#define BESTPATH_BEST 128
+
 #endif
 
 

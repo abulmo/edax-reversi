@@ -102,6 +102,7 @@ typedef struct Position {
 void book_init(Book*);
 void book_free(Book*);
 void book_preprocess(Book*);// add for libedax by lavox. 2021/1/23
+void book_stats_clean(Book*);// add for libedax by lavox. 2022/6/12
 
 void book_new(Book*, int, int);
 void book_load(Book*, const char*);
@@ -127,7 +128,7 @@ void book_show(Book*, Board*);
 void book_count_bestpath(Book*, Board*, Position*); // add for libedax by lavox. 2021/8/22
 void book_stop_count_bestpath(Book*); // add for libedax by lavox. 2021/8/24
 Position* book_show_for_api(Book*, Board*);// add for libedax by lavox. 2018/5/20
-void book_count_broad_bestpath(Book*, Board*, Position*, const int, const int, const int); // add for libedax by lavox. 2022/6/12
+void book_count_board_bestpath(Book*, Board*, Position*, const int, const int, const int); // add for libedax by lavox. 2022/6/12
 void book_stats(Book *book);
 bool book_get_moves(Book*, const Board*, MoveList*);
 bool book_get_moves_with_position(Book*, const Board*, MoveList*, Position*);// add for libedax by lavox. 2020/2/24

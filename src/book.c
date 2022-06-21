@@ -1357,9 +1357,14 @@ static void book_clean(Book *book)
 	book->stats.n_nodes = book->stats.n_links = book->stats.n_todo = 0;
     foreach_position(p, a, book) {
         //p->done = p->todo = false;
-        p->flag &= ~(FLAG_DONE|FLAG_TODO);
+        p->flag &= ~(FLAG_DONE|FLAG_TODO|FLAG_BESTPATH_BLACK);
         p->n_player_bestpaths = p->n_opponent_bestpaths = 0;  // add by lavox 2021/8/22
     }
+}
+
+void book_stats_clean(Book *book)
+{
+    book_clean(book);
 }
 
 /**
@@ -2237,14 +2242,14 @@ void count_bestpath(Book *book, Board *board, unsigned short *n_player, unsigned
  *
  * @param book Opening book.
  * @param board Starting position.
- * @param upper upper limit
- * @param lower lower limit
+ * @param p_lower lower limit for player (BESTPATH_BEST:best moves only)
+ * @param o_lower lower limit for opponent (BESTPATH_BEST:best moves only)
  * @param turn turn of the position
  * @param n_player the number of best paths for player (out parameter)
  * @param n_opponent the number of best paths for player (out parameter)
  * @param verbose print output
  */
-void count_broad_bestpath(Book *book, Board *board, const int upper, const int lower, const int turn, unsigned short *n_player, unsigned short *n_opponent, bool verbose)
+void count_board_bestpath(Book *book, Board *board, const int p_lower, const int o_lower, const int turn, unsigned short *n_player, unsigned short *n_opponent, bool verbose)
 {
     MoveList movelist[1];
     Move *move;
@@ -2259,14 +2264,15 @@ void count_broad_bestpath(Book *book, Board *board, const int upper, const int l
             *n_opponent = position->n_opponent_bestpaths;
         } else {
             position_get_moves(position, board, movelist);
+            int lower = p_lower == BESTPATH_BEST ? position->score.value : p_lower;
             *n_player = USHRT_MAX;
             *n_opponent = 0;
             foreach_move(move, movelist) {
-                if (move->score < lower || move->score > upper) continue;
+                if (move->score < lower) continue;
                 if (book->count_bestpath_stop) break;
                 
                 board_update(board, move);
-                count_broad_bestpath(book, board, -lower, -upper, 1 - turn, &n_next_player, &n_next_opponent, false);
+                count_board_bestpath(book, board, o_lower, p_lower, 1 - turn, &n_next_player, &n_next_opponent, false);
                 *n_player = MIN(*n_player, n_next_opponent);
                 if ( n_next_player <= USHRT_MAX - *n_opponent ) *n_opponent += n_next_player;
                 else *n_opponent = USHRT_MAX;
@@ -2325,17 +2331,17 @@ void book_stop_count_bestpath(Book *book) {
  * @param book Opening book.
  * @param board Starting position.
  * @param position the number of best paths(out parameter)
- * @param upper upper limit
- * @param lower lower limit
+ * @param p_lower lower limit for player (BESTPATH_BEST:best moves only)
+ * @param o_lower lower limit for opponent (BESTPATH_BEST:best moves only)
  * @param turn turn of the position
  */
-void book_count_broad_bestpath(Book *book, Board *board, Position *position, const int upper, const int lower, const int turn)
+void book_count_board_bestpath(Book *book, Board *board, Position *position, const int p_lower, const int o_lower, const int turn)
 {
     unsigned short n_player;
     unsigned short n_opponent;
     
     book->count_bestpath_stop = RUNNING;
-    count_broad_bestpath(book, board, upper, lower, turn, &n_player, &n_opponent, false);
+    count_board_bestpath(book, board, p_lower, o_lower, turn, &n_player, &n_opponent, false);
     Position *p = book_probe(book, board);
     if (p) {
         memcpy(position, p, sizeof(Position));
