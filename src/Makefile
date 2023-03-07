@@ -349,8 +349,8 @@ libbuild:
 # add for Apple Silicon MacOS by sensuikan1973. 2022/05/06
 # See: https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary
 universal_osx_libbuild:
-	gcc -target x86_64-apple-macos12.2 -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -Ofast -flto -DNDEBUG -m64 -DUSE_GAS_X64 -DPOPCOUNT -mmacosx-version-min=11.3 -DHAS_CPU_64 -DLIB_BUILD -fPIC -shared all.c -o ../bin/libedax.x64.dylib -lm -lpthread
-	gcc -target arm64-apple-macos12 -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -Ofast -flto -DNDEBUG -DPOPCOUNT -mmacosx-version-min=11.3 -DHAS_CPU_64 -DLIB_BUILD -fPIC -shared all.c -o ../bin/libedax.arm64.dylib -lm -lpthread
+	gcc -target x86_64-apple-macos13.1 -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -Ofast -flto -DNDEBUG -m64 -DUSE_GAS_X64 -DPOPCOUNT -mmacosx-version-min=13.1 -DHAS_CPU_64 -DLIB_BUILD -fPIC -shared all.c -o ../bin/libedax.x64.dylib -lm -lpthread
+	gcc -target arm64-apple-macos13.1 -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -Ofast -flto -DNDEBUG -DPOPCOUNT -mmacosx-version-min=13.1 -DHAS_CPU_64 -DLIB_BUILD -fPIC -shared all.c -o ../bin/libedax.arm64.dylib -lm -lpthread
 	lipo -create -output ../bin/libedax.universal.dylib ../bin/libedax.x64.dylib ../bin/libedax.arm64.dylib
 
 pgo-build:
