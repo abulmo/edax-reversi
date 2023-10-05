@@ -1006,6 +1006,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
   #endif
 			const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
+			// if (score - 38 > alpha)
+			//	return score - 38;
+
 			// n_flips = last_flip(pos, ~P);
 			t = TESTNOT_EPI8_MASK32(P4, mask_dvhd[pos].v4);
 			n_flips  = COUNT_FLIP[pos & 7][(~P >> (pos & 0x38)) & 0xFF];
@@ -1017,6 +1020,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 	} else {	// if player cannot move, low cut-off will occur whether opponent can move.
 		const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+		// if (score + 36 <= alpha)
+		//	return score + 36;
 
 		// n_flips = last_flip(pos, P);
 		t = TEST_EPI8_MASK32(P4, mask_dvhd[pos].v4);
