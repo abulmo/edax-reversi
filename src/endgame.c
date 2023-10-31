@@ -1875,6 +1875,7 @@ int NWS_endgame(Search *search, const int alpha)
 				rboard_update(&search->board, board0, move);
 				score = -search_shallow(search, ~alpha, false);
 				search->empties[search->empties[move->x].previous].next = move->x;	// restore
+				store_rboard(search->board, board0);
 
 <<<<<<< HEAD
 			search->eval.parity = parity0;
@@ -1914,6 +1915,7 @@ int NWS_endgame(Search *search, const int alpha)
 				rboard_update(&search->board, board0, move);
 				score = -NWS_endgame(search, ~alpha);
 				empty_restore(search->empties, move->x);
+				store_rboard(search->board, board0);
 
 				if (score > bestscore) {	// (63%)
 					bestscore = score;
@@ -1922,7 +1924,6 @@ int NWS_endgame(Search *search, const int alpha)
 				}
 			}
 		++search->eval.n_empties;
-		store_rboard(search->board, board0);
 		search->eval.parity = parity0;
 
 		if (search->stop)	// (1%)
