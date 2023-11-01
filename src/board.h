@@ -62,7 +62,7 @@ void board_rand(Board*, int, struct Random*);
 #ifdef __AVX2__
 inline bool board_equal(const Board *b1, const Board *b2)
 {
-	__m128i b = _mm_xor_si128(*(__m128i *) b1, *(__m128i *) b2);
+	__m128i b = _mm_xor_si128(_mm_loadu_si128((__m128i *) b1), _mm_loadu_si128((__m128i *) b2));
 	return _mm_testz_si128(b, b);
 }
 #else
