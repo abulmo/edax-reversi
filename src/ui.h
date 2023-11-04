@@ -177,6 +177,7 @@ DLL_API void edax_play_print(void);
 DLL_API void edax_enable_book_verbose(void);
 DLL_API void edax_disable_book_verbose(void);
 DLL_API int edax_board_is_pass(const Board*);
+DLL_API int board_get_square_color(const Board*, const int x);
 
 // internal functions
 static void libedax_observer(Result*);
