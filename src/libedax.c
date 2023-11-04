@@ -1530,7 +1530,7 @@ DLL_API void edax_disable_book_verbose() {
 /**
  * @brief Check if current player should pass.
  */
-DLL_API bool edax_board_is_pass(const Board *board) {
-	if (g_ui == NULL) return;
+DLL_API int edax_board_is_pass(const Board *board) {
+	if (g_ui == NULL) return 0;
 	return board_is_pass(board);
 }
