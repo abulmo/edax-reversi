@@ -1526,3 +1526,11 @@ DLL_API void edax_disable_book_verbose() {
 	book_verbose = false;
 	book_cmd_post_process(g_ui);
 }
+
+/**
+ * @brief Check if current player should pass.
+ */
+DLL_API bool edax_board_is_pass(const Board *board) {
+	if (g_ui == NULL) return;
+	return board_is_pass(board);
+}
