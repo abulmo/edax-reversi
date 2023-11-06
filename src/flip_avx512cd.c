@@ -273,7 +273,7 @@ const V4DI rmask_v4[66] = {
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
  */
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m256i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD

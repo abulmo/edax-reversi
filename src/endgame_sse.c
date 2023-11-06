@@ -114,12 +114,12 @@ extern const uint8_t COUNT_FLIP[8][256];
 #ifdef __AVX512VL__
 	#define	TEST_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask((X), (Y)))
 	#define	TEST_EPI8_MASK16(X,Y)	_cvtmask16_u32(_mm_test_epi8_mask((X), (Y)))
-	#define	TESTNOT_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask(_mm256_xor_si256((X),(Y)), (Y)))
+	// #define	TESTNOT_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask(_mm256_xor_si256((X),(Y)), (Y)))
 #else	// AVX2
 	#define	TEST_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256((X),(Y))))
 	#define	TEST_EPI8_MASK16(X,Y)	_mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128((X),(Y))))
-	#define	TESTNOT_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256((X),(Y))))
 #endif
+#define	TESTNOT_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256((X),(Y))))
 
 // in count_last_flip_sse.c
 <<<<<<< HEAD
@@ -984,33 +984,35 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	uint_fast8_t	n_flips;
 	unsigned int t;
 	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
+	__m256i P4 = _mm256_broadcastq_epi64(P2);
 	unsigned long long P = _mm_cvtsi128_si64(P2);
 	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
 
-  #ifdef __AVX512F__
-	__m512i P8 = _mm512_broadcastq_epi64(P2);
-	__m256i	P4 = _mm512_castsi512_si256(P8);
-
 	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
+  #ifdef __AVX512F__
+    #if 0 // defined(__INTEL_COMPILER) || defined(__GNUC__)	// may trigger license base downclocking, wrong fingerprint on MSVC
+		__m512i P8 = _mm512_broadcastq_epi64(P2);
 		__m512i M = lrmask[pos].v8;
 		__m512i N = _mm512_andnot_epi64(P8, _mm512_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]));	// neighbor O
 		// if (!(_mm512_test_epi64_mask(P8, M) & _mm512_test_epi64_mask(N, M))) {	// https://godbolt.org/z/Tfv1dfn48
 		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), N, M)) {	// !((P in M) & (O in N))
-
+    #else
+		__m256i M = lrmask[pos].v4[0];
+		__m256i N = _mm256_andnot_si256(P4, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]));	// neighbor O
+		__mmask8 k = _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, M), N, M);	// (P in M) & (O in N)
+		M = lrmask[pos].v4[1];
+		if (!(k | _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, M), N, M))) {
+    #endif
   #else
-	__m256i P4 = _mm256_broadcastq_epi64(P2);
-
-	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
 		__m256i M = lrmask[pos].v4[0];
 		__m256i mO = _mm256_andnot_si256(P4, M);
 		__m256i F = _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO);	// clear if all O
 		M = lrmask[pos].v4[1];
 		mO = _mm256_andnot_si256(P4, M);
 		F = _mm256_or_si256(F, _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO));
-
 		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass
   #endif
 			const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
