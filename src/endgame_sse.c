@@ -108,11 +108,11 @@ extern const uint8_t COUNT_FLIP[8][256];
 	static inline int vectorcall TESTZ_FLIP(__m256i X) { return _mm256_testz_si256(X, X); }
 #else
 	#define	vflip	__m128i
-	#if defined(__x86_64__) || defined(_M_X64)
-		#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
-	#else
-		static inline int vectorcall TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
-	#endif
+  #if defined(__x86_64__) || defined(_M_X64)
+	#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
+  #else
+	static inline int vectorcall TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
+  #endif
 #endif
 
 #ifdef __AVX512VL__
@@ -788,8 +788,8 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmO, 0xf2);
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	// p2 = _mm_or_si128(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)), _mm256_castsi256_si128(PP));	// SWAP64
-	p2 = _mm_ternarylogic_epi64(flip2, _mm_shuffle_epi32(flip2, 0x4e), _mm256_castsi256_si128(PP), 0xfe);
+	// p2 = _mm_or_si128(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, SWAP64)), _mm256_castsi256_si128(PP));
+	p2 = _mm_ternarylogic_epi64(flip2, _mm_shuffle_epi32(flip2, SWAP64), _mm256_castsi256_si128(PP), 0xfe);
 	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 
 	if (_mm_testz_si128(flip2, flip2)) {
@@ -813,7 +813,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmP, 0xf2);
 
 			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e))));
+			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, SWAP64))));
 			if (nflip)
 				score = score2 - nflip * 2;
 		}
@@ -862,12 +862,12 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 	p_flip2 = _mm_or_si128(_mm256_castsi256_si128(p_flip), _mm256_extracti128_si256(p_flip, 1));
 	o_flip2 = _mm_or_si128(_mm256_castsi256_si128(o_flip), _mm256_extracti128_si256(o_flip, 1));
-	// p2 = _mm_or_si128(_mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e)), _mm256_castsi256_si128(PP));
-	p2 = _mm_ternarylogic_epi64(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e), _mm256_castsi256_si128(PP), 0xfe);
+	// p2 = _mm_or_si128(_mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, SWAP64)), _mm256_castsi256_si128(PP));
+	p2 = _mm_ternarylogic_epi64(p_flip2, _mm_shuffle_epi32(p_flip2, SWAP64), _mm256_castsi256_si128(PP), 0xfe);
 	p_pass = _mm_cmpeq_epi64_mask(p2, _mm256_castsi256_si128(PP));
-	// o_flip2 = _mm_or_si128(o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e));
+	// o_flip2 = _mm_or_si128(o_flip2, _mm_shuffle_epi32(o_flip2, SWAP64));
 	// p2 = _mm_mask_xor_epi64(p2, p_pass, p2, o_flip2);
-	p2 = _mm_mask_ternarylogic_epi64(p2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e), 0x1e);
+	p2 = _mm_mask_ternarylogic_epi64(p2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, SWAP64), 0x1e);
 	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// last square for O if P pass and not (both pass and score > 0)
 	score -= (_cvtmask8_u32(p_pass) & !(_mm_movemask_epi8(_mm_cmpeq_epi64(p2, _mm256_castsi256_si128(PP))) & (score > 0))) * 2;
@@ -907,7 +907,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, lmask));
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	p2 = _mm_or_si128(_mm256_castsi256_si128(PP), _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
+	p2 = _mm_or_si128(_mm256_castsi256_si128(PP), _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, SWAP64)));
 	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 
 	if (_mm_testz_si128(flip2, flip2)) {
@@ -935,7 +935,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, lmask));
 
 			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e))));
+			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, SWAP64))));
 			if (nflip)
 				score = score2 - nflip * 2;
 		}
@@ -985,49 +985,52 @@ extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
-	uint_fast8_t	n_flips;
-	unsigned int t;
+	uint_fast8_t n_flips;
+	uint32_t t;
 	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	__m256i P4 = _mm256_broadcastq_epi64(P2);
 	unsigned long long P = _mm_cvtsi128_si64(P2);
 	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
-		// if player can move, final score > score.
+		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
 
 	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
-  #ifdef __AVX512F__
-    #if 0 // defined(__INTEL_COMPILER) || defined(__GNUC__)	// may trigger license base downclocking, wrong fingerprint on MSVC
+  #if 0 // defined(__AVX512F__) && (defined(__INTEL_COMPILER) || defined(__GNUC__))	// may trigger license base downclocking, wrong fingerprint on MSVC
 		__m512i P8 = _mm512_broadcastq_epi64(P2);
 		__m512i M = lrmask[pos].v8;
 		__m512i N = _mm512_andnot_epi64(P8, _mm512_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]));	// neighbor O
 		// if (!(_mm512_test_epi64_mask(P8, M) & _mm512_test_epi64_mask(N, M))) {	// https://godbolt.org/z/Tfv1dfn48
 		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), N, M)) {	// !((P in M) & (O in N))
-    #else
-		__m256i M = lrmask[pos].v4[0];
+			// n_flips = last_flip(pos, ~P);
+			M = _mm512_andnot_epi64(P8, M);
+			t = _cvtmask32_u32(_mm256_cmpneq_epi8_mask(_mm512_castsi512_si256(M), _mm512_extracti64x4_epi64(M, 1)));
+
+  #elif 0 // defined(__AVX512F__)	// 256bit AVX512, poor kmovb on MSVC
+		__m256i P4 = _mm256_broadcastq_epi64(P2);
+		__m256i lM = lrmask[pos].v4[0];
 		__m256i N = _mm256_andnot_si256(P4, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]));	// neighbor O
-		__mmask8 k = _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, M), N, M);	// (P in M) & (O in N)
-		M = lrmask[pos].v4[1];
-		if (!(k | _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, M), N, M))) {
-    #endif
+		__mmask8 k = _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, lM), N, lM);	// (P in M) & (O in N)
+		__m256i rM = lrmask[pos].v4[1];
+		if (!(k | _mm256_mask_test_epi64_mask(_mm256_test_epi64_mask(P4, rM), N, rM))) {
+			// n_flips = last_flip(pos, ~P);
+			t = TESTNOT_EPI8_MASK32(P4, _mm256_or_si256(lM, rM));
+
   #else
+		__m256i P4 = _mm256_broadcastq_epi64(P2);
 		__m256i M = lrmask[pos].v4[0];
-		__m256i mO = _mm256_andnot_si256(P4, M);
-		__m256i F = _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO);	// clear if all O
+		__m256i lmO = _mm256_andnot_si256(P4, M);
+		__m256i F = _mm256_andnot_si256(_mm256_cmpeq_epi64(lmO, M), lmO);	// clear if all O
 		M = lrmask[pos].v4[1];
-		mO = _mm256_andnot_si256(P4, M);
-		F = _mm256_or_si256(F, _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO));
-		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass
+		__m256i rmO = _mm256_andnot_si256(P4, M);
+		F = _mm256_or_si256(F, _mm256_andnot_si256(_mm256_cmpeq_epi64(rmO, M), rmO));
+		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass (16%)
+			// n_flips = last_flip(pos, ~P);
+			t = ~_mm256_movemask_epi8(_mm256_cmpeq_epi8(lmO, rmO));	// mask = 1 if l = r = 0
   #endif
 			const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
-			// if (score - 38 > alpha)
-			//	return score - 38;
-
-			// n_flips = last_flip(pos, ~P);
-			t = TESTNOT_EPI8_MASK32(P4, mask_dvhd[pos].v4);
 			n_flips  = COUNT_FLIP[pos & 7][(~P >> (pos & 0x38)) & 0xFF];
-			n_flips += COUNT_FLIP_Y[t & 0xFF];
+			n_flips += COUNT_FLIP_Y[(t >> 8) & 0xFF];
 			n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];
 			n_flips += COUNT_FLIP_Y[t >> 24];
 			score -= n_flips + (int)((n_flips > 0) | (score <= 0)) * 2;
@@ -1036,11 +1039,8 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	} else {	// if player cannot move, low cut-off will occur whether opponent can move.
 		const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
-		// if (score + 36 <= alpha)
-		//	return score + 36;
-
 		// n_flips = last_flip(pos, P);
-		t = TEST_EPI8_MASK32(P4, mask_dvhd[pos].v4);
+		t = TEST_EPI8_MASK32(_mm256_broadcastq_epi64(P2), mask_dvhd[pos].v4);
 		n_flips  = COUNT_FLIP[pos & 7][(P >> (pos & 0x38)) & 0xFF];
 		n_flips += COUNT_FLIP_Y[t & 0xFF];
 		n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];
@@ -1061,12 +1061,12 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	int	score, score2;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
 
 	// n_flips = last_flip(pos, P);
   #ifdef AVXLASTFLIP	// no gain
 	__m256i M = mask_dvhd[pos].v4;
-	__m256i P4 = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-	__m128i P2 = _mm_cvtsi128_si64(_mm256_castsi256_si128(P4));
+	__m256i P4 = _mm256_broadcastq_epi64(P2);
 	unsigned int h = (_mm_cvtsi128_si64(P2) >> (pos & 0x38)) & 0xFF;
 
 	t = TEST_EPI8_MASK32(P4, M);
@@ -1077,7 +1077,6 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
   #else
 	__m128i M0 = mask_dvhd[pos].v2[0];
 	__m128i M1 = mask_dvhd[pos].v2[1];
-	__m128i P2 = _mm_shuffle_epi32(PO, DUPHI);
 	__m128i II = _mm_sad_epu8(_mm_and_si128(P2, M0), _mm_setzero_si128());
 
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
