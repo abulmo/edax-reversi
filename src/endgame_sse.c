@@ -782,8 +782,8 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		// right: look for player bit with lzcnt
 	rmask = lrmask[pos].v4[1];
 	rmP = _mm256_and_si256(PP, rmask);		rmO = _mm256_andnot_si256(PP, rmask);
+		// clear all bits lower than outflank
 	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
-		// set all bits higher than outflank
 	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmO));
 	flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmO, 0xf2);
 
@@ -806,9 +806,8 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(outflank, lmask),
 				outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
 
-				// right: look for opponent bit with lzcnt
+				// right: clear all bits lower than outflank
 			outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmO));
-				// set all bits higher than outflank
 			// flip = _mm256_or_si256(flip, _mm256_andnot_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmP));
 			flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmP, 0xf2);
 
@@ -830,8 +829,8 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 {
 	int	score;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-	__m256i	rmP, rmO, p_flip, o_flip, p_outflank, o_outflank, mask;
-	__m128i	p_flip2, o_flip2, p2;
+	__m256i	rmP, rmO, p_flip, o_flip, op_flip, p_outflank, o_outflank, mask;
+	__m128i	p2;
 	__mmask8 p_pass;
 
 		// left: look for player LS1B
@@ -849,28 +848,24 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	o_flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(o_outflank, mask),
 		o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
 
-		// right: look for player bit with lzcnt
+		// right: clear all bits lower than outflank
 	mask = lrmask[pos].v4[1];
 	rmP = _mm256_and_si256(PP, mask);		rmO = _mm256_andnot_si256(PP, mask);
 	p_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
 	o_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmO));
-		// set all bits higher than outflank
+
 	// p_flip = _mm256_or_si256(p_flip, _mm256_andnot_si256(_mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), rmO));
 	p_flip = _mm256_ternarylogic_epi64(p_flip, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), rmO, 0xf2);
 	// o_flip = _mm256_or_si256(o_flip, _mm256_andnot_si256(_mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), rmP));
 	o_flip = _mm256_ternarylogic_epi64(o_flip, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), rmP, 0xf2);
 
-	p_flip2 = _mm_or_si128(_mm256_castsi256_si128(p_flip), _mm256_extracti128_si256(p_flip, 1));
-	o_flip2 = _mm_or_si128(_mm256_castsi256_si128(o_flip), _mm256_extracti128_si256(o_flip, 1));
-	// p2 = _mm_or_si128(_mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, SWAP64)), _mm256_castsi256_si128(PP));
-	p2 = _mm_ternarylogic_epi64(p_flip2, _mm_shuffle_epi32(p_flip2, SWAP64), _mm256_castsi256_si128(PP), 0xfe);
+	op_flip = _mm256_or_si256(_mm256_unpacklo_epi64(p_flip, o_flip), _mm256_unpackhi_epi64(p_flip, o_flip));
+	p2 = _mm_xor_si128(_mm256_castsi256_si128(PP), _mm_or_si128(_mm256_castsi256_si128(op_flip), _mm256_extracti128_si256(op_flip, 1)));
 	p_pass = _mm_cmpeq_epi64_mask(p2, _mm256_castsi256_si128(PP));
-	// o_flip2 = _mm_or_si128(o_flip2, _mm_shuffle_epi32(o_flip2, SWAP64));
-	// p2 = _mm_mask_xor_epi64(p2, p_pass, p2, o_flip2);
-	p2 = _mm_mask_ternarylogic_epi64(p2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, SWAP64), 0x1e);
-	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
-		// last square for O if P pass and not (both pass and score > 0)
-	score -= (_cvtmask8_u32(p_pass) & !(_mm_movemask_epi8(_mm_cmpeq_epi64(p2, _mm256_castsi256_si128(PP))) & (score > 0))) * 2;
+	p2 = _mm_mask_unpackhi_epi64(p2, p_pass, p2, p2);	// use o_flip if p_pass
+	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - SCORE_MAX;	// = bit_count(P) - (SCORE_MAX - bit_count(P))
+		// last square for P if not P pass or (O pass and score >= 0)
+	score += ((~p_pass & 1) | ((p_pass >> 1) & (score >= 0))) * 2;
 	(void) alpha;	// no lazy cut-off
 	return score;
 }
