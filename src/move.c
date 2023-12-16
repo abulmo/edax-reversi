@@ -871,13 +871,13 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
 				switch (sort_depth) {
 				case 0:
-					score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval;	// 1 level score bonus
+					score += (SCORE_MAX - search_eval_0(search)) * (w_eval >> 2);	// 1 level score bonus
 					break;
 				case 1:
-					score += ((SCORE_MAX + search_eval_1(search, sort_alpha, SCORE_MAX, moves)) >> 1) * w_eval;	// 2 level score bonus
+					score += (SCORE_MAX + search_eval_1(search, sort_alpha, SCORE_MAX, moves)) * (w_eval >> 1);	// 2 level score bonus
 					break;
 				case 2:
-					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, moves)) >> 1) * w_eval;	// 3 level score bonus
+					score += (SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, moves)) * (w_eval >> 1);	// 3 level score bonus
 					break;
 				default:	// 3 to 6
 					if (hash_get_from_board(&search->hash_table, &search->board, &dummy)) score += w_hash;	// bonus if the position leads to a position stored in the hash-table
