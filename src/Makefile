@@ -197,6 +197,9 @@ ifeq ($(COMP),icc)
 	ifeq ($(ARCH),x86)
 		CFLAGS += -m32 -DUSE_GAS_X86
 	endif
+	ifeq ($(ARCH),k1om)
+		CFLAGS += -mmic --static
+	endif
 endif
 
 #pcc
@@ -310,6 +313,7 @@ help:
 	@echo " x86          x86"
 	@echo " ARM          ARM v5 & up"
 	@echo " ARMv7        ARM v7-a"
+	@echo " k1om         Intel Xeon Phi x100 (Knight Corner)"
 	@echo ""
 	@echo "Compilers:"
 	@echo "   gcc        GNU C compiler version >= 4.6"
