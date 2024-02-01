@@ -26,6 +26,11 @@ cd ..
 ./bin/mEdax
 ```
 
+### Compiling for Intel Xeon Phi x100 (Knights Corner)
+Requirement: 
+- icc version 17.0.2 from Intel Parallel Stuido XE 2017 (or any versions after 2016u4 and before 2018, need to have '-mmic' option).
+make the source code with 'make build ARCH=k1om COMP=icc'
+
 ### docker
 
 ```sh
