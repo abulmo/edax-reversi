@@ -674,7 +674,7 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
 				if (hash->data.move[0] == move) {
 					hash->data.move[0] = hash->data.move[1];
 					hash->data.move[1] = NOMOVE;
-				} else if (hash->data.move[0] == move) {
+				} else if (hash->data.move[1] == move) {
 					hash->data.move[1] = NOMOVE;
 				}
 				hash->data.lower = SCORE_MIN;
