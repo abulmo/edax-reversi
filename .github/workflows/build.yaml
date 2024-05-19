@@ -21,7 +21,7 @@ jobs:
           - os: windows-latest
             build_command: make build ARCH=x64 COMP=gcc OS=windows
           - os: macos-latest
-            build_command: make build ARCH=x64-modern COMP=gcc OS=osx
+            build_command: make build ARCH=arm COMP=gcc OS=osx
 
     steps:
     - uses: actions/checkout@v2
