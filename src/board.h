@@ -522,7 +522,7 @@ extern unsigned long long A1_A8[256];
 #if defined(__AVX2__) && (defined(_MSC_VER) || defined(__linux__))
 	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
 	#define	get_moves(P,O)	get_moves_avx(_mm256_set1_epi64x(P), _mm256_set1_epi64x(O))
-	#define	board_get_moves(board)	get_moves_avx(_mm256_broadcastq_epi64(*(__m128i *) &(board)->player), _mm256_broadcastq_epi64(*(__m128i *) &(board)->opponent))
+	#define	board_get_moves(board)	get_moves_avx(_mm256_set1_epi64x((board)->player), _mm256_set1_epi64x((board)->opponent))
 	#define	vboard_get_moves(vboard)	get_moves_avx(_mm256_broadcastq_epi64((vboard).v2), _mm256_broadcastq_epi64(_mm_unpackhi_epi64((vboard).v2, (vboard).v2)))
 #else
 	unsigned long long get_moves(const unsigned long long, const unsigned long long);
