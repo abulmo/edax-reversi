@@ -762,7 +762,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	return score;
 }
 
-#elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(SIMULLASTFLIP) && defined(__EVEX512__)
+#elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(SIMULLASTFLIP512)
 // branchless AVX512(512) lastflip (2.71s on skylake, 2.48 on icelake, 2.15s on Zen4)
 
 extern	const V8DI lrmask[66];	// in flip_avx512cd.c
@@ -772,7 +772,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	int	score;
 	__m512i	op_outflank, op_flip, op_eraser, mask;
 	__m256i	o_flip, opop_flip;
-	__m128i	op2;
+	__m128i	OP;
 	__mmask8 op_pass;
 	__m512i	O4P4 = _mm512_xor_si512(_mm512_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO)),
 		 _mm512_set_epi64(-1, -1, -1, -1, 0, 0, 0, 0));
@@ -797,16 +797,16 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	o_flip = _mm512_extracti64x4_epi64(op_flip, 1);
 	opop_flip = _mm256_or_si256(_mm256_unpacklo_epi64(_mm512_castsi512_si256(op_flip), o_flip),
 		_mm256_unpackhi_epi64(_mm512_castsi512_si256(op_flip), o_flip));
-	op2 = _mm_xor_si128(_mm512_castsi512_si128(O4P4),
+	OP = _mm_xor_si128(_mm512_castsi512_si128(O4P4),
 		_mm_or_si128(_mm256_castsi256_si128(opop_flip), _mm256_extracti128_si256(opop_flip, 1)));
-	op_pass = _mm_cmpeq_epi64_mask(op2, _mm512_castsi512_si128(O4P4));
-	op2 = _mm_mask_unpackhi_epi64(op2, op_pass, op2, op2);	// use o_flip if p_pass
-	score = 2 * bit_count(_mm_cvtsi128_si64(op2)) - SCORE_MAX;	// = bit_count(P) - (SCORE_MAX - bit_count(P))
-		// last square for P if not P pass or (O pass and score >= 0)
-	// score += ((~op_pass & 1) | ((op_pass >> 1) & (score >= 0))) * 2;
-	score += ((~op_pass << 1) | (op_pass & ~(score >> 30))) & 2;
+	op_pass = _mm_cmpeq_epi64_mask(OP, _mm512_castsi512_si128(O4P4));
+	OP = _mm_mask_unpackhi_epi64(OP, op_pass, OP, OP);	// use O if p_pass
+	score = bit_count(_mm_cvtsi128_si64(OP));
+		// last square for P if not P pass or (O pass and score >= 32)
+	// score += ((~op_pass & 1) | ((op_pass >> 1) & (score >= 32)));
+	score += (~op_pass | ((op_pass >> 1) & (score >> 5))) & 1;
 	(void) alpha;	// no lazy cut-off
-	return score;
+	return score * 2 - SCORE_MAX;	// = bit_count(P) - (SCORE_MAX - bit_count(P))
 }
 
 #elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(SIMULLASTFLIP)
@@ -818,7 +818,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 {
 	int	score;
 	__m256i	p_flip, o_flip, p_outflank, o_outflank, p_eraser, o_eraser, mask, opop_flip;
-	__m128i	op2;
+	__m128i	OP;
 	__mmask8 op_pass;
 	__m256i	P4 = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
 
@@ -850,16 +850,16 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	o_flip = _mm256_ternarylogic_epi64(o_flip, o_eraser, mask, 0xf2);
 
 	opop_flip = _mm256_or_si256(_mm256_unpacklo_epi64(p_flip, o_flip), _mm256_unpackhi_epi64(p_flip, o_flip));
-	op2 = _mm_xor_si128(_mm256_castsi256_si128(P4),
+	OP = _mm_xor_si128(_mm256_castsi256_si128(P4),
 		_mm_or_si128(_mm256_castsi256_si128(opop_flip), _mm256_extracti128_si256(opop_flip, 1)));
-	op_pass = _mm_cmpeq_epi64_mask(op2, _mm256_castsi256_si128(P4));
-	op2 = _mm_mask_unpackhi_epi64(op2, op_pass, op2, op2);	// use o_flip if p_pass
-	score = 2 * bit_count(_mm_cvtsi128_si64(op2)) - SCORE_MAX;	// = bit_count(P) - (SCORE_MAX - bit_count(P))
-		// last square for P if not P pass or (O pass and score >= 0)
-	// score += ((~op_pass & 1) | ((op_pass >> 1) & (score >= 0))) * 2;
-	score += ((~op_pass << 1) | (op_pass & ~(score >> 30))) & 2;
+	op_pass = _mm_cmpeq_epi64_mask(OP, _mm256_castsi256_si128(P4));
+	OP = _mm_mask_unpackhi_epi64(OP, op_pass, OP, OP);	// use O if p_pass
+	score = bit_count(_mm_cvtsi128_si64(OP));
+		// last square for P if not P pass or (O pass and score >= 32)
+	// score += ((~op_pass & 1) | ((op_pass >> 1) & (score >= 32)));
+	score += (~op_pass | ((op_pass >> 1) & (score >> 5))) & 1;
 	(void) alpha;	// no lazy cut-off
-	return score;
+	return score * 2 - SCORE_MAX;	// = bit_count(P) - (SCORE_MAX - bit_count(P))
 }
 
 #elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(LASTFLIP_HIGHCUT)
