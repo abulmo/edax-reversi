@@ -867,8 +867,7 @@ extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
 	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	unsigned long long P = _mm_cvtsi128_si64(P2);
-	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	int score = 2 * bit_count(_mm_cvtsi128_si64(P2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
@@ -898,8 +897,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			F4 = _mm256_ternarylogic_epi64(F4, eraser, rmask, 0xf2);
 
 			F2 = _mm_or_si128(_mm256_castsi256_si128(F4), _mm256_extracti128_si256(F4, 1));
-			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(F2, _mm_unpackhi_epi64(F2, F2))));
-			score -= (nflip + (int)((nflip > 0) | (score <= 0))) * 2;
+			nflip = -bit_count(_mm_cvtsi128_si64(_mm_or_si128(F2, _mm_unpackhi_epi64(F2, F2))));
+				// last square for O if O can move or score <= 0
+			score += (nflip - (int)((nflip | (score - 1)) < 0)) * 2;
 
 		} else	score += 2;	// lazy high cut-off, return min flip
 
@@ -933,8 +933,7 @@ extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
 	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	unsigned long long P = _mm_cvtsi128_si64(P2);
-	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	int score = 2 * bit_count(_mm_cvtsi128_si64(P2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
@@ -968,8 +967,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			F4 = _mm256_or_si256(F4, _mm256_andnot_si256(eraser, lmask));
 
 			F2 = _mm_or_si128(_mm256_castsi256_si128(F4), _mm256_extracti128_si256(F4, 1));
-			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(F2, _mm_unpackhi_epi64(F2, F2))));
-			score -= (nflip + (int)((nflip > 0) | (score <= 0))) * 2;
+			nflip = -bit_count(_mm_cvtsi128_si64(_mm_or_si128(F2, _mm_unpackhi_epi64(F2, F2))));
+				// last square for O if O can move or score <= 0
+			score += (nflip - (int)((nflip | (score - 1)) < 0)) * 2;
 
 		} else	score += 2;	// lazy high cut-off, return min flip
 
@@ -1005,7 +1005,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 // https://eukaryote.hateblo.jp/entry/2020/05/10/033228
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
-	uint_fast8_t	p_flip, o_flip;
+	int_fast8_t	p_flip, o_flip;
 	unsigned int	tP, tO, h;
 	unsigned long long P;
 	int	score, score2;
@@ -1019,13 +1019,13 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
 	h = (P >> (pos & 0x38)) & 0xFF;
 	tP = TEST_EPI8_MASK32(PP, M);			tO = TESTNOT_EPI8_MASK32(PP, M);
-	p_flip  = COUNT_FLIP_X[h];			o_flip  = COUNT_FLIP_X[h ^ 0xFF];
-	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip += COUNT_FLIP_Y[tO & 0xFF];
-	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip += COUNT_FLIP_Y[(tO >> 16) & 0xFF];
-	p_flip += COUNT_FLIP_Y[tP >> 24];		o_flip += COUNT_FLIP_Y[tO >> 24];
+	p_flip  = COUNT_FLIP_X[h];			o_flip = -COUNT_FLIP_X[h ^ 0xFF];
+	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip -= COUNT_FLIP_Y[tO & 0xFF];
+	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip -= COUNT_FLIP_Y[(tO >> 16) & 0xFF];
+	p_flip += COUNT_FLIP_Y[tP >> 24];		o_flip -= COUNT_FLIP_Y[tO >> 24];
 
 	score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
-	score2 = score - o_flip - (int)((o_flip > 0) | (score <= 0)) * 2;
+	score2 = score + o_flip - (int)((o_flip | (score - 1)) < 0) * 2;	// last square for O if O can move or score <= 0
 	score += p_flip;
 	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
 }
@@ -1041,7 +1041,7 @@ extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
-	uint_fast8_t n_flips;
+	int_fast8_t n_flips;
 	uint32_t t;
 	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
 	unsigned long long P = _mm_cvtsi128_si64(P2);
@@ -1085,11 +1085,12 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
   #endif
 			const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
-			n_flips  = COUNT_FLIP[pos & 7][(~P >> (pos & 0x38)) & 0xFF];	// h
-			n_flips += COUNT_FLIP_Y[(t >> 8) & 0xFF];	// v
-			n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];	// d
-			n_flips += COUNT_FLIP_Y[t >> 24];	// d
-			score -= n_flips + (int)((n_flips > 0) | (score <= 0)) * 2;
+			n_flips = -COUNT_FLIP[pos & 7][(~P >> (pos & 0x38)) & 0xFF];	// h
+			n_flips -= COUNT_FLIP_Y[(t >> 8) & 0xFF];	// v
+			n_flips -= COUNT_FLIP_Y[(t >> 16) & 0xFF];	// d
+			n_flips -= COUNT_FLIP_Y[t >> 24];	// d
+				// last square for O if O can move or score <= 0
+			score += n_flips - (int)((n_flips | (score - 1)) < 0) * 2;
 		} else	score += 2;	// min flip
 
 	} else {	// if player cannot move, low cut-off will occur whether opponent can move.
