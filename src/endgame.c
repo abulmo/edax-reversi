@@ -283,8 +283,12 @@ int board_score_1(const unsigned long long player, const int beta, const int x)
 >>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
 =======
 	if (n_flips == 0) {	// (23%)
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 		score2 = score + 2;	// empty for player
+=======
+		score2 = score + 2;	// empty for opponent
+>>>>>>> 0ba5408 (add vectorcall to inline functions in case not inlined)
 		if (score >= 0)
 			score = score2;
 		if (score <= beta) {	// lazy cut-off (40%)

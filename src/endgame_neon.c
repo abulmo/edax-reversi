@@ -374,7 +374,7 @@ static int board_score_neon_1(uint64x1_t P, int beta, int pos)
 	score -= n_flips;
 
 	if (n_flips == 0) {
-		score2 = score + 2;	// empty for player
+		score2 = score + 2;	// empty for opponent
 		if (score >= 0)
 			score = score2;
 
