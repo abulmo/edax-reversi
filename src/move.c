@@ -466,10 +466,14 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 =======
 	unsigned long long P, O;
 
-	if (search->eval.n_empties < 21)
+	// if (search->eval.n_empties < 21)	// mostly true
 		parity_weight = (search->eval.n_empties < 12) ? w_low_parity : w_mid_parity;
+<<<<<<< HEAD
 	else	parity_weight = (search->eval.n_empties < 30) ? w_high_parity : 0;
 >>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
+=======
+	// else	parity_weight = (search->eval.n_empties < 30) ? w_high_parity : 0;
+>>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
 
 	move = movelist->move[0].next;
 	do {

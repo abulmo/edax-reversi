@@ -325,6 +325,21 @@ bool board_lesser(const Board *b1, const Board *b2)
 	if (b1->player != b2->player)
 		return (b1->player < b2->player);
 	else	return (b1->opponent < b2->opponent);
+<<<<<<< HEAD
+=======
+}
+
+/**
+ * @brief Compare two board for equality
+ *
+ * @param b1 first board
+ * @param b2 second board
+ * @return true if both board are equal
+ */
+bool board_equal(const Board *b1, const Board *b2)
+{
+	return (b1->player == b2->player && b1->opponent == b2->opponent);
+>>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
 }
 
 #if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c

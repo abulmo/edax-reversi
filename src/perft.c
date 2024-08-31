@@ -4,10 +4,14 @@
  * @brief Move generator test.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
  * @author Richard Delorme
  * @version 4.5
  */
