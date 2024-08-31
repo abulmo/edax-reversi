@@ -59,11 +59,15 @@ void init_neon (void)
 		memcpy(flip, flip_neon, sizeof(flip_neon));
 	#endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 		hasSSE2 = true;	// for eval_update_sse
 	}
   #elif defined(__i386__)	// android x86 w/o SSE2 - uncommon and not tested
 =======
 		hasSSE2 = true;
+=======
+		hasSSE2 = true;	// for eval_update_sse
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 	}
 <<<<<<< HEAD
 #else	// android x86 w/o SSE2 - uncommon and not tested

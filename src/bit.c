@@ -322,11 +322,16 @@ void bit_init(void)
  * @return the number of bit set, counting the corners twice.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 __m128i bit_weighted_count_sse(unsigned long long Q0, unsigned long long Q1)
 =======
 int bit_weighted_count(unsigned long long v)
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+#if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
+__m128i bit_weighted_count_sse(unsigned long long Q0, unsigned long long Q1)
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 {
 	static const V2DI mask15 = {{ 0x1555555555555515, 0x1555555555555515 }};
 	static const V2DI mask01 = {{ 0x0100000000000001, 0x0100000000000001 }};
@@ -340,7 +345,11 @@ int bit_weighted_count(unsigned long long v)
 	return _mm_sad_epu8(v, _mm_setzero_si128());
 }
 
+<<<<<<< HEAD
 #elif defined(__ARM_NEON)
+=======
+#elif defined(hasNeon)
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 uint64x2_t bit_weighted_count_neon(unsigned long long Q0, unsigned long long Q1)
 {
 	uint64x2_t v = vcombine_u64(vcreate_u64(Q0), vcreate_u64(Q1));
@@ -348,6 +357,7 @@ uint64x2_t bit_weighted_count_neon(unsigned long long Q0, unsigned long long Q1)
 		vcntq_u8(vreinterpretq_u8_u64(vandq_u64(v, vdupq_n_u64(0x8100000000000081))))))));
 }
 
+<<<<<<< HEAD
 #elif 0	// SWAR, for record
 int bit_weighted_count(unsigned long long v)
 {
@@ -359,6 +369,16 @@ int bit_weighted_count(unsigned long long v)
 
 #else
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
+=======
+#else
+int bit_weighted_count(unsigned long long v)
+{
+  #if defined(POPCOUNT)
+  	unsigned int P2187 = (v >> 48) | (v << 16);	// ror 48
+	return bit_count(v) + bit_count_32(P2187 & 0x00818100);
+
+  #else
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 	int	c;
 
 	v  = v - ((v >> 1) & 0x1555555555555515) + (v & 0x0100000000000001);
@@ -387,17 +407,21 @@ int bit_weighted_count(unsigned long long v)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	v  = v - ((v >> 1) & 0x1555555555555515ULL) + (v & 0x0100000000000001ULL);
 	v  = ((v >> 2) & 0x3333333333333333ULL) + (v & 0x3333333333333333ULL);
-  #ifdef HAS_CPU_64
+    #ifdef HAS_CPU_64
 	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
 	c = (v * 0x0101010101010101ULL) >> 56;
-  #else
+    #else
 	c = (v >> 32) + v;
 	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
 	c = (c * 0x01010101) >> 24;
-  #endif
+    #endif
 	return c;
+<<<<<<< HEAD
 #endif
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+  #endif
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 }
 #endif
 

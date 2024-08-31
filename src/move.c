@@ -526,22 +526,37 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 			MM.v2 = get_moves_and_potential(_mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO)), _mm256_broadcastq_epi64(PO));
 			score += (36 - bit_weighted_count(MM.ull[1])) * w_potential_mobility; // potential mobility
 			score += (36 - bit_weighted_count(MM.ull[0])) * w_mobility; // real mobility
+<<<<<<< HEAD
 >>>>>>> 47c2589 (Fix w32-modern build and gcc build)
+=======
+
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 #else
 			unsigned long long O = search->board.player ^ (move->flipped | x_to_bit(move->x));
 			unsigned long long P = search->board.opponent ^ move->flipped;
 			score  = get_corner_stability(O) * w_corner_stability; // corner stability
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
   #if defined(hasSSE2) && !defined(POPCOUNT)
 			__m128i MM = bit_weighted_count_sse(get_moves(P, O), get_potential_moves(P, O));
 			score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
 			score += (36 - _mm_cvtsi128_si32(MM)) * w_mobility; // real mobility
+<<<<<<< HEAD
   #elif defined(__ARM_NEON)
+=======
+  #elif defined(hasNeon)
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 			uint64x2_t MM = bit_weighted_count_neon(get_moves(P, O), get_potential_moves(P, O));
 			score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 2)) * w_potential_mobility; // potential mobility
 			score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 0)) * w_mobility; // real mobility
   #else
+<<<<<<< HEAD
 			score += (36 - bit_weighted_count(get_potential_moves(P, O))) * w_potential_mobility; // potential mobility
+=======
+			score += (36 - get_potential_mobility(P, O)) * w_potential_mobility; // potential mobility
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 			score += (36 - bit_weighted_count(get_moves(P, O))) * w_mobility; // real mobility
   #endif
 #endif
@@ -809,10 +824,18 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				MM.v2 =  get_moves_and_potential(_mm256_broadcastq_epi64(*(__m128i *) &search->board.player), _mm256_broadcastq_epi64(*(__m128i *) &search->board.opponent));
 				score += (36 - bit_weighted_count(MM.ull[1])) * w_potential_mobility; // potential mobility
 				score += (36 - bit_weighted_count(MM.ull[0])) * w_mobility; // real mobility
+#elif defined(hasSSE2) && !defined(POPCOUNT)
+				__m128i MM = bit_weighted_count_sse(get_moves(search->board.player, search->board.opponent), get_potential_moves(search->board.player, search->board.opponent));
+				score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
+				score += (36 - _mm_cvtsi128_si32(MM)) * w_mobility; // real mobility
+#elif defined(hasNeon)
+				uint64x2_t MM = bit_weighted_count_neon(get_moves(search->board.player, search->board.opponent), get_potential_moves(search->board.player, search->board.opponent));
+				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 2)) * w_potential_mobility; // potential mobility
+				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 0)) * w_mobility; // real mobility
 #else
 >>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 				score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
-				score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) * w_mobility; // real mobility
+				score += (36 - bit_weighted_count(get_moves(search->board.player, search->board.opponent))) * w_mobility; // real mobility
 #endif
 				score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
 				switch (sort_depth) {

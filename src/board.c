@@ -666,6 +666,7 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
 =======
 /**
@@ -701,6 +702,9 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 =======
 #if !defined(hasSSE2) && !defined(hasNeon)	// sse version in board_sse.c
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 /**
  * @brief Get a part of the moves.
  *
@@ -918,6 +922,7 @@ int get_mobility(const unsigned long long P, const unsigned long long O)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifndef __AVX2__	// AVX2 version in board_sse.c
 =======
 int get_weighted_mobility(const unsigned long long P, const unsigned long long O)
@@ -930,6 +935,9 @@ int get_weighted_mobility(const unsigned long long P, const unsigned long long O
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 =======
 >>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
+=======
+#ifndef __AVX2__
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 /**
  * @brief Get some potential moves.
  *
@@ -970,6 +978,7 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
 =======
 >>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 
+  #if !(defined(hasSSE2) && !defined(POPCOUNT)) && !defined(hasNeon)
 /**
  * @brief Get potential mobility.
  *
@@ -981,13 +990,18 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
  */
 int get_potential_mobility(const unsigned long long P, const unsigned long long O)
 {
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+    #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasMMX)
 		return get_potential_mobility_mmx(P, O);
-  #endif
+    #endif
 	return bit_weighted_count(get_potential_moves(P, O));
 }
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+  #endif
+#endif // AVX2
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 
 /**
  * @brief search stable edge patterns.

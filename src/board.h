@@ -136,8 +136,15 @@ bool can_move(const unsigned long long, const unsigned long long);
 unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
 bool can_move_6x6(const unsigned long long, const unsigned long long);
 int get_mobility(const unsigned long long, const unsigned long long);
-int get_weighted_mobility(const unsigned long long, const unsigned long long);
+#ifdef __AVX2__
+__m128i vectorcall get_moves_and_potential(__m256i, __m256i);
+#else
+unsigned long long get_potential_moves(const unsigned long long, const unsigned long long);
+  #if !(defined(hasSSE2) && !defined(POPCOUNT)) && !defined(hasNeon)
 int get_potential_mobility(const unsigned long long, const unsigned long long);
+  #endif
+#endif
+
 void edge_stability_init(void);
 unsigned long long get_stable_edge(const unsigned long long, const unsigned long long);
 unsigned long long get_all_full_lines(const unsigned long long);
@@ -159,6 +166,7 @@ unsigned long long get_moves_sse(unsigned long long, unsigned long long);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(USE_GAS_MMX) && defined(__3dNOW__)
 unsigned long long board_get_hash_code_mmx(const unsigned char *p);
 #elif defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -174,6 +182,8 @@ __m128i vectorcall get_moves_and_potential(__m256i, __m256i);
 #endif
 
 >>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
+=======
+>>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 extern unsigned char edge_stability[256 * 256];
 <<<<<<< HEAD
 <<<<<<< HEAD
