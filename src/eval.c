@@ -1045,6 +1045,7 @@ void eval_close(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -1061,6 +1062,18 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
 #if defined(hasSSE2) || defined(USE_GAS_MMX)
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
+=======
+/**
+ * @brief Swap player's feature.
+ *
+ * @param eval  Evaluation function.
+ */
+void eval_swap(Eval *eval)
+{
+	eval->player ^= 1;
+}
+
+>>>>>>> 6b942ef (Make eval_swap public and inline some)
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #include "eval_sse.c"
@@ -1120,6 +1133,7 @@ void eval_set(Eval *eval, const Board *board)
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
  * @brief Swap player's feature.
  *
@@ -1132,6 +1146,8 @@ static void eval_swap(Eval *eval)
 
 /**
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+>>>>>>> 6b942ef (Make eval_swap public and inline some)
  * @brief Update the features after a player's move.
  *
  * @param x     Move position.
@@ -1351,20 +1367,28 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasSSE2) {
-		if (eval->player)
+		if (eval->player) {
+			eval->player = 0;
 			eval_update_sse_1(eval, eval, move);
-		else
+		} else {
+			eval->player = 1;
 			eval_update_sse_0(eval, eval, move);
-		eval_swap(eval);
+		}
 		return;
 	}
 #endif
-	if (eval->player)
+	if (eval->player) {
+		eval->player = 0;
 		eval_update_1(eval, move);
-	else
+	} else {
+		eval->player = 1;
 		eval_update_0(eval, move);
+<<<<<<< HEAD
 	eval_swap(eval);
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+	}
+>>>>>>> 6b942ef (Make eval_swap public and inline some)
 }
 
 <<<<<<< HEAD

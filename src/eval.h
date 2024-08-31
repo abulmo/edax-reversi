@@ -170,6 +170,7 @@ void eval_open(const char*);
 void eval_close(void);
 // void eval_init(Eval*);
 // void eval_free(Eval*);
+void eval_swap(Eval*);
 void eval_set(Eval*, const struct Board*);
 void eval_update(Eval*, const struct Move*);
 void eval_update_leaf(Eval*, const Eval*, const struct Move*);
