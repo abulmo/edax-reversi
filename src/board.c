@@ -15,6 +15,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -28,6 +29,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -135,6 +139,7 @@
 unsigned char edge_stability[256 * 256];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	#include "board_mmx.c"
 #endif
@@ -144,6 +149,8 @@ unsigned char edge_stability[256 * 256];
 /** conversion from an 8-bit line to the A1-A8 line */
 // unsigned long long A1_A8[256];
 
+=======
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 #include "board_mmx.c"
 #endif
@@ -1060,15 +1067,18 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @brief Initialize the edge stability table.
 =======
  * @brief Initialize the edge stability and A1_A8 tables.
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+ * @brief Initialize the edge stability table.
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
  */
 void edge_stability_init(void)
 {
 	int P, O, PO, rPO;
-	// unsigned long long Q;
 	// long long t = cpu_clock();
 
 	for (PO = 0; PO < 256 * 256; ++PO) {
@@ -1096,6 +1106,7 @@ void edge_stability_init(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
@@ -1116,6 +1127,8 @@ void edge_stability_init(void)
 =======
 	} */
 >>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
+=======
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 }
 
 #ifdef HAS_CPU_64
@@ -1128,11 +1141,16 @@ void edge_stability_init(void)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
 =======
 #ifndef HAS_CPU_64
+=======
+#ifndef __AVX2__
+#if !(defined(__aarch64__) || defined(_M_ARM64) || defined(hasSSE2))
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 /**
  * @brief Get stable edge.
  *
@@ -1151,9 +1169,13 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 	    |  unpackH1H8(edge_stability[h1h8]);
 }
 #endif
+<<<<<<< HEAD
 
 #if !defined(HAS_CPU_64) && !(defined(ANDROID) && (defined(hasNeon) || defined(hasSSE2)))
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#if !defined(hasNeon) && !defined(hasSSE2)
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 /**
  * @brief Get full lines.
  *
@@ -1253,7 +1275,22 @@ static unsigned long long get_full_lines_v(unsigned long long full)
 	return full;
 }
 
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
+{
+	unsigned long long allfull;
+
+	allfull = full->ull[0] = get_full_lines_h(disc);
+	allfull &= (full->ull[1] = get_full_lines_v(disc));
+	allfull &= (full->ull[2] = get_full_lines(disc, 9));
+	allfull &= (full->ull[3] = get_full_lines(disc, 7));
+	return allfull;
+}
+#endif // hasSSE2/hasNeon
+
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 /**
 <<<<<<< HEAD
  * @brief Get stable edge.
@@ -1292,30 +1329,29 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  */
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
-	unsigned long long P_central, disc, full_h, full_v, full_d7, full_d9;
+	V4DI	full;
+	unsigned long long P_central, allfull;
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, old_stable;
 
-#ifdef ANDROID
-	if (hasSSE2)
-		return get_stability_sse(P, O);
-#elif (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
-	if (hasMMX)
-		return get_stability_mmx(P, O);
-#endif
-
-	disc = (P | O);
-	P_central = (P & 0x007e7e7e7e7e7e00);
-
-	full_h = get_full_lines_h(disc);
-	full_v = get_full_lines_v(disc);
-	full_d7 = get_full_lines(disc, 7);
-	full_d9 = get_full_lines(disc, 9);
-
 	// compute the exact stable edges (from precomputed tables)
-	stable = get_stable_edge(P, O);
+#if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)
+	if (hasSSE2) {
+		stable = get_stable_edge_sse(P, O);
+		allfull = get_all_full_lines_sse(P | O, &full);
+	} else
+#endif
+	{
+#if (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
+		if (hasMMX)
+			return get_stability_mmx(P, O);
+#endif
+		stable = get_stable_edge(P, O);
+		allfull = get_all_full_lines(P | O, &full);
+	}
 
 	// add full lines
-	stable |= (full_h & full_v & full_d7 & full_d9 & P_central);
+	P_central = (P & 0x007e7e7e7e7e7e00);
+	stable |= (allfull & P_central);
 
 	if (stable == 0)
 		return 0;
@@ -1323,16 +1359,16 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 	do {
 		old_stable = stable;
-		stable_h = ((stable >> 1) | (stable << 1) | full_h);
-		stable_v = ((stable >> 8) | (stable << 8) | full_v);
-		stable_d7 = ((stable >> 7) | (stable << 7) | full_d7);
-		stable_d9 = ((stable >> 9) | (stable << 9) | full_d9);
-		stable |= (stable_h & stable_v & stable_d7 & stable_d9 & P_central);
+		stable_h = ((stable >> 1) | (stable << 1) | full.ull[0]);
+		stable_v = ((stable >> 8) | (stable << 8) | full.ull[1]);
+		stable_d9 = ((stable >> 9) | (stable << 9) | full.ull[2]);
+		stable_d7 = ((stable >> 7) | (stable << 7) | full.ull[3]);
+		stable |= (stable_h & stable_v & stable_d9 & stable_d7 & P_central);
 	} while (stable != old_stable);
 
 	return bit_count(stable);
 }
-#endif // HAS_CPU_64/ANDROID
+#endif // __AVX2__
 
 /**
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)

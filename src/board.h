@@ -4,10 +4,14 @@
  * Board management header file.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -117,7 +121,8 @@ int get_potential_mobility_mmx(unsigned long long, unsigned long long);
 #elif defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
 void init_neon (void);
 unsigned long long get_moves_sse(unsigned long long, unsigned long long);
-int get_stability_sse(const unsigned long long P, const unsigned long long O);
+unsigned long long get_stable_edge_sse(const unsigned long long, const unsigned long long);
+unsigned long long get_all_full_lines_sse(const unsigned long long, V4DI *);
 #endif
 
 <<<<<<< HEAD
@@ -131,6 +136,7 @@ unsigned long long board_get_hash_code_sse(const unsigned char *p);
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 extern unsigned char edge_stability[256 * 256];
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 <<<<<<< HEAD
@@ -166,6 +172,8 @@ extern unsigned char edge_stability[256 * 256];
 #if ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2))
 =======
 extern unsigned long long A1_A8[256];
+=======
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 
 #if defined(__BMI2__) && !defined(bdver4) && !defined(znver1) && !defined(znver2) // pdep is slow on AMD before Zen3
 #define	unpackA1A8(x)	_pdep_u64((x), 0x0101010101010101)

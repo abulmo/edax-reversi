@@ -8,6 +8,7 @@
  * SSE/AVX translation of some board.c functions
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2014 - 2024
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -16,6 +17,11 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 2014 - 2022
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
  */
 
 #include "bit.h"
@@ -929,6 +935,11 @@ unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
 #endif // hasSSE2
 #endif // x86
 
+#if defined(hasNeon) || defined(hasSSE2)	// no dispatch
+#define get_stable_edge_sse	get_stable_edge
+#define	get_all_full_lines_sse	get_all_full_lines
+#endif
+
 /**
  * @brief SSE optimized get_stable_edge
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -938,6 +949,7 @@ unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
  * @return a bitboard with (some of) player's stable discs.
  *
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   #if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
@@ -982,19 +994,28 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
 =======
 #if defined(__aarch64__) || defined(_M_ARM64)
 unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
+=======
+#if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
+unsigned long long get_stable_edge_sse(unsigned long long P, unsigned long long O)
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 {	// compute the exact stable edges (from precomputed tables)
 	const int16x8_t shiftv = { 0, 1, 2, 3, 4, 5, 6, 7 };
 	uint8x16_t PO = vzipq_u8(vreinterpretq_u8_u64(vdupq_n_u64(O)), vreinterpretq_u8_u64(vdupq_n_u64(P))).val[0];
-	uint16x8_t a1a8 = vshlq_u16(vreinterpretq_u16_u8(vandq_u8(PO, vdupq_n_u8(1))), shiftv);
-	uint16x8_t h1h8 = vshlq_u16(vreinterpretq_u16_u8(vshrq_n_u8(PO, 7)), shiftv);
+	unsigned int a1a8 = edge_stability[vaddvq_u16(vshlq_u16(vreinterpretq_u16_u8(vandq_u8(PO, vdupq_n_u8(1))), shiftv))];
+	unsigned int h1h8 = edge_stability[vaddvq_u16(vshlq_u16(vreinterpretq_u16_u8(vshrq_n_u8(PO, 7)), shiftv))];
 	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
 	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
 	    |  unpackA1A8(a1a8) | unpackH1H8(h1h8);
 }
 
+<<<<<<< HEAD
 #elif defined(__x86_64__) || defined(_M_X64)
 unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+unsigned long long get_stable_edge_sse(const unsigned long long P, const unsigned long long O)
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 {
 	// compute the exact stable edges (from precomputed tables)
 <<<<<<< HEAD
@@ -1095,9 +1116,9 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 >>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	return stable_edge;
 }
-#endif // __aarch64__/__x86_64__/_M_X64
+#endif
 
-#if defined(HAS_CPU_64) || defined(ANDROID)
+#if defined(HAS_CPU_64) || defined(ANDROID) || defined(USE_MSVC_X86)
 /**
  * @brief X64 optimized get_stability
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -1125,15 +1146,12 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
  */
 #ifdef __AVX2__
 
-int get_stability(const unsigned long long P, const unsigned long long O)
+unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 {
-	unsigned long long disc = (P | O);
-	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
-	unsigned long long l8, stable;
-	__m128i	l81, l79, v2_stable, v2_old_stable, v2_P_central;
-	__m256i	lr79, v4_disc, v4_stable, v4_full;
-	const __m128i kff = _mm_set1_epi64x(0xffffffffffffffff);;
-	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
+	unsigned long long l8;
+	__m128i l81, l79;
+	__m256i	v4_disc, lr79;
+	const __m128i kff  = _mm_set1_epi64x(0xffffffffffffffff);
 #if 0 // PCMPEQQ
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	static const V4DI m791 = {{ 0x0402010000804020, 0x2040800000010204, 0x0804020180402010, 0x1020408001020408 }};	// V8SI
@@ -1288,14 +1306,30 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 
 #endif
 	l81 = _mm_insert_epi64(l81, l8, 1);
+	full->v2[0] = l81;			full->v2[1] = l79;
+	l81 = _mm_and_si128(l81, l79);
+	return _mm_cvtsi128_si64(_mm_and_si128(l81, _mm_unpackhi_epi64(l81, l81)));
+}
 
-	// compute the exact stable edges (from precomputed tables)
-	stable = get_stable_edge(P, O);
+int get_stability(const unsigned long long P, const unsigned long long O)
+{
+	V4DI	full;
+	unsigned long long disc = (P | O);
+	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
+	unsigned long long stable;
+	__m128i	v2_stable, v2_old_stable, v2_P_central;
+	__m256i	v4_stable;
+	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
 
+<<<<<<< HEAD
 	// add full lines
 	v2_stable = _mm_and_si128(l81, l79);
 	stable |= _mm_cvtsi128_si64(_mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable))) & P_central;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	// compute the exact stable edges (from precomputed tables) and add full lines
+	stable = get_stable_edge_sse(P, O) | (get_all_full_lines(disc, &full) & P_central);
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 
 	if (stable == 0)
 		return 0;
@@ -1303,14 +1337,17 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 <<<<<<< HEAD
 =======
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+<<<<<<< HEAD
 	v4_full = _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 	v2_stable = _mm_cvtsi64_si128(stable);
 	v2_P_central = _mm_cvtsi64_si128(P_central);
 	do {
 		v2_old_stable = v2_stable;
 		v4_stable = _mm256_broadcastq_epi64(v2_stable);
-		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), v4_full);
+		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), full.v4);
 		v2_stable = _mm_and_si128(_mm256_castsi256_si128(v4_stable), _mm256_extracti128_si256(v4_stable, 1));
 		v2_stable = _mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable));
 		v2_stable = _mm_or_si128(v2_old_stable, _mm_and_si128(v2_stable, v2_P_central));
@@ -2104,19 +2141,10 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
 =======
 
-#else // __AVX2__
-
-#if defined(hasNeon) || defined(hasSSE2)
-#define	get_stability_sse	get_stability	// no dispatch
-#endif
-
-int get_stability_sse(const unsigned long long P, const unsigned long long O)
+#elif defined(__ARM_NEON__)
+unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
 {
-	unsigned long long disc = (P | O);
-	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
-	unsigned long long l8, full_h, full_v, full_d7, full_d9, stable;
-	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
-#ifdef __ARM_NEON__
+	unsigned long long allfull, l8;
 	uint8x8_t l01;
 	uint64x2_t l79, r79;
 	const uint64x2_t e790 = vdupq_n_u64(0x007e7e7e7e7e7e00);
@@ -2125,33 +2153,42 @@ int get_stability_sse(const unsigned long long P, const unsigned long long O)
 
 	l01 = vcreate_u8(disc);			l79 = r79 = vreinterpretq_u64_u8(vcombine_u8(l01, vrev64_u8(l01)));
 	l01 = vceq_u8(l01, vdup_n_u8(0xff));	l79 = vandq_u64(l79, vornq_u64(vshrq_n_u64(l79, 9), e790));
-	full_h = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
+	allfull = full->ull[0] = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
 						r79 = vandq_u64(r79, vornq_u64(vshlq_n_u64(r79, 9), e790));
 	l8 = disc;				l79 = vbicq_u64(l79, vbicq_u64(e791, vshrq_n_u64(l79, 18)));	// De Morgan
 	l8 &= (l8 >> 8) | (l8 << 56);		r79 = vbicq_u64(r79, vshlq_n_u64(vbicq_u64(e791, r79), 18));
 	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e792, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
-	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = vgetq_lane_u64(l79, 0);
-	full_v = l8;				full_d7 = vertical_mirror(vgetq_lane_u64(l79, 1));
+	l8 &= (l8 >> 32) | (l8 << 32);		allfull &= (full->ull[2] = vgetq_lane_u64(l79, 0));
+	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[3] = vertical_mirror(vgetq_lane_u64(l79, 1)));
+	return allfull;
+}
 
 #elif 1	// 1 CPU, 3 SSE
+unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
+{
+	unsigned long long allfull, l8;
 	__m128i l01, l79, r79;	// full lines
 	const __m128i kff  = _mm_set1_epi64x(0xffffffffffffffff);
 	const __m128i edge = _mm_set1_epi64x(0xff818181818181ff);
 	const __m128i e791 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);
 	const __m128i e792 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
 
-	l01 = l79 = _mm_cvtsi64_si128(disc);	r79 = _mm_cvtsi64_si128(vertical_mirror(disc));
-	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = r79 = _mm_unpacklo_epi64(l79, r79);
-	full_h = _mm_cvtsi128_si64(l01);	l79 = _mm_and_si128(l79, _mm_or_si128(edge, _mm_srli_epi64(l79, 9)));
+	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(vertical_mirror(disc)));
+	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(edge, _mm_srli_epi64(l79, 9)));
+	allfull = full->ull[0] = _mm_cvtsi128_si64(l01);
 						r79 = _mm_and_si128(r79, _mm_or_si128(edge, _mm_slli_epi64(r79, 9)));
 	l8 = disc;				l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e791), l79);	// De Morgan
 	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e791), 18), r79);
 	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e792, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
-	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = _mm_cvtsi128_si64(l79);
-	full_v = l8;				full_d7 = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
+	l8 &= (l8 >> 32) | (l8 << 32);		allfull &= (full->ull[2] = _mm_cvtsi128_si64(l79));
+	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79))));
+	return allfull;
+}
 
 #else	// 4 CPU
-	unsigned long long l1, l7, l9, r7, r9;	// full lines
+unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
+{
+	unsigned long long allfull, l8, l1, l7, l9, r7, r9;	// full lines
 	static const unsigned long long edge = 0xff818181818181ff;
 	static const unsigned long long k01 = 0x0101010101010101;
 	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
@@ -2161,38 +2198,18 @@ int get_stability_sse(const unsigned long long P, const unsigned long long O)
 	l1 &= l1 >> 1;				l7 &= edge | (l7 >> 7);		r7 &= edge | (r7 << 7);
 	l1 &= l1 >> 2;				l7 &= e7[0] | (l7 >> 14);	r7 &= e7[1] | (r7 << 14);
 	l1 &= l1 >> 4;				l7 &= e7[2] | (l7 >> 28);	r7 &= e7[3] | (r7 << 28);
-	full_h = ((l1 & k01) * 0xff);		full_d7 = l7 & r7;
+	l1 = (l1 & k01) * 0xff);		l7 &= r7;
+	allfull = (full->ull[0] = l1);		allfull &= (full->ull[3] = l7);
 
 	l8 = l9 = r9 = disc;
 	l8 &= (l8 >> 8) | (l8 << 56);		l9 &= edge | (l9 >> 9);		r9 &= edge | (r9 << 9);
 	l8 &= (l8 >> 16) | (l8 << 48);		l9 &= e9[0] | (l9 >> 18);	r9 &= e9[1] | (r9 << 18);
-	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = l9 & r9 & (e9[2] | (l9 >> 36) | (r9 << 36));
-	full_v = l8;
-
-#endif
-	// compute the exact stable edges (from precomputed tables)
-	stable = get_stable_edge(P, O);
-
-	// add full lines
-	stable |= (full_h & full_v & full_d7 & full_d9 & P_central);
-
-	if (stable == 0)
-		return 0;
-
-	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-	do {
-		old_stable = stable;
-		stable_h = ((stable >> 1) | (stable << 1) | full_h);
-		stable_v = ((stable >> 8) | (stable << 8) | full_v);
-		stable_d7 = ((stable >> 7) | (stable << 7) | full_d7);
-		stable_d9 = ((stable >> 9) | (stable << 9) | full_d9);
-		stable |= (stable_h & stable_v & stable_d7 & stable_d9 & P_central);
-	} while (stable != old_stable);
-
-	return bit_count(stable);
+	l8 &= (l8 >> 32) | (l8 << 32);		l9 = l9 & r9 & (e9[2] | (l9 >> 36) | (r9 << 36)));
+	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[2] = l9);
+	return allfull;
 }
 
-#endif // __AVX2__
+#endif
 #endif // HAS_CPU_64/ANDROID
 <<<<<<< HEAD
 

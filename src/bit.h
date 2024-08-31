@@ -7,6 +7,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -20,6 +21,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -255,6 +259,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 extern unsigned long long X_TO_BIT[];
 extern const unsigned long long NEIGHBOUR[];
 
@@ -403,15 +408,15 @@ typedef union {
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	#ifndef hasSSE2
+=======
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+	#if !defined(hasSSE2) && !defined(hasNeon)
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 		extern bool	hasSSE2;
 	#endif
 	#ifndef hasMMX
 		extern bool	hasMMX;
 	#endif
-#endif
-
-#if defined(ANDROID) && ((defined(__arm__) && !defined(hasNeon)) || (defined(__i386__) && !defined(hasSSE2)))
-extern bool	hasSSE2;
 #endif
 
 typedef union {
@@ -427,6 +432,7 @@ __attribute__ ((aligned (16)))
 #endif
 V2DI;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 typedef union {
@@ -505,7 +511,20 @@ typedef union {
 	__m128i	v2[2];
 } V4DI;
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+typedef union {
+	unsigned long long	ull[4];
+#ifdef __AVX2__
+	__m256i	v4;
+>>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 #endif
+#ifdef hasSSE2
+	__m128i	v2[2];
+#endif
+#ifdef USE_MSVC_X86
+	__m64	v1[4];
+#endif
+} V4DI;
 
 /* Define function attributes directive when available */
 
