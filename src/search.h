@@ -4,10 +4,14 @@
  * Search's header file.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+ * @date 1998 - 2020
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -67,21 +71,32 @@ extern struct Level {
 
 /** search stare */
 typedef struct Search {
+<<<<<<< HEAD
 	Board board;                                  /**< othello board (16) */
 
 	volatile unsigned long long n_nodes;          /**< node counter (8) */
 	volatile unsigned long long child_nodes;      /**< node counter (8) */
 
+=======
+	Board board[1];                               /**< othello board */
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	Eval eval;                                    /**< eval */
 
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
 	int player;                                   /**< player color */
 	int id;                                       /**< search id */
 
+<<<<<<< HEAD
 	HashTable hash_table;                         /**< hashtable */
 	HashTable pv_table;                           /**< hashtable for the pv */
 	HashTable shallow_table;                      /**< hashtable for short search */
 	Random random;                                /**< random generator */
+=======
+	HashTable hash_table[1];                      /**< hashtable */
+	HashTable pv_table[1];                        /**< hashtable for the pv */
+	HashTable shallow_table[1];                   /**< hashtable for short search */
+	Random random[1];                             /**< random generator */
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
 	struct TaskStack *tasks;                      /**< available task queue */
 	struct Task *task;                            /**< search task */
@@ -174,9 +189,15 @@ void search_get_movelist(const Search*, MoveList*);
 // void search_restore_endgame(Search*, const Move*);
 // void search_pass_endgame(Search*);
 void search_update_midgame(Search*, const Move*);
+<<<<<<< HEAD
 void search_restore_midgame(Search*, int, const Eval*);
 void search_update_pass_midgame(Search*, Eval*);
 void search_restore_pass_midgame(Search*, const Eval*);
+=======
+void search_restore_midgame(Search*, const Move*, const Eval*);
+void search_update_pass_midgame(Search*);
+void search_restore_pass_midgame(Search*);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 long long search_clock(Search*);
 long long search_time(Search*);
 unsigned long long search_count_nodes(Search*);

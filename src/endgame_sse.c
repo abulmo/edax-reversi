@@ -1222,7 +1222,7 @@ int search_solve_4(Search *search, const int alpha)
 	// The following hole sizes are possible:
 	//    4 - 1 3 - 2 2 - 1 1 2 - 1 1 1 1
 	// Only the 1 1 2 case needs move sorting on this ply.
-	parity = search->parity;
+	parity = search->eval.parity;
 	q1 = QUADRANT_ID[x1];
 	q2 = QUADRANT_ID[x2];
 	q3 = QUADRANT_ID[x3];

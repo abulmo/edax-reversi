@@ -1364,7 +1364,19 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 }
 
+<<<<<<< HEAD
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
+=======
+#if 0 // replaced with simple save-restore
+
+/**
+ * @brief Restore the features as before a player's move.
+ *
+ * @param eval  Evaluation function.
+ * @param move  Move.
+ */
+static void eval_restore_0(Eval *eval, const Move *move)
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 {
 <<<<<<< HEAD
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
@@ -1433,7 +1445,6 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 		}
 	}
 #endif
-
 }
 
 static void eval_restore_1(Eval *eval, const Move *move)
@@ -1497,22 +1508,15 @@ void eval_restore(Eval *eval, const Move *move)
 	eval_swap(eval);
 	assert(WHITE == eval->player || BLACK == eval->player);
 
-#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
-	if (hasSSE2) {
-		if (eval->player)
-			eval_restore_sse_1(eval, move);
-		else
-			eval_restore_sse_0(eval, move);
-		return;
-	}
-#endif
-
 	if (eval->player)
 		eval_restore_1(eval, move);
 	else
 		eval_restore_0(eval, move);
 }
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+
+#endif // if 0
+#endif // hasSSE2
 
 /**
  * @brief Update/Restore the features after a passing move.
@@ -1523,6 +1527,7 @@ void eval_pass(Eval *eval)
 {
 	int i;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	for (i =  0; i <  4; ++i)	// 9
@@ -1547,6 +1552,8 @@ void eval_pass(Eval *eval)
 #endif // hasSSE2
 >>>>>>> 1dc032e (Improve visual c compatibility)
 
+=======
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 /**
  * @brief Compute the error-type of the evaluation function according to the
  * depths.

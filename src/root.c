@@ -3,7 +3,11 @@
  *
  * Search near the end of the game.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2020
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -326,6 +330,16 @@ int search_get_pv_cost(Search *search)
  */
 int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 {
+<<<<<<< HEAD
+=======
+	HashData hash_data[1];
+	MoveList *movelist = search->movelist;
+	Board *board = search->board;
+	Move *move;
+	Node node[1];
+	Eval Ev0;
+	long long cost = -search_count_nodes(search);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	unsigned long long hash_code;
 	HashStoreData hash_data;
 	MoveList *const movelist = &search->movelist;
@@ -368,17 +382,27 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 	} else {
 		// first move
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
 		if ((move = node_first_move(&node, movelist))) {
 			assert(board_check_move(&search->board, move));
+=======
+		Ev0 = search->eval;
+		if ((move = node_first_move(node, movelist))) {
+			assert(board_check_move(board, move));
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 			search_update_midgame(search, move); search->node_type[search->height] = PV_NODE;
 				move->score = -search_route_PVS(search, -beta, -alpha, depth - 1, &node);
 				move->cost = search_get_pv_cost(search);
 				assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
 				assert(search->stability_bound.lower <= move->score && move->score <= search->stability_bound.upper);
+<<<<<<< HEAD
 			search_restore_midgame(search, move->x, &eval0);
 			search->board = board0;
+=======
+			search_restore_midgame(search, move, &Ev0);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 			node_update(&node, move);
 			if (search->options.verbosity == 4) pv_debug(search, move, stdout);
@@ -400,8 +424,12 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 						}
 						move->cost = search_get_pv_cost(search);
 					assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
+<<<<<<< HEAD
 					search_restore_midgame(search, move->x, &eval0);
 					search->board = board0;
+=======
+					search_restore_midgame(search, move, &Ev0);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 					if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 					node_update(&node, move);
 					assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);

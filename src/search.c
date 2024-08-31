@@ -53,10 +53,14 @@
  *     journal, 6(4), pp. 4-14.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2020
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -411,7 +415,7 @@ void search_init(Search *search)
 	search->player = EMPTY;
 
 	/* evaluation function */
-	// eval_init(search->eval);
+	// eval_init(&search->eval);
 
 	// radom generator
 	random_seed(&search->random, real_clock());
@@ -489,8 +493,12 @@ void search_free(Search *search)
 	hash_free(search->hash_table);
 	hash_free(search->pv_table);
 	hash_free(search->shallow_table);
+<<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	// eval_free(search->eval);
+=======
+	// eval_free(&search->eval);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	
 	task_stack_free(search->tasks);
 	free(search->tasks);
@@ -543,8 +551,12 @@ void search_setup(Search *search)
 
 	// init empties, parity
 	search->n_empties = 0;
+<<<<<<< HEAD
 	search->parity = 0;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	search->eval.parity = 0;
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
 	prev = NOMOVE;
 	E = ~(board->player | board->opponent);
@@ -563,7 +575,7 @@ void search_setup(Search *search)
 			empty->x = x;
 			empty->b = B;
 			empty->quadrant = QUADRANT_ID[x];
-			search->parity ^= empty->quadrant;
+			search->eval.parity ^= empty->quadrant;
 			empty->previous = empty - 1;
 			empty->next = empty + 1;
 			search->x_to_empties[x] = empty;
@@ -593,7 +605,11 @@ void search_setup(Search *search)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	// init the evaluation function
+<<<<<<< HEAD
 	eval_set(&search->eval, &search->board);
+=======
+	eval_set(&search->eval, board);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 }
 
 /**
@@ -1013,11 +1029,19 @@ void search_update_midgame(Search *search, const Move *move)
 //	line_push(&debug_line, move->x);
 
 	search_swap_parity(search, move->x);
+<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	eval_update(move->x, move->flipped, &search->eval);
 	assert(search->eval.n_empties > 0);
 	--search->eval.n_empties;
+=======
+	empty_remove(search->x_to_empties[move->x]);
+	board_update(search->board, move);
+	eval_update(&search->eval, move);
+	assert(search->n_empties > 0);
+	--search->n_empties;
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
 }
@@ -1026,20 +1050,36 @@ void search_update_midgame(Search *search, const Move *move)
  * @brief Restore the search state as before a move.
  *
  * @param search  search.
+<<<<<<< HEAD
  * @param x       played move.
  * @param backup  board/eval to restore.
  */
 void search_restore_midgame(Search *search, int x, const Eval *eval0)
+=======
+ * @param move    played move.
+ * @param Ev	  eval to restore.
+ */
+void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
 
+<<<<<<< HEAD
 	// search_swap_parity(search, move->x);
 	// ++search->eval.n_empties;
 	// eval_restore(search->eval, move);
 	search->eval = *eval0;
 	// board_restore(&search->board, move);
 	empty_restore(search->empties, x);
+=======
+	empty_restore(search->x_to_empties[move->x]);
+	board_restore(search->board, move);
+	// search_swap_parity(search, move->x);
+	// eval_restore(&search->eval, move);
+	search->eval = *Ev;
+	++search->n_empties;
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	assert(search->height > 0);
 	--search->height;
 }
@@ -1051,8 +1091,14 @@ void search_restore_midgame(Search *search, int x, const Eval *eval0)
  */
 void search_update_pass_midgame(Search *search, Eval *backup)
 {
+<<<<<<< HEAD
 	search_pass(search);
 	backup->feature = search->eval.feature;
+=======
+	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
+
+	board_pass(search->board);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	eval_pass(&search->eval);
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
@@ -1065,9 +1111,14 @@ void search_update_pass_midgame(Search *search, Eval *backup)
  */
 void search_restore_pass_midgame(Search *search, const Eval *eval0)
 {
+<<<<<<< HEAD
 	search_pass(search);
 	// eval_pass(&search->eval);
 	search->eval.feature = eval0->feature;
+=======
+	board_pass(search->board);
+	eval_pass(&search->eval);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	assert(search->height > 0);
 	--search->height;
 }

@@ -23,10 +23,14 @@
  * -# Feldmann R. (1993) Game-Tree Search on Massively Parallel System - PhD Thesis, Paderborn (English version).
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+ * @date 1998 - 2020
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -369,8 +373,12 @@ void task_search(Task *task)
 	Node *node = task->node;
 	Search *search = task->search;
 	Move *move = task->move;
+<<<<<<< HEAD
 	Eval eval0;
 	Board board0;
+=======
+	Eval Ev0;
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	int i;
 
 	search_set_state(search, node->search->stop);
@@ -381,16 +389,24 @@ void task_search(Task *task)
 		const int alpha = node->alpha;
 		if (alpha >= node->beta) break;
 
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
+=======
+		Ev0 = search->eval;
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {
 				move->score = -PVS_midgame(search, -node->beta, -alpha, node->depth - 1, node);
 				assert(node->pv_node == true);
 			}
+<<<<<<< HEAD
 		search_restore_midgame(search, move->x, &eval0);
 		search->board = board0;
+=======
+		search_restore_midgame(search, move, &Ev0);
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 		if (node->height == 0) {
 			move->cost = search_get_pv_cost(search);
 			move->score = search_bound(search, move->score);

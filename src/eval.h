@@ -122,7 +122,7 @@ void eval_update_leaf(int, unsigned long long, Eval*, const Eval*);
  *
  * Evaluation function's header.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -150,6 +150,7 @@ typedef struct Eval {
 #endif
 	} feature;
 	int player;
+	unsigned int parity;                          /**< parity */
 } Eval;
 
 struct Board;

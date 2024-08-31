@@ -4,10 +4,14 @@
  * Search near the end of the game.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2020
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -544,7 +548,7 @@ static int search_solve_4(Search *search, int alpha)
 			break;
 =======
 	// Only the 1 1 2 case needs move sorting.
-	parity = search->parity;
+	parity = search->eval.parity;
 	if (!(parity & QUADRANT_ID[x1])) {
 		if (parity & QUADRANT_ID[x2]) {
 			if (parity & QUADRANT_ID[x3]) { // case 1(x2) 1(x3) 2(x1 x4)
@@ -699,6 +703,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	// stability cutoff (try 8%, cut 7%)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
+<<<<<<< HEAD
 	board0.board = search->board;
 	moves = vboard_get_moves(board0);
 	if (moves == 0) {	// pass (2%)
@@ -770,6 +775,11 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 		++search->eval.n_empties;
 =======
 		foreach_odd_empty (empty, search->empties, search->parity) {
+=======
+	if (search->eval.parity > 0 && search->eval.parity < 15) {
+
+		foreach_odd_empty (empty, search->empties, search->eval.parity) {
+>>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 			if ((NEIGHBOUR[empty->x] & board->opponent)
 			&& board_get_move(board, empty->x, &move)) {
 				search_update_endgame(search, &move);
@@ -781,7 +791,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 			}
 		}
 
-		foreach_even_empty (empty, search->empties, search->parity) {
+		foreach_even_empty (empty, search->empties, search->eval.parity) {
 			if ((NEIGHBOUR[empty->x] & board->opponent)
 			&& board_get_move(board, empty->x, &move)) {
 				search_update_endgame(search, &move);
