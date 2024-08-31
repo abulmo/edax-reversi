@@ -557,7 +557,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	};
 #endif
 	static const char min_depth_table[64] = {
-		19, 18, 18, 18, 17, 17, 17, 16,
+		19, 18, 18, 18, 17, 17, 17, 16,	// (Never for empties < 14)
 		16, 16, 15, 15, 15, 14, 14, 14,
 		13, 13, 13, 12, 12, 12, 11, 11,
 		11, 10, 10, 10,  9,  9,  9,  9,
@@ -567,7 +567,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 		 9,  9,  9,  9,  9,  9,  9,  9
 	};
 	Move *move;
-	int	sort_depth, min_depth, sort_alpha, score, empties, parity_weight, org_selectivity;
+	int	sort_depth, min_depth, sort_alpha, score, empties, parity_weight;
 	HashData dummy;
 	unsigned long long P, O;
 	Search_Backup backup;
@@ -637,9 +637,12 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 
 		backup.board = search->board;
 		backup.eval = search->eval;
+<<<<<<< HEAD
 		org_selectivity = search->selectivity;
 		search->selectivity = NO_SELECTIVITY;
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+>>>>>>> af8242f (Imply NO_SELECTIVITY in shallow searches)
 		sort_alpha = MAX(SCORE_MIN, alpha - SORT_ALPHA_DELTA);
 
 		move = movelist->move[0].next;
@@ -726,9 +729,12 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				case 2:
 					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 3 level score bonus
 					break;
-				default:
+				default:	// 3 to 6
 					if (hash_get_from_board(&search->hash_table, &search->board, &dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table
+					// org_selectivity = search->selectivity;
+					// search->selectivity = NO_SELECTIVITY;
 					score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
+					// search->selectivity = org_selectivity;
 					break;
 				}
 
@@ -736,7 +742,6 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 			}
 			move->score = score;
 		} while ((move = move->next));
-		search->selectivity = org_selectivity;
 
 	} else {	// sort_depth = -1
 		move = movelist->move[0].next;

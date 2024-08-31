@@ -838,7 +838,23 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+/**
+ * @brief Probcut
+ *
+ * Check if a position is worth to analyze further.
+ *
+ * @param search Position to test.
+ * @param alpha Alpha lower bound.
+ * @param depth Search depth.
+ * @param parent Parent node.
+ * @param value Returned value.
+ *
+ * @return true if probable cutoff has been found, false otherwise.
+ */
+>>>>>>> af8242f (Imply NO_SELECTIVITY in shallow searches)
 static inline void search_update_probcut(Search *search, const NodeType node_type) 
 {
 	search->node_type[search->height] = node_type;
@@ -854,6 +870,7 @@ static inline void search_restore_probcut(Search *search, const NodeType node_ty
 	LIMIT_RECURSIVE_PROBCUT(--search->probcut_level;)
 }
 
+<<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 /**
  * @brief Probcut
@@ -882,6 +899,8 @@ static inline void search_restore_probcut(Search *search, const NodeType node_ty
 	LIMIT_RECURSIVE_PROBCUT(--search->probcut_level;)
 }
 
+=======
+>>>>>>> af8242f (Imply NO_SELECTIVITY in shallow searches)
 static bool search_probcut(Search *search, const int alpha, const int depth, Node *parent, int *value)
 {
 	// assertion 
@@ -1065,7 +1084,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff
-		if (hash_get(hash_table, &search->board, hash_code, &hash_data) && search_TC_NWS(&hash_data, depth, search->selectivity, alpha, &score))
+		if (hash_get(hash_table, &search->board, hash_code, &hash_data) && search_TC_NWS(&hash_data, depth, NO_SELECTIVITY, alpha, &score))
 			return score;
 
 		// sort the list of moves
@@ -1329,7 +1348,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 	if (movelist.n_moves > 1) {
 		// transposition cutoff (unused, normally first searched position)
 		// hash_code = board_get_hash_code(&search->board);
-		// if (hash_get(&search->shallow_table, &search->board, hash_code, &hash_data) && search_TC_PVS(&hash_data, depth, search->selectivity, &alpha, &beta, &score)) return score;
+		// if (hash_get(&search->shallow_table, &search->board, hash_code, &hash_data) && search_TC_PVS(&hash_data, depth, NO_SELECTIVITY, &alpha, &beta, &score)) return score;
 
 <<<<<<< HEAD
 	if (movelist_is_empty(&movelist)) { // no moves ?
@@ -1526,7 +1545,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 
-		// save the best result in hash tables
+		// save the best result in shallow hash
 		hash_store_data.data.wl.c.depth = depth;
 		hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;	// (4.5.1)
 		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes - nodes_org);
@@ -2231,6 +2250,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (depth <= ((search->eval.n_empties <= depth) ? DEPTH_MIDGAME_TO_ENDGAME : 4))
 			hash_data.data.wl.c.selectivity = NO_SELECTIVITY;
 		else	hash_data.data.wl.c.selectivity = search->selectivity;
@@ -2285,6 +2305,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> c0fb778 (small optimizations in endgame)
 =======
 		if (search->eval.n_empties <= depth && depth <= DEPTH_MIDGAME_TO_ENDGAME)
+=======
+		if (depth <= ((search->eval.n_empties <= depth) ? DEPTH_MIDGAME_TO_ENDGAME : 4))
+>>>>>>> af8242f (Imply NO_SELECTIVITY in shallow searches)
 			hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
 		else	hash_store_data.data.wl.c.selectivity = search->selectivity;
 >>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
