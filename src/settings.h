@@ -69,6 +69,7 @@
 #define MOVE_GENERATOR_AVX512 9
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 #define MOVE_GENERATOR_SVE 11
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 #define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
@@ -88,6 +89,8 @@
 =======
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+>>>>>>> ba1be42 (AVX512 last flip with lastflip_highcut)
 
 #define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -160,7 +163,7 @@
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
-	#ifdef __AVX512VL__
+	#if defined(__AVX512VL__) || defined(__AVX10_1__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512
 	#elif defined(__AVX2__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
@@ -203,12 +206,18 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	#if (defined(__AVX512VL__) || defined(__AVX10_1__)) && (defined(SIMULLASTFLIP512) || defined(SIMULLASTFLIP) || defined(LASTFLIP_HIGHCUT))
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
 	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
 =======
 	#if defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+	#if defined(__AVX512VL__) || defined(__AVX10_1__)
+		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
+	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
+>>>>>>> ba1be42 (AVX512 last flip with lastflip_highcut)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
 	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_NEON
