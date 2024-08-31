@@ -882,7 +882,24 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
  * @param data Output hash data.
  * @return True the board was found, false otherwise.
  */
+#if defined(hasSSE2) && (defined(_MSC_VER) || defined(__linux__))
+  #ifdef __AVX2__
+inline bool vboard_equal(__m128i b1, Board *b2)
+{
+	__m128i b = _mm_xor_si128(b1, _mm_loadu_si128((__m128i *) b2));
+	return _mm_testz_si128(b, b);
+}
+  #else
+#define	vboard_equal(b1,b2)	(_mm_movemask_epi8(_mm_cmpeq_epi8(b1, _mm_loadu_si128((__m128i *) b2))) == 0xffff)
+  #endif
+
+bool vectorcall hash_get_sse(HashTable *hash_table, __m128i board, const unsigned long long hash_code, HashData *data)
+
+#else
+#define	vboard_equal(b1,b2)	board_equal(b1, b2)
+
 bool hash_get(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashData *data)
+#endif
 {
 	int i;
 	Hash *hash;
@@ -897,10 +914,14 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 		HASH_COLLISIONS(	lock = hash_table->lock + (hash_code & hash_table->lock_mask);)
 		HASH_COLLISIONS(	spin_lock(lock);)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		HASH_COLLISIONS(	if (hash->key == hash_code && !vboard_equal(board, &hash->board)) {)
 =======
 		HASH_COLLISIONS(	if (hash->key == hash_code && !board_equal(&hash->board, board)) {)
 >>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
+=======
+		HASH_COLLISIONS(	if (hash->key == hash_code && !vboard_equal(board, &hash->board)) {)
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		HASH_COLLISIONS(		++statistics.n_hash_collision;)
 		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
 		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
@@ -908,10 +929,10 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 		HASH_COLLISIONS(	})
 		HASH_COLLISIONS(	spin_unlock(lock);)
 		HASH_COLLISIONS(})
-		if (board_equal(&hash->board, board)) {
+		if (vboard_equal(board, &hash->board)) {
 			lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 			spin_lock(lock);
-			if (board_equal(&hash->board, board)) {
+			if (vboard_equal(board, &hash->board)) {
 				*data = hash->data;
 				HASH_STATS(++statistics.n_hash_found;)
 				hash->data.wl.c.date = hash_table->date;

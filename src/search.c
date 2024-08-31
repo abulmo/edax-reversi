@@ -1062,6 +1062,7 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	Move *move = movelist->move + 1;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	V2DI vboard;
 	unsigned long long moves;
 	int x;
@@ -1084,10 +1085,19 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	int x;
 
 >>>>>>> 7204cd1 (Small fix on debug build, etc.)
+=======
+	V2DI vboard;
+	unsigned long long moves;
+	int x;
+
+	vboard.board = search->board;
+	moves = vboard_get_moves(vboard);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	movelist->n_moves = 0;
 	foreach_bit(x, moves) {
 		move->x = x;
 		move->flipped = vboard_flip(vboard, x);
+<<<<<<< HEAD
 =======
 	int x, j;
 	widest_register	b;
@@ -1104,6 +1114,8 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 		move->x = x;
 		move->flipped = vboard_flip(board, x);
 >>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		move->cost = 0;
 		previous = previous->next = move;
 		++move;
@@ -1287,8 +1299,12 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
  * @param x       played move.
  * @param backup  board/eval to restore.
  */
+<<<<<<< HEAD
 void search_restore_midgame(Search *search, int x, const Search_Backup *backup)
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+void search_restore_midgame(Search *search, int x, const Eval *eval0)
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
@@ -1329,9 +1345,8 @@ void search_restore_midgame(Search *search, int x, const Search_Backup *backup)
 	// search_swap_parity(search, move->x);
 	// ++search->eval.n_empties;
 	// eval_restore(search->eval, move);
-	search->eval = backup->eval;
+	search->eval = *eval0;
 	// board_restore(&search->board, move);
-	search->board = backup->board;
 	empty_restore(search->empties, x);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	assert(search->height > 0);
@@ -1387,10 +1402,14 @@ void search_update_pass_midgame(Search *search, Eval *backup)
  * @param search  search.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 void search_restore_pass_midgame(Search *search, const Eval *eval0)
 =======
 void search_restore_pass_midgame(Search *search, const Eval *backup)
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
+=======
+void search_restore_pass_midgame(Search *search, const Eval *eval0)
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1398,6 +1417,7 @@ void search_restore_pass_midgame(Search *search, const Eval *backup)
 	search_pass(search);
 	// eval_pass(&search->eval);
 	search->eval.feature = eval0->feature;
+<<<<<<< HEAD
 =======
 	board_pass(search->board);
 =======
@@ -1413,6 +1433,8 @@ void search_restore_pass_midgame(Search *search, const Eval *backup)
 	// eval_pass(&search->eval);
 	search->eval.feature = backup->feature;
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	assert(search->height > 0);
 	--search->height;
 }

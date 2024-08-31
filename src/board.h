@@ -57,6 +57,7 @@ void board_rand(Board*, int, struct Random*);
 
 // Compare two board for equality
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define	board_equal(b1,b2)	((b1)->player == (b2)->player && (b1)->opponent == (b2)->opponent)
 =======
 #ifdef __AVX2__
@@ -69,6 +70,9 @@ inline bool board_equal(const Board *b1, const Board *b2)
 #define	board_equal(b1,b2)	((b1)->player == (b2)->player && (b1)->opponent == (b2)->opponent)
 #endif
 >>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
+=======
+#define	board_equal(b1,b2)	((b1)->player == (b2)->player && (b1)->opponent == (b2)->opponent)
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 
 int board_count_last_flips(const Board*, const int);
 unsigned long long board_get_move_flip(const Board*, const int, struct Move*);
@@ -326,8 +330,12 @@ extern unsigned long long A1_A8[256];
 	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip((board), (x))))
 =======
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x)))))
+<<<<<<< HEAD
 	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip((board), (x)))))
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
+=======
+	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip((board).v2, (x)))))
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
 	extern __m128i (vectorcall *mm_flip[BOARD_SIZE + 2])(const __m128i);
@@ -335,7 +343,7 @@ extern unsigned long long A1_A8[256];
 	#define mm_Flip(OP,x)	mm_flip[x](OP)
 	#define reduce_vflip(x)	(x)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_loadu_si128((__m128i *) (board)))))
-	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x]((board))))
+	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x]((board).v2)))
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -352,7 +360,7 @@ extern unsigned long long A1_A8[256];
 	extern uint64x2_t mm_Flip(uint64x2_t OP, int pos);
 	#define	Flip(x,P,O)	vgetq_lane_u64(mm_Flip(vcombine_u64(vcreate_u64(P), vcreate_u64(O)), (x)), 0)
 	#define	board_flip(board,x)	vgetq_lane_u64(mm_Flip(vld1q_u64((uint64_t *) (board)), (x)), 0)
-	#define	vboard_flip(board,x)	vgetq_lane_u64(mm_Flip((board), (x)), 0)
+	#define	vboard_flip(board,x)	vgetq_lane_u64(mm_Flip((board).v2, (x)), 0)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
@@ -441,56 +449,38 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #endif
 
-// Keep Board backup in a non-volatile vector register if available
+// Use backup copy of search->board in a vector register if available (assume *pboard == vboard on entry)
 #ifdef hasSSE2
-	#define	rBoard	__m128i
-	#define	load_rboard(board)	_mm_loadu_si128((__m128i *) &(board))
-	#define	store_rboard(dst,board)	_mm_storeu_si128((__m128i *) &(dst), (board))
-	#define	rboard_update(pboard,board0,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((board0), _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_cvtsi64_si128(X_TO_BIT[(move)->x]))), 0x4e));
-#elif defined(hasNeon)
-	#define	rBoard	uint64x2_t
-	#define	load_rboard(board)	vld1q_u64((uint64_t *) &(board))
-	#define	store_rboard(dst,board)	vst1q_u64((uint64_t *) &(dst), (board))
-	#define	rboard_update(pboard,board0,move)	board_update((pboard), (move))
+	#define	vboard_update(pboard,vboard,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((vboard).v2, _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_cvtsi64_si128(X_TO_BIT[(move)->x]))), 0x4e))
 #else
-	#define	rBoard	Board
-	#define	load_rboard(board)	(board)
-	#define	store_rboard(dst,board)	((dst) = (board))
-	#define	rboard_update(pboard,board0,move)	board_update((pboard), (move))
+	#define	vboard_update(pboard,vboard,move)	board_update((pboard), (move))
 #endif
 
 // Pass Board in a vector register to Flip
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
-	#define	vBoard	__m128i
-	unsigned long long vectorcall vboard_next(__m128i OP, const int x, Board *next);
-	#define	board_next(board,x,next)	vboard_next(_mm_loadu_si128((__m128i *) (board)), (x), (next))
-	#define	load_vboard(board)	_mm_loadu_si128((__m128i *) &(board))
-	#define	store_vboard(dst,board)	_mm_storeu_si128((__m128i *) &(dst), (board))
+	unsigned long long vectorcall board_next_sse(__m128i OP, const int x, Board *next);
+	#define	board_next(board,x,next)	board_next_sse(_mm_loadu_si128((__m128i *) (board)), (x), (next))
+	#define vboard_next(vboard,x,next)	board_next_sse((vboard).v2, (x), (next))
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
-	#define	vBoard	uint64x2_t
-	unsigned long long vboard_next(uint64x2_t OP, const int x, Board *next);
-	#define	board_next(board,x,next)	vboard_next(vld1q_u64((uint64_t *) (board)), (x), (next))
-	#define	load_vboard(board)	vld1q_u64((uint64_t *) &(board))
-	#define	store_vboard(dst,board)	vst1q_u64((uint64_t *) &(dst), (board))
+	unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next);
+	#define	board_next(board,x,next)	board_next_neon(vld1q_u64((uint64_t *) (board)), (x), (next))
+	#define vboard_next(vboard,x,next)	board_next_neon((vboard).v2, (x), (next))
 #else
-	#define	vBoard	Board
 	unsigned long long board_next(const Board *board, const int x, Board *next);
-	#define	vboard_next(board,x,next)	board_next(&(board), (x), (next))
-	#define	vboard_flip(board,x)	board_flip(&(board), (x))
-	#define	load_vboard(board)	(board)
-	#define	store_vboard(dst,board)	((dst) = (board))
+	#define	vboard_next(vboard,x,next)	board_next(&(vboard).board, (x), (next))
+	#define	vboard_flip(vboard,x)	board_flip(&(vboard).board, (x))
 #endif
 
 // Pass vboard to get_moves if vectorcall available, otherwise board
-#if defined(__AVX2__) && (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))
+#if defined(__AVX2__) && (defined(_MSC_VER) || defined(__linux__))
 	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
 	#define	get_moves(P,O)	get_moves_avx(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)))
 	#define	board_get_moves(board)	get_moves_avx(_mm256_broadcastq_epi64(*(__m128i *) &(board)->player), _mm256_broadcastq_epi64(*(__m128i *) &(board)->opponent))
-	#define	vboard_get_moves(vboard,board)	get_moves_avx(_mm256_broadcastq_epi64(vboard), _mm256_permute4x64_epi64(_mm256_castsi128_si256(vboard), 0x55))
+	#define	vboard_get_moves(vboard)	get_moves_avx(_mm256_broadcastq_epi64((vboard).v2), _mm256_broadcastq_epi64(_mm_unpackhi_epi64((vboard).v2, (vboard).v2)))
 #else
 	unsigned long long get_moves(const unsigned long long, const unsigned long long);
 	#define	board_get_moves(board)	get_moves((board)->player, (board)->opponent)
-	#define	vboard_get_moves(vboard,board)	get_moves((board).player, (board).opponent)
+	#define	vboard_get_moves(vboard)	get_moves((vboard).board.player, (vboard).board.opponent)
 #endif
 
 #endif

@@ -474,11 +474,14 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	Node node;
 	Eval eval0;
 	Board board0;
+<<<<<<< HEAD
 =======
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
 	Search_Backup backup;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	long long nodes_org = search_count_nodes(search);
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -514,6 +517,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		if (can_move(search->board.opponent, search->board.player)) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_update_pass_midgame(search, &eval0);
 			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
 			search_restore_pass_midgame(search, &eval0);
@@ -527,6 +531,11 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
 			search_restore_pass_midgame(search, &backup.eval);
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
+=======
+			search_update_pass_midgame(search, &eval0);
+			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
+			search_restore_pass_midgame(search, &eval0);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			node.bestmove =  move->x = PASS;
 		} else  { // game over
 			node.bestscore =  move->score = search_solve(search);
@@ -535,6 +544,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 	} else {
 		// first move
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -547,6 +557,10 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		backup.board = search->board;
 		backup.eval = search->eval;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+		board0 = search->board;
+		eval0 = search->eval;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		if ((move = node_first_move(&node, movelist))) {
 			assert(board_check_move(&search->board, move));
 =======
@@ -566,6 +580,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 				assert(search->stability_bound.lower <= move->score && move->score <= search->stability_bound.upper);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_restore_midgame(search, move->x, &eval0);
 			search->board = board0;
 =======
@@ -574,6 +589,10 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+			search_restore_midgame(search, move->x, &eval0);
+			search->board = board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 			node_update(&node, move);
 			if (search->options.verbosity == 4) pv_debug(search, move, stdout);
@@ -597,6 +616,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 					assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 					search_restore_midgame(search, move->x, &eval0);
 					search->board = board0;
 =======
@@ -605,6 +625,10 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 					search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+					search_restore_midgame(search, move->x, &eval0);
+					search->board = board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 					if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 					node_update(&node, move);
 					assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);

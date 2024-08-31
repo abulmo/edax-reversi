@@ -175,11 +175,6 @@ typedef struct Search {
 	void (*observer)(Result*);                    /**< call back function to print search result */
 } Search;
 
-typedef struct Search_Backup {
-	Eval eval;
-	Board board;
-} Search_Backup;
-
 struct Node;
 
 extern const unsigned char QUADRANT_ID[];
@@ -248,6 +243,9 @@ void search_pass_endgame(Search*);
 void search_update_midgame(Search*, const Move*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 void search_restore_midgame(Search*, int, const Eval*);
 void search_update_pass_midgame(Search*, Eval*);
 void search_restore_pass_midgame(Search*, const Eval*);

@@ -411,6 +411,9 @@ void board_symetry(const Board *board, const int s, Board *sym)
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 unsigned long long vectorcall board_next_sse(__m128i OP, const int x, Board *next)
 {
 	__m128i flipped = reduce_vflip(mm_Flip(OP, x));
@@ -463,7 +466,7 @@ unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next)
 =======
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 
-unsigned long long vboard_next(uint64x2_t OP, const int x, Board *next)
+unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next)
 {
 	uint64x2_t flipped = mm_Flip(OP, x);
   #if !defined(_MSC_VER) && !defined(__clang__)	// MSVC-arm32 does not have vld1q_lane_u64
@@ -544,10 +547,14 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
 =======
 #if (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
 >>>>>>> 78ce5d7 (more precise rboard/vboard opt; reexamine neon vboard_next)
+=======
+  #if (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 {
   #else
@@ -2447,7 +2454,7 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 {
 	unsigned long long l8;
 	__m128i l01, l79, r79;	// full lines
-	const __m128i kff  = _mm_set1_epi8(0xff);
+	const __m128i kff  = _mm_set1_epi8(-1);
 	const __m128i e790 = _mm_set1_epi64x(0xff80808080808080);
 	const __m128i e791 = _mm_set1_epi64x(0x01010101010101ff);
 	const __m128i e792 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);

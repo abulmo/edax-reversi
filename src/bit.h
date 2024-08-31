@@ -474,11 +474,19 @@ typedef union {
 extern bool	hasSSE2;
 #endif
 
+/** Board : board representation */
+typedef struct Board {
+	unsigned long long player, opponent;     /**< bitboard representation */
+} Board;
+
 typedef union {
 	unsigned long long	ull[2];
-#if defined(hasSSE2) || defined(USE_MSVC_X86)
+	Board	board;	// for vboard optimization in search
+#ifdef hasNeon
+	uint64x2_t	v2;
+#elif defined(hasSSE2) || defined(USE_MSVC_X86)
 	__m128i	v2;
-	__m128d	d2;
+	__m128d	d2;	// used in flip_carry_sse_32.c
 #endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
 }

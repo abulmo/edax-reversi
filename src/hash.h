@@ -125,13 +125,21 @@ void hash_exclude_move(HashTable*, const Board *, const unsigned long long, cons
 void hash_feed(HashTable*, const Board*, const unsigned long long, HashStoreData *);
 void hash_store(HashTable*, const Board*, const unsigned long long, HashStoreData *);
 void hash_force(HashTable*, const Board*, const unsigned long long, HashStoreData *);
-bool hash_get(HashTable*, const Board*, const unsigned long long, HashData *);
 bool hash_get_from_board(HashTable*, const Board*, HashData *);
 void hash_exclude_move(HashTable*, const Board*, const unsigned long long, const int);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 void hash_copy(const HashTable*, HashTable*);
 void hash_print(const HashData*, FILE*);
 extern unsigned int writeable_level(HashData *data);
+
+#if defined(hasSSE2) && (defined(_MSC_VER) || defined(__linux__))
+	bool vectorcall hash_get_sse(HashTable*, __m128i, const unsigned long long, HashData *);
+	#define	hash_get(hash_table,board,hash_code,data)	hash_get_sse((hash_table), _mm_loadu_si128((__m128i *) (board)), (hash_code), (data))
+	#define	vhash_get(hash_table,vboard,hash_code,data)	hash_get_sse((hash_table), (vboard).v2, (hash_code), (data))
+#else
+	bool hash_get(HashTable*, const Board*, const unsigned long long, HashData *);
+	#define	vhash_get(hash_table,vboard,hash_code,data)	hash_get((hash_table), &(vboard).board, (hash_code), (data))
+#endif
 
 extern const HashData HASH_DATA_INIT;
 <<<<<<< HEAD

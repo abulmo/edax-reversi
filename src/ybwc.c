@@ -395,6 +395,7 @@ void task_search(Task *task)
 	Move *move = task->move;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Eval eval0;
 	Board board0;
 =======
@@ -403,6 +404,10 @@ void task_search(Task *task)
 =======
 	Search_Backup backup;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+	Eval eval0;
+	Board board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	int i;
 
 	search_set_state(search, node->search->stop);
@@ -413,6 +418,7 @@ void task_search(Task *task)
 		const int alpha = node->alpha;
 		if (alpha >= node->beta) break;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -428,12 +434,17 @@ void task_search(Task *task)
 		backup.board = search->board;
 		backup.eval = search->eval;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+		board0 = search->board;
+		eval0 = search->eval;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {
 				move->score = -PVS_midgame(search, -node->beta, -alpha, node->depth - 1, node);
 				assert(node->pv_node == true);
 			}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 		search_restore_midgame(search, move->x, &eval0);
@@ -444,6 +455,10 @@ void task_search(Task *task)
 =======
 		search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+		search_restore_midgame(search, move->x, &eval0);
+		search->board = board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		if (node->height == 0) {
 			move->cost = search_get_pv_cost(search);
 			move->score = search_bound(search, move->score);

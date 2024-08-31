@@ -729,9 +729,17 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 =======
 	Eval eval0;
+<<<<<<< HEAD
 	vBoard board0 = load_vboard(search->board);
 	unsigned long long moves = vboard_get_moves(board0, search->board);
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
+=======
+	V2DI board0;
+	unsigned long long moves;
+
+	board0.board = search->board;
+	moves = vboard_get_moves(board0);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 
 	SEARCH_STATS(++statistics.n_search_eval_2);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -875,7 +883,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 >>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
 		search->eval.feature = eval0.feature;
 		search->eval.n_empties = eval0.n_empties;
-		store_vboard(search->board, board0);
+		search->board = board0.board;
 
 	} else {
 <<<<<<< HEAD
@@ -1077,6 +1085,9 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	Move *move;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	Eval eval0;
 	V2DI board0;
 	long long nodes_org;
@@ -1153,12 +1164,12 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 =======
 >>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 	search_get_movelist(search, &movelist);
-	backup.board = search->board;
-	backup.eval = search->eval;
+	board0.board = search->board;
+	eval0 = search->eval;
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff
-		if (hash_get(hash_table, &search->board, hash_code, &hash_data.data) && search_TC_NWS(&hash_data.data, depth, NO_SELECTIVITY, alpha, &score))
+		if (vhash_get(hash_table, board0, hash_code, &hash_data.data) && search_TC_NWS(&hash_data.data, depth, NO_SELECTIVITY, alpha, &score))
 			return score;
 
 		// sort the list of moves
@@ -1228,8 +1239,13 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 >>>>>>> 19da175 (differed movelist sort in PVS/NWS_shallow)
 			search_update_midgame(search, move);
 			score = -NWS_shallow(search, ~alpha, depth - 1, hash_table);
+<<<<<<< HEAD
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+			search_restore_midgame(search, move->x, &eval0);
+			search->board = board0.board;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			if (score > bestscore) {
 				bestscore = score;
 <<<<<<< HEAD
@@ -1267,6 +1283,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		bestscore = -NWS_shallow(search, ~alpha, depth - 1, hash_table);
 		search_restore_midgame(search, move->x, &eval0);
 		search->board = board0.board;
+<<<<<<< HEAD
 
 	} else { // no moves
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
@@ -1317,12 +1334,14 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		search_update_midgame(search, move);
 		bestscore = -NWS_shallow(search, ~alpha, depth - 1, hash_table);
 		search_restore_midgame(search, move->x, &backup);
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 
 	} else { // no moves
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
-			search_update_pass_midgame(search, &backup.eval);
+			search_update_pass_midgame(search, &eval0);
 			bestscore = -NWS_shallow(search, ~alpha, depth, hash_table);
-			search_restore_pass_midgame(search, &backup.eval);
+			search_restore_pass_midgame(search, &eval0);
 		} else { // game-over !
 			bestscore = search_solve(search);
 		}
@@ -1378,6 +1397,9 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 	Move *move;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	Eval eval0;
 	Board board0;
 	long long nodes_org;
@@ -1437,8 +1459,8 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 	search_get_movelist(search, &movelist);
-	backup.board = search->board;
-	backup.eval = search->eval;
+	board0 = search->board;
+	eval0 = search->eval;
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff (unused, normally first searched position)
@@ -1544,7 +1566,8 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		search_update_midgame(search, move);
 		bestscore = -PVS_shallow(search, -beta, -alpha, depth - 1);
 		hash_data.data.move[0] = move->x;
-		search_restore_midgame(search, move->x, &backup);
+		search_restore_midgame(search, move->x, &eval0);
+		search->board = board0;
 		lower = (bestscore > alpha) ? bestscore : alpha;
 
 		while ((bestscore < beta) && (move = move_next_best(move))) {
@@ -1570,9 +1593,14 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 >>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 			if (lower < score && score < beta)
 				lower = score = -PVS_shallow(search, -beta, -lower, depth - 1);
+<<<<<<< HEAD
 >>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+			search_restore_midgame(search, move->x, &eval0);
+			search->board = board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			if (score > bestscore) {
 				bestscore = score;
 <<<<<<< HEAD
@@ -1661,13 +1689,14 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		move = movelist.move[0].next;
 		search_update_midgame(search, move);
 		bestscore = -PVS_shallow(search, -beta, -alpha, depth - 1);
-		search_restore_midgame(search, move->x, &backup);
+		search_restore_midgame(search, move->x, &eval0);
+		search->board = board0;
 
 	} else { // no moves
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
-			search_update_pass_midgame(search, &backup.eval);
+			search_update_pass_midgame(search, &eval0);
 			bestscore = -PVS_shallow(search, -beta, -alpha, depth);
-			search_restore_pass_midgame(search, &backup.eval);
+			search_restore_pass_midgame(search, &eval0);
 		} else { // game-over !
 			bestscore = search_solve(search);
 		}
@@ -1722,6 +1751,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	Move *move;
 	Node node;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Eval Ev0;
 <<<<<<< HEAD
@@ -1737,6 +1767,10 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	long long nodes_org = search->n_nodes + search->child_nodes;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
+=======
+	Eval eval0;
+	V2DI board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	long long nodes_org;
 >>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 
@@ -1827,13 +1861,19 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data) || hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data))
+=======
+	board0.board = search->board;
+	if (vhash_get(&search->hash_table, board0, hash_code, &hash_data.data) || vhash_get(&search->pv_table, board0, hash_code, &hash_data.data))
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		if (search_TC_NWS(&hash_data.data, depth, search->selectivity, alpha, &score)) return score;
 
 	if (movelist_is_empty(&movelist)) { // no moves ?
 		node_init(&node, search, alpha, alpha + 1, depth, movelist.n_moves, parent);
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
 			search_update_pass_midgame(search, &eval0);
+<<<<<<< HEAD
 			node.bestscore = -NWS_midgame(search, -node.beta, depth, &node);
 			search_restore_pass_midgame(search, &eval0);
 =======
@@ -1867,6 +1907,10 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 =======
 			search_restore_pass_midgame(search, &backup.eval);
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
+=======
+			node.bestscore = -NWS_midgame(search, -node.beta, depth, &node);
+			search_restore_pass_midgame(search, &eval0);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		} else { // game-over !
 			node.bestscore = search_solve(search);
 		}
@@ -1880,9 +1924,13 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 			if (hash_data.data.move[0] == NOMOVE) hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data);
+=======
+			if (hash_data.data.move[0] == NOMOVE) vhash_get(&search->hash_table, board0, hash_code, &hash_data.data);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			movelist_evaluate(&movelist, search, &hash_data.data, alpha, depth + options.inc_sort_depth[search->node_type[search->height]]);
 			movelist_sort(&movelist);
 =======
@@ -1916,7 +1964,10 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0.board = search->board;
+=======
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		eval0 = search->eval;
 		for (move = node_first_move(&node, &movelist); move; move = node_next_move(&node)) {
 			if (!node_split(&node, move)) {
@@ -2101,11 +2152,16 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	Move *move;
 	Node node;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Eval Ev0;
 =======
 	Search_Backup backup;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+	Eval eval0;
+	V2DI board0;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	long long nodes_org;
 <<<<<<< HEAD
 	int reduced_depth, depth_pv_extension, saved_selectivity;
@@ -2201,6 +2257,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		if (can_move(search->board.opponent, search->board.player)) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_update_pass_midgame(search, &eval0);
 			search->node_type[search->height] = PV_NODE;
 			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
@@ -2216,6 +2273,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
 			search_restore_pass_midgame(search, &backup.eval);
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
+=======
+			search_update_pass_midgame(search, &eval0);
+			search->node_type[search->height] = PV_NODE;
+			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
+			search_restore_pass_midgame(search, &eval0);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			node.bestmove = PASS;
 		} else {
 			node.alpha = -(node.beta = +SCORE_INF);
@@ -2224,14 +2287,20 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		}
 
 	} else { // normal PVS
+		board0.board = search->board;
 		if (movelist.n_moves > 1) {
 			//IID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (!hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data))
 				hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data);
+=======
+			if (!vhash_get(&search->pv_table, board0, hash_code, &hash_data.data))
+				vhash_get(&search->hash_table, board0, hash_code, &hash_data.data);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 
 			if (USE_IID && hash_data.data.move[0] == NOMOVE) {	// (unused)
 				if (depth == search->eval.n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
@@ -2269,6 +2338,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 					hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 =======
 					hash_get(pv_table, &search->board, hash_code, &hash_data);
@@ -2279,6 +2349,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 					hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
+=======
+					vhash_get(&search->pv_table, board0, hash_code, &hash_data.data);
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 					search->depth_pv_extension = depth_pv_extension;
 					search->selectivity = saved_selectivity;
 				}
@@ -2302,6 +2375,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		}
 
 		// first move
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2334,6 +2408,14 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			move->score = -PVS_midgame(search, -beta, -alpha, depth - 1, &node);
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+		eval0 = search->eval;
+		if ((move = node_first_move(&node, &movelist))) { // why if there ?
+			search_update_midgame(search, move); search->node_type[search->height] = PV_NODE;
+			move->score = -PVS_midgame(search, -beta, -alpha, depth - 1, &node);
+			search_restore_midgame(search, move->x, &eval0);
+			search->board = board0.board;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			node_update(&node, move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 
@@ -2354,11 +2436,16 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 					}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 					search_restore_midgame(search, move->x, &eval0);
 					search->board = board0;
 =======
 					search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+					search_restore_midgame(search, move->x, &eval0);
+					search->board = board0.board;
+>>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 					node_update(&node, move);
 =======
 						move->score = -NWS_midgame(search, -alpha - 1, depth - 1, node);
