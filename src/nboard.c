@@ -3,7 +3,7 @@
  *
  * Chris Welty's NBoard Protocol
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -82,12 +82,12 @@ void ui_init_nboard(UI *ui)
 	Play *play = ui->play;
 
 	// other update...
-	play_init(play, ui->book);
-	play->search->options.header = play->search->options.separator = NULL;
-	ui->book->search = play->search;
-	book_load(ui->book, options.book_file);
-	play->search->id = 1;
-	search_set_observer(play->search, nboard_observer);
+	play_init(play, &ui->book);
+	play->search.options.header = play->search.options.separator = NULL;
+	ui->book.search = &play->search;
+	book_load(&ui->book, options.book_file);
+	play->search.id = 1;
+	search_set_observer(&play->search, nboard_observer);
 	ui->mode = 3;
 	play->type = ui->type;
 
@@ -100,8 +100,8 @@ void ui_init_nboard(UI *ui)
  */
 void ui_free_nboard(UI *ui)
 {
-	if (ui->book->need_saving) book_save(ui->book, options.book_file);
-	book_free(ui->book);
+	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
+	book_free(&ui->book);
 	play_free(ui->play);
 	log_close(nboard_log);
 }
@@ -136,9 +136,12 @@ void ui_loop_nboard(UI *ui)
 			nboard_send("set myname Edax%d", options.level);
 
 		} else if (strcmp(cmd, "game") == 0) {
-			Game game[1];
-			if (parse_ggf(game, param) != param) {
-				game_get_board(game, 60, play->initial_board);
+			Game game;
+			int lastmove = parse_ggf(&game, param);
+			if (lastmove >= 0) {
+				game_get_board(&game, 60, &play->initial_board);
+				if (lastmove == PASS)	// https://github.com/okuhara/edax-reversi-AVX/issues/1
+					board_pass(&play->initial_board);
 				play_new(play);
 			} else {
 				nboard_fail("Cannot parse game \"%s\"", param);
@@ -157,7 +160,7 @@ void ui_loop_nboard(UI *ui)
 		} else if (strcmp(cmd, "go") == 0) {
 			nboard_send("status Edax is thinking");
 			play_go(play, false);
-			nboard_send_move(play->result);
+			nboard_send_move(&play->result);
 			nboard_send("status Edax is waiting");
 
 		} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0) {
