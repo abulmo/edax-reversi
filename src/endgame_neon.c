@@ -964,31 +964,32 @@ static int search_solve_4(Search *search, int alpha)
 		opponent = vgetq_lane_u64(OP, 1);
 		x1 = vgetq_lane_u8(empties_series, 3);
 		if ((NEIGHBOUR[x1] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
-			bestscore = search_solve_3(board_flip_next(OP, x1, flipped), alpha, &search->n_nodes, vget_low_u8(empties_series));
+			bestscore = search_solve_3(board_flip_next(OP, x1, flipped), alpha, &search->n_nodes,
+				vget_low_u8(empties_series));
 			if (bestscore <= alpha) return bestscore * pol;
 >>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
 		}
 
-		empties_series = vextq_u8(empties_series, empties_series, 4);
-		x2 = vgetq_lane_u8(empties_series, 3);
+		x2 = vgetq_lane_u8(empties_series, 7);
 		if ((NEIGHBOUR[x2] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-			score = search_solve_3(board_flip_next(OP, x2, flipped), alpha, &search->n_nodes, vget_low_u8(empties_series));
+			score = search_solve_3(board_flip_next(OP, x2, flipped), alpha, &search->n_nodes,
+				vget_low_u8(vextq_u8(empties_series, empties_series, 4)));
 			if (score <= alpha) return score * pol;
 			else if (score < bestscore) bestscore = score;
 		}
 
-		empties_series = vextq_u8(empties_series, empties_series, 4);
-		x3 = vgetq_lane_u8(empties_series, 3);
+		x3 = vgetq_lane_u8(empties_series, 11);
 		if ((NEIGHBOUR[x3] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x3))) {
-			score = search_solve_3(board_flip_next(OP, x3, flipped), alpha, &search->n_nodes, vget_low_u8(empties_series));
+			score = search_solve_3(board_flip_next(OP, x3, flipped), alpha, &search->n_nodes,
+				vget_high_u8(empties_series));
 			if (score <= alpha) return score * pol;
 			else if (score < bestscore) bestscore = score;
 		}
 
-		empties_series = vextq_u8(empties_series, empties_series, 4);
-		x4 = vgetq_lane_u8(empties_series, 3);
+		x4 = vgetq_lane_u8(empties_series, 15);
 		if ((NEIGHBOUR[x4] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x4))) {
-			score = search_solve_3(board_flip_next(OP, x4, flipped), alpha, &search->n_nodes, vget_low_u8(empties_series));
+			score = search_solve_3(board_flip_next(OP, x4, flipped), alpha, &search->n_nodes,
+				vget_low_u8(vextq_u8(empties_series, empties_series, 12)));
 			if (score < bestscore) bestscore = score;
 			return bestscore * pol;
 		}
@@ -997,7 +998,6 @@ static int search_solve_4(Search *search, int alpha)
 			return bestscore * pol;
 
 		OP = vextq_u64(OP, OP, 1);	// pass
-		empties_series = vextq_u8(empties_series, empties_series, 4);
 	} while ((pol = -pol) >= 0);
 
 <<<<<<< HEAD
