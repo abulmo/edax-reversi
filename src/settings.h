@@ -3,7 +3,11 @@
  *
  * Various macro / constants to control algorithm usage.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
+=======
+ * @date 1998 - 2017
+>>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @version 4.5
  */

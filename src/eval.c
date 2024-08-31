@@ -3,7 +3,11 @@
  *
  * Evaluation function.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2017
+>>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5

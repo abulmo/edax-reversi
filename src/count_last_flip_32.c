@@ -1261,7 +1261,7 @@ int (*count_last_flip[])(const unsigned long long) = {
  *
  * With 135 degree merge, instead of Valery ClaudePierre's modification.
  *
- * @date 1998 - 2014
+ * @date 1998 - 2017
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.4

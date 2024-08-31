@@ -6,7 +6,11 @@
  * a macro needs to be defined to chose between different flavors of the
  * algorithm.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2017
+>>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @version 4.5
  */

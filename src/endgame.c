@@ -3,7 +3,11 @@
  *
  * Search near the end of the game.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
+=======
+ * @date 1998 - 2017
+>>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5

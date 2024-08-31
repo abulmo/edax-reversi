@@ -11,7 +11,11 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
+=======
+ * @date 1998 - 2017
+>>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
