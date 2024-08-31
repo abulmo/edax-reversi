@@ -50,6 +50,7 @@ ifeq ($(COMP),gcc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -60,6 +61,9 @@ ifeq ($(COMP),gcc)
 	endif
 	ifeq ($(ARCH),x64-k10)
 		CFLAGS += -m64 -march=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT -DMOVE_GENERATOR=MOVE_GENERATOR_BITSCAN
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
 	ifeq ($(ARCH),x32-modern)
 		CFLAGS += -mx32 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
@@ -70,8 +74,16 @@ ifeq ($(COMP),gcc)
 	ifeq ($(ARCH),x32)
 		CFLAGS += -mx32 -mtune=generic -DUSE_GAS_X64
 	endif
+<<<<<<< HEAD
 	ifeq ($(ARCH),x86-sse)
 		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
+=======
+	ifeq ($(ARCH),x86-modern)
+		CFLAGS += -m32 -march=native -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT
+	endif
+	ifeq ($(ARCH),x86)
+		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
@@ -120,7 +132,14 @@ ifeq ($(COMP),gcc)
 	endif
 	ifeq ($(OS),windows)
 		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x0501
+<<<<<<< HEAD
 		ifneq (,$(findstring x86,$(ARCH)))
+=======
+		ifeq ($(ARCH),x86-modern)
+			CFLAGS += -DUSE_PTHREAD
+		endif
+		ifeq ($(ARCH),x86)
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 			CFLAGS += -DUSE_PTHREAD
 		endif
 	endif
@@ -318,8 +337,16 @@ endif
 ifeq ($(OS),windows)
 	EXE = wEdax-$(ARCH).exe
 	LIBS += -lws2_32
+<<<<<<< HEAD
 	ifneq (,$(findstring x86,$(ARCH)))
 		LIBS += -Bstatic -Wl,-Bstatic,-lpthread
+=======
+	ifeq ($(ARCH),x86-modern)
+		LIBS += -lpthread
+	endif
+	ifeq ($(ARCH),x86)
+		LIBS += -lpthread
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
 endif
 ifeq ($(OS),osx)
@@ -382,6 +409,9 @@ build:
 
 source:
 	$(CC) $(CFLAGS) -S all.c
+
+source:
+	$(CC) $(CFLAGS) all.c -S
 
 pgo-build:
 	@echo "building edax with pgo..."

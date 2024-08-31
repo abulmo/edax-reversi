@@ -458,9 +458,17 @@ unsigned long long horizontal_mirror(unsigned long long b)
  * @return The transposed unsigned long long.
  */
 #ifdef __AVX2__
+<<<<<<< HEAD
 unsigned long long transpose(unsigned long long b)
 {
 	__m256i	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), _mm256_set_epi64x(0, 1, 2, 3));
+=======
+#include <x86intrin.h>
+unsigned long long transpose(unsigned long long b)
+{
+	static const __v4di s3210 = { 3, 2, 1, 0 };
+	__v4di	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_set_epi64x(0, b)), s3210);
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	return ((unsigned long long) _mm256_movemask_epi8(v) << 32)
 		| (unsigned int) _mm256_movemask_epi8(_mm256_slli_epi64(v, 4));
 }
@@ -479,6 +487,7 @@ unsigned long long transpose(unsigned long long b)
 
 	return b;
 }
+<<<<<<< HEAD
 #endif // __AVX2__
 
 #ifndef crc32c_u64
@@ -512,6 +521,8 @@ unsigned int crc32c_u8(unsigned int crc, unsigned int data)
 {
 	return	crc32c_table[0][(crc ^ data) & 0xff] ^ (crc >> 8);
 }
+=======
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 #endif
 
 /**

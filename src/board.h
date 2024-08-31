@@ -101,8 +101,19 @@ extern unsigned char edge_stability[256 * 256];
 	#define	unpackH2H7(x)	((((x) & 0x7e) * 0x0002040810204000) & 0x0080808080808000)
 #endif
 
+<<<<<<< HEAD
 #if (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_CARRY) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_KINDERGARTEN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BITSCAN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_32)
 	extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
+=======
+#if ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2))
+	extern int last_flip(int pos, unsigned long long P);
+#else
+	#if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_32
+		extern int (REGPARM *count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
+	#else
+		extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
+	#endif
+>>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	#define	last_flip(x,P)	count_last_flip[x](P)
 #else
 	extern int last_flip(int pos, unsigned long long P);
