@@ -11,6 +11,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -27,6 +28,9 @@
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
  * @date 1998 - 2022
+=======
+ * @date 1998 - 2023
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
  * @author Richard Delorme
  * @version 4.5
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
@@ -59,6 +63,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 #define MOVE_GENERATOR_AVX512 9
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 #define MOVE_GENERATOR_SVE 11
@@ -90,6 +97,7 @@
 #define COUNT_LAST_FLIP_PLAIN 5		// 33.3Mnps
 #define COUNT_LAST_FLIP_32 6		// 33.1Mnps
 #define COUNT_LAST_FLIP_BMI2 7		// 34.7Mnps	// slow on AMD
+<<<<<<< HEAD
 <<<<<<< HEAD
 #define COUNT_LAST_FLIP_AVX_PPFILL 8
 #define COUNT_LAST_FLIP_AVX512 9
@@ -145,6 +153,10 @@
 		#endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
+=======
+#define	COUNT_LAST_FLIP_AVX_PPFILL 8
+#define	COUNT_LAST_FLIP_AVX512 9
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 
 /**move generation. */
 #ifndef MOVE_GENERATOR

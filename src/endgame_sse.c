@@ -105,6 +105,16 @@ extern const uint8_t COUNT_FLIP[8][256];
 	#endif
 #endif
 
+#ifdef __AVX512VL__
+    	#define	TEST_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask((X), (Y)))
+    	#define	TEST_EPI8_MASK16(X,Y)	_cvtmask16_u32(_mm_test_epi8_mask((X), (Y)))
+    	#define	TESTNOT_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask(_mm256_xor_si256((X),(Y)), (Y)))
+#else
+	#define	TEST_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256((X),(Y))));
+	#define	TEST_EPI8_MASK16(X,Y)	_mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128((X),(Y))));
+	#define	TESTNOT_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256((X),(Y))));
+#endif
+
 // in count_last_flip_sse.c
 extern const unsigned char COUNT_FLIP[8][256];
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -713,8 +723,9 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+#elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && !defined(SIMULLASTFLIP)
 // AVX512 lastflip (2.41s icc/icelake)
+extern	const V4DI lmask_v4[66], rmask_v4[66];
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
@@ -776,8 +787,9 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+#elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(SIMULLASTFLIP)
 // branchless AVX512 lastflip (2.42s icc/icelake)
+extern	const V4DI lmask_v4[66], rmask_v4[66];
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
@@ -828,8 +840,9 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX
+#elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX_PPFILL)
 // experimental AVX2 lastflip version (a little slower)
+extern	const V4DI lmask_v4[66], rmask_v4[66];
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
@@ -896,7 +909,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif 0 // def __AVX2__
+#elif defined(AVXLASTFLIP) && defined(SIMULLASTFLIP)
 // experimental branchless AVX2 MOVMSK version (slower on icc, par on msvc)
 // https://eukaryote.hateblo.jp/entry/2020/05/10/033228
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
@@ -913,13 +926,8 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 	(void) beta;	// no lazy cut-off
 	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
-    #ifdef __AVX512VL__
-    	tP = _mm256_test_epi8_mask(PP, M);
-    #else
-	tP = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
-    #endif
-	tO = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256(PP, M)));
 	h = (P >> (pos & 0x38)) & 0xFF;
+	tP = TEST_EPI8_MASK32(PP, M);			tO = TESTNOT_EPI8_MASK32(PP, M);
 	p_flip  = COUNT_FLIP_X[h];			o_flip  = COUNT_FLIP_X[h ^ 0xFF];
 	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip += COUNT_FLIP_Y[tO & 0xFF];
 	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip += COUNT_FLIP_Y[(tO >> 16) & 0xFF];
@@ -935,40 +943,31 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	unsigned int	n_flips, t;
-	unsigned long long P;
 	int	score, score2;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-	__m128i	II;
 
 	// n_flips = last_flip(pos, P);
   #ifdef AVXLASTFLIP	// no gain
 	__m256i M = mask_dvhd[pos].v4;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	unsigned int h = (unsigned char) (P >> (pos & 0x38));
 
-	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
-	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
-    #ifdef __AVX512VL__
-    	t = _cvtmask32_u32(_mm256_test_epi8_mask(PP, M));
-    #else
-	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
-    #endif
+	t = TEST_EPI8_MASK32(PP, M);
+	n_flips  = COUNT_FLIP_X[h];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 	t >>= 16;
   #else
 	__m128i M0 = mask_dvhd[pos].v2[0];
 	__m128i M1 = mask_dvhd[pos].v2[1];
-	__m128i	PP = _mm_shuffle_epi32(PO, DUPHI);
+	__m128i PP = _mm_shuffle_epi32(PO, DUPHI);
+	unsigned long long P = _mm_cvtsi128_si64(PP);
+	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, M0), _mm_setzero_si128());
 
-	P = _mm_cvtsi128_si64(PP);
-	II = _mm_sad_epu8(_mm_and_si128(PP, M0), _mm_setzero_si128());
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-    #ifdef __AVX512VL__
-    	t = _cvtmask16_u32(_mm_test_epi8_mask(PP, M1));
-    #else
-	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, M1)));
-    #endif
+	t = TEST_EPI8_MASK16(PP, M1);
   #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
@@ -984,15 +983,16 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(pos, ~P);
   #ifdef AVXLASTFLIP
-			PP = _mm256_andnot_si256(PP, M);
-			II = _mm_sad_epu8(_mm256_castsi256_si128(PP), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(PP, 1)));
+			t = TESTNOT_EPI8_MASK32(PP, M);
+			n_flips  = COUNT_FLIP_X[h ^ 0xFF];
+			n_flips += COUNT_FLIP_Y[(unsigned char) t];
+			t >>= 16;
   #else
 			II = _mm_sad_epu8(_mm_andnot_si128(PP, M0), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(PP, M1)));
-  #endif
 			n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 			n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(PP, M1)));
+  #endif
 			n_flips += COUNT_FLIP_Y[t >> 8];
 			n_flips += COUNT_FLIP_Y[(unsigned char) t];
 

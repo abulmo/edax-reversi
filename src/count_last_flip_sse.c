@@ -43,6 +43,8 @@
 const uint8_t COUNT_FLIP[8][256] = {
 =======
 
+#define	DUPLO	0x44
+
 /** precomputed count flip array */
 const unsigned char COUNT_FLIP[8][256] = {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -254,11 +256,9 @@ int last_flip(int pos, unsigned long long P)
 	n_flips += COUNT_FLIP_Y[t & 0xff];
 	t >>= 16;
   #else
-	__m128i	PP, II;
+	__m128i PP = _mm_shuffle_epi32(_mm_cvtsi64_si128(P), DUPLO);
+	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
 
-	PP = _mm_cvtsi64_si128(P);
-	PP = _mm_unpacklo_epi64(PP, PP);
-	II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[(unsigned int) _mm_cvtsi128_si32(II)];
     #ifdef __AVX512VL__

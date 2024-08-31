@@ -204,10 +204,14 @@ extern unsigned long long A1_A8[256];
 #define	unpackH2H7(x)	(((unsigned long long)((((x) >> 4) * 0x10204080) & 0x80808080) << 32) | ((((x) & 0x0f) * 0x10204080) & 0x80808080))
 #endif
 
+<<<<<<< HEAD
 #if (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	extern int last_flip(int pos, unsigned long long P);
 #else
+=======
+#if (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_CARRY) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_KINDERGARTEN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BITSCAN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_32)
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 	extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	#define	last_flip(x,P)	count_last_flip[x](P)

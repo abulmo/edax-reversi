@@ -57,16 +57,22 @@
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2
 	#include "count_last_flip_bmi2.c"
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX_PPFILL
 	#include "count_last_flip_avx_ppfill.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512
 	#include "count_last_flip_avx512cd.c"
+<<<<<<< HEAD
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON
 	#include "count_last_flip_neon.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE
 	#include "count_last_flip_sve_lzcnt.c"
 =======
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 #else // LAST_FLIP_COUNTER == COUNT_LAST_FLIP_KINDERGARTEN
 	#include "count_last_flip_kindergarten.c"
 #endif
@@ -188,6 +194,7 @@ int search_solve_0(const Search *search)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
 	#include "endgame_sse.c"	// vectorcall version
 #elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON) || ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE) && defined(SIMULLASTFLIP)))
@@ -204,6 +211,9 @@ int search_solve_0(const Search *search)
 =======
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2))
 >>>>>>> 9ea5b5e (BMI2 and mm_LastFlip version of board_score_sse_1 added (but not enabled))
+=======
+#if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
+>>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 	#include "endgame_sse.c"	// vectorcall version
 #elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 	#include "endgame_neon.c"
