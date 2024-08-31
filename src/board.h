@@ -167,6 +167,14 @@ extern unsigned char edge_stability[256 * 256];
 =======
 extern unsigned long long A1_A8[256];
 
+#if defined(__BMI2__) && !defined(bdver4) && !defined(znver1) && !defined(znver2) // pdep is slow on AMD before Zen3
+#define	unpackA1A8(x)	_pdep_u64((x), 0x0101010101010101)
+#define	unpackH1H8(x)	_pdep_u64((x), 0x8080808080808080)
+#else
+#define	unpackA1A8(x)	(((unsigned long long)((((x) >> 4) * 0x00204081) & 0x01010101) << 32) | ((((x) & 0x0f) * 0x00204081) & 0x01010101))
+#define	unpackH1H8(x)	(((unsigned long long)((((x) >> 4) * 0x10204080) & 0x80808080) << 32) | ((((x) & 0x0f) * 0x10204080) & 0x80808080))
+#endif
+
 #if (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	extern int last_flip(int pos, unsigned long long P);

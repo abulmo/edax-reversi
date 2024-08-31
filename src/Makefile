@@ -55,6 +55,7 @@ ifeq ($(COMP),gcc)
 
 	ifeq ($(ARCH),x64-modern)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -68,6 +69,9 @@ ifeq ($(COMP),gcc)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	endif
 	ifeq ($(ARCH),x64-popcnt)
 		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
@@ -362,6 +366,7 @@ ifeq ($(COMP),clang)
 
 	ifeq ($(ARCH),x64-modern)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -369,6 +374,9 @@ ifeq ($(COMP),clang)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
+=======
+		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 

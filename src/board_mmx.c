@@ -548,7 +548,7 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 {
 	__m64	P, O, P_central, disc, full_h, full_v, full_d7, full_d9, full_l, full_r, stable;
 	__m64	stable_h, stable_v, stable_d7, stable_d9, old_stable, m;
-	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
+	unsigned int	OL, OH, PL, PH, t, a1a8, h1h8, SL, SH;
 	static const unsigned long long MFF = 0xffffffffffffffff;
 	static const unsigned long long edge = 0xff818181818181ffULL;
 	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
@@ -592,14 +592,17 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 	// compute the exact stable edges (from precomputed tables)
 	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
 	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
-	a1a8po = ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
-		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
-	h1h8po = ((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
-		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24);
-	stable = _m_por(stable, _m_por(_m_por(*(__m64 *) &A1_A8[edge_stability[a1a8po]],
-		_m_psllqi(*(__m64 *) &A1_A8[edge_stability[h1h8po]], 7)),
-		_m_punpckldq(_m_from_int(edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]),
-		_m_from_int(edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24))));
+	a1a8 = edge_stability[((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
+		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24)];
+	h1h8 = edge_stability[((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
+		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24)];
+	SL = edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]
+		| (((a1a8 & 0x0f) * 0x00204081) & 0x01010101)
+		| (((h1h8 & 0x0f) * 0x10204080) & 0x80808080);
+	SH = (edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24)
+		| (((a1a8 >> 4) * 0x00204081) & 0x01010101)
+		| (((h1h8 >> 4) * 0x10204080) & 0x80808080);
+	stable = _m_por(stable, _m_punpckldq(_m_from_int(SL), _m_from_int(SH)));
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 	t = _m_to_int(_m_packsswb(stable, stable));
@@ -677,7 +680,7 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 #ifdef hasSSE2
 	__v2di	PO;
 #endif
-	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
+	unsigned int	OL, OH, PL, PH, t, a1a8, h1h8, SL, SH;
 	static const unsigned long long e0 = 0xff818181818181ffULL;
 	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
 	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0xfffffffff0f0f0f0, 0x0f0f0f0fffffffff };
@@ -732,26 +735,27 @@ int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
 	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
 #ifdef hasSSE2
-	a1a8po = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
-	h1h8po = _mm_movemask_epi8(PO);
+	a1a8 = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
+	h1h8 = _mm_movemask_epi8(PO);
 #else
-	a1a8po = ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
-		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
-	h1h8po = ((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
-		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24);
+	a1a8 = edge_stability[((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
+		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24)];
+	h1h8 = edge_stability[((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
+		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24)];
 #endif
+	SL = edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]
+		| (((a1a8 & 0x0f) * 0x00204081) & 0x01010101)
+		| (((h1h8 & 0x0f) * 0x10204080) & 0x80808080);
+	SH = (edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24)
+		| (((a1a8 >> 4) * 0x00204081) & 0x01010101)
+		| (((h1h8 >> 4) * 0x10204080) & 0x80808080);
+
 	__asm__(
-		"movd	%1, %%mm0\n\t"		"por	%3, %0\n\t"
+		"movd	%1, %%mm0\n\t"
 		"movd	%2, %%mm1\n\t"
-		"punpckldq %%mm1, %%mm0\n\t"	"movq	%4, %%mm1\n\t"
-		"por	%%mm0, %0\n\t"		"psllq	$7, %%mm1\n\t"
-						"por	%%mm1, %0"
-	: "+y" (stable)
-	: "g" ((int) edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]),
-	  "g" (edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24),
-	  "m" (A1_A8[edge_stability[a1a8po]]),
-	  "m" (A1_A8[edge_stability[h1h8po]])
-	: "mm0", "mm1");
+		"punpckldq %%mm1, %%mm0\n\t"
+		"por	%%mm0, %0\n"
+	: "+y" (stable) : "g" (SL), "g" (SH) : "mm0", "mm1" );
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 	__asm__ (

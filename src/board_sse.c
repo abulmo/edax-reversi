@@ -989,8 +989,7 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 	uint16x8_t h1h8 = vshlq_u16(vreinterpretq_u16_u8(vshrq_n_u8(PO, 7)), shiftv);
 	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
 	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
-	    |  A1_A8[edge_stability[vaddvq_u16(a1a8)]]
-	    |  A1_A8[edge_stability[vaddvq_u16(h1h8)]] << 7;
+	    |  unpackA1A8(a1a8) | unpackH1H8(h1h8);
 }
 
 #elif defined(__x86_64__) || defined(_M_X64)
@@ -998,8 +997,12 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 {
 	// compute the exact stable edges (from precomputed tables)
+<<<<<<< HEAD
 	unsigned int a1a8po, h1h8po;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	unsigned int a1a8, h1h8;
+>>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	unsigned long long stable_edge;
 
 	__m128i	P0 = _mm_cvtsi64_si128(P);
@@ -1009,6 +1012,7 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 		| ((unsigned long long) edge_stability[_mm_extract_epi16(PO, 7)] << 56);
 
 	PO = _mm_unpacklo_epi64(O0, P0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	a1a8 = edge_stability[_mm_movemask_epi8(_mm_slli_epi64(PO, 7))];
 	h1h8 = edge_stability[_mm_movemask_epi8(PO)];
@@ -1083,6 +1087,12 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 #else
 	stable_edge |= A1_A8[edge_stability[a1a8po]] | (A1_A8[edge_stability[h1h8po]] << 7);
 #endif
+=======
+	a1a8 = edge_stability[_mm_movemask_epi8(_mm_slli_epi64(PO, 7))];
+	h1h8 = edge_stability[_mm_movemask_epi8(PO)];
+	stable_edge |= unpackA1A8(a1a8) | unpackH1H8(h1h8);
+
+>>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	return stable_edge;
 }
 #endif // __aarch64__/__x86_64__/_M_X64

@@ -142,7 +142,7 @@ unsigned char edge_stability[256 * 256];
 	#include "board_sse.c"
 =======
 /** conversion from an 8-bit line to the A1-A8 line */
-unsigned long long A1_A8[256];
+// unsigned long long A1_A8[256];
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 #include "board_mmx.c"
@@ -1068,7 +1068,7 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 void edge_stability_init(void)
 {
 	int P, O, PO, rPO;
-	unsigned long long Q;
+	// unsigned long long Q;
 	// long long t = cpu_clock();
 
 	for (PO = 0; PO < 256 * 256; ++PO) {
@@ -1106,12 +1106,16 @@ void edge_stability_init(void)
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 =======
 
-	Q = 0;
+	/* Q = 0;
 	for (P = 0; P < 256; ++P) {
 		A1_A8[P] = Q;
 		Q = ((Q | ~0x0101010101010101) + 1) & 0x0101010101010101;
+<<<<<<< HEAD
 	}
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+	} */
+>>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 }
 
 #ifdef HAS_CPU_64
@@ -1139,10 +1143,12 @@ void edge_stability_init(void)
  */
 unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
 {	// compute the exact stable edges (from precomputed tables)
+	unsigned int a1a8 = packA1A8(P) * 256 + packA1A8(O);
+	unsigned int h1h8 = packH1H8(P) * 256 + packH1H8(O);
 	return edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
 	    |  (unsigned long long) edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 56
-	    |  A1_A8[edge_stability[packA1A8(P) * 256 + packA1A8(O)]]
-	    |  A1_A8[edge_stability[packH1H8(P) * 256 + packH1H8(O)]] << 7;
+	    |  unpackA1A8(edge_stability[a1a8])
+	    |  unpackH1H8(edge_stability[h1h8]);
 }
 #endif
 
