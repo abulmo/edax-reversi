@@ -123,6 +123,7 @@ void init_neon (void)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static __m128i vectorcall board_horizontal_mirror_sse(__m128i bb)
 {
 	const __m128i mask0F0F = _mm_set1_epi16(0x0F0F);
@@ -322,6 +323,10 @@ void board_horizontal_mirror(const Board *board, Board *sym)
 >>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 {
 	__m128i	bb = _mm_loadu_si128((__m128i *) board);
+=======
+static __m128i vectorcall board_horizontal_mirror_sse(__m128i bb)
+{
+>>>>>>> a23c3d4 (SSE optimized board_symetry again)
 	const __m128i mask0F0F = _mm_set1_epi16(0x0F0F);
   #if defined(__SSSE3__) || defined(__AVX__)	// pshufb (cf. http://wm.ite.pl/articles/sse-popcount.html)
 	const __m128i mbitrev  = _mm_set_epi8(15, 7, 11, 3, 13, 5, 9, 1, 14, 6, 10, 2, 12, 4, 8, 0);
@@ -334,25 +339,36 @@ void board_horizontal_mirror(const Board *board, Board *sym)
 	bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 2), mask3333), _mm_slli_epi64(_mm_and_si128(bb, mask3333), 2));
 	bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F), _mm_slli_epi64(_mm_and_si128(bb, mask0F0F), 4));
   #endif
-	_mm_storeu_si128((__m128i *) sym, bb);
+	return bb;
+}
+
+void board_horizontal_mirror(const Board *board, Board *sym)
+{
+	_mm_storeu_si128((__m128i *) sym, board_horizontal_mirror_sse(_mm_loadu_si128((__m128i *) board)));
+}
+
+static __m128i vectorcall board_vertical_mirror_sse(__m128i bb)
+{
+  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb
+	return _mm_shuffle_epi8(bb, _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7));
+  #else
+	bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
+	return _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
+  #endif
 }
 
 void board_vertical_mirror(const Board *board, Board *sym)
 {
-	__m128i	bb = _mm_loadu_si128((__m128i *) board);
-  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb
-	const __m128i mbswapll = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
-	bb = _mm_shuffle_epi8(bb, mbswapll);
-  #else
-	bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
-	bb = _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
+  #if defined(__SSSE3__) || defined(__AVX__) || !defined(HAS_CPU_64)
+	_mm_storeu_si128((__m128i *) sym, board_vertical_mirror_sse(_mm_loadu_si128((__m128i *) board)));
+  #else	// use BSWAP64
+	sym->player = vertical_mirror(board->player);
+	sym->opponent = vertical_mirror(board->opponent);
   #endif
-	_mm_storeu_si128((__m128i *) sym, bb);
 }
 
-void board_transpose(const Board *board, Board *sym)
+static __m128i vectorcall board_transpose_sse(__m128i bb)
 {
-	__m128i	bb = _mm_loadu_si128((__m128i *) board);
 	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
 	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
 	const __m128i mask00F0 = _mm_set1_epi64x(0x00000000F0F0F0F0);
@@ -362,14 +378,32 @@ void board_transpose(const Board *board, Board *sym)
 	bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 14));
 	tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 28)), mask00F0);
 	bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 28));
+	return bb;
+}
+
+void board_transpose(const Board *board, Board *sym)
+{
+	_mm_storeu_si128((__m128i *) sym, board_transpose_sse(_mm_loadu_si128((__m128i *) board)));
+}
+
+void board_symetry(const Board *board, const int s, Board *sym)
+{
+	__m128i	bb = _mm_loadu_si128((__m128i *) board);
+	if (s & 1)
+		bb = board_horizontal_mirror_sse(bb);
+	if (s & 2)
+		bb = board_vertical_mirror_sse(bb);
+	if (s & 4)
+		bb = board_transpose_sse(bb);
+
 	_mm_storeu_si128((__m128i *) sym, bb);
+	board_check(sym);
 }
 
 #elif defined(__ARM_NEON) && !defined(DISPATCH_NEON)
 
-void board_horizontal_mirror(const Board *board, Board *sym)
+static uint64x2_t board_horizontal_mirror_neon(uint64x2_t bb)
 {
-	uint64x2_t bb = vld1q_u64((uint64_t *) board);
   #ifdef HAS_CPU_64
 	bb = vreinterpretq_u64_u8(vrbitq_u8(vreinterpretq_u8_u64(bb)));
   #else
@@ -377,26 +411,52 @@ void board_horizontal_mirror(const Board *board, Board *sym)
 	bb = vbslq_u64(vdupq_n_u64(0x3333333333333333), vshrq_n_u64(bb, 2), vshlq_n_u64(bb, 2));
 	bb = vreinterpretq_u64_u8(vsliq_n_u8(vshrq_n_u8(vreinterpretq_u8_u64(bb), 4), vreinterpretq_u8_u64(bb), 4));
   #endif
-	vst1q_u64((uint64_t *) sym, bb);
+	return bb;
+}
+
+void board_horizontal_mirror(const Board *board, Board *sym)
+{
+	vst1q_u64((uint64_t *) sym, board_horizontal_mirror_neon(vld1q_u64((uint64_t *) board)));
+}
+
+static uint64x2_t board_vertical_mirror_neon(uint64x2_t bb)
+{
+	return vreinterpretq_u64_u8(vrev64q_u8(vreinterpretq_u8_u64(bb)));
 }
 
 void board_vertical_mirror(const Board *board, Board *sym)
 {
-	uint64x2_t bb = vld1q_u64((uint64_t *) board);
-	bb = vreinterpretq_u64_u8(vrev64q_u8(vreinterpretq_u8_u64(bb)));
-	vst1q_u64((uint64_t *) sym, bb);
+	vst1q_u64((uint64_t *) sym, board_vertical_mirror_neon(vld1q_u64((uint64_t *) board)));
 }
 
-void board_transpose(const Board *board, Board *sym)
+static uint64x2_t board_transpose_neon(uint64x2_t bb)
 {
-	uint64x2_t bb = vld1q_u64((uint64_t *) board);
 	uint64x2_t tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 7)), vdupq_n_u64(0x00AA00AA00AA00AA));
 	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 7));
 	tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 14)), vdupq_n_u64(0x0000CCCC0000CCCC));
 	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 14));
 	tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 28)), vdupq_n_u64(0x00000000F0F0F0F0));
 	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 28));
+	return bb;
+}
+
+void board_transpose(const Board *board, Board *sym)
+{
+	vst1q_u64((uint64_t *) sym, board_transpose_neon(vld1q_u64((uint64_t *) board)));
+}
+
+void board_symetry(const Board *board, const int s, Board *sym)
+{
+	uint64x2_t bb = vld1q_u64((uint64_t *) board);
+	if (s & 1)
+		bb = board_horizontal_mirror_neon(bb);
+	if (s & 2)
+		bb = board_vertical_mirror_neon(bb);
+	if (s & 4)
+		bb = board_transpose_neon(bb);
+
 	vst1q_u64((uint64_t *) sym, bb);
+	board_check(sym);
 }
 
 #endif // hasSSE2/Neon

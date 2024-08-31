@@ -405,6 +405,7 @@ void board_transpose(const Board *board, Board *sym)
 	sym->opponent = transpose(board->opponent);
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 void board_symetry(const Board *board, const int s, Board *sym)
 {
@@ -412,6 +413,8 @@ void board_symetry(const Board *board, const int s, Board *sym)
 <<<<<<< HEAD
 =======
 #endif
+=======
+>>>>>>> a23c3d4 (SSE optimized board_symetry again)
 
 void board_symetry(const Board *board, const int s, Board *sym)
 {
@@ -454,6 +457,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 
 	board_check(sym);
 }
+#endif
 
 #ifndef __AVX2__	// AVX2 version in board_sse.c
 /**
