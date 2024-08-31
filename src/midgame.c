@@ -34,6 +34,7 @@
 #define RCD 0.5
 #endif
 
+<<<<<<< HEAD
 /**
  * @brief evaluate a midgame position with the evaluation function.
  *
@@ -139,6 +140,12 @@ int search_eval_0(Search *search)
 	score = accumlate_eval(60 - search->eval.n_empties,  &search->eval);
 =======
 	score = w[f[ 0] + 0] + w[f[ 1] + 0] + w[f[ 2] + 0] + w[f[ 3] + 0]
+=======
+static int accumlate_eval(const short *w, Eval *eval)
+{
+	unsigned short *f = eval->feature.us;
+	return w[f[ 0] + 0] + w[f[ 1] + 0] + w[f[ 2] + 0] + w[f[ 3] + 0]
+>>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 	  + w[f[ 4] + 19683] + w[f[ 5] + 19683] + w[f[ 6] + 19683] + w[f[ 7] + 19683]
 	  + w[f[ 8] + 78732] + w[f[ 9] + 78732] + w[f[10] + 78732] + w[f[11] + 78732]
 	  + w[f[12] + 137781] + w[f[13] + 137781] + w[f[14] + 137781] + w[f[15] + 137781]
@@ -151,7 +158,25 @@ int search_eval_0(Search *search)
 	  + w[f[38] + 225990] + w[f[39] + 225990] + w[f[40] + 225990] + w[f[41] + 225990]
 	  + w[f[42] + 226233] + w[f[43] + 226233] + w[f[44] + 226233] + w[f[45] + 226233]
 	  + w[f[46] + 226314];
+<<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+}
+
+/**
+ * @brief evaluate a midgame position with the evaluation function.
+ *
+ * @param search Position to evaluate.
+ */
+int search_eval_0(Search *search)
+{
+	int score;
+
+	SEARCH_STATS(++statistics.n_search_eval_0);
+	SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
+
+	score = accumlate_eval((*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
+>>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 
 	if (score > 0) score += 64;	else score -= 64;
 	score /= 128;
@@ -231,8 +256,11 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 	unsigned long long flipped;
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	const short *w;
+<<<<<<< HEAD
 	const unsigned short *f;
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+>>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -264,8 +292,8 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 					return SCORE_MAX;	// wipeout
 
 				eval_update_leaf(x, flipped, &Ev, &search->eval);
-				f = Ev.feature.us;
 				SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
+<<<<<<< HEAD
 				score = -w[f[ 0] + 0] - w[f[ 1] + 0] - w[f[ 2] + 0] - w[f[ 3] + 0]
 				  - w[f[ 4] + 19683] - w[f[ 5] + 19683] - w[f[ 6] + 19683] - w[f[ 7] + 19683]
 				  - w[f[ 8] + 78732] - w[f[ 9] + 78732] - w[f[10] + 78732] - w[f[11] + 78732]
@@ -292,6 +320,10 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+
+				score = -accumlate_eval(w, &Ev);
+>>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 
 		board0.board = search->board;
 		x = NOMOVE;
