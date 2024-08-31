@@ -221,8 +221,10 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #ifdef hasNeon
 	#ifdef HAS_CPU_64
 		#define bit_count(x)	vaddv_u8(vcnt_u8(vcreate_u8(x)))
+		#define bit_count_32(x)	vaddv_u8(vcnt_u8(vcreate_u8((unsigned int) x)))
 	#else
 		#define bit_count(x)	vget_lane_u32(vreinterpret_u32_u64(vpaddl_u32(vpaddl_u16(vpaddl_u8(vcnt_u8(vcreate_u8(x)))))), 0)
+		#define bit_count_32(x)	vget_lane_u32(vpaddl_u16(vpaddl_u8(vcnt_u8(vcreate_u8(x)))), 0)
 	#endif
 
 #elif defined(POPCOUNT)
@@ -246,13 +248,17 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	#ifdef _MSC_VER
 		#if defined(_M_ARM) || defined(_M_ARM64)
 			#define bit_count(x)	_CountOneBits64(x)
+			#define bit_count_32(x)	_CountOneBits(x)
 		#elif defined(_M_X64)
 			#define	bit_count(x)	((int) __popcnt64(x))
+			#define	bit_count_32(x)	__popcnt(x)
 		#else
 			#define bit_count(x)	(__popcnt((unsigned int) (x)) + __popcnt((unsigned int) ((x) >> 32)))
+			#define	bit_count_32(x)	__popcnt(x)
 		#endif
 	#else
 		#define bit_count(x)	__builtin_popcountll(x)
+		#define bit_count_32(x)	__builtin_popcount(x)
 	#endif
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #else
@@ -363,7 +369,10 @@ extern const unsigned long long NEIGHBOUR[];
 		union { unsigned int bb; unsigned short u[2]; } v = { b };
 		return (unsigned char)(PopCnt16[v.u[0]] + PopCnt16[v.u[1]]);
 	}
+<<<<<<< HEAD
 	#define bit_count_si64(x)	((unsigned char)(PopCnt16[_mm_extract_epi16((x), 0)] + PopCnt16[_mm_extract_epi16((x), 1)] + PopCnt16[_mm_extract_epi16((x), 2)] + PopCnt16[_mm_extract_epi16((x), 3)]))
+=======
+>>>>>>> dc7c79c (Omit unpack from get_edge_stability)
 #endif
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)

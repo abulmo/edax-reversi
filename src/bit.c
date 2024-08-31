@@ -10,6 +10,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -23,6 +24,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> dc7c79c (Omit unpack from get_edge_stability)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -246,7 +250,7 @@ void bit_init(void)
 // 2% faster than SWAR bit_count for 32 & 64 non-POPCOUNT build
 unsigned char PopCnt16[1 << 16];
 
-static int bit_count_32(unsigned int b)
+static int bit_count_32_SWAR(unsigned int b)
 {
 	b = b - ((b >> 1) & 0x55555555);
 	b = ((b >> 2) & 0x333333333) + (b & 0x33333333);
@@ -292,7 +296,7 @@ void bit_init(void)
 
 #ifndef POPCOUNT
 	for (n = 0; n < (1 << 16); ++n)
-		PopCnt16[n] = bit_count_32(n);
+		PopCnt16[n] = bit_count_32_SWAR(n);
 #endif
 
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)

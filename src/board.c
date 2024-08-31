@@ -1165,6 +1165,7 @@ void edge_stability_init(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
@@ -1180,6 +1181,9 @@ void edge_stability_init(void)
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 =======
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
+=======
+#if !defined(__AVX2__) && !defined(hasNeon) && !defined(hasSSE2)
+>>>>>>> dc7c79c (Omit unpack from get_edge_stability)
 /**
  * @brief Get stable edge.
  *
@@ -1188,15 +1192,30 @@ void edge_stability_init(void)
  * @return a bitboard with (some of) player's stable discs.
  *
  */
-#if !defined(__AVX2__) && !defined(hasNeon) && !defined(hasSSE2)
 unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
 {	// compute the exact stable edges (from precomputed tables)
-	unsigned int a1a8 = packA1A8(P) * 256 + packA1A8(O);
-	unsigned int h1h8 = packH1H8(P) * 256 + packH1H8(O);
 	return edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
 	    |  (unsigned long long) edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 56
-	    |  unpackA1A8(edge_stability[a1a8])
-	    |  unpackH1H8(edge_stability[h1h8]);
+	    |  unpackA1A8(edge_stability[packA1A8(P) * 256 + packA1A8(O)])
+	    |  unpackH1H8(edge_stability[packH1H8(P) * 256 + packH1H8(O)]);
+}
+
+/**
+ * @brief Estimate the stability of edges.
+ *
+ * Count the number (in fact a lower estimate) of stable discs on the edges.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return the number of stable discs on the edges.
+ */
+int get_edge_stability(const unsigned long long P, const unsigned long long O)
+{
+	unsigned int packedstable = edge_stability[((unsigned char) P) * 256 + ((unsigned char) O)]
+	  | edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 8
+	  | edge_stability[packA1A8(P) * 256 + packA1A8(O)] << 16
+	  | edge_stability[packH1H8(P) * 256 + packH1H8(O)] << 24;
+	return bit_count_32(packedstable & 0xffff7e7e);
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1368,6 +1387,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 }
 
 /**
+<<<<<<< HEAD
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
  * @brief Estimate the stability of edges.
  *
@@ -1535,6 +1555,8 @@ unsigned long long get_all_full_lines(const unsigned long long disc)
 #endif // __AVX2__
 
 /**
+=======
+>>>>>>> dc7c79c (Omit unpack from get_edge_stability)
  * @brief Estimate corner stability.
  *
  * Count the number of stable discs around the corner. Limiting the count

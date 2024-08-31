@@ -178,7 +178,7 @@ extern unsigned long long A1_A8[256];
 =======
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 
-#if defined(__BMI2__) && !defined(bdver4) && !defined(znver1) && !defined(znver2) // pdep is slow on AMD before Zen3
+#if 0 // defined(__BMI2__) && !defined(bdver4) && !defined(znver1) && !defined(znver2) // pdep is slow on AMD before Zen3
 #define	unpackA1A8(x)	_pdep_u64((x), 0x0101010101010101)
 #define	unpackH1H8(x)	_pdep_u64((x), 0x8080808080808080)
 #else

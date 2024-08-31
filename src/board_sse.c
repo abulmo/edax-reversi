@@ -1158,9 +1158,64 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @brief X64 optimized get_stability
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
+=======
+ * @brief SSE optimized get_edge_stability
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return the number of stable discs on the edges.
+ *
+ */
+#if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
+int get_edge_stability(const unsigned long long P, const unsigned long long O)
+{
+	const uint64x2_t shiftv = { 0x0003000200010000, 0x0007000600050004 };
+	uint8x16_t PO = vzip1q_u8(vreinterpretq_u8_u64(vdupq_n_u64(O)), vreinterpretq_u8_u64(vdupq_n_u64(P)));
+	uint8x8_t packedstable = vcreate_u8((edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
+	  | edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 8) & 0x7e7e);
+	packedstable = vset_lane_u8(edge_stability[vaddvq_u16(vshlq_u16(vreinterpretq_u16_u8(vandq_u8(PO, vdupq_n_u8(1))), vreinterpretq_s16_u64(shiftv)))], packedstable, 2);
+	packedstable = vset_lane_u8(edge_stability[vaddvq_u16(vshlq_u16(vreinterpretq_u16_u8(vshrq_n_u8(PO, 7)), vreinterpretq_s16_u64(shiftv)))], packedstable, 3);
+	return vaddv_u8(vcnt_u8(packedstable));
+}
+
+#elif defined(__ARM_NEON__) // Neon kindergarten
+int get_edge_stability(const unsigned long long P, const unsigned long long O)
+{
+	const uint64x2_t kMul  = { 0x1020408001020408, 0x1020408001020408 };
+	uint64x2_t PP = vcombine_u64(vshl_n_u64(vcreate_u64(P), 7), vcreate_u64(P));
+	uint64x2_t OO = vcombine_u64(vshl_n_u64(vcreate_u64(O), 7), vcreate_u64(O));
+	uint32x4_t QP = vmulq_u32(vreinterpretq_u32_u64(kMul), vreinterpretq_u32_u8(vshrq_n_u8(vreinterpretq_u8_u64(PP), 7)));
+	uint32x4_t QO = vmulq_u32(vreinterpretq_u32_u64(kMul), vreinterpretq_u32_u8(vshrq_n_u8(vreinterpretq_u8_u64(OO), 7)));
+	uint32x2_t DP = vpadd_u32(vget_low_u32(QP), vget_high_u32(QP));	// P_h1h8 * * * P_a1a8 * * *
+	uint32x2_t DO = vpadd_u32(vget_low_u32(QO), vget_high_u32(QO));	// O_h1h8 * * * O_a1a8 * * *
+	uint8x8_t DB = vtrn_u8(vreinterpret_u8_u32(DO), vreinterpret_u8_u32(DP)).val[1];	// P_h1h8 O_h1h8 * * P_a1a8 O_a1a8 * *
+	uint8x16_t PO = vzipq_u8(vreinterpretq_u8_u64(OO), vreinterpretq_u8_u64(PP)).val[1];
+	uint8x8_t packedstable = vcreate_u8((edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
+	  | edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 8) & 0x7e7e);
+	packedstable = vset_lane_u8(edge_stability[vget_lane_u16(vreinterpret_u16_u8(DB), 1)], packedstable, 2);
+	packedstable = vset_lane_u8(edge_stability[vget_lane_u16(vreinterpret_u16_u8(DB), 3)], packedstable, 3);
+	return vget_lane_u32(vpaddl_u16(vpaddl_u8(vcnt_u8(packedstable))), 0);
+}
+
+#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+int get_edge_stability(const unsigned long long P, const unsigned long long O)
+{
+	__m128i	P0 = _mm_cvtsi64_si128(P);
+	__m128i	O0 = _mm_cvtsi64_si128(O);
+	__m128i	PO = _mm_unpacklo_epi8(O0, P0);
+	unsigned int packedstable = edge_stability[_mm_extract_epi16(PO, 0)] | edge_stability[_mm_extract_epi16(PO, 7)] << 8;
+	PO = _mm_unpacklo_epi64(O0, P0);
+	packedstable |= edge_stability[_mm_movemask_epi8(_mm_slli_epi64(PO, 7))] << 16 | edge_stability[_mm_movemask_epi8(PO)] << 24;
+	return bit_count_32(packedstable & 0xffff7e7e);
+}
+#endif
+
+/**
+>>>>>>> dc7c79c (Omit unpack from get_edge_stability)
  * @brief AVX2/SSE optimized get_stability
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
  *
