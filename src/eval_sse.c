@@ -110,8 +110,6 @@ typedef union {
 
 void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
-	int	j;
-	widest_register	r;
   #ifdef __AVX2__
 	__m256i	f0 = eval_in->feature.v16[0];
 	__m256i	f1 = eval_in->feature.v16[1];
@@ -122,7 +120,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
 
-		foreach_bit_r (x, f, j, r) {
+		foreach_bit (x, f) {
 			f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
 			f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
 			f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -133,7 +131,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 		f1 = _mm256_sub_epi16(f1, _mm256_slli_epi16(EVAL_FEATURE[x].v16[1], 1));
 		f2 = _mm256_sub_epi16(f2, _mm256_slli_epi16(EVAL_FEATURE[x].v16[2], 1));
 
-		foreach_bit_r (x, f, j, r) {
+		foreach_bit (x, f) {
 			f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
 			f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 			f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -204,6 +202,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 		f5 = _mm_sub_epi16(f5, _mm_slli_epi16(EVAL_FEATURE[x].v8[5], 1));
 
 		foreach_bit (x, f) {
+<<<<<<< HEAD
 			f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 			f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
 			f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
@@ -286,6 +285,8 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 >>>>>>> 6820748 (Unify eval_update_sse 0 & 1)
 
 		foreach_bit_r (x, f, j, r) {
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 			f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 			f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
 			f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
@@ -316,6 +317,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 <<<<<<< HEAD
 void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
+<<<<<<< HEAD
 	__asm__ (
 		"movdqu	%0, %%xmm2\n\t"
 		"movdqu	%1, %%xmm3\n\t"
@@ -339,6 +341,8 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 	widest_register	r;
 	int	j;
 
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	__asm__ (
 		"movdqu	%0, %%xmm2\n\t"
 		"movdqu	%1, %%xmm3\n\t"
@@ -451,7 +455,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 		: :  "m" (EVAL_FEATURE[x].us[0]), "m" (EVAL_FEATURE[x].us[8]), "m" (EVAL_FEATURE[x].us[16]),
 		"m" (EVAL_FEATURE[x].us[24]), "m" (EVAL_FEATURE[x].us[32]), "m" (EVAL_FEATURE[x].us[40]));
 
-		foreach_bit_r (x, f, j, r) {
+		foreach_bit (x, f) {
 			__asm__ (
 				"paddw	%0, %%xmm2\n\t"
 				"paddw	%1, %%xmm3\n\t"
@@ -478,7 +482,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 		: :  "m" (EVAL_FEATURE[x].us[0]), "m" (EVAL_FEATURE[x].us[8]), "m" (EVAL_FEATURE[x].us[16]),
 		"m" (EVAL_FEATURE[x].us[24]), "m" (EVAL_FEATURE[x].us[32]), "m" (EVAL_FEATURE[x].us[40]));
 
-		foreach_bit_r (x, f, j, r) {
+		foreach_bit (x, f) {
 			__asm__ (
 				"psubw	%0, %%xmm2\n\t"
 				"psubw	%1, %%xmm3\n\t"
@@ -527,8 +531,9 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
  */
 void eval_set(Eval *eval, const Board *board)
 {
-	int x, j;
+	int x;
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -545,12 +550,15 @@ void eval_set(Eval *eval, const Board *board)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	widest_register	r;
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
   #ifdef __AVX2__
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	__m256i	f0 = EVAL_FEATURE_all_opponent.v16[0];
 	__m256i	f1 = EVAL_FEATURE_all_opponent.v16[1];
 	__m256i	f2 = EVAL_FEATURE_all_opponent.v16[2];
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	foreach_bit (x, b) {
@@ -560,6 +568,9 @@ void eval_set(Eval *eval, const Board *board)
 =======
 	foreach_bit_r (x, b, j, r) {
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	foreach_bit (x, b) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -568,6 +579,7 @@ void eval_set(Eval *eval, const Board *board)
 <<<<<<< HEAD
 
 	b = ~(board->opponent | board->player);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
@@ -580,6 +592,9 @@ void eval_set(Eval *eval, const Board *board)
 =======
 	foreach_bit_r (x, b, j, r) {
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	foreach_bit (x, b) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -606,6 +621,7 @@ void eval_set(Eval *eval, const Board *board)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 	foreach_bit(x, b) {
@@ -613,6 +629,9 @@ void eval_set(Eval *eval, const Board *board)
 =======
 	foreach_bit_r (x, b, j, r) {
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	foreach_bit (x, b) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
 		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
@@ -625,6 +644,7 @@ void eval_set(Eval *eval, const Board *board)
 
 	b = ~(board->opponent | board->player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 =======
@@ -636,6 +656,9 @@ void eval_set(Eval *eval, const Board *board)
 =======
 	foreach_bit_r (x, b, j, r) {
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	foreach_bit (x, b) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
 		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);

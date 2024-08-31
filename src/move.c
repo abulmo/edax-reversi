@@ -326,11 +326,10 @@ int movelist_get_moves(MoveList *movelist, const Board *board)
 =======
 	Move *move = movelist->move + 1;
 	unsigned long long moves = get_moves(board->player, board->opponent);
-	int x, j;
-	widest_register	b;
+	int x;
 
 	movelist->n_moves = 0;
-	foreach_bit_r (x, moves, j, b) {
+	foreach_bit (x, moves) {
 		board_get_move(board, x, move);
 		move->score = -SCORE_INF;
 		previous = previous->next = move;

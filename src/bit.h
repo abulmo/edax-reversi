@@ -186,32 +186,35 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 // ctz / clz
 =======
 /** Loop over each bit set. */
+<<<<<<< HEAD
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctzll)
 	#define	first_bit(x)	__builtin_ctzll(x)
 	#define	last_bit(x)	(63 - __builtin_clzll(x))
 #elif defined(tzcnt_u64)
+=======
+#if defined(tzcnt_u64)
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	#define	first_bit(x)	tzcnt_u64(x)
 	#define	last_bit(x)	(63 - lzcnt_u64(x))
+#elif ((defined(__GNUC__) && (__GNUC__ >= 4)) || __has_builtin(__builtin_ctzll)) && !defined(__INTEL_COMPILER)
+	#define	first_bit(x)	__builtin_ctzll(x)
+	#define	last_bit(x)	(63 - __builtin_clzll(x))
 #else
 	int first_bit(unsigned long long);
 	int last_bit(unsigned long long);
 #endif
 
-#define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
-
-#ifdef HAS_CPU_64
-	typedef unsigned long long	widest_register;
-	#define foreach_bit_r(i, b, j, r)	(void) j; r = b; foreach_bit(i, r)
+#if defined(HAS_CPU_64) || !defined(__STDC_HOSTED__)	// __STDC_HOSTED__ (C99) to declare var in for statement
+	#define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
 #else
-	typedef unsigned int	widest_register;
 	#ifdef tzcnt_u32
 		#define	first_bit_32(x)	tzcnt_u32(x)
 	#else
 		int first_bit_32(unsigned int);
 	#endif
-	#define foreach_bit_r(i, b, j, r)	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) \
-		for (i = first_bit_32(r = (widest_register)(b >> j)) + j; r; i = first_bit_32(r &= (r - 1)) + j)
+	#define foreach_bit(i, b)	for (int _j = 0; _j < sizeof(b) * CHAR_BIT; _j += sizeof(int) * CHAR_BIT) \
+		for (int _r = (b >> _j), i = first_bit_32(_r) + _j; _r; i = first_bit_32(_r &= (_r - 1)) + _j)
 #endif
 
 // popcount
@@ -578,24 +581,24 @@ typedef union {
 
 // X64 compatibility sims for X86
 #ifndef HAS_CPU_64
-#if defined(hasSSE2) || defined(USE_MSVC_X86)
+  #if defined(hasSSE2) || defined(USE_MSVC_X86)
 static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
 	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
 }
-#endif
+  #endif
 
 // Double casting (unsigned long long) (unsigned int) improves MSVC code
-#ifdef __AVX2__
+  #ifdef __AVX2__
 static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 	return ((unsigned long long) (unsigned int) _mm_extract_epi32(x, 1) << 32)
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
-#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+  #elif defined(hasSSE2) || defined(USE_MSVC_X86)
 static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 	return ((unsigned long long) (unsigned int) _mm_cvtsi128_si32(_mm_shuffle_epi32(x, 0xb1)) << 32)
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
-#endif
+  #endif
 #endif // !HAS_CPU_64
 
 #endif // EDAX_BIT_H

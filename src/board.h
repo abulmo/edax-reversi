@@ -202,6 +202,7 @@ extern unsigned long long A1_A8[256];
 <<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
+<<<<<<< HEAD
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_set_epi64x((O), (P)), (x)))))
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x)))))
@@ -249,6 +250,14 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O)), (x))))
+=======
+  #ifdef HAS_CPU_64
+	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_insert_epi64(_mm_cvtsi64_si128(P), (O), 1), (x))))
+  #else
+	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_insert_epi32(_mm_insert_epi32(_mm_insert_epi32(\
+		_mm_cvtsi32_si128(P), ((P) >> 32), 1), (O), 2), (O >> 32), 3), (x))))
+  #endif
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x))))
 
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
@@ -277,11 +286,11 @@ extern unsigned long long A1_A8[256];
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
 	extern unsigned long long (*flip[BOARD_SIZE + 2])(unsigned int, unsigned int, unsigned int, unsigned int);
 	#define Flip(x,P,O)	flip[x]((unsigned int)(P), (unsigned int)((P) >> 32), (unsigned int)(O), (unsigned int)((O) >> 32))
-#ifdef __BIG_ENDIAN__
+  #ifdef __BIG_ENDIAN__
 	#define	board_flip(board,x)	flip[x]((unsigned int)((board)->player), ((unsigned int *) &(board)->player)[0], (unsigned int)((board)->opponent), ((unsigned int *) &(board)->opponent)[0])
-#else
+  #else
 	#define	board_flip(board,x)	flip[x]((unsigned int)((board)->player), ((unsigned int *) &(board)->player)[1], (unsigned int)((board)->opponent), ((unsigned int *) &(board)->opponent)[1])
-#endif
+  #endif
 	#if defined(USE_GAS_MMX) && !defined(hasSSE2)
 		extern void init_flip_sse(void);
 	#endif

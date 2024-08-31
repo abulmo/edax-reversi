@@ -227,10 +227,17 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
 	assert(w < &EVAL_WEIGHT[EVAL_N_PLY]);
 =======
 	assert(ply < EVAL_N_PLY);
+<<<<<<< HEAD
 	if (ply < 2)
 		ply += 2;
 	w = &(*EVAL_WEIGHT)[ply - 2];
 >>>>>>> 4303b09 (Returns all full lines in full[4])
+=======
+	ply -= 2;
+	if (ply < 0)
+		ply &= 1;
+	w = &(*EVAL_WEIGHT)[ply];
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 
 #if defined(__AVX2__) && !defined(AMD_BEFORE_ZEN3)
 	enum {
@@ -250,17 +257,17 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
 	DD = _mm256_i32gather_epi32((int *) w, FF, 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 
-	DD = _mm256_i32gather_epi32((int *)(w->S8x4 - 1), _mm256_cvtepu16_epi32(eval->feature.v8[2]), 2);
+	DD = _mm256_i32gather_epi32((int *)((short *) w->S8x4 - 1), _mm256_cvtepu16_epi32(eval->feature.v8[2]), 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 
-	DD = _mm256_i32gather_epi32((int *)(w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[30]), 2);
+	DD = _mm256_i32gather_epi32((int *)((short *) w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[30]), 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 
-	DD = _mm256_i32gather_epi32((int *)(w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[38]), 2);
+	DD = _mm256_i32gather_epi32((int *)((short *) w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[38]), 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 	__m128i S = _mm_add_epi32(_mm256_castsi256_si128(SS), _mm256_extracti128_si256(SS, 1));
 
-	__m128i D = _mm_i32gather_epi32((int *)(w->S8x4 - 1), _mm_cvtepu16_epi32(eval->feature.v8[3]), 2);
+	__m128i D = _mm_i32gather_epi32((int *)((short *) w->S8x4 - 1), _mm_cvtepu16_epi32(eval->feature.v8[3]), 2);
 	S = _mm_add_epi32(S, _mm_srai_epi32(D, 16));
 
 	S = _mm_hadd_epi32(S, S);

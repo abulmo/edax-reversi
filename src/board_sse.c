@@ -1182,6 +1182,10 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
  * @return the number of stable discs.
  */
 #ifdef __AVX2__
+  #ifndef HAS_CPU_64
+#define _mm_insert_epi64(s2,s,ndx)	_mm_insert_epi32(_mm_insert_epi32((s2), (s), (ndx) * 2), (s) >> 32, (ndx) * 2 + 1)
+  #endif
+
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
@@ -2346,4 +2350,31 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 =======
 #endif // hasSSE2/hasNeon
+<<<<<<< HEAD
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
+=======
+
+#ifdef __AVX2__
+/**
+ * @brief AVX2 optimized get_potential_moves.
+ *
+ * Get the list of empty squares in contact of a player square.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return all potential moves in a 64-bit unsigned integer.
+ */
+static unsigned long long get_potential_moves(const unsigned long long P, const unsigned long long O)
+{
+	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
+	__m256i	O4 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
+	__m128i O2;
+
+	O4 = _mm256_and_si256(O4, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
+	O4 = _mm256_or_si256(O4, _mm256_or_si256(_mm256_srlv_epi64(O4, shift1897), _mm256_sllv_epi64(O4, shift1897)));
+	O2 = _mm_or_si128(_mm256_castsi256_si128(O4), _mm256_extracti128_si256(O4, 1));
+	O2 = _mm_or_si128(O2, _mm_unpackhi_epi64(O2, O2));
+	return _mm_cvtsi128_si64(O2) & ~(P|O); // mask with empties
+}
+#endif
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)

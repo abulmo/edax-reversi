@@ -695,10 +695,14 @@ char* parse_move(const char *string, const Board *board, Move *move)
 		int x = string_to_coordinate(word);
 		move->x = x;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		move->flipped = board_flip(board, x);
 =======
 		move->flipped = Flip(x, board->player, board->opponent);
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+		move->flipped = board_flip(board, x);
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		if (move->flipped && !board_is_occupied(board, x)) {
 			return word + 2;
 		} else if (board_is_pass(board)) {

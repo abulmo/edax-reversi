@@ -1024,8 +1024,13 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	paritymask = parity0 = search->eval.parity;
 	--search->eval.n_empties;	// for next depth
 	do {	// odd first, even second
+<<<<<<< HEAD
 		if (paritymask) {	// skip all even or all add
 			foreach_empty (x, search->empties) {
+=======
+		if (paritymask) {	// skip no odd or no even
+			for (x = search->empties[prev = NOMOVE].next; x != NOMOVE; x = search->empties[prev = x].next) {	// maintain single link only
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 				if (paritymask & QUADRANT_ID[x]) {
 					if ((NEIGHBOUR[x] & board0.opponent) && (flipped = board_flip(&board0, x))) {
 						search->eval.parity = parity0 ^ QUADRANT_ID[x];

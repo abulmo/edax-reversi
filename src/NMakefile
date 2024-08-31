@@ -154,6 +154,9 @@ vc-w64-k10:
 vc-w64:
 	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
 
+vc-w32-modern:
+	cl $(VC_FLAGS) /GL /D hasSSE2 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w32-modern.exe
+
 vc-w32-sse:
 	cl $(VC_FLAGS) /GL /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-w32-sse.exe
 
@@ -170,6 +173,15 @@ vc-a64:
 vc-a32:
 #	vcvarsamd64_arm.bat
 	cl $(VC_FLAGS) /GL /D hasNeon all.c ws2_32.lib /Fe..\bin\wEdax-a32.exe
+
+icc-w64-modern:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+
+icc-w64:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
+
+icc-w32:
+	icl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
 
 clang-w64-modern:
 	clang-cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
@@ -224,6 +236,15 @@ vc-pgo-w64:
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	del *.pgc ..\bin\*.pgd
 >>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
+
+icc-pgo-w64-modern:
+	icl $(VC_FLAGS) /arch:AVX2 /D POPCOUNT /Qprof-gen all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+	cd ..\bin
+	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	icl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT /Qprof-use /Qip all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
 
 clean:
 	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj

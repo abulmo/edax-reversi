@@ -887,7 +887,16 @@ int get_mobility(const unsigned long long P, const unsigned long long O)
 	return bit_count(get_moves(P, O));
 }
 
+<<<<<<< HEAD
 #ifndef __AVX2__	// AVX2 version in board_sse.c
+=======
+int get_weighted_mobility(const unsigned long long P, const unsigned long long O)
+{
+	return bit_weighted_count(get_moves(P, O));
+}
+
+#ifndef __AVX2__
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 /**
  * @brief Get some potential moves.
  *
@@ -918,8 +927,12 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
 		& ~(P|O); // mask with empties
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // AVX2
 =======
+=======
+#endif // AVX2
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 
 /**
  * @brief Get potential mobility.
@@ -932,10 +945,10 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
  */
 int get_potential_mobility(const unsigned long long P, const unsigned long long O)
 {
-#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasMMX)
 		return get_potential_mobility_mmx(P, O);
-#endif
+  #endif
 	return bit_weighted_count(get_potential_moves(P, O));
 }
 >>>>>>> 1dc032e (Improve visual c compatibility)

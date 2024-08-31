@@ -1541,6 +1541,7 @@ void eval_set(Eval *eval, const Board *board)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int	i, x;
   #ifdef VECTOR_EVAL_UPDATE
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
@@ -1566,15 +1567,19 @@ void eval_set(Eval *eval, const Board *board)
   #ifdef VECTOR_EVAL_UPDATE
 	widest_register	r;
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	int	i, x;
+  #ifdef VECTOR_EVAL_UPDATE
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
 
 	eval->feature = EVAL_FEATURE_all_opponent;
-	foreach_bit_r (x, b, j, r)
+	foreach_bit (x, b)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
 	b = ~(board->opponent | board->player);
-	foreach_bit_r (x, b, j, r)
+	foreach_bit (x, b)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
 
@@ -1585,7 +1590,11 @@ void eval_set(Eval *eval, const Board *board)
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 =======
   #else
+<<<<<<< HEAD
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	int	j;
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	Board	b;
 
 	if (eval->n_empties & 1) {
@@ -1671,6 +1680,9 @@ static void eval_swap(Eval *eval)
 static void eval_update_0(int x, unsigned long long f, Eval *eval)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
 
@@ -1678,6 +1690,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
 
 	foreach_bit (x, f)
+<<<<<<< HEAD
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 =======
@@ -1715,6 +1728,8 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 <<<<<<< HEAD
 =======
 	foreach_bit_r (x, f, j, r)
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
@@ -1760,6 +1775,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1775,6 +1791,9 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
 	foreach_bit_r (x, f, j, r) {
+=======
+	foreach_bit (x, f) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
@@ -1833,6 +1852,9 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
 =======
@@ -1885,7 +1907,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
-	foreach_bit_r (x, f, j, r)
+	foreach_bit (x, f)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
 
@@ -1913,6 +1935,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1928,6 +1951,9 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
 	foreach_bit_r (x, f, j, r) {
+=======
+	foreach_bit (x, f) {
+>>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
