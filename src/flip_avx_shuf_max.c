@@ -238,11 +238,15 @@ static const V4DI rmask_v4[66] = {
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, outflank, eraser, mask;
 =======
 __m128i vectorcall mm_Flip(const __m128i OP, int pos)
+=======
+__m256i vectorcall mm_Flip(const __m128i OP, int pos)
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 {
 	__m256i	PP, OO, flip, outflank, eraser, mask;
 <<<<<<< HEAD

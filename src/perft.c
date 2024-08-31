@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2021
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -1129,6 +1133,9 @@ void count_shapes(const Board *board, const int depth, const int size)
  */
 bool seek_position(const Board *target, const Board *board, Line *line) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	const unsigned long long mask = target->opponent | target->player;
 	unsigned long long moves;
 	int x;
@@ -1137,6 +1144,7 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
 	if (board_equal(board, target)) return true;
 
 	moves = board_get_moves(board);
+<<<<<<< HEAD
 =======
  	const unsigned long long mask = target->opponent | target->player;
  	unsigned long long moves;
@@ -1151,6 +1159,8 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
 =======
  	moves = board_get_moves(board);
 >>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
+=======
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	if (moves) {
 		moves &= mask;
 		foreach_bit (x, moves) {

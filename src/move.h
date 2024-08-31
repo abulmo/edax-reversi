@@ -4,10 +4,14 @@
  * @brief Move & list of moves management - header file.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2022
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */

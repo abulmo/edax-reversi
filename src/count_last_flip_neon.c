@@ -19,6 +19,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -31,6 +32,9 @@
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 =======
  * @date 1998 - 2022
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -320,6 +324,7 @@ int last_flip(int pos, unsigned long long P)
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
 #endif
+<<<<<<< HEAD
 =======
 #ifndef HAS_CPU_64
 #define vaddvq_u16(x)	vget_lane_u64(vpaddl_u32(vpaddl_u16(vadd_u16(vget_high_u16(x), vget_low_u16(x)))), 0)
@@ -364,6 +369,8 @@ int last_flip(int pos, unsigned long long P)
 #endif
 
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	return n_flips;
 }
 

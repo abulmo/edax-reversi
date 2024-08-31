@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright 1998 - 2024
 =======
 # Copyright 1998 - 2018
@@ -14,6 +15,9 @@
 =======
 # Copyright 1998 - 2022
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
+=======
+# Copyright 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 # Richard Delorme
 # Version 4.5
 #

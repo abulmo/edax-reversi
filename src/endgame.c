@@ -43,11 +43,11 @@
 #if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_CARRY
 	#include "count_last_flip_carry_64.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE
-  #ifdef hasSSE2
-	#include "count_last_flip_sse.c"
-  #else
-	#include "count_last_flip_neon.c"
-  #endif
+	#ifdef hasSSE2
+		#include "count_last_flip_sse.c"
+	#else
+		#include "count_last_flip_neon.c"
+	#endif
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BITSCAN
 	#include "count_last_flip_bitscan.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN
@@ -1287,7 +1287,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	board0.board = search->board;
-	moves = board_get_moves(&search->board);
+	moves = vboard_get_moves(board0);
 	if (moves == 0) {	// pass (2%)
 		if (pass1)	// gameover (1%)
 			return search_solve(search);

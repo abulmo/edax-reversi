@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -541,7 +545,6 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	node.pv_node = true;
 	search->node_type[0] = PV_NODE;
 	search->time.can_update = false;
-	board0 = search->board;
 
 	// special cases: pass or game over
 	if (movelist_is_empty(movelist)) {
@@ -582,9 +585,13 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 =======
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+		board0 = search->board;
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		eval0 = search->eval;
 =======
 		Ev0.feature = search->eval.feature;
@@ -698,6 +705,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		hash_code = board_get_hash_code(&search->board);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -709,6 +717,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 		hash_get(&search->pv_table, &board0, hash_code, &hash_data.data);
 >>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
+=======
+		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		if (movelist->n_moves) {	// 4.5.1
 			if (depth < search->options.multipv_depth) movelist_sort(movelist);
 			else movelist_sort_cost(movelist, &hash_data.data);
@@ -716,7 +727,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		}
 		record_best_move(search, movelist_first(movelist), alpha, beta, depth);
 
-		if (movelist->n_moves == get_mobility(board0.player, board0.opponent)) {
+		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
 			hash_data.data.wl.c.depth = depth;
 			hash_data.data.wl.c.selectivity = search->selectivity;
 			hash_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
@@ -725,6 +736,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			hash_data.beta = beta;
 			hash_data.score = node.bestscore;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
@@ -793,6 +805,11 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			if (search->options.guess_pv) hash_force(&search->pv_table, &board0, hash_code, &hash_data);
 			else hash_store(&search->pv_table, &board0, hash_code, &hash_data);
 >>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
+=======
+			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
+			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
+			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);

@@ -9,6 +9,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2018 - 2023
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -19,6 +20,9 @@
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
  * @date 2018 - 2022
+=======
+ * @date 2018 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Toshihiko Okuhara
  * @version 4.5
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)

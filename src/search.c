@@ -1613,7 +1613,6 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  *
  * @param search Current position.
  * @param alpha Alpha bound.
- * @param n_empties Search stage.
  * @param score Score to return in case of a cutoff is found.
  * @return 'true' if a cutoff is found, false otherwise.
  */

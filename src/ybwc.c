@@ -25,6 +25,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -35,6 +36,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */

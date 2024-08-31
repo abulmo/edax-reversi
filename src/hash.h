@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -16,6 +17,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -110,6 +114,7 @@ typedef struct HashStoreData {
 <<<<<<< HEAD
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 =======
@@ -134,6 +139,9 @@ typedef struct HashStoreData {
 void hash_move_init(void);
 =======
 >>>>>>> a9633d5 (Initial 4.5.2; some reformats)
+=======
+void hash_move_init(void);
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 void hash_init(HashTable*, const unsigned long long);
 void hash_cleanup(HashTable*);
 void hash_clear(HashTable*);

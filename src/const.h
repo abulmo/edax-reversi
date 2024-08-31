@@ -107,6 +107,7 @@ typedef	unsigned char	NodeType;
 #define RELEASE 5
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
 =======
@@ -145,6 +146,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.5.2"
 #define EDAX_NAME "Edax 4.5.2"
 >>>>>>> a9633d5 (Initial 4.5.2; some reformats)
+=======
+#define VERSION_STRING "4.5.1"
+#define EDAX_NAME "Edax 4.5.1"
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

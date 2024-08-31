@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
+=======
+ * @date 1998 - 2023
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */

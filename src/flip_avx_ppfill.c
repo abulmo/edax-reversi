@@ -19,8 +19,12 @@
  * @date 1998 - 2023
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
  * @author Toshihiko Okuhara
+<<<<<<< HEAD
  * @version 4.4
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+ * @version 4.5
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  */
 
 #include "bit.h"

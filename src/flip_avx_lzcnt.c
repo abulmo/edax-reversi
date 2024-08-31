@@ -299,6 +299,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mask = lrmask[pos].v4[0];
 =======
 	mask = lmask_v4[pos].v4;
@@ -306,6 +307,9 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 =======
 	mask = lrmask_v4[pos].v4[0];
 >>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
+=======
+	mask = lrmask[pos].v4[0];
+>>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		// look for non-opponent (or edge) bit
 	ocontig = _mm256_andnot_si256(mOO, mask);
 	ocontig = _mm256_and_si256(ocontig, _mm256_sub_epi64(_mm256_setzero_si256(), ocontig));	// LS1B
