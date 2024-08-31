@@ -160,10 +160,15 @@ void eval_close(void);
 // void eval_free(Eval*);
 void eval_set(Eval*, const struct Board*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 void eval_update(Eval*, const struct Move*);
 void eval_update_leaf(Eval*, const Eval*, const struct Move*);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+void eval_update(int, unsigned long long, Eval*);
+void eval_update_leaf(int, unsigned long long, Eval*, const Eval*);
+>>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 void eval_restore(Eval*, const struct Move*);
 void eval_pass(Eval*);
 double eval_sigma(const int, const int, const int);

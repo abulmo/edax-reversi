@@ -183,6 +183,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int x, score, bestscore, alphathres;
 	unsigned long long flipped;
 	Eval Ev;
@@ -224,6 +225,11 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 	Eval Ev;
 	int x, score, bestscore;
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
+=======
+	Eval Ev;
+	int x, score, bestscore;
+	unsigned long long flipped;
+>>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	const short *w;
 	const unsigned short *f;
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
@@ -253,10 +259,11 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
 		foreach_empty (x, search->empties) {
 			if (moves & x_to_bit(x)) {
-				board_get_move(&search->board, x, &move);
-				if (move_wipeout(&move, &search->board)) return SCORE_MAX;
+				flipped = board_flip(&search->board, x);
+				if (flipped == search->board.opponent)
+					return SCORE_MAX;	// wipeout
 
-				eval_update_leaf(&Ev, &search->eval, &move);
+				eval_update_leaf(x, flipped, &Ev, &search->eval);
 				f = Ev.feature.us;
 				SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 				score = -w[f[ 0] + 0] - w[f[ 1] + 0] - w[f[ 2] + 0] - w[f[ 3] + 0]
@@ -372,6 +379,7 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 <<<<<<< HEAD
 	int x, bestscore, score;
 	unsigned long long flipped;
+<<<<<<< HEAD
 	Eval eval0;
 	V2DI board0;
 =======
@@ -384,6 +392,8 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 	int x, bestscore, score;
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	Move move;
+=======
+>>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	Eval Ev0;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -453,11 +463,14 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 =======
 		foreach_empty(x, search->empties) {
 			if (moves & x_to_bit(x)) {
-				move.x = x;
-				move.flipped = board_next(&board0, x, &search->board);
+				flipped = board_next(&board0, x, &search->board);
 				// empty_remove(search->empties, x);
+<<<<<<< HEAD
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 				eval_update_leaf(&search->eval, &Ev0, &move);
+=======
+				eval_update_leaf(x, flipped, &search->eval, &Ev0);
+>>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 				score = -search_eval_1(search, -beta, -alpha, get_moves(search->board.player, search->board.opponent));
 				// empty_restore(search->empties, x);
 
