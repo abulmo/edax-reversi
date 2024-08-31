@@ -622,6 +622,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		hash_code = board_get_hash_code(&search->board);
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cbf92ce (Fix occasional freezes)
 		if (movelist->n_moves) {	// 4.5.1
 			if (depth < search->options.multipv_depth) movelist_sort(movelist);
 			else movelist_sort_cost(movelist, &hash_data.data);
