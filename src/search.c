@@ -54,6 +54,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -61,6 +62,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2022
+>>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
  * @author Richard Delorme
  * @version 4.5
  */

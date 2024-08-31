@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -14,6 +15,10 @@
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
+=======
+ * @date 1998 - 2022
+ * @author Richard Delorme
+>>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
  * @version 4.5
  */
 
@@ -860,7 +865,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	hash_store_data.beta = alpha + 1;
 	hash_store_data.score = bestscore;
 	hash_store(hash_table, &search->board, hash_code, &hash_store_data);
- 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	return bestscore;
@@ -1084,7 +1089,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 	hash_store_data.beta = beta;
 	hash_store_data.score = bestscore;
 	hash_store(hash_table, &search->board, hash_code, &hash_store_data);
- 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	return bestscore;
@@ -1383,7 +1388,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 	HashTable *const hash_table = &search->hash_table;
 	HashTable *const pv_table = &search->pv_table;
-	unsigned long long hash_code;
+	unsigned long long hash_code, solid_opp;
 	HashData hash_data;
 	HashStoreData hash_store_data;
 	MoveList movelist;
@@ -1392,12 +1397,18 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Eval Ev0;
 	long long nodes_org;
+<<<<<<< HEAD
 	int reduced_depth, depth_pv_extension, saved_selectivity;
 <<<<<<< HEAD
 	int hash_selectivity;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	int reduced_depth, depth_pv_extension, saved_selectivity, ofssolid;
+	Board hashboard;
+	V4DI full;
+>>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
 
 	SEARCH_STATS(++statistics.n_PVS_midgame);
 
@@ -1655,6 +1666,21 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 		hash_store(pv_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+
+		// store solid-normalized for endgame TC
+		if ((search->eval.n_empties <= MASK_SOLID_DEPTH) && (search->eval.n_empties > DEPTH_TO_SHALLOW_SEARCH)
+		  && (hash_store_data.data.wl.c.selectivity == NO_SELECTIVITY)) {
+			solid_opp = get_all_full_lines(search->board.player | search->board.opponent, &full) & search->board.opponent;
+			if (solid_opp) {
+				hashboard.player = search->board.player ^ solid_opp;	// normalize solid to player
+				hashboard.opponent = search->board.opponent ^ solid_opp;
+				ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+				hash_store_data.alpha += ofssolid;
+				hash_store_data.beta += ofssolid;
+				hash_store_data.score += ofssolid;
+				hash_store(hash_table, &hashboard, board_get_hash_code(&hashboard), &hash_store_data);
+			}
+		}
 
 		SQUARE_STATS(foreach_move(move, movelist))
 <<<<<<< HEAD

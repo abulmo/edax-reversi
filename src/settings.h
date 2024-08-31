@@ -306,7 +306,7 @@
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 /** Dogaishi hash reduction Depth (before DEPTH_TO_SHALLOW_SEARCH) */
-#define MASK_SOLID_DEPTH 8
+#define MASK_SOLID_DEPTH 9
 
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
 /** bound for usefull move sorting */

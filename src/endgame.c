@@ -1067,6 +1067,7 @@ int NWS_endgame(Search *search, const int alpha)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// stability cutoff
 <<<<<<< HEAD
 	hashboard = board0.board = search->board;
@@ -1084,6 +1085,8 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 	// transposition cutoff
 
+=======
+>>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
 	// Improvement of Serch by Reducing Redundant Information in a Position of Othello
 	// Hidekazu Matsuo, Shuji Narazaki
 	// http://id.nii.ac.jp/1001/00156359/
@@ -1109,10 +1112,17 @@ int NWS_endgame(Search *search, const int alpha)
 		ofssolid = 0;
 	}
 
+	// transposition cutoff
+
 	hash_code = board_get_hash_code(&hashboard);
-	if (hash_get(hash_table, &hashboard, hash_code, &hash_data))
-		if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha + ofssolid, &score))
-			return score - ofssolid;
+	if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {
+		hash_data.lower -= ofssolid;
+		hash_data.upper -= ofssolid;
+		if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))
+			return score;
+	}
+	// else if (ofssolid)	// slows down
+	//	hash_get(hash_table, &search->board, board_get_hash_code(&search->board), &hash_data);
 
 	search_get_movelist(search, &movelist);
 
