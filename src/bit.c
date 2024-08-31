@@ -8,6 +8,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -15,6 +16,9 @@
 =======
  * @date 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+ * @date 1998 - 2020
+>>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -67,8 +71,12 @@ const unsigned long long NEIGHBOUR[] = {
  * @return the number of bits set.
  */
 
+<<<<<<< HEAD
 #ifndef POPCOUNT
   #if 0
+=======
+#if 0 // ndef POPCOUNT
+>>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
 int bit_count(unsigned long long b)
 {
 <<<<<<< HEAD
@@ -207,12 +215,42 @@ void bit_init(void)
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 #endif
 
+<<<<<<< HEAD
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	init_mmx();
 #endif
 #if defined(ANDROID) && !defined(__ARM_NEON) && !defined(hasSSE2)
 	init_neon();
 #endif
+=======
+#ifndef POPCOUNT
+// https://github.com/official-stockfish/Stockfish/pull/620/files
+// 2% faster than SWAR bit_count for 32 & 64 non-POPCOUNT build
+unsigned char PopCnt16[1 << 16];
+
+static int bit_count_32(unsigned int b)
+{
+	b = b - ((b >> 1) & 0x55555555);
+	b = ((b >> 2) & 0x333333333) + (b & 0x33333333);
+	b = ((b >> 4) + b) & 0x0F0F0F0F;
+	return (b * 0x01010101) >> 24;
+}
+#endif
+
+/**
+ * @brief initialize PopCnt16 table and check MMX/SSE availability.
+ */
+void bit_init(void)
+{
+#ifndef POPCOUNT
+	unsigned int	i;
+	for (i = 0; i < (1 << 16); ++i)
+		PopCnt16[i] = bit_count_32(i);
+#endif
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
+	init_mmx();
+#endif
+>>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
 }
 
 /**
