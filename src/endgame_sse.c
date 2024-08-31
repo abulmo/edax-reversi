@@ -1168,7 +1168,6 @@ int search_solve_4(Search *search, const int alpha)
 {
 	__m128i	OP, flipped;
 	__m128i	empties_series;	// B15:4th, B11:3rd, B7:2nd, B3:1st, lower 3 bytes for 3 empties
-	SquareList *empty;
 	int x1, x2, x3, x4, q1, q2, q3;
 	int score, bestscore;
 	unsigned int parity;
@@ -1213,10 +1212,10 @@ int search_solve_4(Search *search, const int alpha)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
 	OP = _mm_loadu_si128((__m128i *) &search->board);
-	x1 = (empty = search->empties->next)->x;
-	x2 = (empty = empty->next)->x;
-	x3 = (empty = empty->next)->x;
-	x4 = empty->next->x;
+	x1 = search->empties[NOMOVE].next;
+	x2 = search->empties[x1].next;
+	x3 = search->empties[x2].next;
+	x4 = search->empties[x3].next;
 
 	// parity based move sorting.
 	// The following hole sizes are possible:

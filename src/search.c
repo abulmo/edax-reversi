@@ -532,11 +532,15 @@ void search_free(Search *search)
 void search_setup(Search *search)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int i, x, prev;
 =======
 	int i, x;
 	SquareList *empty;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	int i, x, prev;
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	static const unsigned char presorted_x[] = {
 		A1, A8, H1, H8,                    /* Corner */
 		C4, C5, D3, D6, E3, E6, F4, F5,    /* E */
@@ -554,6 +558,7 @@ void search_setup(Search *search)
 <<<<<<< HEAD
 	const Board * const board = &search->board;
 	unsigned long long E;
+<<<<<<< HEAD
 
 	// init empties, parity
 	search->eval.n_empties = 0;
@@ -564,6 +569,8 @@ void search_setup(Search *search)
 	const Board * const board = &search->board;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned long long E, B;
+=======
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 
 	// init empties, parity
 	search->n_empties = 0;
@@ -579,11 +586,15 @@ void search_setup(Search *search)
 	for (i = 0; i < BOARD_SIZE; ++i) {    /* add empty squares */
 		x = presorted_x[i];
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 		if (E & x_to_bit(x)) {
 			search->eval.parity ^= QUADRANT_ID[x];
 			search->empties[prev].next = x;
 			search->empties[x].previous = prev;
 			prev = x;
+<<<<<<< HEAD
 			++search->eval.n_empties;
 =======
 		B = x_to_bit(x);
@@ -596,6 +607,8 @@ void search_setup(Search *search)
 			empty->next = empty + 1;
 			search->x_to_empties[x] = empty;
 			empty = empty->next;
+=======
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 			++search->n_empties;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 		}
@@ -603,6 +616,7 @@ void search_setup(Search *search)
 	search->empties[prev].next = NOMOVE;	/* sentinel */
 	search->empties[NOMOVE].previous = prev;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	search->empties[PASS].next = NOMOVE;
 	search->empties[PASS].previous = NOMOVE;
@@ -619,6 +633,10 @@ void search_setup(Search *search)
 	empty->previous = empty->next = empty;
 	search->x_to_empties[NOMOVE] = empty;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	search->empties[PASS].next = NOMOVE;
+	search->empties[PASS].previous = NOMOVE;
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 
 	// init the evaluation function
 <<<<<<< HEAD
@@ -999,6 +1017,7 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 		++(movelist->n_moves);
 	}
 	previous->next = NULL;
+<<<<<<< HEAD
 }
 
 <<<<<<< HEAD
@@ -1006,6 +1025,13 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 =======
 #if 0
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	movelist->n_moves = move - movelist->move - 1;
+	assert(movelist->n_moves == bit_count(moves));
+}
+
+#if 0	// inlined
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 /**
  * @brief Update the search state after a move.
  *
@@ -1016,11 +1042,15 @@ void search_update_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	--search->eval.n_empties;
 =======
 	empty_remove(search->x_to_empties[move->x]);
+=======
+	empty_remove(search->empties, move->x);
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_update(&search->board, move);
 	--search->n_empties;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
@@ -1037,11 +1067,15 @@ void search_restore_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	empty_restore(search->empties, move->x);
 	board_restore(&search->board, move);
 	++search->eval.n_empties;
 =======
 	empty_restore(search->x_to_empties[move->x]);
+=======
+	empty_restore(search->empties, move->x);
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_restore(&search->board, move);
 	++search->n_empties;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
@@ -1084,6 +1118,7 @@ void search_update_midgame(Search *search, const Move *move)
 
 	search_swap_parity(search, move->x);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	eval_update(move->x, move->flipped, &search->eval);
@@ -1091,6 +1126,9 @@ void search_update_midgame(Search *search, const Move *move)
 	--search->eval.n_empties;
 =======
 	empty_remove(search->x_to_empties[move->x]);
+=======
+	empty_remove(search->empties, move->x);
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_update(&search->board, move);
 	eval_update(&search->eval, move);
 	assert(search->n_empties > 0);
@@ -1138,8 +1176,12 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 =======
 =======
 	search_swap_parity(search, move->x);
+<<<<<<< HEAD
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 	empty_restore(search->x_to_empties[move->x]);
+=======
+	empty_restore(search->empties, move->x);
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_restore(&search->board, move);
 	// eval_restore(search->eval, move);
 	search->eval.feature = eval_to_restore->feature;

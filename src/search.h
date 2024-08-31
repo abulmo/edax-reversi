@@ -87,6 +87,10 @@ typedef struct Search {
 	Eval eval;                                    /**< eval */
 
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
+<<<<<<< HEAD
+=======
+	int n_empties;                                /**< number of empty squares */
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	int player;                                   /**< player color */
 	int id;                                       /**< search id */
 

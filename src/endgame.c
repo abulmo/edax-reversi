@@ -355,11 +355,17 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 	Board next[1];
 =======
 	Board next;
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty = search->empties->next;
 	int x1 = empty->x;
 	int x2 = (empty = empty->next)->x;
 	int x3 = empty->next->x;
+=======
+	int x1 = search->empties[NOMOVE].next;
+	int x2 = search->empties[x1].next;
+	int x3 = search->empties[x2].next;
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	int score, bestscore;
 	// const int beta = alpha + 1;
 
@@ -511,8 +517,11 @@ static int search_solve_4(Search *search, int alpha)
 	Board next[1];
 =======
 	Board next;
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty;
+=======
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	int x1, x2, x3, x4;
 	int score, bestscore;
 <<<<<<< HEAD
@@ -534,10 +543,10 @@ static int search_solve_4(Search *search, int alpha)
 	x3 = search->empties[x2].next;
 	x4 = search->empties[x3].next;
 
-	x1 = (empty = search->empties->next)->x;
-	x2 = (empty = empty->next)->x;
-	x3 = (empty = empty->next)->x;
-	x4 = empty->next->x;
+	x1 = search->empties[NOMOVE].next;
+	x2 = search->empties[x1].next;
+	x3 = search->empties[x2].next;
+	x4 = search->empties[x3].next;
 
 	// parity based move sorting.
 	// The following hole sizes are possible:
@@ -618,32 +627,32 @@ static int search_solve_4(Search *search, int alpha)
 	// best move alphabeta search
 	bestscore = -SCORE_INF;
 	if ((NEIGHBOUR[x1] & search->board.opponent) && board_next(&search->board, x1, &next)) {
-		empty_remove(search->x_to_empties[x1]);
+		empty_remove(search->empties, x1);
 		bestscore = -search_solve_3(search, -(alpha + 1), &next, parity ^ QUADRANT_ID[x1]);
-		empty_restore(search->x_to_empties[x1]);
+		empty_restore(search->empties, x1);
 		if (bestscore > alpha) return bestscore;
 	}
 
 	if ((NEIGHBOUR[x2] & search->board.opponent) && board_next(&search->board, x2, &next)) {
-		empty_remove(search->x_to_empties[x2]);
+		empty_remove(search->empties, x2);
 		score = -search_solve_3(search, -(alpha + 1), &next, parity ^ QUADRANT_ID[x2]);
-		empty_restore(search->x_to_empties[x2]);
+		empty_restore(search->empties, x2);
 		if (score > alpha) return score;
 		else if (score > bestscore) bestscore = score;
 	}
 
 	if ((NEIGHBOUR[x3] & search->board.opponent) && board_next(&search->board, x3, &next)) {
-		empty_remove(search->x_to_empties[x3]);
+		empty_remove(search->empties, x3);
 		score = -search_solve_3(search, -(alpha + 1), &next, parity ^ QUADRANT_ID[x3]);
-		empty_restore(search->x_to_empties[x3]);
+		empty_restore(search->empties, x3);
 		if (score > alpha) return score;
 		else if (score > bestscore) bestscore = score;
 	}
 
 	if ((NEIGHBOUR[x4] & search->board.opponent) && board_next(&search->board, x4, &next)) {
-		empty_remove(search->x_to_empties[x4]);
+		empty_remove(search->empties, x4);
 		score = -search_solve_3(search, -(alpha + 1), &next, parity ^ QUADRANT_ID[x4]);
-		empty_restore(search->x_to_empties[x4]);
+		empty_restore(search->empties, x4);
 		if (score > bestscore) bestscore = score;
 	}
 
@@ -701,6 +710,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long moves, prioritymoves;
 	int x, prev, score, bestscore;
 	// const int beta = alpha + 1;
@@ -711,6 +721,8 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty;
+=======
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	Move move;
 	int x, score, bestscore = -SCORE_INF;
 	// const int beta = alpha + 1;
@@ -828,12 +840,11 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	parity0 = search->eval.parity;
 	for (paritymask = 0; paritymask <= 15; paritymask += 15) {	// 0 for odd, 15 for even
 		if (parity0 != paritymask) {	// 0: all even, 15: all odd
-			foreach_empty (empty, search->empties) {
-				if ((parity0 ^ paritymask) & empty->quadrant) {
-					x = empty->x;
+			foreach_empty (x, search->empties) {
+				if ((parity0 ^ paritymask) & QUADRANT_ID[x]) {
 					if ((NEIGHBOUR[x] & board0.opponent) && board_get_move(&search->board, x, &move)) {
 						search_swap_parity(search, x);
-						empty_remove(search->x_to_empties[x]);
+						empty_remove(search->empties, x);
 						board_update(&search->board, &move);
 						--search->n_empties;
 
@@ -842,7 +853,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 
 						search->eval.parity = parity0;
-						empty_restore(search->x_to_empties[x]);
+						empty_restore(search->empties, x);
 						search->board = board0;
 						++search->n_empties;
 
@@ -1002,14 +1013,14 @@ int NWS_endgame(Search *search, const int alpha)
 		// loop over all moves
 		foreach_best_move(move, movelist) {
 			search_swap_parity(search, move->x);
-			empty_remove(search->x_to_empties[move->x]);
+			empty_remove(search->empties, move->x);
 			board_update(&search->board, move);
 			--search->n_empties;
 
 			move->score = -NWS_endgame(search, -(alpha + 1));
 
 			search->eval.parity = parity0;
-			empty_restore(search->x_to_empties[move->x]);
+			empty_restore(search->empties, move->x);
 			search->board = board0;
 			++search->n_empties;
 

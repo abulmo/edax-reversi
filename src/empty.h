@@ -43,12 +43,17 @@ static inline void empty_restore(SquareList *empty, int index)
 
 /** Loop over all empty squares */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define foreach_empty(index, empty)\
 	for ((index) = (empty)[NOMOVE].next; index != NOMOVE; (index) = (empty)[index].next)
 =======
 #define foreach_empty(empty, list)\
 	for ((empty) = (list)->next; (empty)->next; (empty) = (empty)->next)
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+#define foreach_empty(index, empty)\
+	for ((index) = (empty)[NOMOVE].next; index != NOMOVE; (index) = (empty)[index].next)
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 
 #endif
 

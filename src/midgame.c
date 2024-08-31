@@ -190,6 +190,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 	Move move;
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty;
 	Eval Ev;
@@ -211,6 +212,10 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 =======
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	Eval Ev;
+	int x, score, bestscore;
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	const short *w;
 	const unsigned short *f;
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
@@ -230,9 +235,9 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		bestscore = -SCORE_INF;
 		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
-		foreach_empty (empty, search->empties) {
-			if (moves & empty->b) {
-				board_get_move(&search->board, empty->x, &move);
+		foreach_empty (x, search->empties) {
+			if (moves & x_to_bit(x)) {
+				board_get_move(&search->board, x, &move);
 				if (move_wipeout(&move, &search->board)) return SCORE_MAX;
 
 				eval_update_leaf(&Ev, &search->eval, &move);
@@ -348,6 +353,7 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int x, bestscore, score;
 	unsigned long long flipped;
 	Eval eval0;
@@ -358,6 +364,9 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 	int bestscore, score;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	SquareList *empty;
+=======
+	int x, bestscore, score;
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	Move move;
 	Eval Ev0;
 <<<<<<< HEAD
@@ -415,15 +424,23 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 		board0 = search->board;
 		--search->n_empties;
 
+<<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 		foreach_empty(empty, search->empties) {
 			if (moves & empty->b) {
 				move.x = empty->x;
 				move.flipped = board_next(&board0, move.x, &search->board);
 				// empty_remove(search->x_to_empties[move.x]);
+=======
+		foreach_empty(x, search->empties) {
+			if (moves & x_to_bit(x)) {
+				move.x = x;
+				move.flipped = board_next(&board0, x, &search->board);
+				// empty_remove(search->empties, x);
+>>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 				eval_update_leaf(&search->eval, &Ev0, &move);
 				score = -search_eval_1(search, -beta, -alpha, get_moves(search->board.player, search->board.opponent));
-				// empty_restore(search->x_to_empties[move.x]);
+				// empty_restore(search->empties, x);
 
 				if (score > bestscore) {
 					bestscore = score;
