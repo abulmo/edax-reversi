@@ -717,31 +717,31 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
-	int	score, score2;
+	int	score, score2, nflip;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-	__m256i	flip, outflank, rmask, lmask;
+	__m256i	rmP, rmO, flip, outflank, rmask, lmask;
 	__m128i	flip2, p2;
 
-	rmask = rmask_v4[pos].v4;
-		// right: look for player bit with lzcnt
-	outflank = _mm256_and_si256(PP, rmask);
-	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
-		// set all bits higher than outflank
-	// flip = _mm256_andnot_si256(_mm256_or_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), outflank), rmask);
-	flip = _mm256_ternarylogic_epi64(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), outflank, rmask, 0x02);
-
-	lmask = lmask_v4[pos].v4;
 		// left: look for player LS1B
+	lmask = lmask_v4[pos].v4;
 	outflank = _mm256_and_si256(PP, lmask);
-	// outflank = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));	// below LS1B
-	// outflank = _mm256_and_si256(outflank, lmask);
-	outflank = _mm256_ternarylogic_epi64(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
-		// apply flip if P is in lmask
-	flip = _mm256_mask_or_epi64(flip, _mm256_test_epi64_mask(PP, lmask), flip, outflank);
+		// set below LS1B if P is in lmask
+	// flip = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));
+	// flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(outflank, lmask), flip, lmask);
+	flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(PP, lmask),
+		outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
+
+		// right: look for player bit with lzcnt
+	rmask = rmask_v4[pos].v4;
+	rmP = _mm256_and_si256(PP, rmask);		rmO = _mm256_andnot_si256(PP, rmask);
+	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
+		// set all bits higher than outflank
+	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmO));
+	flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmO, 0xf2);
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	// p2 = _mm_or_si128(_mm256_castsi256_si128(PP), _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
-	p2 = _mm_ternarylogic_epi64(_mm256_castsi256_si128(PP), flip2, _mm_shuffle_epi32(flip2, 0x4e), 0xfe);
+	// p2 = _mm_or_si128(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)), _mm256_castsi256_si128(PP));	// SWAP64
+	p2 = _mm_ternarylogic_epi64(flip2, _mm_shuffle_epi32(flip2, 0x4e), _mm256_castsi256_si128(PP), 0xfe);
 	score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(p2));	// 2 * bit_count(O) - SCORE_MAX
 
 	if (_mm_testz_si128(flip2, flip2)) {
@@ -750,27 +750,77 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 			score = score2;
 
 		if (score < beta) {	// lazy cut-off
-				// right: look for opponent bit with lzcnt
-			outflank = _mm256_andnot_si256(PP, rmask);
-			outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
-				// set all bits higher than outflank
-			// flip = _mm256_andnot_si256(_mm256_or_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), outflank), rmask);
-			flip = _mm256_ternarylogic_epi64(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), outflank, rmask, 0x02);
-
 				// left: look for opponent LS1B
 			outflank = _mm256_andnot_si256(PP, lmask);
-			// outflank = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));	// below LS1B
-			// outflank = _mm256_and_si256(outflank, lmask);
-			outflank = _mm256_ternarylogic_epi64(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
-				// apply flip if O is in lmask, i.e. lmask is not all P
-			flip = _mm256_mask_or_epi64(flip, _mm256_cmpneq_epi64_mask(outflank, lmask), flip, outflank);
+				// set below LS1B if O is in lmask
+			// flip = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));
+			// flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(outflank, lmask), flip, lmask);
+			flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(outflank, lmask),
+				outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
+
+				// right: look for opponent bit with lzcnt
+			outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmO));
+				// set all bits higher than outflank
+			// flip = _mm256_or_si256(flip, _mm256_andnot_si256(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmP));
+			flip = _mm256_ternarylogic_epi64(flip, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), rmP, 0xf2);
 
 			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-			if (!_mm_testz_si128(flip2, flip2))
-				score = score2 + bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)))) * 2;
+			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e))));
+			if (nflip)
+				score = score2 + nflip * 2;
 		}
 	}
 
+	return score;
+}
+
+#elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+// branchless AVX512 lastflip (speed not tested)
+
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	int	score;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m256i	rmP, rmO, p_flip, o_flip, p_outflank, o_outflank, mask;
+	__m128i	p_flip2, o_flip2;
+	__mmask8 p_pass;
+
+		// left: look for player LS1B
+	mask = lmask_v4[pos].v4;
+	p_outflank = _mm256_and_si256(PP, mask);	o_outflank = _mm256_andnot_si256(PP, mask);
+		// set below LS1B if P is in lmask
+	// p_flip = _mm256_andnot_si256(p_outflank, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)));
+	// p_flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(p_outflank, mask), p_flip, mask);
+	p_flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(p_outflank, mask),
+		p_outflank, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
+
+		// set below LS1B if O is in lmask
+	// o_flip = _mm256_andnot_si256(o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)));
+	// o_flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(o_outflank, mask), o_flip, mask);
+	o_flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(o_outflank, mask),
+		o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
+
+		// right: look for player bit with lzcnt
+	mask = rmask_v4[pos].v4;
+	rmP = _mm256_and_si256(PP, mask);		rmO = _mm256_andnot_si256(PP, mask);
+	p_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
+	o_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmO));
+		// set all bits higher than outflank
+	// p_flip = _mm256_or_si256(p_flip, _mm256_andnot_si256(_mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), rmO));
+	p_flip = _mm256_ternarylogic_epi64(p_flip, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), rmO, 0xf2);
+	// o_flip = _mm256_or_si256(o_flip, _mm256_andnot_si256(_mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), rmP));
+	o_flip = _mm256_ternarylogic_epi64(o_flip, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), rmP, 0xf2);
+
+	p_flip2 = _mm_or_si128(_mm256_castsi256_si128(p_flip), _mm256_extracti128_si256(p_flip, 1));
+	o_flip2 = _mm_or_si128(_mm256_castsi256_si128(o_flip), _mm256_extracti128_si256(o_flip, 1));
+	p_flip2 = _mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e));	// SWAP64
+	p_pass = _mm_testn_epi64_mask(p_flip2, p_flip2);
+	o_flip2 = _mm_mask_or_epi64(p_flip2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e));	// p_flip2 or else o_flip2
+
+	score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(_mm_xor_si128(_mm256_castsi256_si128(PP), o_flip2)));
+		// last square for O if P pass and not (both pass and score < 0)
+	score += (p_pass & !(_mm_testn_epi64_mask(o_flip2, o_flip2) & (score < 0))) * 2;
+	(void) beta;	// no lazy cut-off
 	return score;
 }
 
@@ -779,7 +829,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
-	int	score, score2;
+	int	score, score2, nflip;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2, p2;
@@ -788,13 +838,13 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 		// isolate player MS1B by clearing lower shadow bits
 	outflank = _mm256_and_si256(PP, rmask);
 	eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
-		// clear if no player bit
-	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(outflank, eraser), rmask);
 		// eraser = player's shadow
 	eraser = _mm256_or_si256(eraser, outflank);
 	eraser = _mm256_or_si256(eraser, _mm256_srlv_epi64(eraser, _mm256_set_epi64x(14, 18, 16, 2)));
-	flip = _mm256_andnot_si256(eraser, flip);
+	flip = _mm256_andnot_si256(eraser, rmask);
 	flip = _mm256_andnot_si256(_mm256_srlv_epi64(eraser, _mm256_set_epi64x(28, 36, 32, 4)), flip);
+		// clear if no player bit, i.e. all opponent
+	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(flip, rmask), flip);
 
 	lmask = lmask_v4[pos].v4;
 		// look for player LS1B
@@ -817,13 +867,13 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 				// isolate opponent MS1B by clearing lower shadow bits
 			outflank = _mm256_andnot_si256(PP, rmask);
 			eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
-				// clear if no opponennt bit
-			flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(outflank, eraser), rmask);
 				// eraser = opponent's shadow
 			eraser = _mm256_or_si256(eraser, outflank);
 			eraser = _mm256_or_si256(eraser, _mm256_srlv_epi64(eraser, _mm256_set_epi64x(14, 18, 16, 2)));
-			flip = _mm256_andnot_si256(eraser, flip);
+			flip = _mm256_andnot_si256(eraser, rmask);
 			flip = _mm256_andnot_si256(_mm256_srlv_epi64(eraser, _mm256_set_epi64x(28, 36, 32, 4)), flip);
+				// clear if no opponent bit, i.e. all player
+			flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(flip, rmask), flip);
 
 				// look for opponent LS1B
 			outflank = _mm256_andnot_si256(PP, lmask);
@@ -833,8 +883,9 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 			flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, lmask));
 
 			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-			if (!_mm_testz_si128(flip2, flip2))
-				score = score2 + bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)))) * 2;
+			nflip = bit_count(_mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e))));
+			if (nflip)
+				score = score2 + nflip * 2;
 		}
 	}
 
@@ -842,7 +893,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 }
 
 #elif 0 // def __AVX2__
-// experimental bruteforce AVX2 version (slower on icc, par on msvc)
+// experimental branchless AVX2 MOVMSK version (slower on icc, par on msvc)
 // https://eukaryote.hateblo.jp/entry/2020/05/10/033228
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {

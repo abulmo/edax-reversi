@@ -213,10 +213,14 @@ static inline int _tzcnt_u64(unsigned long long x) {
 #elif defined(_MSC_VER)
 	static inline int lzcnt_u32(unsigned int n) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		unsigned long i;
 =======
 		unsigned int i;
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+		unsigned long i;
+>>>>>>> 77ab3e9 (Experimental branchless AVX512 lastflip in endgame_sse.c)
 		if (!_BitScanReverse(&i, n))
 			i = 32 ^ 31;
 		return i ^ 31;

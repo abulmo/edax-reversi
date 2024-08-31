@@ -180,6 +180,9 @@ vc-a32:
 icc-w64-modern:
 	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
 
+icc-w64-avx512:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:CORE-AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-avx512.exe /link /VERSION:4.5
+
 icc-w64:
 	icl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
 
