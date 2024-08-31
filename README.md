@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Edax
 
 Edax is a very strong othello program. Its main features are:
@@ -56,6 +57,20 @@ open ../doc/html/index.html
 # edax-reversi-AVX
 Automatically exported from code.google.com/p/okuharaandroid-edax-reversi
 
+=======
+# edax-reversi-AVX
+Automatically exported from code.google.com/p/okuharaandroid-edax-reversi
+
+Edax is a strong othello program. Its main features are:
+
+    fast bitboard based & multithreaded engine.
+    accurate midgame-evaluation function.
+    opening book learning capability.
+    text based rich interface.
+    multi-protocol support to connect to graphical interfaces or play on Internet (GGS).
+    multi-OS support to run under MS-Windows, Linux and Mac OS X.
+
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 This is SSE/AVX optimized version of Edax 4.4.0. Functionally equivalent to the parent project, provided no bugs are introduced.
 
 64 bit version solves fforum-20-39 7% to 9% faster than the original 4.4.0 on my test. Thanks to AVX2, x64-modern build runs 14% faster on Haswell. 32 bit version runs 9% (Core2) to 20% (Athlon) faster than the original.
@@ -144,4 +159,7 @@ Benchmarks are on Core i5-4260U (Haswell) 1.4GHz (TB 2.7GHz) single thread.
 
 ## 9. makefile
 gcc-old, x86 build should be -m32, not -m64. Some flags and defines added for optimization.
+<<<<<<< HEAD
 >>>>>>> b9d48c1 (Create README.md)
+=======
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))

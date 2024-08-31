@@ -111,6 +111,7 @@ extern const V4DI mask_dvhd[64];
  * @param OP board to play the move on.
  * @param x move to play.
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param flipped flipped returned from mm_Flip.
  * @return resulting board.
  */
@@ -120,6 +121,10 @@ static inline __m128i vectorcall board_flip_next(__m128i OP, int x, __m128i flip
 =======
  * @param next resulting board.
  * @return true if no flips.
+=======
+ * @param flipped flipped returned from mm_Flip.
+ * @return resulting board.
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
  */
 static inline __m128i board_next_sse(__m128i OP, int x, __m128i flipped)
 {
@@ -661,17 +666,20 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 
 	// n_flips = last_flip(pos, P);
 #ifdef AVXLASTFLIP
-	__m256i	MP = _mm256_and_si256(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
+	__m256i MM = mask_dvhd[pos].v4;
+	__m256i	PP = _mm256_broadcastq_epi64(OP);
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
-	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), MP));
+	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, MM)));
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 	t >>= 16;
 #else
+	__m128i M0 = mask_dvhd[pos].v2[0];
+	__m128i M1 = mask_dvhd[pos].v2[1];
 	__m128i	PP = _mm_shuffle_epi32(OP, DUPLO);
-	II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
+	II = _mm_sad_epu8(_mm_and_si128(PP, M0), _mm_setzero_si128());
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
+	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, M1)));
 #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
@@ -685,13 +693,12 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(pos, EXTRACT_O(OP));
 #ifdef AVXLASTFLIP
-			MP = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mask_dvhd[pos].v4);
-			II = _mm_sad_epu8(_mm256_castsi256_si128(MP), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(MP, 1)));
+			PP = _mm256_andnot_si256(PP, MM);
+			II = _mm_sad_epu8(_mm256_castsi256_si128(PP), _mm_setzero_si128());
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(PP, 1)));
 #else
-			PP = _mm_shuffle_epi32(OP, DUPHI);
-			II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
+			II = _mm_sad_epu8(_mm_andnot_si128(PP, M0), _mm_setzero_si128());
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(PP, M1)));
 #endif
 			n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 			n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
@@ -704,6 +711,12 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 	}
 
 	return score;
+}
+
+// from bench.c
+int board_score_1(const Board *board, const int beta, const int x)
+{
+	return board_score_sse_1(_mm_loadu_si128((__m128i *) board), beta, x);
 }
 
 /**

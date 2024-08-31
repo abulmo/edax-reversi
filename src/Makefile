@@ -121,6 +121,7 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -march=armv7-a
 		ifeq ($(BUILD),optimize)
 <<<<<<< HEAD
+<<<<<<< HEAD
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
@@ -137,6 +138,9 @@ ifeq ($(COMP),gcc)
 =======
 			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 		endif
 	endif
 

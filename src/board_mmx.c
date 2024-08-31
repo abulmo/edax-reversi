@@ -147,8 +147,7 @@ void board_update(Board *board, const Move *move)
 	__m128i	F = _mm_loadl_epi64((__m128i *) &move->flipped);
 	__m128i	OP = _mm_loadu_si128((__m128i *) board);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_unpacklo_epi64(F, F), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
-	_mm_storel_pi((__m64 *) &board->opponent, _mm_castsi128_ps(OP));
-	_mm_storeh_pi((__m64 *) &board->player, _mm_castsi128_ps(OP));
+	_mm_storeu_si128((__m128i *) board, _mm_shuffle_epi32(OP, 0x4e));
 	board_check(board);
 }
 
@@ -200,7 +199,7 @@ void board_update(Board *board, const Move *move)
 void board_restore(Board *board, const Move *move)
 {
 	__m128i	F = _mm_loadl_epi64((__m128i *) &move->flipped);
-	__m128i	OP = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i *) &board->opponent), _mm_loadl_epi64((__m128i *) &board->player));
+	__m128i	OP = _mm_shuffle_epi32(_mm_loadu_si128((__m128i *) board), 0x4e);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_unpacklo_epi64(F, F), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
 	_mm_storeu_si128((__m128i *) board, OP);
 	board_check(board);

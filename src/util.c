@@ -8,6 +8,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -15,6 +16,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
+=======
+ * @date 1998 - 2022
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
  * @author Richard Delorme
  * @version 4.5
  */
@@ -690,7 +694,11 @@ char* parse_move(const char *string, const Board *board, Move *move)
 		char *word = parse_skip_spaces(string);
 		int x = string_to_coordinate(word);
 		move->x = x;
+<<<<<<< HEAD
 		move->flipped = board_flip(board, x);
+=======
+		move->flipped = Flip(x, board->player, board->opponent);
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 		if (move->flipped && !board_is_occupied(board, x)) {
 			return word + 2;
 		} else if (board_is_pass(board)) {

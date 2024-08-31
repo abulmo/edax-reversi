@@ -213,11 +213,14 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #endif
 
 // popcount
-#if !defined(POPCOUNT) && defined(hasNeon)
-	#define	POPCOUNT	1
-#endif
+#ifdef hasNeon
+	#ifdef HAS_CPU_64
+		#define bit_count(x)	vaddv_u8(vcnt_u8(vcreate_u8(x)))
+	#else
+		#define bit_count(x)	vget_lane_u32(vreinterpret_u32_u64(vpaddl_u32(vpaddl_u16(vpaddl_u8(vcnt_u8(vcreate_u8(x)))))), 0)
+	#endif
 
-#ifdef POPCOUNT
+#elif defined(POPCOUNT)
 	/*
 	#if defined (USE_GAS_X64)
 		static inline int bit_count (unsigned long long x) {
@@ -449,6 +452,7 @@ V2DI;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 typedef union {
 	unsigned long long	ull[4];
   #ifdef __AVX2__
@@ -535,15 +539,21 @@ typedef union {
 #ifdef hasSSE2
 =======
 #ifdef hasSSE2
+=======
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 typedef union {
 	unsigned long long	ull[4];
 	#ifdef __AVX2__
 		__m256i	v4;
 	#endif
+<<<<<<< HEAD
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
+=======
+	#ifdef hasSSE2
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	__m128i	v2[2];
+	#endif
 } V4DI;
-#endif
 
 /* Define function attributes directive when available */
 

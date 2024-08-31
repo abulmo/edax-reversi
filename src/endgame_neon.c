@@ -7,6 +7,7 @@
  * Bitboard and empty list is kept in Neon registers.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -17,6 +18,12 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+ * @date 1998 - 2022
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
  * 
  */
 
@@ -29,11 +36,15 @@
 
 #ifndef HAS_CPU_64
 <<<<<<< HEAD
+<<<<<<< HEAD
 	#define vaddv_u8(x)	vget_lane_u32(vreinterpret_u32_u64(vpaddl_u32(vpaddl_u16(vpaddl_u8(x)))), 0)
 =======
 #define vaddv_u8(x)	vget_lane_u64(vpaddl_u32(vpaddl_u16(vpaddl_u8(x))), 0)
 #define vaddvq_u16(x)	vget_lane_u64(vpaddl_u32(vpaddl_u16(vadd_u16(vget_high_u16(x), vget_low_u16(x)))), 0)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+	#define vaddv_u8(x)	vget_lane_u32(vreinterpret_u32_u64(vpaddl_u32(vpaddl_u16(vpaddl_u8(x)))), 0)
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 #endif
 
 // in count_last_flip_neon.c
@@ -45,6 +56,7 @@ extern const uint64x2_t mask_dvhd[64][2];
  *
  * @param OP board to play the move on.
  * @param x move to play.
+<<<<<<< HEAD
 <<<<<<< HEAD
  * @param flipped flipped returned from mm_Flip.
  * @return resulting board.
@@ -68,6 +80,19 @@ static inline uint64x2_t board_next_neon(uint64x2_t OP, int x, uint64x2_t flippe
 	OP = veorq_u64(OP, flipped);
 	return vcombine_u64(vget_high_u64(OP), vorr_u64(vget_low_u64(OP), vcreate_u64(X_TO_BIT[x])));
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+ * @param flipped flipped returned from mm_Flip.
+ * @return resulting board.
+ */
+static inline uint64x2_t board_next_neon(uint64x2_t OP, int x, uint64x2_t flipped)
+{
+#ifdef HAS_CPU_64	// vld1q_lane_u64
+	OP = veorq_u64(OP, vorrq_u64(flipped, vld1q_lane_u64((uint64_t *) &X_TO_BIT[x], flipped, 0)));
+#else
+	OP = veorq_u64(OP, vcombine_u64(vorr_u64(vget_low_u64(flipped), vld1_u64(&X_TO_BIT[x])), vget_high_u64(flipped)));
+#endif
+	return vextq_u64(OP, OP, 1);
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 }
 
 /**
@@ -200,16 +225,21 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
  * @param pos    Last empty square to play.
  * @return       The final opponent score, as a disc difference.
  */
-static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
+static int board_score_neon_1(uint64x2_t OP, const int beta, const int pos)
 {
-	int	score, score2;
-	unsigned int	n_flips, t0, t1, m;
+	int	score = SCORE_MAX - 2 - 2 * vaddv_u8(vcnt_u8(vreinterpret_u8_u64(vget_low_u64(OP))));	// 2 * bit_count(O) - SCORE_MAX
+	int	score2;
+	unsigned int	n_flips, m;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+<<<<<<< HEAD
 	uint8x16_t	PP = vzipq_u8(vreinterpretq_u8_u64(OP), vreinterpretq_u8_u64(OP)).val[0];
 	uint16x8_t	II;	// 2 dirs interleaved
 	const uint8x16_t dmask = { 1, 1, 2, 2, 4, 4, 8, 8, 16, 16, 32, 32, 64, 64, 128, 128 };
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+	uint64x2_t	PP, I0, I1;
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	static const unsigned short o_mask[64] = {
 		0xff01, 0x7f03, 0x3f07, 0x1f0f, 0x0f1f, 0x073f, 0x037f, 0x01ff,
 		0xfe03, 0xff07, 0x7f0f, 0x3f1f, 0x1f3f, 0x0f7f, 0x07ff, 0x03fe,
@@ -221,6 +251,7 @@ static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
 		0x80ff, 0xc0fe, 0xe0fc, 0xf0f8, 0xf8f0, 0xfce0, 0xfec0, 0xff80
 	};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	// n_flips = last_flip(pos, P);
   #ifdef HAS_CPU_64	// vaddvq
@@ -274,15 +305,35 @@ static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
 =======
 	score = SCORE_MAX - 2 - 2 * vaddv_u8(vcnt_u8(vreinterpret_u8_u64(vget_low_u64(OP))));	// 2 * bit_count(O) - SCORE_MAX
 
+=======
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	// n_flips = last_flip(pos, P);
-	II = vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0]));
-	t0 = vaddvq_u16(II);
+#ifdef HAS_CPU_64	// vaddvq
+	unsigned int t0, t1;
+	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
+
+	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(OP), vreinterpretq_u8_u64(OP)));
+	I0 = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
+	t0 = vaddvq_u16(vreinterpretq_u16_u64(I0));
 	n_flips  = COUNT_FLIP_X[t0 >> 8];
 	n_flips += COUNT_FLIP_X[(unsigned char) t0];
-	II = vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask));
-	t1 = vaddvq_u16(II);
+	I1 = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
+	t1 = vaddvq_u16(vreinterpretq_u16_u64(I1));
 	n_flips += COUNT_FLIP_Y[t1 >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t1];
+
+#else // Neon kindergarten
+	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
+
+	PP = vdupq_lane_u64(vget_low_u64(OP), 0);
+	I0 = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
+	n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2)];
+	n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0)];
+	I1 = vreinterpretq_u64_s8(vnegq_s8(vreinterpretq_s8_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1])))));
+	I1 = vpaddlq_u32(vmulq_u32(vreinterpretq_u32_u64(dmask), vreinterpretq_u32_u64(I1)));
+	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 11)];
+	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3)];
+#endif
 	score -= n_flips;
 
 	if (n_flips == 0) {
@@ -293,11 +344,17 @@ static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(pos, O);
 			m = o_mask[pos];	// valid diagonal bits
+#ifdef HAS_CPU_64
 			n_flips  = COUNT_FLIP_X[(t0 >> 8) ^ 0xff];
 			n_flips += COUNT_FLIP_X[(unsigned char) (t0 ^ m)];
 			n_flips += COUNT_FLIP_Y[(t1 ^ m) >> 8];
 			n_flips += COUNT_FLIP_Y[(unsigned char) ~t1];
-
+#else
+			n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2) ^ 0xff];
+			n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0) ^ (unsigned char) m];
+			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 11) ^ (m >> 8)];
+			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3) ^ 0xff];
+#endif
 			if (n_flips != 0)
 				score = score2 + n_flips;
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
@@ -316,6 +373,12 @@ int board_score_1(const unsigned long long player, const int beta, const int x)
 }
 =======
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+
+// from bench.c
+int board_score_1(const Board *board, const int beta, const int x)
+{
+	return board_score_neon_1(vld1q_u64((uint64_t *) board), beta, x);
+}
 
 /**
  * @brief Get the final score.
@@ -398,34 +461,34 @@ static int board_solve_neon_2(uint64x2_t OP, int alpha, volatile unsigned long l
 =======
 	bb = vgetq_lane_u64(OP, 1);	// opponent
 	if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
-		bestscore = board_score_sse_1(board_next_neon(OP, x1, flipped), alpha + 1, x2);
+		bestscore = board_score_neon_1(board_next_neon(OP, x1, flipped), alpha + 1, x2);
 		nodes = 2;
 
 		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-			score = board_score_sse_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
+			score = board_score_neon_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
 			nodes = 3;
 		}
 
 	} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-		bestscore = board_score_sse_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
+		bestscore = board_score_neon_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
 		nodes = 2;
 
 	} else {	// pass
 		bb = vgetq_lane_u64(OP, 0);	// player
 		PO = vextq_u64(OP, OP, 1);
 		if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x1))) {
-			bestscore = -board_score_sse_1(board_next_neon(PO, x1, flipped), -alpha, x2);
+			bestscore = -board_score_neon_1(board_next_neon(PO, x1, flipped), -alpha, x2);
 			nodes = 2;
 
 			if ((bestscore > alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-				score = -board_score_sse_1(board_next_neon(PO, x2, flipped), -alpha, x1);
+				score = -board_score_neon_1(board_next_neon(PO, x2, flipped), -alpha, x1);
 				if (score < bestscore) bestscore = score;
 				nodes = 3;
 			}
 
 		} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-			bestscore = -board_score_sse_1(board_next_neon(PO, x2, flipped), -alpha, x1);
+			bestscore = -board_score_neon_1(board_next_neon(PO, x2, flipped), -alpha, x1);
 			nodes = 2;
 
 		} else {	// gameover
@@ -599,7 +662,7 @@ int search_solve_4(Search *search, const int alpha)
 {
 	uint64x2_t	OP, flipped;
 	uint8x16_t	empties_series;	// B15:4th, B11:3rd, B7:2nd, B3:1st, lower 3 bytes for 3 empties
-	uint32x4_t	shuf;
+	uint8x16_t	shuf;
 	int x1, x2, x3, x4, paritysort, score, bestscore;
 	unsigned long long opp;
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
@@ -615,6 +678,9 @@ int search_solve_4(Search *search, const int alpha)
 		/*0222*/  3, /*0223*/  5, /*0232*/  7, /*0233*/  8, /*0322*/  8, /*0323*/  7, /*0332*/  5, /*0333*/  3
 	};
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	static const uint64x2_t shuf_mask[] = {
 		{ 0x0203010003020100, 0x0003020101030200 },	//  0: 1(x1) 3(x2 x3 x4), 1(x1) 1(x2) 2(x3 x4), 1 1 1 1, 4
 		{ 0x0203010003020100, 0x0002030101020300 },	//  1: 1(x2) 3(x1 x3 x4)
@@ -625,6 +691,7 @@ int search_solve_4(Search *search, const int alpha)
 		{ 0x0102030002010300, 0x0003020103020100 },	//  6: 1(x2) 1(x3) 2(x1 x4)	x4x1x2x3-x1x2x3x4-x3x2x1x4-x2x3x1x4
 		{ 0x0002030102000301, 0x0103020003020100 },	//  7: 1(x2) 1(x4) 2(x1 x3)	x3x1x2x4-x1x2x3x4-x4x2x1x3-x2x4x1x3
 		{ 0x0001030201000302, 0x0203010003020100 },	//  8: 1(x3) 1(x4) 2(x1 x2)	x2x1x3x4-x1x2x3x4-x4x3x1x2-x3x4x1x2
+<<<<<<< HEAD
 		{ 0x0203010003020100, 0x0001030201000302 },	//  9: 2(x1 x2) 2(x3 x4)	x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
 		{ 0x0200030103010200, 0x0002030101030200 },	// 10: 2(x1 x3) 2(x2 x4)	x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
 		{ 0x0201030003000201, 0x0003020101020300 }	// 11: 2(x1 x4) 2(x2 x3)	x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
@@ -643,6 +710,11 @@ int search_solve_4(Search *search, const int alpha)
 		{ 0x03010200, 0x02000301, 0x01030200, 0x00020301 },	// 10: 2(x1 x3) 2(x2 x4)		x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
 		{ 0x03000201, 0x02010300, 0x01020300, 0x00030201 }	// 11: 2(x1 x4) 2(x2 x3)		x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+		{ 0x0203010003020100, 0x0001030201000302 },	//  9: 2(x1 x2) 2(x3 x4)		x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
+		{ 0x0200030103010200, 0x0002030101030200 },	// 10: 2(x1 x3) 2(x2 x4)		x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
+		{ 0x0201030003000201, 0x0003020101020300 }	// 11: 2(x1 x4) 2(x2 x3)		x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	};
 
 	SEARCH_STATS(++statistics.n_search_solve_4);
@@ -668,6 +740,7 @@ int search_solve_4(Search *search, const int alpha)
 	// Only the 1 1 2 case needs move sorting on this ply.
 	empties_series = vreinterpretq_u8_u32(vdupq_n_u32((x1 << 24) | (x2 << 16) | (x3 << 8) | x4));
 	paritysort = parity_case[((x3 ^ x4) & 0x24) + (((x2 ^ x4) & 0x24) >> 1) + (((x1 ^ x4) & 0x24) >> 2)];
+<<<<<<< HEAD
 <<<<<<< HEAD
 	shuf = vreinterpretq_u8_u64(shuf_mask[paritysort]);
 #ifdef HAS_CPU_64
@@ -723,11 +796,14 @@ int search_solve_4(Search *search, const int alpha)
 	return board_solve_neon(vget_high_u64(OP), 4);	// gameover
 =======
 	shuf = shuf_mask[paritysort];
+=======
+	shuf = vreinterpretq_u8_u64(shuf_mask[paritysort]);
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 #ifdef HAS_CPU_64
-	empties_series = vqtbl1q_u8(empties_series, vreinterpretq_u8_u32(shuf));
+	empties_series = vqtbl1q_u8(empties_series, shuf);
 #else
-	empties_series = vcombine_u8(vtbl1_u8(vget_low_u8(empties_series), vget_low_u8(vreinterpretq_u8_u32(shuf))),
-		vtbl1_u8(vget_low_u8(empties_series), vget_high_u8(vreinterpretq_u8_u32(shuf))));
+	empties_series = vcombine_u8(vtbl1_u8(vget_low_u8(empties_series), vget_low_u8(shuf)),
+		vtbl1_u8(vget_low_u8(empties_series), vget_high_u8(shuf)));
 #endif
 
 	// best move alphabeta search

@@ -1155,8 +1155,12 @@ void edge_stability_init(void)
 #ifndef HAS_CPU_64
 =======
 #ifndef __AVX2__
+<<<<<<< HEAD
 #if !(defined(__aarch64__) || defined(_M_ARM64) || defined(hasSSE2))
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+#if !defined(hasNeon) && !defined(hasSSE2)
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 /**
  * @brief Get stable edge.
  *
@@ -1174,6 +1178,7 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 	    |  unpackA1A8(edge_stability[a1a8])
 	    |  unpackH1H8(edge_stability[h1h8]);
 }
+<<<<<<< HEAD
 #endif
 <<<<<<< HEAD
 
@@ -1182,6 +1187,9 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 =======
 #if !defined(hasNeon) && !defined(hasSSE2)
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 /**
  * @brief Get full lines.
  *

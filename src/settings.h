@@ -151,6 +151,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	#elif defined(HAS_CPU_64) // aarch64
@@ -162,6 +163,9 @@
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 =======
 	#elif defined(__aarch64__) || defined(_M_ARM64)
+=======
+	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(hasNeon)
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 		#define MOVE_GENERATOR MOVE_GENERATOR_NEON
 	#elif defined(__arm__) || defined(_M_ARM)
 		#define MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
@@ -171,6 +175,7 @@
 	#endif
 #endif
 #ifndef LAST_FLIP_COUNTER
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -210,6 +215,9 @@
 	#elif defined(__aarch64__)
 =======
 	#if defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64)
+=======
+	#if defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64) || defined(hasNeon)
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
 	#elif defined(__arm__) || defined(_M_ARM)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)

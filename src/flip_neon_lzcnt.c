@@ -242,6 +242,7 @@ static const uint64x2_t rmask_v4[66][2] = {
 <<<<<<< HEAD
 #ifndef HAS_CPU_64
 #define vceqzq_u32(x)	vmvnq_u32(vtstq_u32((x), (x)))
+<<<<<<< HEAD
 #endif
 
 uint64x2_t mm_Flip(uint64x2_t OP, int pos)
@@ -286,6 +287,8 @@ uint64x2_t mm_Flip(uint64x2_t OP, int pos)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #define vceqzq_u32(x)	vmvnq_u32(vtstq_u32((x), (x)))
 #define	vnegq_s64(x)	vsubq_s64(vdupq_n_s64(0), (x))
+=======
+>>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 #endif
 
 <<<<<<< HEAD
@@ -311,11 +314,11 @@ uint64x2_t mm_Flip(uint64x2_t OP, int pos)
 	msb0 = vreinterpretq_u32_u64(vshrq_n_u64(oflank0, 32));		msb1 = vreinterpretq_u32_u64(vshrq_n_u64(oflank1, 32));
 	msb0 = vshlq_n_u32(vceqzq_u32(msb0), 31);			msb1 = vshlq_n_u32(vceqzq_u32(msb1), 31);
 	msb0 = vshlq_u32(msb0, vnegq_s32(clz0));			msb1 = vshlq_u32(msb1, vnegq_s32(clz1));
-	oflank0 = vandq_u64(vreinterpretq_u64_u32(msb0), PP);		oflank1 = vandq_u64(vreinterpretq_u64_u32(msb1), PP);
+		// 0 if outflank is P, otherwise oflank = msb
+	oflank0 = vbicq_u64(vreinterpretq_u64_u32(msb0), PP);		oflank1 = vbicq_u64(vreinterpretq_u64_u32(msb1), PP);
 		// set all bits higher than outflank
-	oflank0 = vreinterpretq_u64_s64(vnegq_s64(vreinterpretq_s64_u64(vaddq_u64(oflank0, oflank0))));
-	oflank1 = vreinterpretq_u64_s64(vnegq_s64(vreinterpretq_s64_u64(vaddq_u64(oflank1, oflank1))));
-	flip = vbslq_u64(mask1, oflank1, vandq_u64(mask0, oflank0));
+	oflank0 = vsubq_u64(oflank0, vreinterpretq_u64_u32(msb0));	oflank1 = vsubq_u64(oflank1, vreinterpretq_u64_u32(msb1));
+	flip = vandq_u64(vbslq_u64(mask1, oflank1, vandq_u64(mask0, oflank0)), OO);
 
 	mask0 = lrmask_v4[pos][0];					mask1 = lrmask_v4[pos][1];
 		// get outflank with carry-propagation
