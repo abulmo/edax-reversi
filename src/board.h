@@ -413,7 +413,7 @@ extern unsigned long long A1_A8[256];
 	#define	store_vboard(dst,board)	((dst) = (board))
 #endif
 
-#if defined(__AVX2__) && (defined(_MSC_VER) || defined(__clang__))
+#if defined(__AVX2__) && (defined(_MSC_VER) || defined(__linux__))
 	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
 	#define	get_moves(P,O)	get_moves_avx(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)))
 	#define	vboard_get_moves(vboard,board)	get_moves_avx(_mm256_broadcastq_epi64(vboard), _mm256_permute4x64_epi64(_mm256_castsi128_si256(vboard), 0x55))

@@ -521,6 +521,7 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
 unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 {
@@ -539,11 +540,14 @@ unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minG
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 =======
 #if defined(_MSC_VER) || defined(__clang__)
+=======
+#if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
+>>>>>>> 29ed6b6 (Include gcc linux to get_moves_avx with mm256 params)
 unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 {
 #else
-unsigned long long get_moves(unsigned long long P, unsigned long long O)
+unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minGW
 {
 	__m256i	PP = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(P));
 	__m256i OO = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
