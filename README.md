@@ -73,11 +73,9 @@ Edax is a strong othello program. Its main features are:
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 This is SSE/AVX optimized version of Edax 4.4.0. Functionally equivalent to the parent project, provided no bugs are introduced.
 
-64 bit version solves fforum-20-39 7% to 9% faster than the original 4.4.0 on my test. Thanks to AVX2, x64-modern build runs 14% faster on Haswell. 32 bit version runs 9% (Core2) to 20% (Athlon) faster than the original.
+Thanks to AVX2, x64-modern build solves fforum-40-59.obf 60% faster than official edax-4.4 on Haswell, and runs level 30 autoplay 80% faster.
 
-All SSE/AVX/MMX stuff belongs to board.c are moved into separate board_sse.c (for x64 and x86) and board_mmx.c (for x86) files.
-
-I used GCC 4.7.2, Athlon X4 605e, Windows 8 (64) / XP (32), Clang 3.4, Core i5-4260U (Haswell), OSX 10.9.4 and Clang 1.7, Core2, OSX 10.6.8 for the benchmark.
+See http://www.amy.hi-ho.ne.jp/okuhara/bitboard.htm and http://www.amy.hi-ho.ne.jp/okuhara/edaxopt.htm for optimization details in Japanese.
 
 ## 1. Mobility (board_sse.c, board_mmx.c)
 

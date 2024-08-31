@@ -145,6 +145,7 @@ void ui_loop_nboard(UI *ui)
 			if (lastmove >= 0) {
 				game_get_board(&game, 60, &play->initial_board);
 <<<<<<< HEAD
+<<<<<<< HEAD
 				if (lastmove == PASS)	// https://github.com/okuhara/edax-reversi-AVX/issues/1
 					board_pass(&play->initial_board);
 =======
@@ -154,6 +155,9 @@ void ui_loop_nboard(UI *ui)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 				if (lastmove == PASS)
+=======
+				if (lastmove == PASS)	// https://github.com/okuhara/edax-reversi-AVX/issues/1
+>>>>>>> 24abc1e (Revise comments and readme)
 					board_pass(&play->initial_board);
 >>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 				play_new(play);

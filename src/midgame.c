@@ -73,6 +73,7 @@ static int accumlate_eval(int ply, Eval *eval)
 	w = &(*EVAL_WEIGHT)[ply];
 
 #if defined(__AVX2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)
+<<<<<<< HEAD
 =======
 /**
  * @brief evaluate a midgame position with the evaluation function.
@@ -240,6 +241,8 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 
 #if defined(__AVX2__) && !defined(AMD_BEFORE_ZEN3)
+=======
+>>>>>>> 24abc1e (Revise comments and readme)
 	enum {
 		W_C9 = offsetof(Eval_weight, C9) / sizeof(short) - 1,	// -1 to load the data into hi-word
 		W_C10 = offsetof(Eval_weight, C10) / sizeof(short) - 1,
