@@ -477,10 +477,14 @@ void board_rand(Board *board, int n_ply, Random *r)
 			}
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board_get_move_flip(board, get_rand_bit(moves, r), &move);
 =======
 		board_get_move(board, get_rand_bit(moves, r), &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		board_get_move_flip(board, get_rand_bit(moves, r), &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_update(board, &move);
 	}
 }
@@ -1879,6 +1883,7 @@ void board_print(const Board *board, const int player, FILE *f)
 <<<<<<< HEAD
 	const char color[5] = "?*O-.";
 	unsigned long long moves = board_get_moves(board);
+<<<<<<< HEAD
 
 	if (player == BLACK) {
 		bk = board->player;
@@ -1894,6 +1899,8 @@ void board_print(const Board *board, const int player, FILE *f)
 >>>>>>> bc93772 (Avoid modern compliler warnings)
 	unsigned long long moves = get_moves(board->player, board->opponent);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 
 	if (player == BLACK) {
 		bk = board->player;

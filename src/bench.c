@@ -117,20 +117,28 @@ static void bench_move_generator()
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_get_move_flip(&board, x, &move);
 =======
 			v += board_get_move(&board, x, &move);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+			v += board_get_move_flip(&board, x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_get_move_flip(&board, x, &move);
 =======
 			v += board_get_move(&board, x, &move);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+			v += board_get_move_flip(&board, x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		}
 		c += click();
 
@@ -141,10 +149,14 @@ static void bench_move_generator()
 		if (t > t_max) t_max = t;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (options.verbosity >= 2) printf("board_get_move_flip: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
 =======
 		if (options.verbosity >= 2) printf("board_get_move: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+		if (options.verbosity >= 2) printf("board_get_move_flip: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 
 	}
 
@@ -152,10 +164,14 @@ static void bench_move_generator()
 	t_var = t_var / x - (t_mean * t_mean);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	printf("board_get_move_flip:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 =======
 	printf("board_get_move:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	printf("board_get_move_flip:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 }
 
 /*

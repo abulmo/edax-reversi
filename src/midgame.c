@@ -427,6 +427,7 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	const short *w;
 <<<<<<< HEAD
@@ -445,6 +446,9 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 =======
 	unsigned long long moves = get_moves(search->board.player, search->board.opponent);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	unsigned long long moves = board_get_moves(&search->board);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);

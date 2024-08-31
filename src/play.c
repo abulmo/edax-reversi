@@ -307,10 +307,14 @@ void play_go(Play *play, const bool update)
 		play->result = *search->result;
 		play->state = IS_WAITING;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
 =======
 		if (!board_get_move(&play->board, search->result->move, &move) && move.x != PASS) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
@@ -356,10 +360,14 @@ void play_go(Play *play, const bool update)
 		play->result = *search->result;
 		play->state = IS_WAITING;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
 =======
 		if (!board_get_move(&play->board, search->result->move, &move) && move.x != PASS) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
@@ -495,10 +503,14 @@ void* play_ponder_run(void *v)
 		// guess opponent move and start the search
 		if (play->state == IS_PONDERING && move.x != NOMOVE) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			board_get_move_flip(&board, move.x, &move);
 =======
 			board_get_move(&board, move.x, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			board_get_move_flip(&board, move.x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 
 			board_update(&board, &move);
 				play->ponder.board = board;
@@ -701,10 +713,14 @@ bool play_move(Play *play, int x)
 
 	move = MOVE_INIT;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	board_get_move_flip(&play->board, x, &move);
 =======
 	board_get_move(&play->board, x, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	board_get_move_flip(&play->board, x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	if (board_check_move(&play->board, &move)) {
 		play_update(play, &move);
 		return true;
@@ -1075,6 +1091,7 @@ void play_print(Play *play, FILE *f)
 	}
 
 	moves = board_get_moves(&play->board);
+<<<<<<< HEAD
 	discs[BLACK] = bit_count(bk);
 	discs[WHITE] = bit_count(wh);
 	mobility[BLACK] = get_mobility(bk, wh);
@@ -1101,6 +1118,8 @@ void play_print(Play *play, FILE *f)
 	}
 
 	moves = get_moves(play->board.player, play->board.opponent);
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	discs[BLACK] = bit_count(bk);
 	discs[WHITE] = bit_count(wh);
 	mobility[BLACK] = get_mobility(bk, wh);
@@ -1302,10 +1321,14 @@ bool play_force_go(Play *play, Move *move)
 				if (board_equal(&play->board, &sym)) {
 					x = symetry(play->force.move[play->force.i_move].x, s);
 <<<<<<< HEAD
+<<<<<<< HEAD
 					board_get_move_flip(&play->board, x, move);
 =======
 					board_get_move(&play->board, x, move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+					board_get_move_flip(&play->board, x, move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 					return true;
 				}
 			}
@@ -1333,10 +1356,14 @@ void play_symetry(Play *play, const int sym)
 	for (i = 0; i  < play->n_game; ++i) {
 		x = symetry(play->game[i].x, sym);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
 =======
 		board_get_move(&board, x, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		board_get_move_flip(&board, x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_update(&board, &move);
 		play->game[i] = move;
 	}

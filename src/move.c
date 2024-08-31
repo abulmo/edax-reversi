@@ -311,6 +311,7 @@ int movelist_get_moves(MoveList *movelist, const Board *board)
 {
 	Move *previous = movelist->move;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Move *move;
 	unsigned long long moves = board_get_moves(board);
 	int x, n;
@@ -331,21 +332,32 @@ int movelist_get_moves(MoveList *movelist, const Board *board)
 	Move *move = movelist->move + 1;
 	unsigned long long moves = get_moves(board->player, board->opponent);
 	int x;
+=======
+	Move *move;
+	unsigned long long moves = board_get_moves(board);
+	int x, n;
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 
-	movelist->n_moves = 0;
+	n = 0;
 	foreach_bit (x, moves) {
-		board_get_move(board, x, move);
-		move->score = -SCORE_INF;
-		previous = previous->next = move;
-		++move;
-		++(movelist->n_moves);
+		move = previous + 1;
+		previous->next = move;
+		board_get_move_flip(board, x, move);
+		// move->score = -SCORE_INF;	// -INT_MAX?
+		previous = move;
+		++n;
 	}
 	previous->next = NULL;
+<<<<<<< HEAD
 
 	assert(movelist->n_moves == bit_count(moves));
 
 	return movelist->n_moves;
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+	movelist->n_moves = n;
+	return n;
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 }
 
 /**

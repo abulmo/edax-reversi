@@ -1145,8 +1145,12 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
  	
  	if (board_equal(board, target)) return true;
  		
+<<<<<<< HEAD
  	moves = get_moves(board->player, board->opponent);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+ 	moves = board_get_moves(board);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	if (moves) {
 		moves &= mask;
 		foreach_bit (x, moves) {

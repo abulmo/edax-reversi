@@ -64,6 +64,7 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 	}
 	while (x != NOMOVE) {
 		board_get_move_flip(&board, x, &move);
+<<<<<<< HEAD
 =======
 	hash_code = board_get_hash_code(&board);
 	if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
@@ -75,6 +76,8 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 	while (x != NOMOVE) {
 		board_get_move(&board, x, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_update(&board, &move);
 		player ^= 1;
 
@@ -128,6 +131,9 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 	while (search_depth > 0 && x != NOMOVE) {
 		if (x != PASS) --search_depth;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 
@@ -260,10 +266,14 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 
 	while (x != NOMOVE) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
 =======
 		board_get_move(&board, x, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		board_get_move_flip(&board, x, &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		if (board_check_move(&board, &move)) {
 			board_update(&board, &move);
 			--expected_depth; 
@@ -898,6 +908,9 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 		if (s > *selectivity) *selectivity = s;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 

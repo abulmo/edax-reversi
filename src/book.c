@@ -198,10 +198,14 @@ static bool position_is_ok(const Position *position)
 			if (/*l->move < A1 ||*/ l->move > H8
 			 || board_is_occupied(&board, l->move)
 <<<<<<< HEAD
+<<<<<<< HEAD
 			 || board_get_move_flip(&board, l->move, &move) == 0) {
 =======
 			 || board_get_move(&board, l->move, &move) == 0) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			 || board_get_move_flip(&board, l->move, &move) == 0) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 				warn("link %s is wrong\n", move_to_string(l->move, WHITE, s));
 				position_print(position, &position->board, stdout);
 				return false;
@@ -227,10 +231,14 @@ static bool position_is_ok(const Position *position)
 	} else if (/*l->move < A1 ||*/ l->move > H8
 		 || board_is_occupied(&board, l->move)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		 || board_get_move_flip(&board, l->move, &move) == 0) {
 =======
 		 || board_get_move(&board, l->move, &move) == 0) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		 || board_get_move_flip(&board, l->move, &move) == 0) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			warn("leaf %s is wrong\n", move_to_string(l->move, WHITE, s));
 			position_print(position, &position->board, stdout);
 			return false;
@@ -761,10 +769,14 @@ static void position_link(Position *position, Book *book)
 {
 	int x;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long moves = board_get_moves(&position->board);
 =======
 	unsigned long long moves = get_moves(position->board.player, position->board.opponent);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	unsigned long long moves = board_get_moves(&position->board);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	Board next;
 	Link link;
 	Position *child;
@@ -2363,10 +2375,14 @@ void book_add_game(Book *book, const Game *game)
 			board_pass(&board);
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
 =======
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {
@@ -2447,10 +2463,14 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
 			board_pass(&board);
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
 =======
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {

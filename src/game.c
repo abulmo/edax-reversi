@@ -167,10 +167,14 @@ bool game_update_board(Board *board, int x)
 		board_pass(board);
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (board_get_move_flip(board, x, &move) == 0) return false;
 =======
 	if (board_get_move(board, x, &move) == 0) return false;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (board_get_move_flip(board, x, &move) == 0) return false;
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	board_update(board, &move);
 
 	return true;
@@ -191,10 +195,14 @@ static bool game_update_player(Board *board, int x)
 			swap = !swap;
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (board_get_move_flip(board, x, &move) == 0) swap = !swap;
 =======
 		if (board_get_move(board, x, &move) == 0) swap = !swap;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (board_get_move_flip(board, x, &move) == 0) swap = !swap;
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	}
 	
 	return swap;
@@ -1577,6 +1585,7 @@ void game_rand(Game *game, int n_ply, Random *r)
 	board_init(&board);
 	for (ply = 0; ply < n_ply; ply++) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		moves = board_get_moves(&board);
 		if (!moves) {
 			board_pass(&board);
@@ -1587,16 +1596,26 @@ void game_rand(Game *game, int n_ply, Random *r)
 			board_pass(&board);
 			moves = get_moves(board.player, board.opponent);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		moves = board_get_moves(&board);
+		if (!moves) {
+			board_pass(&board);
+			moves = board_get_moves(&board);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			if (!moves) {
 				break;
 			}
 		}
 		;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board_get_move_flip(&board, get_rand_bit(moves, r), &move);
 =======
 		board_get_move(&board, get_rand_bit(moves, r), &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		board_get_move_flip(&board, get_rand_bit(moves, r), &move);
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		game->move[ply] = move.x;
 		board_update(&board, &move);
 	}
@@ -1641,6 +1660,9 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 			player = !player;
 		} 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_move].played)) {
 			stack[n_move].best = MOVE_INIT;
 			line_init(&stack[n_move].pv, player);
