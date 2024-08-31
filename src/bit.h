@@ -529,6 +529,7 @@ typedef union {
 typedef union {
 	unsigned long long	ull[8];
   #ifdef __AVX512VL__
+<<<<<<< HEAD
 	__m512i	v8;
   #endif
   #ifdef __AVX2__
@@ -637,6 +638,8 @@ typedef union {
 typedef union {
 	unsigned long long	ull[8];
   #ifdef __AVX512F__
+=======
+>>>>>>> b1cae3c (Rewrite AVX512 LASTFLIP_HIGHCUT not to use kortest)
 	__m512i	v8;
   #endif
   #ifdef __AVX2__

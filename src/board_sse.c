@@ -720,6 +720,7 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 #elif defined(__ARM_NEON)	// 3 Neon, 1 CPU(32)
 
   #ifndef DISPATCH_NEON
+<<<<<<< HEAD
 	#define	get_moves_sse	get_moves	// no dispatch
   #endif
 =======
@@ -731,6 +732,8 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
   #ifdef hasNeon
+=======
+>>>>>>> b1cae3c (Rewrite AVX512 LASTFLIP_HIGHCUT not to use kortest)
 	#define	get_moves_sse	get_moves	// no dispatch
   #endif
 

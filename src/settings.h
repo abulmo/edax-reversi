@@ -160,7 +160,7 @@
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
-	#if defined(__AVX512CD__) && defined(__AVX512VL__)
+	#ifdef __AVX512VL__
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512
 	#elif defined(__AVX2__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
