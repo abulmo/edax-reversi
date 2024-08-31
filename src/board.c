@@ -746,9 +746,13 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 >>>>>>> 1dc032e (Improve visual c compatibility)
 	if (hasSSE2)
 		return get_moves_sse(P, O);
+<<<<<<< HEAD
 	#endif
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasMMX)
+=======
+	else if (hasMMX)
+>>>>>>> 0f2fb39 (Chage 32-bit get_moves_mmx/sse parameters to 64 bits)
 		return get_moves_mmx(P, O);
 	#endif
 
@@ -1213,7 +1217,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 
 #if (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
 	if (hasMMX)
-		return get_stability_mmx((unsigned int) P, (unsigned int) (P >> 32), (unsigned int) O, (unsigned int) (O >> 32));
+		return get_stability_mmx(P, O);
 #endif
 
 	disc = (P | O);

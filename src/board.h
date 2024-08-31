@@ -104,10 +104,10 @@ int get_corner_stability(const unsigned long long);
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 void init_mmx (void);
-unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
-unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
-int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
-int get_potential_mobility_mmx(unsigned long long P, unsigned long long O);
+unsigned long long get_moves_mmx(unsigned long long, unsigned long long);
+unsigned long long get_moves_sse(unsigned long long, unsigned long long);
+int get_stability_mmx(unsigned long long, unsigned long long);
+int get_potential_mobility_mmx(unsigned long long, unsigned long long);
 #endif
 #if defined(USE_GAS_MMX) && defined(__3dNOW__)
 unsigned long long board_get_hash_code_mmx(const unsigned char *p);

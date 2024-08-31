@@ -635,29 +635,29 @@ void board_restore(Board *board, const Move *move)
  */
 #ifdef USE_MSVC_X86
 
-unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+unsigned long long get_moves_mmx(unsigned long long P_, unsigned long long O_)
 {
 	unsigned int movesL, movesH, mO1, flip1, pre1;
 	__m64	P, O, M, mO, flip, pre;
 
-	P = _m_punpckldq(_m_from_int(PL), _m_from_int(PH));
-	O = _m_punpckldq(_m_from_int(OL), _m_from_int(OH));		mO1 = OL & 0x7e7e7e7e;
+	P = *(__m64 *) &P_;
+	O = *(__m64 *) &O_;						mO1 = (unsigned int) O_ & 0x7e7e7e7e;
 		/* shift = +8 */						/* shift = +1 */
-	flip = _m_pand(O, _m_psllqi(P, 8));				flip1  = mO1 & (PL << 1);
+	flip = _m_pand(O, _m_psllqi(P, 8));				flip1  = mO1 & ((unsigned int) P_ << 1);
 	flip = _m_por(flip, _m_pand(O, _m_psllqi(flip, 8)));		flip1 |= mO1 & (flip1 << 1);
 	pre  = _m_pand(O, _m_psllqi(O, 8));				pre1   = mO1 & (mO1 << 1);
 	flip = _m_por(flip, _m_pand(pre, _m_psllqi(flip, 16)));		flip1 |= pre1 & (flip1 << 2);
 	flip = _m_por(flip, _m_pand(pre, _m_psllqi(flip, 16)));		flip1 |= pre1 & (flip1 << 2);
 	M = _m_psllqi(flip, 8);						movesL = flip1 << 1;
 		/* shift = -8 */						/* shift = -1 */
-	flip = _m_pand(O, _m_psrlqi(P, 8));				flip1  = mO1 & (PL >> 1);
+	flip = _m_pand(O, _m_psrlqi(P, 8));				flip1  = mO1 & ((unsigned int) P_ >> 1);
 	flip = _m_por(flip, _m_pand(O, _m_psrlqi(flip, 8)));		flip1 |= mO1 & (flip1 >> 1);
 	pre  = _m_psrlqi(pre, 8);					pre1 >>= 1;
 	flip = _m_por(flip, _m_pand(pre, _m_psrlqi(flip, 16)));		flip1 |= pre1 & (flip1 >> 2);
 	flip = _m_por(flip, _m_pand(pre, _m_psrlqi(flip, 16)));		flip1 |= pre1 & (flip1 >> 2);
 	M = _m_por(M, _m_psrlqi(flip, 8));				movesL |= flip1 >> 1;
 		/* shift = +7 */
-	mO = _m_pand(O, *(__m64 *) &mask_7e);				mO1 = OH & 0x7e7e7e7e;
+	mO = _m_pand(O, *(__m64 *) &mask_7e);				mO1 = (unsigned int)(O_ >> 32) & 0x7e7e7e7e;
 	flip = _m_pand(mO, _m_psllqi(P, 7));
 	flip = _m_por(flip, _m_pand(mO, _m_psllqi(flip, 7)));
 	pre  = _m_pand(mO, _m_psllqi(mO, 7));
@@ -665,14 +665,14 @@ unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int 
 	flip = _m_por(flip, _m_pand(pre, _m_psllqi(flip, 14)));
 	M = _m_por(M, _m_psllqi(flip, 7));
 		/* shift = -7 */						/* shift = +1 */
-	flip = _m_pand(mO, _m_psrlqi(P, 7));				flip1  = mO1 & (PH << 1);
+	flip = _m_pand(mO, _m_psrlqi(P, 7));				flip1  = mO1 & ((unsigned int)(P_ >> 32) << 1);
 	flip = _m_por(flip, _m_pand(mO, _m_psrlqi(flip, 7)));		flip1 |= mO1 & (flip1 << 1);
 	pre  = _m_psrlqi(pre, 7);					pre1   = mO1 & (mO1 << 1);
 	flip = _m_por(flip, _m_pand(pre, _m_psrlqi(flip, 14)));		flip1 |= pre1 & (flip1 << 2);
 	flip = _m_por(flip, _m_pand(pre, _m_psrlqi(flip, 14)));		flip1 |= pre1 & (flip1 << 2);
 	M = _m_por(M, _m_psrlqi(flip, 7));				movesH = flip1 << 1;
 		/* shift = +9 */						/* shift = -1 */
-	flip = _m_pand(mO, _m_psllqi(P, 9));				flip1  = mO1 & (PH >> 1);
+	flip = _m_pand(mO, _m_psllqi(P, 9));				flip1  = mO1 & ((unsigned int)(P_ >> 32) >> 1);
 	flip = _m_por(flip, _m_pand(mO, _m_psllqi(flip, 9)));		flip1 |= mO1 & (flip1 >> 1);
 	pre  = _m_pand(mO, _m_psllqi(mO, 9));				pre1 >>= 1;
 	flip = _m_por(flip, _m_pand(pre, _m_psllqi(flip, 18)));		flip1 |= pre1 & (flip1 >> 2);
@@ -686,19 +686,19 @@ unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int 
 	flip = _m_por(flip, _m_pand(pre, _m_psrlqi(flip, 18)));
 	M = _m_por(M, _m_psrlqi(flip, 9));
 
-	movesL = (movesL | _m_to_int(M)) & ~(PL|OL);	// mask with empties
-	movesH = (movesH | _m_to_int(_m_punpckhdq(M, M))) & ~(PH|OH);
+	movesL |= _m_to_int(M);
+	movesH |= _m_to_int(_m_punpckhdq(M, M));
 	_mm_empty();
-	return ((unsigned long long) movesH << 32) | movesL;
+	return (((unsigned long long) movesH << 32) | movesL) & ~(P_|O_);	// mask with empties
 }
 
 #else
 
-unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+unsigned long long get_moves_mmx(unsigned long long P, unsigned long long O)
 {
 	unsigned long long moves;
 	__asm__ (
-		"movl	%1, %%ebx\n\t"		"movd	%1, %%mm4\n\t"
+		"movl	%1, %%ebx\n\t"		"movd	%1, %%mm4\n\t"		// (movd for store-forwarding)
 		"movl	%3, %%edi\n\t"		"movd	%3, %%mm5\n\t"
 		"andl	$0x7e7e7e7e, %%edi\n\t"	"punpckldq %2, %%mm4\n\t"
 						"punpckldq %4, %%mm5\n\t"
@@ -826,7 +826,7 @@ unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int 
 		"andl	%%esi, %%edx\n\t"
 		"emms"		/* Reset the FP/MMX unit. */
 	: "=&A" (moves)
-	: "m" (PL), "m" (PH), "m" (OL), "m" (OH), "m" (mask_7e)
+	: "m" (P), "m" (((unsigned int *)&P)[1]), "m" (O), "m" (((unsigned int *)&O)[1]), "m" (mask_7e)
 	: "ebx", "ecx", "esi", "edi", "mm0", "mm1", "mm2", "mm3", "mm4", "mm5" );
 
 	return moves;
@@ -841,18 +841,18 @@ unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int 
  */
 #ifdef USE_MSVC_X86
 
-int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 {
 	__m64	P, O, P_central, disc, full_h, full_v, full_d7, full_d9, full_l, full_r, stable;
 	__m64	stable_h, stable_v, stable_d7, stable_d9, old_stable, m;
-	unsigned int	t, a1a8po, h1h8po;
+	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
 	static const unsigned long long MFF = 0xffffffffffffffff;
 	static const unsigned long long edge = 0xff818181818181ffULL;
 	static const unsigned long long e7[] = { 0xffff8383838383ff, 0xffffffff8f8f8fff, 0xffc1c1c1c1c1ffff, 0xfff1f1f1ffffffff };
 	static const unsigned long long e9[] = { 0xffffc1c1c1c1c1ff, 0xff8f8f8ff1f1f1ff, 0xff8383838383ffff };
 
-	P = _m_punpckldq(_m_from_int(PL), _m_from_int(PH));
-	O = _m_punpckldq(_m_from_int(OL), _m_from_int(OH));
+	P = *(__m64 *) &P_;
+	O = *(__m64 *) &O_;
 	disc = _m_por(P, O);
 	P_central = _m_pandn(*(__m64 *) &edge, P);
 
@@ -887,6 +887,8 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	stable = _m_pand(stable, full_d9);
 
 	// compute the exact stable edges (from precomputed tables)
+	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
+	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
 	a1a8po = ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
 		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
 	h1h8po = ((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
@@ -945,13 +947,13 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	  "my" (e0), "m" (edge[0]), "m" (edge[1]), "m" (edge[2]), "m" (edge[3])\
 	: "mm0", "mm1", "mm2", "mm3");
 
-int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+int get_stability_mmx(unsigned long long P_, unsigned long long O_)
 {
 	__m64	P, O, P_central, disc, full_h, full_v, full_d7, full_d9, stable;
 #ifdef hasSSE2
 	__v2di	PO;
 #endif
-	int	t, a1a8po, h1h8po;
+	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
 	static const unsigned long long e0 = 0xff818181818181ffULL;
 	// static const unsigned long long e1[] = { 0xffc1c1c1c1c1c1ffULL, 0xfff1f1f1f1f1f1ffULL, 0xff838383838383ffULL, 0xff8f8f8f8f8f8fffULL };
 	// static const unsigned long long e8[] = { 0xffff8181818181ffULL, 0xffffffff818181ffULL, 0xff8181818181ffffULL, 0xff818181ffffffffULL };
@@ -959,9 +961,9 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	static const unsigned long long e9[] = { 0xffffc1c1c1c1c1ffULL, 0xfffffffff1f1f1ffULL, 0xff8383838383ffffULL, 0xff8f8f8fffffffffULL };
 
 	__asm__ (
-		"movd	%2, %0\n\t"		"movd	%4, %1\n\t"
+		"movd	%2, %0\n\t"		"movd	%4, %1\n\t"		// (movd for store-forwarding)
 		"punpckldq %3, %0\n\t"		"punpckldq %5, %1"
-	: "=&y" (P), "=&y" (O) : "m" (PL), "m" (PH), "m" (OL), "m" (OH));
+	: "=&y" (P), "=&y" (O) : "m" (P_), "m" (((unsigned int *)&P_)[1]), "m" (O_), "m" (((unsigned int *)&O_)[1]));
 #ifdef hasSSE2
 	PO = _mm_unpacklo_epi64(_mm_movpi64_epi64(O), _mm_movpi64_epi64(P));
 #endif
@@ -1005,6 +1007,8 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	get_full_lines_mmx(full_d9, disc, 9, e9);
 
 	// compute the exact stable edges (from precomputed tables)
+	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
+	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
 #ifdef hasSSE2
 	a1a8po = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
 	h1h8po = _mm_movemask_epi8(PO);
