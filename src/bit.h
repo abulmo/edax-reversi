@@ -621,7 +621,7 @@ typedef union {
 
 /* Define function attributes directive when available */
 
-#if defined(_MSC_VER) || defined(__clang__)
+#if (defined(_MSC_VER) || defined(__clang__)) && defined(hasSSE2)
 #define	vectorcall	__vectorcall
 #elif defined(__GNUC__) && defined(__i386__)
 #define	vectorcall	__attribute__((sseregparm))

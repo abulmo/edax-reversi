@@ -1169,7 +1169,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff
-		if (vhash_get(hash_table, board0, hash_code, &hash_data.data) && search_TC_NWS(&hash_data.data, depth, NO_SELECTIVITY, alpha, &score))
+		if (hash_get(hash_table, HBOARD_V(board0), hash_code, &hash_data.data) && search_TC_NWS(&hash_data.data, depth, NO_SELECTIVITY, alpha, &score))
 			return score;
 
 		// sort the list of moves
@@ -1275,7 +1275,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		hash_data.alpha = alpha;
 		hash_data.beta = alpha + 1;
 		hash_data.score = bestscore;
-		hash_store(hash_table, &search->board, hash_code, &hash_data);
+		hash_store(hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
 
 	} else if (movelist.n_moves == 1) {
 		move = movelist_first(&movelist);
@@ -1497,7 +1497,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 	if (movelist.n_moves > 1) {
 		// transposition cutoff (unused, normally first searched position)
 		// hash_code = board_get_hash_code(&search->board);
-		// if (hash_get(&search->shallow_table, &search->board, hash_code, &hash_data.data) && search_TC_PVS(&hash_data.data, depth, NO_SELECTIVITY, &alpha, &beta, &score)) return score;
+		// if (hash_get(&search->shallow_table, HBOARD_P(&search->board), hash_code, &hash_data.data) && search_TC_PVS(&hash_data.data, depth, NO_SELECTIVITY, &alpha, &beta, &score)) return score;
 
 		// sort the list of moves
 <<<<<<< HEAD
@@ -1683,7 +1683,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		hash_data.alpha = alpha;
 		hash_data.beta = beta;
 		hash_data.score = bestscore;
-		hash_store(&search->shallow_table, &search->board, board_get_hash_code(&search->board), &hash_data);
+		hash_store(&search->shallow_table, HBOARD_P(&search->board), board_get_hash_code(&search->board), &hash_data);
 
 	} else if (movelist.n_moves == 1) {
 		move = movelist.move[0].next;
@@ -1865,8 +1865,12 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	if (hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data) || hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data))
 =======
 	board0.board = search->board;
+<<<<<<< HEAD
 	if (vhash_get(&search->hash_table, board0, hash_code, &hash_data.data) || vhash_get(&search->pv_table, board0, hash_code, &hash_data.data))
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+	if (hash_get(&search->hash_table, HBOARD_V(board0), hash_code, &hash_data.data) || hash_get(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data.data))
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 		if (search_TC_NWS(&hash_data.data, depth, search->selectivity, alpha, &score)) return score;
 
 	if (movelist_is_empty(&movelist)) { // no moves ?
@@ -1925,12 +1929,16 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 			if (hash_data.data.move[0] == NOMOVE) hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data);
 =======
 			if (hash_data.data.move[0] == NOMOVE) vhash_get(&search->hash_table, board0, hash_code, &hash_data.data);
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+			if (hash_data.data.move[0] == NOMOVE) hash_get(&search->hash_table, HBOARD_V(board0), hash_code, &hash_data.data);
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 			movelist_evaluate(&movelist, search, &hash_data.data, alpha, depth + options.inc_sort_depth[search->node_type[search->height]]);
 			movelist_sort(&movelist);
 =======
@@ -2041,6 +2049,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 		hash_data.score = node.bestscore;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (search->height <= PV_HASH_HEIGHT) hash_store(&search->pv_table, &search->board, hash_code, &hash_store_data);
 		hash_store(&search->hash_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
@@ -2048,6 +2057,10 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 		if (search->height <= PV_HASH_HEIGHT) hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
 		hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
+=======
+		if (search->height <= PV_HASH_HEIGHT) hash_store(&search->pv_table, HBOARD_P(&search->board), hash_code, &hash_data);
+		hash_store(&search->hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 
 		SQUARE_STATS(foreach_move(move, &movelist))
 		SQUARE_STATS(++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];)
@@ -2160,8 +2173,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 =======
 	Eval eval0;
+<<<<<<< HEAD
 	V2DI board0;
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+	V2DI board0, hashboard;
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 	long long nodes_org;
 <<<<<<< HEAD
 	int reduced_depth, depth_pv_extension, saved_selectivity;
@@ -2172,6 +2189,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
 	int reduced_depth, depth_pv_extension, saved_selectivity, ofssolid;
+<<<<<<< HEAD
 	Board hashboard;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2182,6 +2200,8 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> 4303b09 (Returns all full lines in full[4])
 =======
 >>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
+=======
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 
 	SEARCH_STATS(++statistics.n_PVS_midgame);
 
@@ -2251,6 +2271,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	node_init(&node, search, alpha, beta, depth, movelist.n_moves, parent);
 	node.pv_node = true;
 	hash_code = board_get_hash_code(&search->board);
+	board0.board = search->board;
 
 	// special cases
 	if (movelist_is_empty(&movelist)) {
@@ -2287,9 +2308,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		}
 
 	} else { // normal PVS
-		board0.board = search->board;
 		if (movelist.n_moves > 1) {
 			//IID
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2301,6 +2322,10 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			if (!vhash_get(&search->pv_table, board0, hash_code, &hash_data.data))
 				vhash_get(&search->hash_table, board0, hash_code, &hash_data.data);
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+			if (!hash_get(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data.data))
+				hash_get(&search->hash_table, HBOARD_V(board0), hash_code, &hash_data.data);
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 
 			if (USE_IID && hash_data.data.move[0] == NOMOVE) {	// (unused)
 				if (depth == search->eval.n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
@@ -2339,6 +2364,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 					hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 =======
 					hash_get(pv_table, &search->board, hash_code, &hash_data);
@@ -2352,6 +2378,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 					vhash_get(&search->pv_table, board0, hash_code, &hash_data.data);
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+					hash_get(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data.data);
+>>>>>>> e88638e (add vectorcall interface to hash functions)
 					search->depth_pv_extension = depth_pv_extension;
 					search->selectivity = saved_selectivity;
 				}
@@ -2491,20 +2520,20 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		hash_data.score = node.bestscore;
 <<<<<<< HEAD
 
-		hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
-		hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
+		hash_store(&search->hash_table, HBOARD_V(board0), hash_code, &hash_data);
+		hash_store(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data);
 
 		// store solid-normalized for endgame TC
 		if (search->eval.n_empties <= depth && depth <= MASK_SOLID_DEPTH && depth > DEPTH_TO_SHALLOW_SEARCH) {
 			solid_opp = get_all_full_lines(search->board.player | search->board.opponent) & search->board.opponent;
 			if (solid_opp) {
-				hashboard.player = search->board.player ^ solid_opp;	// normalize solid to player
-				hashboard.opponent = search->board.opponent ^ solid_opp;
+				hashboard.board.player = search->board.player ^ solid_opp;	// normalize solid to player
+				hashboard.board.opponent = search->board.opponent ^ solid_opp;
 				ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
 				hash_data.alpha += ofssolid;
 				hash_data.beta += ofssolid;
 				hash_data.score += ofssolid;
-				hash_store(&search->hash_table, &hashboard, board_get_hash_code(&hashboard), &hash_data);
+				hash_store(&search->hash_table, HBOARD_V(hashboard), board_get_hash_code(&hashboard.board), &hash_data);
 			}
 		}
 

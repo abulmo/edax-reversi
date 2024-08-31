@@ -1854,14 +1854,14 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 >>>>>>> 30464b5 (add hash_prefetch to NWS_endgame)
 		// transposition cutoff
-		if (vhash_get(&search->hash_table, hashboard, hash_code, &hash_data.data)) {	// (6%)
+		if (hash_get(&search->hash_table, HBOARD_V(hashboard), hash_code, &hash_data.data)) {	// (6%)
 			hash_data.data.lower -= ofssolid;
 			hash_data.data.upper -= ofssolid;
 			if (search_TC_NWS(&hash_data.data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))	// (6%)
 				return score;
 		}
 		// else if (ofssolid)	// slows down
-		//	vhash_get_from_board(&search->hash_table, board0, &hash_data.data);
+		//	hash_get_from_board(&search->hash_table, board0.board, &hash_data.data);
 
 		movelist_evaluate_fast((MoveList *) &movelist, search, &hash_data.data);
 
@@ -1950,7 +1950,7 @@ int NWS_endgame(Search *search, const int alpha)
 		hash_data.alpha = alpha + ofssolid;
 		hash_data.beta = alpha + ofssolid + 1;
 		hash_data.score = bestscore + ofssolid;
-		hash_store(&search->hash_table, &hashboard.board, hash_code, &hash_data);
+		hash_store(&search->hash_table, HBOARD_V(hashboard), hash_code, &hash_data);
 
 	// special cases
 	} else if (movelist.n_moves == 1) {	// (3%)
