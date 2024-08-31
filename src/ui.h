@@ -24,12 +24,12 @@
  */
 typedef struct UI {
 	Play play[2];              /**< Play Control */
-	Book book[1];              /**< Opening book */
+	Book book;                 /**< Opening book */
 	struct GGSClient *ggs;     /**< GGS Client */
 	bool is_same_play;         /**< true if play[0] == play[1] */
 	int type;                  /**< type of UI */
 	int mode;                  /**< computer's color mode TODO: remove me*/
-	Event event[1];            /**< event */
+	Event event;               /**< event */
 
 	void (*init)(struct UI*);  /**< init function */
 	void (*loop)(struct UI*);  /**< main loop function */
