@@ -3,7 +3,7 @@
  *
  *  A ggs client in C language.
  *
- * @date 2002 - 2017
+ * @date 2002 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -194,7 +194,7 @@ static void text_init(Text *text)
 static void text_add_line(Text *text, const char *line)
 {
 	++text->n_lines;
-	text->line = (const char**) realloc(text->line, text->n_lines * sizeof (const char*));
+	text->line = (const char**) realloc((void *) text->line, text->n_lines * sizeof (const char*));
 	if (text->line == NULL) fatal_error("Allocation error\n");
 	text->line[text->n_lines - 1] = line;
 	log_receive(ggs_log, "GGS ", "%s\n", line);
@@ -1142,7 +1142,7 @@ static void ui_login(UI *ui)
 static void ui_ggs_ponder(UI *ui, int turn) {
 	Play *play;
 
-	if (search_count_tasks(ui->play->search) == options.n_task) {
+	if (search_count_tasks(&ui->play->search) == options.n_task) {
 		play = ui->play;
 	} else  {
 		play = ui->play + turn;
@@ -1166,27 +1166,27 @@ static void ui_ggs_play(UI *ui, int turn) {
 	Play *play;
 	Result *result;
 	char move[4], line[32];
-	const char *(search_state_array[6]) = {"running", "interrupted", "stop pondering", "out of time", "stopped on user demand", "completed"};
+	static const char * const search_state_array[6] = {"running", "interrupted", "stop pondering", "out of time", "stopped on user demand", "completed"};
 	char search_state[32];
 
 	if (ui->is_same_play) {
 		play = ui->play;
-		if (search_count_tasks(ui->play->search) < options.n_task) {
+		if (search_count_tasks(&ui->play->search) < options.n_task) {
 			printf("<use a single %d tasks search while a single game is played>\n", options.n_task);
 			play_stop_pondering(ui->play);
-			search_set_task_number(ui->play[0].search, options.n_task);
+			search_set_task_number(&ui->play[0].search, options.n_task);
 			play_stop_pondering(ui->play + 1);
-			search_set_task_number(ui->play[1].search, 0);
+			search_set_task_number(&ui->play[1].search, 0);
 		}
 	} else {
 		play = ui->play + turn;
-		if (search_count_tasks(ui->play->search) == options.n_task && options.n_task > 1) {
+		if (search_count_tasks(&ui->play->search) == options.n_task && options.n_task > 1) {
 			printf("<split single %d tasks search into two %d task searches>\n", options.n_task, options.n_task / 2);
 			play_stop_pondering(ui->play);
-			search_set_task_number(ui->play[0].search, options.n_task / 2);
+			search_set_task_number(&ui->play[0].search, options.n_task / 2);
 			play_stop_pondering(ui->play + 1);
-			search_set_task_number(ui->play[1].search, options.n_task / 2);
-			search_share(ui->play[0].search, ui->play[1].search);
+			search_set_task_number(&ui->play[1].search, options.n_task / 2);
+			search_share(&ui->play[0].search, &ui->play[1].search);
 			ui_ggs_ponder(ui, turn ^ 1); // ponder opponent move
 		}
 	}
@@ -1197,7 +1197,7 @@ static void ui_ggs_play(UI *ui, int turn) {
 		return ;
 	}
 
-	result = play->result;
+	result = &play->result;
 	
 	if (remaining_time > 60000) remaining_time -= 10000; // keep 10s. for safety.
 	else if (remaining_time > 10000) remaining_time -= 2000; // keep 2s. for safety.
@@ -1222,7 +1222,7 @@ static void ui_ggs_play(UI *ui, int turn) {
 			ui->ggs->me, move, ui->ggs->board->id,
 			result->score
 		);
-	} else if (play->search->n_empties >= 15) { //avoid noisy display
+	} else if (play->search.eval.n_empties >= 15) { //avoid noisy display
 		const char *bound;
 		char s_nodes[16], s_speed[16];
 
@@ -1235,10 +1235,10 @@ static void ui_ggs_play(UI *ui, int turn) {
 			result->score, result->depth, selectivity_table[result->selectivity].percent,
 			result->n_nodes, 0.001 * real_time, (result->n_nodes / (0.001 * real_time + 0.001))
 		);
-		if (play->search->stop == STOP_TIMEOUT) {
-			sprintf(search_state, "%s at %d@%d%%", search_state_array[play->search->stop], play->search->depth, selectivity_table[play->search->selectivity].percent);
+		if (play->search.stop == STOP_TIMEOUT) {
+			sprintf(search_state, "%s at %d@%d%%", search_state_array[play->search.stop], play->search.depth, selectivity_table[play->search.selectivity].percent);
 		} else {
-			sprintf(search_state, "%s", search_state_array[play->search->stop]);
+			sprintf(search_state, "%s", search_state_array[play->search.stop]);
 		}
 		ggs_client_send(ui->ggs, "tell .%s -----------------------------------------"
 			"\\%s plays %s in game %s using %d thread%s"
@@ -1246,10 +1246,10 @@ static void ui_ggs_play(UI *ui, int turn) {
 			"\\nodes: %s ; time: search = %.1fs, move = %.1fs; speed: %s."
 			"\\search %s\n",
 			ui->ggs->me,
-			ui->ggs->me, move, ui->ggs->board->id, search_count_tasks(play->search), search_count_tasks(play->search) > 1 ? "s ;" : " ;",
+			ui->ggs->me, move, ui->ggs->board->id, search_count_tasks(&play->search), search_count_tasks(&play->search) > 1 ? "s ;" : " ;",
 			bound, result->score,
 			result->depth, selectivity_table[result->selectivity].percent,
-			line_to_string(result->pv, 8, " ", line),
+			line_to_string(&result->pv, 8, " ", line),
 			format_scientific(result->n_nodes, "N", s_nodes), 0.001 * result->time, 0.001 * real_time, format_scientific(result->n_nodes / (0.001 * result->time+ 0.001), "N/s", s_speed),
 			search_state
 		);
@@ -1266,7 +1266,7 @@ static void ui_ggs_play(UI *ui, int turn) {
  * @param ui User Interface.
  */
 static void ui_ggs_join(UI *ui) {
-	char buffer[256];
+	char buffer[258];
 	char s_move[4];
 	Play *play;
 	int edax_turn, i;
@@ -1299,9 +1299,9 @@ static void ui_ggs_join(UI *ui) {
 		}
 	}
 	printf("[%s's turn in game %s]\n", ui->ggs->board->player[play->player].name, ui->ggs->board->id);
-	board_print(play->board, play->player, stdout);
+	board_print(&play->board, play->player, stdout);
 
-	ui->is_same_play = (ui->ggs->board->move_list_n == 0 || board_equal(ui->play[0].board, ui->play[1].board) || !ui->ggs->board->match_type->is_synchro);
+	ui->is_same_play = (ui->ggs->board->move_list_n == 0 || board_equal(&ui->play[0].board, &ui->play[1].board) || !ui->ggs->board->match_type->is_synchro);
 	if (ui->is_same_play) printf("[Playing same game]\n");
 
 	// set time & start thinking
@@ -1324,10 +1324,10 @@ static void ui_ggs_join(UI *ui) {
  * @param ui User Interface.
  */
 static void ui_ggs_update(UI *ui) {
-	char buffer[256], s_move[4];
+	char buffer[258], s_move[4];
 	Play *play;
 	int edax_turn, turn;
-	Board board[1];
+	Board board;
 	
 	printf("[received GGS_BOARD_UPDATE]\n");
 
@@ -1346,16 +1346,16 @@ static void ui_ggs_update(UI *ui) {
 		
 	// set board as an edax's board
 	sprintf(buffer, "%s %c", ui->ggs->board->board, ui->ggs->board->turn);
-	turn = board_set(board, buffer);
+	turn = board_set(&board, buffer);
 
 	// update the board... if possible
 	if (!play_move(play, ui->ggs->board->move)) {
 		info("<Updating with bad move %s>\n", move_to_string(ui->ggs->board->move, play->player, s_move));
 	}
 
-	if (!board_equal(board, play->board)) { // may happens when game diverges
+	if (!board_equal(&board, &play->board)) { // may happens when game diverges
 		info("<Resynchronize boards: diverging games>\n");
-		*play->board = *board; play->player = turn;
+		play->board = board; play->player = turn;
 	}
 
 	if (turn != play->player) { // should never happen: TODO fatal error?
@@ -1366,7 +1366,7 @@ static void ui_ggs_update(UI *ui) {
 	printf("[%s's turn in game %s]\n", ui->ggs->board->player[play->player].name, ui->ggs->board->id);
 
 	// playing same game... ?
-	ui->is_same_play = (!ui->ggs->board->match_type->is_synchro || board_equal(ui->play[0].board, ui->play[1].board));
+	ui->is_same_play = (!ui->ggs->board->match_type->is_synchro || board_equal(&ui->play[0].board, &ui->play[1].board));
 	if (ui->is_same_play) printf("<Playing same game...>\n");
 
 	// set time & start thinking
@@ -1392,14 +1392,14 @@ void ui_init_ggs(UI *ui) {
 	ui->ggs = (GGSClient*) malloc (sizeof (GGSClient));
 	if (ui->ggs == NULL) fatal_error("ui_init_ggs: cannot allocate the GGS client\n");
 
-	play_init(ui->play, ui->book);
-	ui->book->search = ui->play->search;
-	book_load(ui->book, options.book_file);
+	play_init(ui->play, &ui->book);
+	ui->book.search = &ui->play->search;
+	book_load(&ui->book, options.book_file);
 
-	ui->play[0].search->id = 1;
+	ui->play[0].search.id = 1;
 	options.n_task = 1;
-	play_init(ui->play + 1, ui->book);
-	ui->play[1].search->id = 2;
+	play_init(ui->play + 1, &ui->book);
+	ui->play[1].search.id = 2;
 	options.n_task = n_task;
 	log_open(ggs_log, options.ggs_log_file);
 
@@ -1416,12 +1416,12 @@ void ui_init_ggs(UI *ui) {
  */
 void ui_loop_ggs(UI *ui) {
 	char *cmd = NULL, *param = NULL;
-	Text text[1];
-	GGSClient *client = ui->ggs;
+	Text text;
+	GGSClient *const client = ui->ggs;
 
 	ui->mode = 3;
 
-	text_init(text);
+	text_init(&text);
 	for (;;) {
 		relax(10);
 
@@ -1461,18 +1461,18 @@ void ui_loop_ggs(UI *ui) {
 		ggs_client_refresh(client);
 
 		/* look for a ggs event */
-		if (!ggs_event_peek(&client->event, text)) {
+		if (!ggs_event_peek(&client->event, &text)) {
 			continue;
 		}
 
-		text_print(text, stdout);
+		text_print(&text, stdout);
 
 		/* login */
-		if (ggs_login(text)) {
+		if (ggs_login(&text)) {
 			ggs_client_send(client, "%s\n", options.ggs_login);
 
 		/* password */
-		} else if (ggs_password(text)) {
+		} else if (ggs_password(&text)) {
 			ggs_client_send(client, "%s\n", options.ggs_password);
 
 			ggs_client_send(client, "vt100 -\n");
@@ -1484,7 +1484,7 @@ void ui_loop_ggs(UI *ui) {
 			ggs_client_send(client, "tell .%s Hello!\n", client->me);
 
 		/* os on */
-		} else if (ggs_os_on(text)) {
+		} else if (ggs_os_on(&text)) {
 			printf("[received GGS_OS_ON]\n");
 			ggs_client_send(client, "tell /os trust +\n" );
 			ggs_client_send(client, "tell /os rated +\n" );
@@ -1494,11 +1494,11 @@ void ui_loop_ggs(UI *ui) {
 			ggs_client_send(client, "mso\n" );
 	
 		/* os off */
-		} else if (ggs_os_off(text)) {
+		} else if (ggs_os_off(&text)) {
 			printf("[received GGS_OS_OFF]\n");
 
 		/* match on */
-		} else if (ggs_match_on(client->match_on, text)) {
+		} else if (ggs_match_on(client->match_on, &text)) {
 			if (ggs_has_player(client->match_on->player, client->me)) {
 				printf("[received GGS_MATCH_ON]\n");
 				client->is_playing = true;
@@ -1508,7 +1508,7 @@ void ui_loop_ggs(UI *ui) {
 			}
 
 		/* match off */
-		} else if (ggs_match_off(client->match_off, text)) {
+		} else if (ggs_match_off(client->match_off, &text)) {
 			if (ggs_has_player(client->match_off->player, client->me)) {
 				printf("[received GGS_MATCH_OFF]\n");
 
@@ -1522,9 +1522,9 @@ void ui_loop_ggs(UI *ui) {
 						printf("[store match]\n");
 						play_store(ui->play);
 					}
-					if (ui->book->need_saving) {
-						book_save(ui->book, options.book_file);
-						ui->book->need_saving = false;
+					if (ui->book.need_saving) {
+						book_save(&ui->book, options.book_file);
+						ui->book.need_saving = false;
 					}
 				}
 
@@ -1540,7 +1540,7 @@ void ui_loop_ggs(UI *ui) {
 			}
 
 		/* board join/update */
-		} else if (ggs_board(client->board,  text)) {
+		} else if (ggs_board(client->board, &text)) {
 			if (ggs_has_player(client->board->player, client->me)) {
 				if (client->board->is_join) ui_ggs_join(ui);
 				else ui_ggs_update(ui);
@@ -1549,17 +1549,17 @@ void ui_loop_ggs(UI *ui) {
 			}
 
 		/* request */
-		} else if (ggs_request(client->request, text)) {
+		} else if (ggs_request(client->request, &text)) {
 			printf("[received GGS_REQUEST]\n");
 
 		/* admin on */
-		} else if (ggs_admin(client->admin, text)) {
+		} else if (ggs_admin(client->admin, &text)) {
 			printf("[received GGS_ADMIN_CMD]\n");
 			ggs_client_send(client, client->admin->command);
 			ggs_client_send(client, "\ntell %s command processed\n", client->admin->name);
 
 		/* To request Saio a game later */
-		} else if (ggs_saio_delay(text, &client->once->delay)) {
+		} else if (ggs_saio_delay(&text, &client->once->delay)) {
 			printf("[received GGS_SAIO_DELAY]\n");
 			free(client->once->cmd); client->once->cmd = NULL;
 			if (cmd != NULL && param != NULL) {
@@ -1575,16 +1575,16 @@ void ui_loop_ggs(UI *ui) {
 			}
 
 		/* READY */
-		} else if (ggs_ready(text)) {
+		} else if (ggs_ready(&text)) {
 
 		/* ALERT */
-		} else if (ggs_alert(text)) {
+		} else if (ggs_alert(&text)) {
 			printf("[received ALERT]\n");
 
 		/* Other messages */
 		} else {
 		}
-		text_free(text);
+		text_free(&text);
 	}
 }
 
@@ -1598,8 +1598,8 @@ void ui_loop_ggs(UI *ui) {
 void ui_free_ggs(UI *ui) {
 	play_free(ui->play);
 	play_free(ui->play + 1);
-	if (ui->book->need_saving) book_save(ui->book, options.book_file);
-	book_free(ui->book);
+	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
+	book_free(&ui->book);
 	ggs_client_free(ui->ggs);
 	free(ui->ggs->loop->cmd);
 	free(ui->ggs->once->cmd);
