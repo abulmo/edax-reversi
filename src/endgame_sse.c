@@ -875,7 +875,11 @@ static int search_solve_4(Search *search, int alpha)
 static inline int TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
 #else
 #define	EXTRACT_B3(X)	(_mm_cvtsi128_si32(X) >> 24)
+#if defined(__x86_64__) || defined(_M_X64)
+#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
+#else
 static inline int TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
+#endif
 #define _mm_cvtepu8_epi16(X)	_mm_unpacklo_epi8((X), _mm_setzero_si128())
 #endif
 
@@ -949,7 +953,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 	P = _mm_cvtsi128_si64(OP);
 	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
 
-	// n_flips = last_flip(x, board->player);
+	// n_flips = last_flip(pos, P);
 #ifdef AVXLASTFLIP
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
 	MP = _mm256_and_si256(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
@@ -973,7 +977,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 			score = score2;
 
 		if (score < beta) {	// lazy cut-off
-			// n_flips = last_flip(x, board->opponent);
+			// n_flips = last_flip(pos, EXTRACT_O(OP));
 #ifdef AVXLASTFLIP
 			MO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mask_dvhd[pos].v4);
 			II = _mm_sad_epu8(_mm256_castsi256_si128(MO), _mm_setzero_si128());
@@ -1017,46 +1021,46 @@ static int vectorcall board_solve_sse_2(__m128i OP, int alpha, volatile unsigned
 	// const int beta = alpha + 1;
 
 	SEARCH_STATS(++statistics.n_board_solve_2);
-	nodes = 0;
-	SEARCH_UPDATE_INTERNAL_NODES(nodes);
 
-	bestscore = -SCORE_INF;
 	bb = EXTRACT_O(OP);	// opponent
 	if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
-		SEARCH_UPDATE_INTERNAL_NODES(nodes);
 		bestscore = board_score_sse_1(board_next_sse(OP, x1, flipped), alpha + 1, x2);
-	}
+		nodes = 2;
 
-	if (bestscore <= alpha) {
-		if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-			SEARCH_UPDATE_INTERNAL_NODES(nodes);
+		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
 			score = board_score_sse_1(board_next_sse(OP, x2, flipped), alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
+			nodes = 3;
 		}
 
-		// pass
-		if (bestscore == -SCORE_INF) {
-			bestscore = SCORE_INF;
-			bb = _mm_cvtsi128_si64(OP);	// player
-			PO = _mm_shuffle_epi32(OP, SWAP64);
-			if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x1))) {
-				SEARCH_UPDATE_INTERNAL_NODES(nodes);
-				bestscore = -board_score_sse_1(board_next_sse(PO, x1, flipped), -alpha, x2);
+	} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
+		bestscore = board_score_sse_1(board_next_sse(OP, x2, flipped), alpha + 1, x1);
+		nodes = 2;
+
+	} else {	// pass
+		bb = _mm_cvtsi128_si64(OP);	// player
+		PO = _mm_shuffle_epi32(OP, SWAP64);
+		if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x1))) {
+			bestscore = -board_score_sse_1(board_next_sse(PO, x1, flipped), -alpha, x2);
+			nodes = 2;
+
+			if ((bestscore > alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
+				score = -board_score_sse_1(board_next_sse(PO, x2, flipped), -alpha, x1);
+				if (score < bestscore) bestscore = score;
+				nodes = 3;
 			}
 
-			if (bestscore > alpha) {
-				if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-					SEARCH_UPDATE_INTERNAL_NODES(nodes);
-					score = -board_score_sse_1(board_next_sse(PO, x2, flipped), -alpha, x1);
-					if (score < bestscore) bestscore = score;
-				}
-				// gameover
-				if (bestscore == SCORE_INF) bestscore = board_solve_sse(OP, 2);
-			}
+		} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
+			bestscore = -board_score_sse_1(board_next_sse(PO, x2, flipped), -alpha, x1);
+			nodes = 2;
+
+		} else {	// gameover
+			bestscore = board_solve_sse(OP, 2);
+			nodes = 1;
 		}
 	}
 
-	*n_nodes += nodes;
+	SEARCH_UPDATE_2EMPTIES_NODES(*n_nodes += nodes;)
 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 	assert((bestscore & 1) == 0);
 	return bestscore;
@@ -1117,8 +1121,7 @@ static int vectorcall search_solve_sse_3(__m128i OP, int alpha, unsigned int sor
 		if (score > bestscore) bestscore = score;
 	}
 
-	// pass ?
-	if (bestscore == -SCORE_INF) {
+	else if (bestscore == -SCORE_INF) {	// pass ?
 		// best move alphabeta search
 		bestscore = SCORE_INF;
 		bb = _mm_cvtsi128_si64(OP);	// player
@@ -1142,11 +1145,11 @@ static int vectorcall search_solve_sse_3(__m128i OP, int alpha, unsigned int sor
 			if (score < bestscore) bestscore = score;
 		}
 
-		// gameover
-		if (bestscore == SCORE_INF) bestscore = board_solve_sse(OP, 3);
+		else if (bestscore == SCORE_INF)	// gameover
+			bestscore = board_solve_sse(OP, 3);
 	}
 
- 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 	return bestscore;
 }
 
@@ -1326,8 +1329,7 @@ int search_solve_4(Search *search, const int alpha)
 		if (score > bestscore) bestscore = score;
 	}
 
-	// no move
-	if (bestscore == -SCORE_INF) {
+	else if (bestscore == -SCORE_INF) {	// no move
 		if (can_move(opp, _mm_cvtsi128_si64(OP))) { // pass
 			search_pass_endgame(search);
 			bestscore = -search_solve_4(search, -(alpha + 1));
@@ -1337,7 +1339,7 @@ int search_solve_4(Search *search, const int alpha)
 		}
 	}
 
- 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 	return bestscore;
 }
 >>>>>>> 6506166 (More SSE optimizations)

@@ -274,30 +274,33 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 	// const int beta = alpha + 1;
 
 	SEARCH_STATS(++statistics.n_board_solve_2);
-	nodes = 0;
-	SEARCH_UPDATE_INTERNAL_NODES(nodes);
 
-	bestscore = -SCORE_INF;
 	if ((NEIGHBOUR[x1] & board->opponent) && board_next(board, x1, &next)) {
-		SEARCH_UPDATE_INTERNAL_NODES(nodes);
 		bestscore = board_score_1(&next, alpha + 1, x2);
-	}
+		nodes = 2;
 
-	if (bestscore <= alpha) {
-		if ((NEIGHBOUR[x2] & board->opponent) && board_next(board, x2, &next)) {
-			SEARCH_UPDATE_INTERNAL_NODES(nodes);
+		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & board->opponent) && board_next(board, x2, &next)) {
 			score = board_score_1(&next, alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
+			nodes = 3;
 		}
 
-		// pass
-		if (bestscore == -SCORE_INF) {
-			bestscore = SCORE_INF;
-			if ((NEIGHBOUR[x1] & board->player) && board_pass_next(board, x1, &next)) {
-				SEARCH_UPDATE_INTERNAL_NODES(nodes);
-				bestscore = -board_score_1(&next, -alpha, x2);
+	} else if ((NEIGHBOUR[x2] & board->opponent) && board_next(board, x2, &next)) {
+		bestscore = board_score_1(&next, alpha + 1, x1);
+		nodes = 2;
+
+	} else {	// pass
+		if ((NEIGHBOUR[x1] & board->player) && board_pass_next(board, x1, &next)) {
+			bestscore = -board_score_1(&next, -alpha, x2);
+			nodes = 2;
+
+			if ((bestscore > alpha) && (NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
+				score = -board_score_1(&next, -alpha, x1);
+				if (score < bestscore) bestscore = score;
+				nodes = 3;
 			}
 
+<<<<<<< HEAD
 			if (bestscore > alpha) {
 				if ((NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
 					SEARCH_UPDATE_INTERNAL_NODES(nodes);
@@ -308,10 +311,20 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 				if (bestscore == SCORE_INF) bestscore = board_solve(board, 2);
 			}
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+		} else if ((NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
+			bestscore = -board_score_1(&next, -alpha, x1);
+			nodes = 2;
+
+		} else {	// gameover
+			bestscore = board_solve(board, 2);
+			nodes = 1;
+>>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 		}
 		bestscore = -bestscore;
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	SEARCH_UPDATE_2EMPTIES_NODES(*n_nodes += nodes;)
 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
@@ -321,6 +334,11 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
  	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
  	assert((bestscore & 1) == 0);
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	SEARCH_UPDATE_2EMPTIES_NODES(*n_nodes += nodes;)
+	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	assert((bestscore & 1) == 0);
+>>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 	return bestscore;
 }
 
@@ -437,7 +455,7 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 	}
 
 	// pass ?
-	if (bestscore == -SCORE_INF) {
+	else if (bestscore == -SCORE_INF) {
 		// best move alphabeta search
 		bestscore = SCORE_INF;
 		if ((NEIGHBOUR[x1] & board->player) && board_pass_next(board, x1, &next)) {
@@ -457,6 +475,7 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 		}
 
+<<<<<<< HEAD
 		if (/* (NEIGHBOUR[x3] & opponent) && */ (flipped = Flip(x3, player, opponent))) {	// (100%/89%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x3));
@@ -464,6 +483,11 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 			if (score > bestscore) bestscore = score;
 			return bestscore * pol;	// (26%)
 		}
+=======
+		else if (bestscore == SCORE_INF)	// gameover
+			bestscore = board_solve(board, 3);
+	}
+>>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 
 		if (bestscore > -SCORE_INF)	// (76%)
 			return bestscore * pol;	// (9%)
@@ -660,8 +684,7 @@ static int search_solve_4(Search *search, int alpha)
 		if (score > bestscore) bestscore = score;
 	}
 
-	// no move
-	if (bestscore == -SCORE_INF) {
+	else if (bestscore == -SCORE_INF) {	// no move
 		if (can_move(search->board.opponent, search->board.player)) { // pass
 			search_pass_endgame(search);
 			bestscore = -search_solve_4(search, -(alpha + 1));
