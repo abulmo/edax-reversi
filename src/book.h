@@ -3,7 +3,7 @@
  *
  * Header file for opening book management
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -45,7 +45,7 @@ typedef struct Book {
 	int n;
 	int n_nodes;
 	bool need_saving;
-	Random random[1];
+	Random random;
 	Search *search;
 } Book;
 
