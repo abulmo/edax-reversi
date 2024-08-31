@@ -1335,6 +1335,9 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b612999 (SSE optimized search_pass)
 	search_pass(search);
 	backup->feature = search->eval.feature;
 =======
@@ -1374,6 +1377,7 @@ void search_restore_pass_midgame(Search *search, const Eval *backup)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_pass(search);
 	// eval_pass(&search->eval);
 	search->eval.feature = eval0->feature;
@@ -1386,6 +1390,9 @@ void search_restore_pass_midgame(Search *search, const Eval *backup)
 	eval_pass(&search->eval);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
+=======
+	search_pass(search);
+>>>>>>> b612999 (SSE optimized search_pass)
 	// eval_pass(&search->eval);
 	search->eval.feature = backup->feature;
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)

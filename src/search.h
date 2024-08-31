@@ -416,13 +416,19 @@ int search_bound(const Search*, int);
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b612999 (SSE optimized search_pass)
 #ifdef hasSSE2	// search->board is aligned
 	#define	search_pass(search)	_mm_store_si128((__m128i *) &(search)->board, _mm_shuffle_epi32(*(__m128i *) &(search)->board, 0x4e))
 #else
 	#define	search_pass(search)	board_pass(&(search)->board)
 #endif
 
+<<<<<<< HEAD
 =======
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+>>>>>>> b612999 (SSE optimized search_pass)
 #endif
 

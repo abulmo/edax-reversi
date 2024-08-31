@@ -1201,9 +1201,9 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 		if (pass1)	// gameover
 			return search_solve(search);
 
-		board_pass(&search->board);
+		search_pass(search);
 		bestscore = -search_shallow(search, ~alpha, true);
-		// board_pass(&search->board);
+		// search_pass(search);
 		return bestscore;
 	}
 
@@ -1674,9 +1674,9 @@ int NWS_endgame(Search *search, const int alpha)
 
 	} else {	// (1%)
 		if (can_move(search->board.opponent, search->board.player)) { // pass
-			board_pass(&search->board);
+			search_pass(search);
 			bestscore = -NWS_endgame(search, ~alpha);
-			board_pass(&search->board);
+			search_pass(search);
 		} else  { // game over
 			bestscore = search_solve(search);
 		}
