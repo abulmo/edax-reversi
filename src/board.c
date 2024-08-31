@@ -607,6 +607,7 @@ void board_pass(Board *board)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_AVX512) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
 =======
 #if !(defined(hasSSE2) && ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)))	// SSE version in endgame_sse.c
@@ -614,6 +615,9 @@ void board_pass(Board *board)
 =======
 #if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_AVX512) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *
@@ -1348,9 +1352,12 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @return the number of stable discs.
  */
 #if !defined(__AVX2__) && !(defined(hasMMX) && !defined(hasSSE2))
-int get_stability_fulls_given(const unsigned long long P, const unsigned long long O, const unsigned long long full[5])
+int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
 {
 	unsigned long long stable, P_central, stable_h, stable_v, stable_d7, stable_d9, old_stable;
+
+	// compute the exact stable edges (from precomputed tables)
+	get_all_full_lines(P | O, full);
 
 	// compute the exact stable edges (from precomputed tables)
 	stable = get_stable_edge(P, O);
@@ -1380,10 +1387,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long full[5];
 
-	// compute the exact stable edges (from precomputed tables)
-	get_all_full_lines(P | O, full);
-
-	return get_stability_fulls_given(P, O, full);
+	return get_stability_fulls(P, O, full);
 }
 
 /**

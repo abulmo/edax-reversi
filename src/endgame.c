@@ -175,6 +175,7 @@ int search_solve_0(const Search *search)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
 	#include "endgame_sse.c"	// vectorcall version
 #elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON) || ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE) && defined(SIMULLASTFLIP)))
@@ -185,6 +186,9 @@ int search_solve_0(const Search *search)
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 =======
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+=======
+#if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	#include "endgame_sse.c"	// vectorcall version
 #elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 	#include "endgame_neon.c"
@@ -1325,7 +1329,11 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 =======
 	unsigned long long full[5];
+<<<<<<< HEAD
 >>>>>>> 4303b09 (Returns all full lines in full[4])
+=======
+	bool ffull;
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 
 	if (search->stop) return alpha;
 
@@ -1340,6 +1348,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SEARCH_STATS(++statistics.n_NWS_endgame);
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -1387,33 +1396,25 @@ int NWS_endgame(Search *search, const int alpha)
 	}
 	hash_code = board_get_hash_code(&hashboard);
 
+=======
+	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
+
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	// stability cutoff
+	ffull = false;
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (3%)
-		hash_prefetch(hash_table, hash_code);	// ease hash access latency
-
 		CUTOFF_STATS(++statistics.n_stability_try;)
-		if (search->eval.n_empties > MASK_SOLID_DEPTH)
-			get_all_full_lines(search->board.player | search->board.opponent, full);
-
-		score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, full);
+		score = SCORE_MAX - 2 * get_stability_fulls(search->board.opponent, search->board.player, full);
 		if (score <= alpha) {	// (5%)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return score;
 		}
+		ffull = true;
 	}
-
-	// transposition cutoff
-	if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
-		hash_data.lower -= ofssolid;
-		hash_data.upper -= ofssolid;
-		if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))
-			return score;
-	}
-	// else if (ofssolid)	// slows down
-	//	hash_get(hash_table, &search->board, board_get_hash_code(&search->board), &hash_data);
 
 	search_get_movelist(search, &movelist);
 
+<<<<<<< HEAD
 	nodes_org = search->n_nodes;
 
 	// special cases
@@ -1454,7 +1455,38 @@ int NWS_endgame(Search *search, const int alpha)
 	} else {
 		if (movelist.n_moves > 1)	// (97%)
 			movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
+=======
+	if (movelist.n_moves > 1) {	// (96%)
+		// Improvement of Serch by Reducing Redundant Information in a Position of Othello
+		// Hidekazu Matsuo, Shuji Narazaki
+		// http://id.nii.ac.jp/1001/00156359/
+		// (1-2% improvement)
+		hashboard = search->board;
+		ofssolid = 0;
+		if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (72%)
+			if (!ffull)
+				get_all_full_lines(hashboard.player | hashboard.opponent, full);
+			solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
+			hashboard.player ^= solid_opp;	// normalize solid to player
+			hashboard.opponent ^= solid_opp;
+			ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+		}
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 
+		// transposition cutoff
+		hash_code = board_get_hash_code(&hashboard);
+		if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
+			hash_data.lower -= ofssolid;
+			hash_data.upper -= ofssolid;
+			if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))
+				return score;
+		}
+		// else if (ofssolid)	// slows down
+		//	hash_get(hash_table, &search->board, board_get_hash_code(&search->board), &hash_data);
+
+		movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
+
+		nodes_org = search->n_nodes;
 		board0 = search->board;
 		parity0 = search->eval.parity;
 <<<<<<< HEAD
@@ -1502,8 +1534,49 @@ int NWS_endgame(Search *search, const int alpha)
 			}
 		}
 		++search->eval.n_empties;
+
+		if (search->stop)
+			return alpha;
+
+		hash_store_data.data.wl.c.depth = search->eval.n_empties;
+		hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
+		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes - nodes_org);
+		// hash_store_data.data.move[0] = bestmove;
+		hash_store_data.alpha = alpha + ofssolid;
+		hash_store_data.beta = alpha + ofssolid + 1;
+		hash_store_data.score = bestscore + ofssolid;
+		hash_store(hash_table, &hashboard, hash_code, &hash_store_data);
+
+	// special cases
+	} else if (movelist.n_moves == 1) {	// (3%)
+		board0 = search->board;
+		parity0 = search->eval.parity;
+		move = movelist.move[0].next;
+		search_swap_parity(search, move->x);
+		empty_remove(search->empties, move->x);
+		board_update(&search->board, move);
+
+		--search->eval.n_empties;	// for next move
+		if (search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)
+			bestscore = -search_shallow(search, ~alpha, false);
+		else	bestscore = -NWS_endgame(search, ~alpha);
+		++search->eval.n_empties;
+
+		empty_restore(search->empties, move->x);
+		search->eval.parity = parity0;
+		search->board = board0;
+
+	} else {	// (1%)
+		if (can_move(search->board.opponent, search->board.player)) { // pass
+			board_pass(&search->board);
+			bestscore = -NWS_endgame(search, ~alpha);
+			board_pass(&search->board);
+		} else  { // game over
+			bestscore = search_solve(search);
+		}
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	hash_code = board_get_hash_code(&hashboard);
@@ -1653,6 +1726,8 @@ int NWS_endgame(Search *search, const int alpha)
 	hash_store_data.score = bestscore + ofssolid;
 	hash_store(hash_table, &hashboard, hash_code, &hash_store_data);
 
+=======
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	if (SQUARE_STATS(1) + 0) {
 		foreach_move(move, movelist)
 			++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];

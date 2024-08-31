@@ -388,6 +388,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
  */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
 
 unsigned long long vectorcall board_next_sse(__m128i OP, const int x, Board *next)
@@ -396,6 +397,9 @@ unsigned long long vectorcall board_next_sse(__m128i OP, const int x, Board *nex
 =======
 =======
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+=======
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 unsigned long long board_next(const Board *board, const int x, Board *next)
@@ -1424,7 +1428,7 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 	_mm_storel_epi64((__m128i *) &full[4], _mm_and_si128(l81, _mm_shuffle_epi32(l81, 0x4e)));
 }
 
-int get_stability_fulls_given(const unsigned long long P, const unsigned long long O, const unsigned long long full[5])
+int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
 {
 	unsigned long long stable, P_central;
 	__m128i	v2_stable, v2_old_stable, v2_P_central;
@@ -1446,6 +1450,9 @@ int get_stability_fulls_given(const unsigned long long P, const unsigned long lo
 	stable = get_stable_edge_sse(P, O) | (get_all_full_lines(P | O, &full) & P_central);
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 =======
+	// compute the exact stable edges (from precomputed tables)
+	get_all_full_lines(P | O, full);
+
 	// compute the exact stable edges (from precomputed tables)
 	stable = get_stable_edge(P, O);
 

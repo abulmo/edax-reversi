@@ -607,10 +607,13 @@ void get_all_full_lines(const unsigned long long disc_, unsigned long long full[
 	full[4] = full[0] & full[1] & full[2] & full[3];
 }
 
-int get_stability_fulls_given(unsigned long long P, unsigned long long O, const unsigned long long full[5])
+int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned long long full[5])
 {
 	__m64	P_central, stable, stable_h, stable_v, stable_d7, stable_d9, old_stable, m;
 	unsigned int	OL, OH, PL, PH, t, a1a8, h1h8, SL, SH;
+
+	// compute the exact stable edges (from precomputed tables)
+	get_all_full_lines(P | O, full);
 
 	// compute the exact stable edges (from precomputed tables)
 	OL = (unsigned int) O;	OH = (unsigned int)(O >> 32);

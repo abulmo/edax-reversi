@@ -93,6 +93,7 @@ typedef	unsigned char	NodeType;
 <<<<<<< HEAD
 <<<<<<< HEAD
 #define RELEASE 5
+<<<<<<< HEAD
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
 =======
@@ -123,6 +124,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.5.0"
 #define EDAX_NAME "Edax 4.5.0"
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+#define VERSION_STRING "4.5.1"
+#define EDAX_NAME "Edax 4.5.1"
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

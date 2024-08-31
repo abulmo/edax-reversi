@@ -58,6 +58,7 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 	x = bestmove->x;
 	fprintf(f, "pv = %s ", move_to_string(x, player, s));
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
@@ -66,6 +67,9 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 =======
 	hash_code = board_get_hash_code(&board);
 	if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
+=======
+	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
 	while (x != NOMOVE) {
@@ -176,6 +180,7 @@ static int guess_move(Search *search, Board *board)
 <<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
+<<<<<<< HEAD
 =======
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->n_empties, 6));
 =======
@@ -183,6 +188,8 @@ static int guess_move(Search *search, Board *board)
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	hash_get(&search->shallow_table, board, board_get_hash_code(board), &hash_data);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 
 	search->board = saved; search_setup(search);
 
@@ -473,11 +480,14 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	// transposition cutoff
 	hash_code = board_get_hash_code(&search->board);
 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	node_init(&node, search, alpha, beta, depth, movelist->n_moves, NULL);
 	node.pv_node = true;
 	search->node_type[0] = PV_NODE;
@@ -594,6 +604,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 	if (!search->stop) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		hash_code = board_get_hash_code(&search->board);
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 		if (movelist->n_moves) {	// 4.5.1
@@ -616,6 +627,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
 			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
 =======
+=======
+		hash_code = board_get_hash_code(&search->board);
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data);
 		if (depth < search->options.multipv_depth) movelist_sort(movelist);
 		else movelist_sort_cost(movelist, &hash_data);
@@ -940,10 +954,14 @@ void iterative_deepening(Search *search, int alpha, int beta)
 
 	// reuse last search ?
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
 =======
 	if (hash_get(&search->pv_table, &search->board, board_get_hash_code(&search->board), &hash_data)) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
+>>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",
