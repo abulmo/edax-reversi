@@ -1,9 +1,9 @@
 #
 # makefile to Compile Edax
 #
-# Copyright 1998 - 2012
+# Copyright 1998 - 2024
 # Richard Delorme
-# Version 4.3
+# Version 4.5
 #
 
 # Default settings
@@ -38,51 +38,89 @@ endif
 
 # gcc 4.x (x >= 7)
 ifeq ($(COMP),gcc)
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
-	
+
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -Ofast -fwhole-program -flto -DNDEBUG
+		CFLAGS += -Ofast -fwhole-program -DNDEBUG
+		LTOFLAG = -flto
 	else
-		CFLAGS += -O0 -g -DDEBUG
+		CFLAGS += -O1 -g -DDEBUG
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+	endif
+	ifeq ($(ARCH),x64-avx512)
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+	endif
+	ifeq ($(ARCH),x64-popcnt)
+		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
+	endif
+	ifeq ($(ARCH),x64-k10)
+		CFLAGS += -m64 -march=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT -DMOVE_GENERATOR=MOVE_GENERATOR_BITSCAN
 	endif
 	ifeq ($(ARCH),x32-modern)
-		CFLAGS += -mx32 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -mx32 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
-		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X64 
+		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X64
 	endif
 	ifeq ($(ARCH),x32)
-		CFLAGS += -mx32 -march=native -DUSE_GAS_X64
+		CFLAGS += -mx32 -mtune=generic -DUSE_GAS_X64
 	endif
-	ifeq ($(ARCH),x86)
-		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86
+	ifeq ($(ARCH),x86-sse)
+		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
-	ifeq ($(ARCH),ARM)
+	ifeq ($(ARCH),x86)
+		CFLAGS += -m32 -march=i386 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
 		ifeq ($(BUILD),optimize)
-			CFLAGS += -fomit-frame-pointer -DUSE_GCC_ARM
+			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
-	ifeq ($(ARCH),ARMv7)
+	ifeq ($(ARCH),arm)
 		ifeq ($(BUILD),optimize)
-			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon -DUSE_GCC_ARM
+			CFLAGS += -fomit-frame-pointer
+		endif
+	endif
+	ifeq ($(ARCH),armv7)
+		CFLAGS += -march=armv7-a
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
+		endif
+	endif
+	ifeq ($(ARCH),arm-neon)
+		CFLAGS += -march=armv7-a+simd -mfloat-abi=softfp
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
+		endif
+	endif
+	ifeq ($(ARCH),arm-sve)
+		CFLAGS += -march=armv8.2-a+sve
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
 
 	ifeq ($(OS),osx)
 		CFLAGS += -mmacosx-version-min=10.4
+		ifeq ($(ARCH),x86)
+			CFLAGS += -msse2 -DhasSSE2
+		endif
+		ifeq ($(ARCH),arm)
+			CFLAGS += -march=armv8.3-a
+		endif
+	endif
+	ifeq ($(OS),android)
+		CFLAGS += -DANDROID=1
 	endif
 	ifeq ($(OS),windows)
-		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x501
-		ifeq ($(ARCH),x86)
+		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x0501
+		ifneq (,$(findstring x86,$(ARCH)))
 			CFLAGS += -DUSE_PTHREAD
 		endif
 	endif
@@ -90,8 +128,9 @@ ifeq ($(COMP),gcc)
 endif
 
 ifeq ($(COMP),gcc-old)
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1
-	
+	CC = gcc
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
+
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O3 -fwhole-program -DNDEBUG
 	else
@@ -99,30 +138,33 @@ ifeq ($(COMP),gcc-old)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X64 
 	endif
 	ifeq ($(ARCH),x86)
-		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X86
+		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
-	ifeq ($(ARCH),ARM)
+	ifeq ($(ARCH),arm)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer -DUSE_GCC_ARM
 		endif
 	endif
-	ifeq ($(ARCH),ARMv7)
+	ifeq ($(ARCH),armv7)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon -DUSE_GCC_ARM
 		endif
 	endif
 
 	ifeq ($(OS),osx)
-		CFLAGS += -mmacosx-version-min=10.4
+		CFLAGS += -mmacosx-version-min=10.4 -mdynamic-no-pic
+		ifeq ($(ARCH),x86)
+			CFLAGS += -msse2 -DhasSSE2
+		endif
 	endif
 	ifeq ($(OS),android)
 		CFLAGS += -DANDROID=1
@@ -138,24 +180,25 @@ endif
 
 # g++
 ifeq ($(COMP),g++)
-	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1
+	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -Ofast -fwhole-program -flto -DNDEBUG
+		CFLAGS += -Ofast -fwhole-program -DNDEBUG
+		LTOFLAG = -flto
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X64 
 	endif
 	ifeq ($(ARCH),x86)
-		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86
+		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
@@ -163,6 +206,9 @@ ifeq ($(COMP),g++)
 
 	ifeq ($(OS),osx)
 		CFLAGS += -mmacosx-version-min=10.4 -mdynamic-no-pic
+		ifeq ($(ARCH),x86)
+			CFLAGS += -msse2 -DhasSSE2
+		endif
 	endif
 	ifeq ($(OS),windows)
 		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x501
@@ -175,7 +221,7 @@ endif
 
 #icc
 ifeq ($(COMP),icc)
-	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1
+	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
 	PGO_GEN = -prof_gen
 	PGO_USE = -prof_use -wd11505
 
@@ -186,13 +232,16 @@ ifeq ($(COMP),icc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -xHOST -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+	endif
+	ifeq ($(ARCH),x64-avx512)
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64)
-		CFLAGS += -m64 -xHost -DUSE_GAS_X64 
+		CFLAGS += -m64 -DUSE_GAS_X64
 	endif
 	ifeq ($(ARCH),x32-modern)
-		CFLAGS += -m64 -xHost -ipo -auto-ilp32 -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -ipo -auto-ilp32 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x86)
 		CFLAGS += -m32 -DUSE_GAS_X86
@@ -201,7 +250,7 @@ endif
 
 #pcc
 ifeq ($(COMP),pcc)
-	CFLAGS = - -D_GNU_SOURCE=1
+	CFLAGS = - -D_GNU_SOURCE=1 -DUNICODE
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O4 -DNDEBUG
@@ -210,7 +259,7 @@ ifeq ($(COMP),pcc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -DUSE_GAS_X64
@@ -222,29 +271,39 @@ endif
 
 #clang
 ifeq ($(COMP),clang)
-	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -Wno-invalid-source-encoding
+	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
-		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG -fuse-ld=gold
+		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
+		LTOFLAG = -flto
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-		CFLAGS += -m64 -march=native -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+	endif
+	ifeq ($(ARCH),x64-avx512)
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 
 	endif
 	ifeq ($(ARCH),x86)
-		CFLAGS += -m32 -DUSE_GAS_X86
+		CFLAGS += -m32 -DUSE_GAS_X86 -DUSE_GAS_MMX
 	endif
 
 	ifeq ($(OS),osx)
 		CFLAGS += -mmacosx-version-min=10.4 -mdynamic-no-pic
+		ifeq ($(ARCH),x86)
+			CFLAGS += -msse2 -DhasSSE2
+		endif
+		ifeq ($(ARCH),arm)
+			CFLAGS += -march=armv8.3-a
+		endif
 	endif
 endif
 
@@ -259,25 +318,16 @@ endif
 ifeq ($(OS),windows)
 	EXE = wEdax-$(ARCH).exe
 	LIBS += -lws2_32
-	ifeq ($(ARCH),x86)
-		LIBS += -lpthread
+	ifneq (,$(findstring x86,$(ARCH)))
+		LIBS += -Bstatic -Wl,-Bstatic,-lpthread
 	endif
 endif
 ifeq ($(OS),osx)
-	EXE = mEdax
+	EXE = mEdax-$(ARCH)
 	LIBS += -lpthread
 endif
 
-ifeq ($(ARCH),x64)
-	CFLAGS += -DHAS_CPU_64
-endif
-ifeq ($(ARCH),x64-modern)
-	CFLAGS += -DHAS_CPU_64
-endif
-ifeq ($(ARCH),x32)
-	CFLAGS += -DHAS_CPU_64
-endif
-ifeq ($(ARCH),x32-modern)
+ifneq (,$(findstring x64,$(ARCH))$(findstring x32,$(ARCH)))
 	CFLAGS += -DHAS_CPU_64
 endif
 
@@ -308,8 +358,8 @@ help:
 	@echo " x32-modern   x32 with popcount"
 	@echo " x32          x32"
 	@echo " x86          x86"
-	@echo " ARM          ARM v5 & up"
-	@echo " ARMv7        ARM v7-a"
+	@echo " arm          arm v5 & up"
+	@echo " armv7        arm v7-a"
 	@echo ""
 	@echo "Compilers:"
 	@echo "   gcc        GNU C compiler version >= 4.6"
@@ -328,50 +378,59 @@ help:
 
 build:
 	@echo "building edax..."
-	$(CC) $(CFLAGS) all.c -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) $(CFLAGS) $(LTOFLAG) all.c -s -o $(BIN)/$(EXE) $(LIBS)
+
+source:
+	$(CC) $(CFLAGS) -S all.c
 
 pgo-build:
 	@echo "building edax with pgo..."
 	$(MAKE) clean
-	$(CC) $(CFLAGS) $(PGO_GEN) all.c -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) $(CFLAGS) $(LTOFLAG) $(PGO_GEN) all.c -o $(BIN)/$(EXE) $(LIBS)
 	cd $(BIN); echo -e 'count games 10\ncount positions 9\n' | ./$(EXE) 
-	cd $(BIN); ./$(EXE) -l 60 -solve problem/fforum-20-39.obf
+	cd $(BIN); ./$(EXE) -l 60 -solve ../problem/fforum-20-39.obf
 	cd $(BIN); ./$(EXE) -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
 	rm -f ../bin/book.pgo ../bin/book.pgo.store
 	$(PGO)	
-	$(CC) $(CFLAGS) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) $(CFLAGS) $(LTOFLAG) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
 
 pgo-rebuild:
 	@echo "rebuilding edax with pgo..."
-	$(CC) $(CFLAGS) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) $(CFLAGS) $(LTOFLAG) $(PGO_USE) all.c -s -o $(BIN)/$(EXE) $(LIBS)
 
 prof:
 	@echo "rebuilding edax for profiling..."
-	$(CC) $(CFLAGS) all.c -g -inline-level=0 -o $(BIN)/$(EXE) $(LIBS) -lprofiler
+	$(CC) $(CFLAGS) $(LTOFLAG) all.c -pg -o $(BIN)/$(EXE) $(LIBS) # -inline-level=0 -lprofiler
 
 debug:
-	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=debug build
+	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=debug prof
 
 release:
 	$(MAKE) pgo-build ARCH=x64 OS=linux COMP=gcc 
 	$(MAKE) build ARCH=x64 OS=windows COMP=gcc CC='x86_64-w64-mingw32-gcc'
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
-	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc-old CC='arm-linux-androideabi-gcc'
+	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 
 android:
-	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc-old CC='arm-linux-androideabi-gcc'
+	ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=./Application.mk # NDK_DEBUG=1
+
+macuniversal:
+	$(MAKE) build ARCH=x86 OS=osx COMP=clang
+	$(MAKE) build ARCH=x64 OS=osx COMP=clang
+	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -arch arm64 ../bin/mEdax-arm -output ../bin/mEdax
+	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
 
 clean:
 	rm -f pgopti* *.dyn all.gc* *~ *.o generate_flip generate_count_flip *.prof*
 
 noip:
-	$(CC) -g $(CFLAGS) $(SRC) -o $(BIN)/$(EXE) $(LIBS)
+	$(CC) -g $(CFLAGS) $(LTOFLAG) $(SRC) -o $(BIN)/$(EXE) $(LIBS)
 
 code:
-	$(CC) $(CFLAGS) generate_flip.c -o generate_flip
-	$(CC) $(CFLAGS) generate_count_flip.c -o generate_count_flip
+	$(CC) $(CFLAGS) $(LTOFLAG) generate_flip.c -o generate_flip
+	$(CC) $(CFLAGS) $(LTOFLAG) generate_count_flip.c -o generate_count_flip
 	generate_flip
 	generate_count_flip
 
