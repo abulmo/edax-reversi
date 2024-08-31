@@ -36,6 +36,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 extern const EVAL_FEATURE_V EVAL_FEATURE[65];
 extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 
@@ -44,6 +45,11 @@ extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 #if defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 =======
+=======
+extern const EVAL_FEATURE_V EVAL_FEATURE[65];
+extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
+
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 #ifdef __ARM_NEON__
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #define __m128i		int16x8_t

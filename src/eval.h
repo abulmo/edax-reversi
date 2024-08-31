@@ -125,6 +125,7 @@ struct Move;
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 /** unpacked weights */
 // enum { EVAL_N_WEIGHT = 226315 };
 typedef struct Eval_weight {
@@ -141,10 +142,26 @@ typedef struct Eval_weight {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /** number of (unpacked) weights */
 enum { EVAL_N_WEIGHT = 226315 };
+=======
+/** unpacked weights */
+// enum { EVAL_N_WEIGHT = 226315 };
+typedef struct Eval_weight {
+	short	C9[19683];
+	short	C10[59049];
+	short	S10[2][59049];
+	short	S8[4][6561];
+	short	S7[2187];
+	short	S6[729];
+	short	S5[243];
+	short	S4[81];
+	short	S0;
+} Eval_weight;
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 /** number of plies */
-enum { EVAL_N_PLY = 61 };
+enum { EVAL_N_PLY = 60 };
 
+<<<<<<< HEAD
 extern short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
 <<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
@@ -165,6 +182,9 @@ extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 
 #endif
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+extern Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY];
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 /* function declaration */
 void eval_open(const char*);

@@ -40,6 +40,7 @@
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /**
  * @brief evaluate a midgame position with the evaluation function.
  *
@@ -166,6 +167,27 @@ static int accumlate_eval(const short *w, Eval *eval)
 <<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
+=======
+static int accumlate_eval(int ply, Eval *eval)
+{
+	unsigned short *f = eval->feature.us;
+	Eval_weight *w = *EVAL_WEIGHT + ply;
+	assert(ply < EVAL_N_PLY);
+
+	return w->C9[f[ 0]] + w->C9[f[ 1]] + w->C9[f[ 2]] + w->C9[f[ 3]]
+	  + w->C10[f[ 4]] + w->C10[f[ 5]] + w->C10[f[ 6]] + w->C10[f[ 7]]
+	  + w->S10[0][f[ 8]] + w->S10[0][f[ 9]] + w->S10[0][f[10]] + w->S10[0][f[11]]
+	  + w->S10[1][f[12]] + w->S10[1][f[13]] + w->S10[1][f[14]] + w->S10[1][f[15]]
+	  + w->S8[0][f[16]] + w->S8[0][f[17]] + w->S8[0][f[18]] + w->S8[0][f[19]]
+	  + w->S8[1][f[20]] + w->S8[1][f[21]] + w->S8[1][f[22]] + w->S8[1][f[23]]
+	  + w->S8[2][f[24]] + w->S8[2][f[25]] + w->S8[2][f[26]] + w->S8[2][f[27]]
+	  + w->S8[3][f[28]] + w->S8[3][f[29]]
+	  + w->S7[f[30]] + w->S7[f[31]] + w->S7[f[32]] + w->S7[f[33]]
+	  + w->S6[f[34]] + w->S6[f[35]] + w->S6[f[36]] + w->S6[f[37]]
+	  + w->S5[f[38]] + w->S5[f[39]] + w->S5[f[40]] + w->S5[f[41]]
+	  + w->S4[f[42]] + w->S4[f[43]] + w->S4[f[44]] + w->S4[f[45]]
+	  + w->S0;
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 }
 
 /**
@@ -180,8 +202,12 @@ int search_eval_0(Search *search)
 	SEARCH_STATS(++statistics.n_search_eval_0);
 	SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 
+<<<<<<< HEAD
 	score = accumlate_eval((*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
 >>>>>>> e3334bd (Groups out accumlate_eval subroutine)
+=======
+	score = accumlate_eval(60 - search->eval.n_empties,  &search->eval);
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 	if (score > 0) score += 64;	else score -= 64;
 	score /= 128;
@@ -334,11 +360,15 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 				score = -accumlate_eval(w, &Ev);
 >>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 =======
 				score = -accumlate_eval((*EVAL_WEIGHT)[61 - search->eval.n_empties], &Ev);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+				score = -accumlate_eval(60 - search->eval.n_empties + 1, &Ev);
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 		board0.board = search->board;
 		x = NOMOVE;
@@ -384,8 +414,8 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 				}
 			}
 		}
-		if (bestscore <= SCORE_MIN) bestscore = SCORE_MIN + 1;
-		else if (bestscore >= SCORE_MAX) bestscore = SCORE_MAX - 1;
+		if (bestscore < SCORE_MIN + 1) bestscore = SCORE_MIN + 1;
+		if (bestscore > SCORE_MAX - 1) bestscore = SCORE_MAX - 1;
 
 	} else {
 		moves = get_moves(search->board.opponent, search->board.player);
@@ -1262,10 +1292,19 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	}
 =======
 	if (search->stop) return alpha;
+<<<<<<< HEAD
 	else if (search->eval.n_empties == 0) return search_solve_0(search);
 	else if (depth <= 3 && depth < search->eval.n_empties) return NWS_shallow(search, alpha, depth, hash_table);
 	else if (search->eval.n_empties <= depth && depth < DEPTH_MIDGAME_TO_ENDGAME) return NWS_endgame(search, alpha);
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+	else if (search->eval.n_empties == 0)
+		return search_solve_0(search);
+	else if (depth <= 3 && depth < search->eval.n_empties)
+		return NWS_shallow(search, alpha, depth, hash_table);
+	else if (search->eval.n_empties <= depth && depth < DEPTH_MIDGAME_TO_ENDGAME)
+		return NWS_endgame(search, alpha);
+>>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 	SEARCH_STATS(++statistics.n_NWS_midgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
