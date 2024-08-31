@@ -324,6 +324,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (hash_get_from_board(&search->pv_table, board, &hash_data)) {
 =======
 		if (hash_get(&search->pv_table, board, board_get_hash_code(board), &hash_data)) {
@@ -331,6 +332,9 @@ static int engine_open(Search *search, const Board *board, const int player, con
 =======
 		if (hash_get_from_board(&search->pv_table, board, &hash_data)) {
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+		if (hash_get_from_board(&search->pv_table, HBOARD_P(board), &hash_data)) {
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 			if (hash_data.lower == -SCORE_INF && hash_data.upper < SCORE_INF) score = hash_data.upper;
 			else if (hash_data.upper == +SCORE_INF && hash_data.lower > -SCORE_INF) score = hash_data.lower;
 			else score = (hash_data.upper + hash_data.lower) / 2;

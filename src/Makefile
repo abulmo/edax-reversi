@@ -102,8 +102,6 @@ ifeq ($(COMP),gcc)
 	ifeq ($(ARCH),x64-k10)
 		CFLAGS += -m64 -march=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT -DMOVE_GENERATOR=MOVE_GENERATOR_BITSCAN
 	endif
-	ifeq ($(ARCH),x32-modern)
-		CFLAGS += -mx32 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -mtune=generic -DUSE_GAS_X64
@@ -113,6 +111,14 @@ ifeq ($(COMP),gcc)
 	endif
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+	ifeq ($(ARCH),x86-modern)
+		CFLAGS += -m32 -march=core-avx2 -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
+		endif
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 	ifeq ($(ARCH),x86-sse)
 		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
 =======

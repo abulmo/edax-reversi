@@ -83,6 +83,7 @@ void board_restore(Board*, const struct Move*);
 void board_pass(Board*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 bool can_move(const unsigned long long, const unsigned long long);
 unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
@@ -126,6 +127,8 @@ int board_count_empties(const Board *board);
 	void init_mmx (void);
 	unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
 	unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
+=======
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -157,6 +160,24 @@ int get_stability_fulls(const unsigned long long, const unsigned long long, unsi
 int get_edge_stability(const unsigned long long, const unsigned long long);
 int get_corner_stability(const unsigned long long);
 
+unsigned long long board_get_hash_code(const Board*);
+#ifdef _M_X64
+unsigned long long vectorcall vboard_get_hash_code(__m128i);
+#elif defined(__aarch64__) || defined(_M_ARM64)
+unsigned long long vboard_get_hash_code(uint64x2_t);
+#else
+#define	vboard_get_hash_code(board)	board_get_hash_code(board)
+#endif
+
+int board_get_square_color(const Board*, const int);
+bool board_is_occupied(const Board*, const int);
+void board_print(const Board*, const int, FILE*);
+char* board_to_string(const Board*, const int, char *);
+void board_print_FEN(const Board*, const int, FILE*);
+char* board_to_FEN(const Board*, const int, char*);
+bool board_is_pass(const Board*);
+bool board_is_game_over(const Board*);
+int board_count_empties(const Board *board);
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 void init_mmx (void);
 unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
@@ -451,7 +472,7 @@ extern unsigned long long A1_A8[256];
 
 // Use backup copy of search->board in a vector register if available (assume *pboard == vboard on entry)
 #ifdef hasSSE2
-	#define	vboard_update(pboard,vboard,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((vboard).v2, _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_cvtsi64_si128(X_TO_BIT[(move)->x]))), 0x4e))
+	#define	vboard_update(pboard,vboard,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((vboard).v2, _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x]))), 0x4e))
 #else
 	#define	vboard_update(pboard,vboard,move)	board_update((pboard), (move))
 #endif

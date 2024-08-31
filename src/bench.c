@@ -39,10 +39,14 @@
  * @return a CPU clock tick.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static unsigned long long click(void)
 =======
 static unsigned long long click()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static unsigned long long click(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 #if defined(USE_GAS_X64)
 
@@ -75,10 +79,14 @@ static unsigned long long click()
  * @brief Move generator performance test.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void bench_move_generator(void)
 =======
 static void bench_move_generator()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static void bench_move_generator(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -178,10 +186,14 @@ static void bench_move_generator()
  * @brief Last Move performance test.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void bench_count_last_flip(void)
 =======
 static void bench_count_last_flip()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static void bench_count_last_flip(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -249,10 +261,14 @@ static void bench_count_last_flip()
  * @brief Scoring performance test.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void bench_board_score_1(void)
 =======
 static void bench_board_score_1()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static void bench_board_score_1(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -345,10 +361,14 @@ static void bench_board_score_1()
  * @brief Mobility performance test.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void bench_mobility(void)
 =======
 static void bench_mobility()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static void bench_mobility(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -427,10 +447,14 @@ static void bench_mobility()
  * @brief Stability performance test.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void bench_stability(void)
 =======
 static void bench_stability()
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+static void bench_stability(void)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];

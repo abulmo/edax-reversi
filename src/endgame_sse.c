@@ -70,6 +70,7 @@
 	#define	EXTRACT_O(OP)	_mm_cvtsi128_si64(_mm_shuffle_epi32(OP, DUPHI))
 #endif
 
+<<<<<<< HEAD
 #if defined(__AVX__) || defined(__SSE4_1__)
 	static inline int vectorcall TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
 #elif defined(__x86_64__) || defined(_M_X64)
@@ -100,6 +101,9 @@ extern const uint8_t COUNT_FLIP[8][256];
 #endif
 
 #ifdef __AVX__
+=======
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 	#define	vflip	__m256i
 	static inline int vectorcall TESTZ_FLIP(__m256i X) { return _mm256_testz_si256(X, X); }
 #else

@@ -1786,7 +1786,7 @@ int NWS_endgame(Search *search, const int alpha)
 		}
 	}
 
-	hash_code = board_get_hash_code(&hashboard.board);
+	hash_code = vboard_get_hash_code(HBOARD_V(hashboard));
 	hash_prefetch(&search->hash_table, hash_code);
 
 	search_get_movelist(search, (MoveList *) &movelist);

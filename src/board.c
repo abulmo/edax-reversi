@@ -1785,6 +1785,7 @@ unsigned long long board_get_hash_code(const Board *board)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long crc = crc32c_u64(0, board->player);
 	return (crc << 32) | crc32c_u64(crc, board->opponent);
 =======
@@ -1819,9 +1820,32 @@ unsigned long long board_get_hash_code(const Board *board)
 	unsigned long long	crc;
 
 	crc = crc32c_u64(0, board->player);
+=======
+	unsigned long long crc = crc32c_u64(0, board->player);
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 	return (crc << 32) | crc32c_u64(crc, board->opponent);
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 }
+
+// use vectored board if vectorcall available
+#ifdef _M_X64
+unsigned long long vectorcall vboard_get_hash_code(__m128i board)
+{
+	unsigned long long crc = crc32c_u64(0, _mm_cvtsi128_si64(board));
+  #if defined(__SSE4__) || defined(__AVX__)
+	return (crc << 32) | crc32c_u64(crc, _mm_extract_epi64(board, 1));
+  #else
+	return (crc << 32) | crc32c_u64(crc, _mm_cvtsi128_si64(_mm_unpackhi_epi64(board, board)));
+  #endif
+}
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+unsigned long long vboard_get_hash_code(uint64x2_t board)
+{
+	unsigned long long crc = crc32c_u64(0, vgetq_lane_u64(board, 0));
+	return (crc << 32) | crc32c_u64(crc, vgetq_lane_u64(board, 1));
+}
+#endif
 
 /**
  * @brief Get square color.

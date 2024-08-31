@@ -158,7 +158,7 @@ vc-w64:
 	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
 
 vc-w32-modern:
-	cl $(VC_FLAGS) /GL /D hasSSE2 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w32-modern.exe
+	cl $(VC_FLAGS) /GL /D hasSSE2 /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w32-modern.exe
 
 vc-w32-sse:
 	cl $(VC_FLAGS) /GL /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-w32-sse.exe

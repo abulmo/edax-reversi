@@ -59,7 +59,11 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 	fprintf(f, "pv = %s ", move_to_string(x, player, s));
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
+=======
+	if (hash_get_from_board(&search->pv_table, HBOARD_P(&board), &hash_data)) {
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
 	while (x != NOMOVE) {
@@ -185,6 +189,7 @@ static int guess_move(Search *search, Board *board)
 <<<<<<< HEAD
 <<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
+<<<<<<< HEAD
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
 <<<<<<< HEAD
 =======
@@ -196,6 +201,9 @@ static int guess_move(Search *search, Board *board)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+	hash_get_from_board(&search->shallow_table, HBOARD_P(board), &hash_data);
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 
 	search->board = saved; search_setup(search);
 
@@ -1064,6 +1072,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	// reuse last search ?
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
 =======
 	if (hash_get(&search->pv_table, &search->board, board_get_hash_code(&search->board), &hash_data)) {
@@ -1071,6 +1080,9 @@ void iterative_deepening(Search *search, int alpha, int beta)
 =======
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+	if (hash_get_from_board(&search->pv_table, HBOARD_P(&search->board), &hash_data)) {
+>>>>>>> 0b8fa13 (More HBOARD hash functions)
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",

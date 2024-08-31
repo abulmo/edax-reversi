@@ -853,7 +853,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 3 level score bonus
 					break;
 				default:	// 3 to 6
-					if (hash_get_from_board(&search->hash_table, &search->board, &dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table
+					if (hash_get_from_board(&search->hash_table, HBOARD_P(&search->board), &dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table
 					// org_selectivity = search->selectivity;
 					// search->selectivity = NO_SELECTIVITY;
 					score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus

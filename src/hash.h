@@ -112,7 +112,7 @@ typedef struct HashStoreData {
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 =======
 // use vectored board if vectorcall available
-#if defined(hasSSE2) && (defined(_MSC_VER) || defined(__linux__))
+#ifdef _M_X64
 	#define	HBOARD	__m128i
 	#define	HBOARD_P(b)	_mm_loadu_si128((__m128i *) (b))
 	#define	HBOARD_V(b)	((b).v2)
@@ -152,7 +152,7 @@ void vectorcall hash_feed(HashTable*, HBOARD, const unsigned long long, HashStor
 void vectorcall hash_store(HashTable*, HBOARD, const unsigned long long, HashStoreData *);
 void vectorcall hash_force(HashTable*, HBOARD, const unsigned long long, HashStoreData *);
 bool vectorcall hash_get(HashTable*, HBOARD, const unsigned long long, HashData *);
-bool hash_get_from_board(HashTable*, const Board*, HashData *);
+bool hash_get_from_board(HashTable*, HBOARD, HashData *);
 void vectorcall hash_exclude_move(HashTable*, HBOARD, const unsigned long long, const int);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
 void hash_copy(const HashTable*, HashTable*);

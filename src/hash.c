@@ -55,7 +55,7 @@ unsigned long long hash_move[64][60];
 >>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 =======
 // use vectored board if vectorcall available and hboard_equal is efficient enough
-#if defined(hasSSE2) && (defined(_MSC_VER) || defined(__linux__))
+#ifdef _M_X64
 	#define	store_hboard(p,b)	_mm_storeu_si128((__m128i *) (p), (b))
   #if defined(__SSE4__) || defined(__AVX__)
 	inline bool hboard_equal(__m128i b1, Board *b2)
@@ -985,9 +985,9 @@ bool vectorcall hash_get(HashTable *hash_table, HBOARD board, const unsigned lon
  * @param data Output hash data.
  * @return True the board was found, false otherwise.
  */
-bool hash_get_from_board(HashTable *hash_table, const Board *board, HashData *data)
+bool hash_get_from_board(HashTable *hash_table, HBOARD board, HashData *data)
 {
-	return hash_get(hash_table, HBOARD_P(board), board_get_hash_code(board), data);
+	return hash_get(hash_table, board, vboard_get_hash_code(board), data);
 }
 
 /**
