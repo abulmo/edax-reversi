@@ -1774,18 +1774,18 @@ void eval_builder_build_features(EvalBuilder* eval, Gamebase* base, int ply) {
 
 /* equalize */
 void eval_builder_equalize(EvalBuilder* eval, double* w) {
-	int i, j;
-	int K = eval->n_data, I = eval->n_vectors - 1;
+	int i, j, m;
 	double correction;
 
-	for (i = 0; i < I; i++) {
+	m = 0;
+	for (i = 0; i < eval->n_vectors - 1; i++) {
 		correction = 0.0;
 		for (j = 0; j < eval->vector_size[i]; j++)
-			correction += w[j];
+			correction += w[m + j];
 		correction /= j;
 		for (j = 0; j < eval->vector_size[i]; j++)
-			w[j] -= correction;
-		w[K - 1] += correction * eval->vector_times[i] / eval->vector_times[I];
+			w[m++] -= correction;
+		w[eval->n_data - 1] += correction * eval->vector_times[i];
 	}
 }
 
@@ -2170,10 +2170,14 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 	}
 	r1 = 1.0 - (err1 * err1) / (v);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	printf("%2d %4d %6.2f %6.3f %8.4f %12.8f\r", ply, 0, 0.0, 0.0, err1, r1);
 =======
 	printf("%2d %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f\r", ply, 0, 0.0, 0.0, err1, r1, 0.0, 0.0);
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	printf("%2d %4d %6.2f %6.3f %8.4f %12.8f\r", ply, 0, 0.0, 0.0, err1, r1);
+>>>>>>> f2ed22c (Fix equalize, unbias squared in eval_builder)
 	fflush(stdout);
 
 	for (iter = 1; iter <= option->max_iter; iter++) {
@@ -2262,6 +2266,7 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 			if (option->error_type == EVAL_ABS_ERROR) {
 				eval_builder_get_abs_error(eval, w, e);
 <<<<<<< HEAD
+<<<<<<< HEAD
 				w[K - 1] += sl_median(e, I);
 			} else {
 				eval_builder_get_squared_error(eval, w, e);
@@ -2273,6 +2278,13 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 				eval_builder_get_abs_error(eval, w, e);
 				w[K - 1] += (m = sl_mean(e, I));
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+				w[K - 1] += sl_median(e, I);
+			}
+			else {
+				eval_builder_get_squared_error(eval, w, e);
+				w[K - 1] += sl_mean(e, I);
+>>>>>>> f2ed22c (Fix equalize, unbias squared in eval_builder)
 			}
 		}
 
@@ -2296,8 +2308,12 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 			err2 = sqrt(eval_builder_get_squared_error(eval, w, e));
 		}
 		r2 = 1.0 - err2 * err2 / v;
+<<<<<<< HEAD
 		printf("%2d  %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f  %10.8f \r", ply, iter, lambda, gamma, err2, r2, max_delta, mean_delta, fabs(err2 - err1));
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		printf("%2d %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f %11.8f\r", ply, iter, lambda, gamma, err2, r2, max_delta, mean_delta, fabs(err2 - err1));
+>>>>>>> f2ed22c (Fix equalize, unbias squared in eval_builder)
 		fflush(stdout);
 		if ((iter > option->min_iter || ply < 2) && (fabs(err2 - err1) <= option->accuracy && fabs(max_delta) < 1000 * option->accuracy && fabs(mean_delta) <= 10 * option->accuracy))
 			break;
@@ -2318,6 +2334,7 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 		if (option->error_type == EVAL_ABS_ERROR) {
 			eval_builder_get_abs_error(eval, w, e);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			w[K - 1] += sl_median(e, I);
 		}
 		else {
@@ -2330,6 +2347,13 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 			eval_builder_get_abs_error(eval, w, e);
 			w[K - 1] += (m = sl_mean(e, I));
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+			w[K - 1] += sl_median(e, I);
+		}
+		else {
+			eval_builder_get_squared_error(eval, w, e);
+			w[K - 1] += sl_mean(e, I);
+>>>>>>> f2ed22c (Fix equalize, unbias squared in eval_builder)
 		}
 	}
 
