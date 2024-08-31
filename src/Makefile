@@ -403,9 +403,12 @@ ifeq ($(OS),windows)
 <<<<<<< HEAD
 	ifneq (,$(findstring x86,$(ARCH)))
 		LIBS += -Bstatic -Wl,-Bstatic,-lpthread
+<<<<<<< HEAD
 =======
 	ifeq ($(ARCH),x86-modern)
 		LIBS += -lpthread
+=======
+>>>>>>> a03a9c9 (Static link to pthread on MSYS2 x86 build)
 	endif
 	ifeq ($(ARCH),x86)
 =======
