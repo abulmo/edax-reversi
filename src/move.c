@@ -763,12 +763,17 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 			// move_evaluate(move, search, hash_data, sort_alpha, sort_depth);
 			if (move_wipeout(move, &search->board)) score = (1 << 30);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			else if (move->x == hash_data->move[0] && hash_data->wl.c.depth > sort_depth - 3) score = (1 << 29);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
 			else if (move->x == hash_data->move[1] && hash_data->wl.c.depth > sort_depth - 3) score = (1 << 28);
 =======
 			else if (move->x == hash_data->move[0]) score = (1 << 29);
 			else if (move->x == hash_data->move[1]) score = (1 << 28);
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+			else if (move->x == hash_data->move[0] && hash_data->wl.c.depth > sort_depth - 3) score = (1 << 29);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
+			else if (move->x == hash_data->move[1] && hash_data->wl.c.depth > sort_depth - 3) score = (1 << 28);
+>>>>>>> dd4bc2c (Update move.c)
 			else {
 				score = SQUARE_VALUE[move->x]; // square type
 				score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0; // parity
