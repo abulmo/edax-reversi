@@ -781,10 +781,10 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	mask = _mm512_broadcast_i64x4(lrmask[pos].v4[0]);
 	op_outflank = _mm512_and_si512(O4P4, mask);
 		// set below LS1B if P is in lmask
-	// op_flip = _mm512_andnot_si512(op_outflank, _mm512_add_epi64(op_outflank, _mm512_set1_epi64x(-1)));
-	// op_flip = _mm512_maskz_and_epi64(_mm512_test_epi64_mask(op_outflank, op_outflank), op_flip, mask);
-	op_flip = _mm512_maskz_ternarylogic_epi64(_mm512_test_epi64_mask(op_outflank, op_outflank),
-		op_outflank, _mm512_add_epi64(op_outflank, _mm512_set1_epi64(-1)), mask, 0x08);
+	op_flip = _mm512_maskz_add_epi64(_mm512_test_epi64_mask(op_outflank, op_outflank),
+		op_outflank, _mm512_set1_epi64(-1));
+	// op_flip = _mm512_and_si512(_mm512_andnot_si512(op_outflank, op_flip), mask);
+	op_flip = _mm512_ternarylogic_epi64(op_outflank, op_flip, mask, 0x08);
 
 		// right: clear all bits lower than outflank
 	mask = _mm512_broadcast_i64x4(lrmask[pos].v4[1]);
@@ -826,22 +826,19 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	mask = lrmask[pos].v4[0];
 	p_outflank = _mm256_and_si256(P4, mask);	o_outflank = _mm256_andnot_si256(P4, mask);
 		// set below LS1B if P is in lmask
-	// p_flip = _mm256_andnot_si256(p_outflank, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)));
-	// p_flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(p_outflank, p_outflank), p_flip, mask);
-	p_flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(p_outflank, p_outflank),
-		p_outflank, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
-
+	p_flip = _mm256_maskz_add_epi64(_mm256_test_epi64_mask(P4, mask), p_outflank, _mm256_set1_epi64x(-1));
 		// set below LS1B if O is in lmask
-	// o_flip = _mm256_andnot_si256(o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)));
-	// o_flip = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(o_outflank, o_outflank), o_flip, mask);
-	o_flip = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(o_outflank, o_outflank),
-		o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
+	o_flip = _mm256_maskz_add_epi64(_mm256_test_epi64_mask(o_outflank, o_outflank), o_outflank, _mm256_set1_epi64x(-1));
+	// p_flip = _mm256_and_si256(_mm256_andnot_si256(p_outflank, p_flip), mask);
+	p_flip = _mm256_ternarylogic_epi64(p_outflank, p_flip, mask, 0x08);
+	// o_flip = _mm256_and_si256(_mm256_andnot_si256(o_outflank, o_flip), mask);
+	o_flip = _mm256_ternarylogic_epi64(o_outflank, o_flip, mask, 0x08);
 
 		// right: clear all bits lower than outflank
 	mask = lrmask[pos].v4[1];
+	p_outflank = _mm256_and_si256(P4, mask);	o_outflank = _mm256_andnot_si256(P4, mask);
 	p_eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1),
-		_mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(P4, mask), _mm256_and_si256(P4, mask)));
-	o_outflank = _mm256_andnot_si256(P4, mask);
+		_mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(P4, mask), p_outflank));
 	o_eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1),
 		_mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(o_outflank, o_outflank), o_outflank));
 	// p_flip = _mm256_or_si256(p_flip, _mm256_andnot_si256(p_eraser, mask));
@@ -890,10 +887,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		if (_mm256_testz_si256(_mm256_or_si256(lmO, rmO), _mm256_set1_epi64x(NEIGHBOUR[pos]))) {
 			// nflip = last_flip(pos, ~P);
 				// left: set below LS1B if O is in lmask
-			// F4 = _mm256_andnot_si256(lmO, _mm256_add_epi64(lmO, _mm256_set1_epi64x(-1)));
-			// F4 = _mm256_maskz_and_epi64(_mm256_test_epi64_mask(lmO, lmO), F4, lmask);
-			F4 = _mm256_maskz_ternarylogic_epi64(_mm256_test_epi64_mask(lmO, lmO),
-				lmO, _mm256_add_epi64(lmO, _mm256_set1_epi64x(-1)), lmask, 0x08);
+			F4 = _mm256_maskz_add_epi64(_mm256_test_epi64_mask(lmO, lmO), lmO, _mm256_set1_epi64x(-1));
+			// F4 = _mm256_and_si256(_mm256_andnot_si256(lmO, F4), lmask);
+			F4 = _mm256_ternarylogic_epi64(lmO, F4, lmask, 0x08);
 
 				// right: clear all bits lower than outflank
 			eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1),
@@ -910,10 +906,9 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	} else {	// if player cannot move, low cut-off will occur whether opponent can move.
 			// left: set below LS1B if P is in lmask
 		outflank = _mm256_and_si256(P4, lmask);
-		// F4 = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));
-		// F4 = _mm256_maskz_and_epi64(lp, F4, lmask);
-		F4 = _mm256_maskz_ternarylogic_epi64(lp,
-			outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
+		F4 = _mm256_maskz_add_epi64(lp, outflank, _mm256_set1_epi64x(-1));
+		// F4 = _mm256_and_si256(_mm256_andnot_si256(outflank, F4), lmask);
+		F4 = _mm256_ternarylogic_epi64(outflank, F4, lmask, 0x08);
 
 			// right: clear all bits lower than outflank
 		outflank = _mm256_and_si256(P4, rmask);
