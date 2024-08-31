@@ -115,7 +115,7 @@ extern const unsigned long long NEIGHBOUR[];
 
 /** Return a bitboard with bit x set. */
 // https://eukaryote.hateblo.jp/entry/2020/04/12/054905
-#if 1 // 1% slower on Sandy Bridge
+#ifdef HAS_CPU_64 // 1% slower on Sandy Bridge
 #define x_to_bit(x) (1ULL << (x))
 #else
 #define x_to_bit(x) X_TO_BIT[x]

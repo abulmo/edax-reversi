@@ -326,12 +326,13 @@ int search_eval_0(Search *search)
 	score = accumlate_eval(&(*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
-	if (score >= 0) score = (score + 64) >> 7;
-	else score = -((-score + 64) >> 7);
-
-	if (score < SCORE_MIN + 1) score = SCORE_MIN + 1;
-	if (score > SCORE_MAX - 1) score = SCORE_MAX - 1;
-
+	if (score >= 0) {
+		score = (score + 64) >> 7;
+		if (score > SCORE_MAX - 1) score = SCORE_MAX - 1;
+	} else {
+		score = -((-score + 64) >> 7);
+		if (score < SCORE_MIN + 1) score = SCORE_MIN + 1;
+	}
 	return score;
 }
 
@@ -400,7 +401,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 =======
 	Eval Ev;
-	int x, score, bestscore;
+	int x, score, bestscore, betathres;
 	unsigned long long flipped;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -432,6 +433,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bestscore = SCORE_INF * 128;	// min stage
 		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
 		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
@@ -455,6 +457,12 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 		bestscore = -SCORE_INF;
 		if (beta > SCORE_MAX - 1) beta = SCORE_MAX - 1;
+=======
+		bestscore = -SCORE_INF * 128;
+		if (beta > SCORE_MAX - 1) betathres = ((SCORE_MAX - 1) * 128) - 64;
+		else betathres = (beta * 128) - ((beta > 0) ? 64 : 63);	// lowest score rounded to beta
+
+>>>>>>> 8d39e74 (Loop out rounding score)
 		foreach_empty (x, search->empties) {
 			if (moves & x_to_bit(x)) {
 				flipped = board_flip(&search->board, x);
@@ -516,6 +524,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 				score = -accumlate_eval(w, &Ev);
 
+<<<<<<< HEAD
 				if (score >= 0) score = (score + 64) >> 7;
 				else score = -((-score + 64) >> 7);
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
@@ -555,14 +564,22 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 		if (can_move(search->board.opponent, search->board.player)) {
 =======
+=======
+>>>>>>> 8d39e74 (Loop out rounding score)
 				if (score > bestscore) {
 					bestscore = score;
-					if (bestscore >= beta) break;
+					if (bestscore >= betathres) break;
 				}
 			}
 		}
-		if (bestscore < SCORE_MIN + 1) bestscore = SCORE_MIN + 1;
-		if (bestscore > SCORE_MAX - 1) bestscore = SCORE_MAX - 1;
+
+		if (bestscore >= 0) {
+			bestscore = (bestscore + 64) >> 7;
+			if (bestscore > SCORE_MAX - 1) bestscore = SCORE_MAX - 1;
+		} else {
+			bestscore = -((-bestscore + 64) >> 7);
+			if (bestscore < SCORE_MIN + 1) bestscore = SCORE_MIN + 1;
+		}
 
 	} else {
 		moves = get_moves(search->board.opponent, search->board.player);

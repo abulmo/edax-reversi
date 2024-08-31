@@ -1024,6 +1024,7 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	unsigned long long moves = get_moves(board->player, board->opponent);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	register int x;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 
@@ -1040,15 +1041,21 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 =======
 	int x, j;
 	widest_register	b;
+=======
+	int x;
+>>>>>>> 8d39e74 (Loop out rounding score)
 
-	foreach_bit_r (x, moves, j, b) {
+	movelist->n_moves = 0;
+	foreach_bit(x, moves) {
 		board_get_move(board, x, move);
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		move->cost = 0;
 		previous = previous->next = move;
 		++move;
+		++(movelist->n_moves);
 	}
 	previous->next = NULL;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1067,6 +1074,8 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 =======
 	movelist->n_moves = move - movelist->move - 1;
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+>>>>>>> 8d39e74 (Loop out rounding score)
 }
 
 #if 0	// inlined
