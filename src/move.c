@@ -852,6 +852,7 @@ Move* movelist_sort_bestmove(MoveList *movelist, const int move)
  */
 void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
 {
+<<<<<<< HEAD
 	Move *iter, *prev, *m, *hashmove0, *hashmove1;
 
 <<<<<<< HEAD
@@ -885,6 +886,28 @@ void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
 		m->next = iter->next;
 		iter = iter->next = m;
 	}
+=======
+	Move *iter, *m;
+	Move *hashmove[2];
+	int	i;
+
+	hashmove[0] = hashmove[1] = NULL;
+	for (iter = &movelist->move[0]; (m = iter->next); iter = m) {
+		if (m->x == hash_data->move[0])
+			hashmove[0] = iter;
+		if (m->x == hash_data->move[1])
+			hashmove[1] = iter;
+	}
+	iter = &movelist->move[0];
+	for (i = 0; i <= 1; ++i)
+		if (hashmove[i]) {
+			m = hashmove[i]->next;
+			hashmove[i]->next = m->next;
+			m->next = iter->next;
+			iter->next = m;
+			iter = iter->next;
+		}
+>>>>>>> ad8c72e (refactor movelist_sort and other sorts)
 	while ((iter = move_next_most_expensive(iter)))
 		;
 }
@@ -895,6 +918,7 @@ void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
  */
 void movelist_sort(MoveList *movelist)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	// foreach_best_move(move, *movelist) ;
 
@@ -924,6 +948,27 @@ void movelist_sort(MoveList *movelist)
 =======
 	foreach_best_move(move, *movelist) ;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	// foreach_best_move(move, *movelist) ;
+
+	Move *previous_best = &movelist->move[0];
+	while (previous_best->next->next) {	// until last 2
+		Move *best = previous_best;
+		Move *move = previous_best->next;
+		do {
+			if (move->next->score > best->next->score)
+				best = move;
+			move = move->next;
+		} while (move->next);
+		// if (previous_best != best) {
+		move = best->next;
+		best->next = move->next;
+		move->next = previous_best->next;
+		previous_best->next = move;
+		// }
+		previous_best = previous_best->next;
+	}
+>>>>>>> ad8c72e (refactor movelist_sort and other sorts)
 }
 
 /**
