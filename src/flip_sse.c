@@ -183,10 +183,14 @@ static inline __m128i MS1B_epu64(const __m128i x) {
  */
  static inline __m128i MS1B_epu52(const __m128i x) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	const __m128d k1e52 = _mm_set1_pd(0x0010000000000000);
 =======
 	const __m128d k1e52 = _mm_castsi128_pd(_mm_set1_epi64x((1023ULL + 52) << 52));
 >>>>>>> 80c96fb (adding back MSB to get flip mask)
+=======
+	const __m128d k1e52 = _mm_set1_pd(0x0010000000000000);
+>>>>>>> 593fff4 (use appropriate _mm_set1)
 	const __m128d exp_mask = _mm_castsi128_pd(_mm_set1_epi64x(0xfff0000000000000));
 	__m128d f;
 	f = _mm_or_pd(_mm_castsi128_pd(x), k1e52);	// construct double x + 2^52

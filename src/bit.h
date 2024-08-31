@@ -605,9 +605,18 @@ typedef union {
 // X64 compatibility sims for X86
 #ifndef HAS_CPU_64
   #if defined(hasSSE2) || defined(USE_MSVC_X86)
-static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
+static inline __m128i _mm_cvtsi64_si128(unsigned long long x) {
 	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
 }
+    #if defined(_MSC_VER) && _MSC_VER<1900
+static inline __m128i _mm_set_epi64x(unsigned long long b, unsigned long long a) {
+	return _mm_unpacklo_epi64(_mm_cvtsi64_si128(b), _mm_cvtsi64_si128(a));
+}
+static inline __m128i _mm_set1_epi64x(unsigned long long x) {
+	__m128i t = _mm_cvtsi64_si128(x);
+	return _mm_unpacklo_epi64(t, t);
+}
+    #endif
   #endif
 
 // Double casting (unsigned long long) (unsigned int) improves MSVC code
