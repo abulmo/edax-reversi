@@ -3,7 +3,11 @@
  *
  * @brief Main file.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
+=======
+ * @date 1998 - 2018
+>>>>>>> 0451a79 (Fix AVX eval alignment in UI)
  * @author Richard Delorme
  * @version 4.5
  */
