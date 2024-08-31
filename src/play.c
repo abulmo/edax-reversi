@@ -3,7 +3,7 @@
  *
  * Edax play control.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -26,21 +26,21 @@
  */
 void play_init(Play *play, Book *book)
 {
-	search_init(play->search);
+	search_init(&play->search);
 	play->book = book;
-	board_init(play->initial_board);
-	play->search->options.header = " depth|score|       time   |  nodes (N)  |   N/s    | principal variation";
-	play->search->options.separator = "------+-----+--------------+-------------+----------+----------------------";
+	board_init(&play->initial_board);
+	play->search.options.header = " depth|score|       time   |  nodes (N)  |   N/s    | principal variation";
+	play->search.options.separator = "------+-----+--------------+-------------+----------+----------------------";
 	play->player = play->initial_player = BLACK;
 	play->time[0].left = options.time;
 	play->time[0].extra = 0;
 	play->time[1].left = options.time;
 	play->time[1].extra = 0;
 	play_new(play);
-	lock_init(play->ponder);
-	play->ponder->launched = false;
-	spin_init(play->result);
-	play->ponder->verbose = false;
+	lock_init(&play->ponder);
+	play->ponder.launched = false;
+	spin_init(&play->result);
+	play->ponder.verbose = false;
 	memset(play->error_message, 0, PLAY_MESSAGE_MAX_LENGTH);
 	play_force_init(play, "F5");
 }
@@ -52,7 +52,7 @@ void play_init(Play *play, Book *book)
 void play_free(Play *play)
 {
 	play_stop_pondering(play);
-	search_free(play->search);
+	search_free(&play->search);
 }
 
 /**
@@ -63,13 +63,13 @@ void play_new(Play *play)
 {
 	play->clock = real_clock();
 	play->time[0].spent = play->time[1].spent = 0;
-	*play->board = *play->initial_board;
+	play->board = play->initial_board;
 	play->player = play->initial_player;
-	play->ponder->board->player = play->ponder->board->opponent = 0;
-	search_cleanup(play->search);
+	play->ponder.board.player = play->ponder.board.opponent = 0;
+	search_cleanup(&play->search);
 	play->i_game = play->n_game = 0;
 	play->state = IS_WAITING;
-	play->result->move = NOMOVE; // missing more initialisation ?
+	play->result.move = NOMOVE; // missing more initialisation ?
 	play->time[0].left = options.time;
 	play->time[1].left = options.time;
 	play->force.i_move = 0;
@@ -83,7 +83,7 @@ void play_new(Play *play)
  */
 bool play_load(Play *play, const char *file)
 {
-	Game game[1];
+	Game game;
 	FILE *f;
 	int i, l;
 	char ext[8], move[8];
@@ -96,24 +96,24 @@ bool play_load(Play *play, const char *file)
 
 	l = strlen(file); strcpy(ext, file + l - 4); string_to_lowercase(ext);
 
-	if (strcmp(ext, ".txt") == 0) game_import_text(game, f);
-	else if (strcmp(ext, ".ggf") == 0) game_import_ggf(game, f);
-	else if (strcmp(ext, ".sgf") == 0) game_import_sgf(game, f);
-	else if (strcmp(ext, ".pgn") == 0) game_import_pgn(game, f);
-	else if (strcmp(ext, ".edx") == 0) game_read(game, f);
+	if (strcmp(ext, ".txt") == 0) game_import_text(&game, f);
+	else if (strcmp(ext, ".ggf") == 0) game_import_ggf(&game, f);
+	else if (strcmp(ext, ".sgf") == 0) game_import_sgf(&game, f);
+	else if (strcmp(ext, ".pgn") == 0) game_import_pgn(&game, f);
+	else if (strcmp(ext, ".edx") == 0) game_read(&game, f);
 	else {
 		sprintf(play->error_message, "Unknown game format extension: %s\n", ext);
 		fclose(f);
 		return false;
 	}
 
-	*play->initial_board = *game->initial_board;
-	play->initial_player = game->player;
+	play->initial_board = game.initial_board;
+	play->initial_player = game.player;
 	play_new(play);
-	for (i = 0; i < 60 && game->move[i] != NOMOVE; ++i) {
+	for (i = 0; i < 60 && game.move[i] != NOMOVE; ++i) {
 		if (play_must_pass(play)) play_move(play, PASS);
-		if (!play_move(play, game->move[i])) {
-			sprintf(play->error_message, "Illegal move #%d: %s\n", i, move_to_string(game->move[i], play->player, move));
+		if (!play_move(play, game.move[i])) {
+			sprintf(play->error_message, "Illegal move #%d: %s\n", i, move_to_string(game.move[i], play->player, move));
 			fclose(f);
 			return false;
 		}
@@ -130,18 +130,18 @@ bool play_load(Play *play, const char *file)
  */
 void play_save(Play *play, const char *file)
 {
-	Game game[1];
+	Game game;
 	FILE *f;
 	int i, j, l;
 	char ext[8];
 
 
-	game_init(game);
-	*game->initial_board = *play->initial_board;
-	game->player = play->initial_player;
+	game_init(&game);
+	game.initial_board = play->initial_board;
+	game.player = play->initial_player;
 	for (i = j = 0; i < play->n_game; ++i) {
 		if (play->game[i].x != PASS) {
-			game->move[j++] = play->game[i].x;
+			game.move[j++] = play->game[i].x;
 		}
 	}
 
@@ -153,13 +153,13 @@ void play_save(Play *play, const char *file)
 
 	l = strlen(file); strcpy(ext, file + l - 4); string_to_lowercase(ext);
 
-	if (strcmp(ext, ".txt") == 0) game_export_text(game, f);
-	else if (strcmp(ext, ".ggf") == 0) game_export_ggf(game, f);
-	else if (strcmp(ext, ".sgf") == 0) game_save_sgf(game, f, true);
-	else if (strcmp(ext, ".pgn") == 0) game_export_pgn(game, f);
-	else if (strcmp(ext, ".eps") == 0) game_export_eps(game, f);
-	else if (strcmp(ext, ".svg") == 0) game_export_svg(game, f);
-	else if (strcmp(ext, ".edx") == 0) game_write(game, f);
+	if (strcmp(ext, ".txt") == 0) game_export_text(&game, f);
+	else if (strcmp(ext, ".ggf") == 0) game_export_ggf(&game, f);
+	else if (strcmp(ext, ".sgf") == 0) game_save_sgf(&game, f, true);
+	else if (strcmp(ext, ".pgn") == 0) game_export_pgn(&game, f);
+	else if (strcmp(ext, ".eps") == 0) game_export_eps(&game, f);
+	else if (strcmp(ext, ".svg") == 0) game_export_svg(&game, f);
+	else if (strcmp(ext, ".edx") == 0) game_write(&game, f);
 	else warn("Unknown game format extension: %s\n", ext);
 
 	fclose(f);
@@ -174,7 +174,7 @@ void play_save(Play *play, const char *file)
 void play_update(Play *play, Move *move)
 {
 	play_force_update(play);
-	board_update(play->board, move);
+	board_update(&play->board, move);
 	play->game[play->i_game] = *move;
 	play->n_game = ++play->i_game;
 	play->time[play->player].spent += real_clock() - play->clock;
@@ -182,6 +182,7 @@ void play_update(Play *play, Move *move)
 	play->player ^= 1;
 }
 
+#if 0
 /**
  * @brief Check if game is over.
  * @param play Play.
@@ -189,9 +190,8 @@ void play_update(Play *play, Move *move)
  */
 bool play_is_game_over(Play *play)
 {
-	Board *board = play->board;
-	return can_move(board->player, board->opponent) == false &&
-		can_move(board->opponent, board->player) == false;
+	return !can_move(play->board.player, play->board.opponent) &&
+		!can_move(play->board.opponent, play->board.player);
 }
 
 /**
@@ -201,10 +201,10 @@ bool play_is_game_over(Play *play)
  */
 bool play_must_pass(Play *play)
 {
-	Board *board = play->board;
-	return can_move(board->player, board->opponent) == false &&
-		can_move(board->opponent, board->player) == true;
+	return !can_move(play->board.player, play->board.opponent) &&
+		can_move(play->board.opponent, play->board.player);
 }
+#endif
 
 /**
  * @brief Start thinking.
@@ -217,64 +217,64 @@ void play_go(Play *play, const bool update)
 
 	long long t_real = -real_clock();
 	long long t_cpu = -cpu_clock();
-	Move move[1];
-	Search *search = play->search;
+	Move move;
+	Search *const search = &play->search;
 	char s_move[4];
 
 	if (play_is_game_over(play)) return;
 
-	if (play_force_go(play, move)) {
+	if (play_force_go(play, &move)) {
 		play_stop_pondering(play);
 
-		play->result->depth = 0;
-		play->result->selectivity = 0;
-		play->result->move = move->x;
-		play->result->score = 0;
-		play->result->book_move = false;
-		play->result->time = real_clock() + t_real;
-		play->result->n_nodes = 0;
-		line_init(play->result->pv, play->player);
-		line_push(play->result->pv, move->x);
+		play->result.depth = 0;
+		play->result.selectivity = 0;
+		play->result.move = move.x;
+		play->result.score = 0;
+		play->result.book_move = false;
+		play->result.time = real_clock() + t_real;
+		play->result.n_nodes = 0;
+		line_init(&play->result.pv, play->player);
+		line_push(&play->result.pv, move.x);
 
 		if (options.verbosity) {
-			info("\n[Forced move %s]\n\n",  move_to_string(move->x, play->player, s_move));
+			info("\n[Forced move %s]\n\n",  move_to_string(move.x, play->player, s_move));
 		}
 
-	} else if (options.book_allowed && book_get_random_move(play->book, play->board, move, options.book_randomness)) {
+	} else if (options.book_allowed && book_get_random_move(play->book, &play->board, &move, options.book_randomness)) {
 		play_stop_pondering(play);
 
-		play->result->depth = 0;
-		play->result->selectivity = 0;
-		play->result->move = move->x;
-		play->result->score = move->score;
-		play->result->book_move = true;
-		play->result->time = real_clock() + t_real;
-		play->result->n_nodes = 0;
-		line_init(play->result->pv, play->player);
-		book_get_line(play->book, play->board, move, play->result->pv);
+		play->result.depth = 0;
+		play->result.selectivity = 0;
+		play->result.move = move.x;
+		play->result.score = move.score;
+		play->result.book_move = true;
+		play->result.time = real_clock() + t_real;
+		play->result.n_nodes = 0;
+		line_init(&play->result.pv, play->player);
+		book_get_line(play->book, &play->board, &move, &play->result.pv);
 		
 		if (options.verbosity) {
 			info("\n[book move]\n");
-			if (options.info) book_show(play->book, play->board);
+			if (options.info) book_show(play->book, &play->board);
 			info("\n\n");
 
 			if (play->type == UI_XBOARD) {
-				search->observer(play->result);
+				search->observer(&play->result);
 			} else {
 				if (search->options.header) puts(search->options.header);
 				if (search->options.separator) puts(search->options.separator);
-				printf("book    %+02d                                          ", move->score);
-				line_print(play->result->pv, options.width - 54, " ", stdout);
+				printf("book    %+02d                                          ", move.score);
+				line_print(&play->result.pv, options.width - 54, " ", stdout);
 				putchar('\n');
 				if (search->options.separator) puts(search->options.separator);
 			} 
 		}
-	} else if (play->state == IS_PONDERING && board_equal(play->board, play->ponder->board)) {
+	} else if (play->state == IS_PONDERING && board_equal(&play->board, &play->ponder.board)) {
 		play->state = IS_THINKING;
 
 		search->options.verbosity = options.verbosity;
 		if (options.verbosity) {
-			info("\n[switch from pondering to thinking (id.%d)]\n", play->search->id);
+			info("\n[switch from pondering to thinking (id.%d)]\n", play->search.id);
 			if (search->options.header) puts(search->options.header);
 			if (search->options.separator) puts(search->options.separator);
 		}
@@ -282,7 +282,7 @@ void play_go(Play *play, const bool update)
 		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 		else search_set_game_time(search, play->time[play->player].left);
 
-		search_time_reset(search, play->board);
+		search_time_reset(search, &play->board);
 		if (log_is_open(xboard_log)) {
 			 fprintf(xboard_log->f, "edax search> cpu: %d\n", options.n_task);
 			 fprintf(xboard_log->f, "edax search> time: spent while pondering = %.2f mini = %.2f; maxi = %.2f; extra = %.2f\n",
@@ -292,18 +292,18 @@ void play_go(Play *play, const bool update)
 		}
 
 		search->observer(search->result);
-		thread_join(play->ponder->thread);
-		play->ponder->launched = false;
+		thread_join(play->ponder.thread);
+		play->ponder.launched = false;
 		search->observer(search->result);
 				
-		*play->result = *search->result;
+		play->result = *search->result;
 		play->state = IS_WAITING;
-		if (!board_get_move(play->board, search->result->move, move) && move->x != PASS) {
-			fatal_error("bad move found: %s\n", move_to_string(move->x, play->player, s_move));
+		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
 			if (search->options.separator) puts(search->options.separator);
-			info("[stop thinking (id.%d)]\n", play->search->id);
+			info("[stop thinking (id.%d)]\n", play->search.id);
 		}
 
 	} else {
@@ -314,12 +314,12 @@ void play_go(Play *play, const bool update)
 
 		search->options.verbosity = options.verbosity;
 		if (options.verbosity) {
-			info("\n[start thinking (id.%d)]\n", play->search->id);
+			info("\n[start thinking (id.%d)]\n", play->search.id);
 			if (search->options.header) puts(search->options.header);
 			if (search->options.separator) puts(search->options.separator);
 		}
-		search_set_board(search, play->board, play->player);
-		search_set_level(search, options.level, search->n_empties);
+		search_set_board(search, &play->board, play->player);
+		search_set_level(search, options.level, search->eval.n_empties);
 		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 		else search_set_game_time(search, play->time[play->player].left);
 
@@ -333,14 +333,14 @@ void play_go(Play *play, const bool update)
 		}
 		
 		search_run(search);
-		*play->result = *search->result;
+		play->result = *search->result;
 		play->state = IS_WAITING;
-		if (!board_get_move(play->board, search->result->move, move) && move->x != PASS) {
-			fatal_error("bad move found: %s\n", move_to_string(move->x, play->player, s_move));
+		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
 			if (search->options.separator) puts(search->options.separator);
-			info("[stop thinking] (id.%d)]\n", play->search->id);
+			info("[stop thinking] (id.%d)]\n", play->search.id);
 		}
 	}
 
@@ -350,7 +350,7 @@ void play_go(Play *play, const bool update)
 
 	if (options.play_type != EDAX_TIME_PER_MOVE) play->time[play->player].left -= t_real;
 
-	if (update) play_update(play, move);
+	if (update) play_update(play, &move);
 
 }
 
@@ -364,12 +364,12 @@ void play_go(Play *play, const bool update)
  */
 void play_hint(Play *play, int n)
 {
-	Line pv[1];
+	Line pv;
 	Move *m;
-	Search *search = play->search;
-	MoveList book_moves[1];
+	Search *const search = &play->search;
+	MoveList book_moves;
 	GameStats stat;
-	Board b[1];
+	Board b;
 
 	if (play_is_game_over(play)) return;
 
@@ -383,25 +383,25 @@ void play_hint(Play *play, int n)
 		if (search->options.header) puts(search->options.header);
 		if (search->options.separator) puts(search->options.separator);
 	}
-	search_set_board(search, play->board, play->player);
-	search_set_level(search, options.level, search->n_empties);
-	if (n > search->movelist->n_moves) n = search->movelist->n_moves;
+	search_set_board(search, &play->board, play->player);
+	search_set_level(search, options.level, search->eval.n_empties);
+	if (n > search->movelist.n_moves) n = search->movelist.n_moves;
 	info("<hint %d moves>\n", n);
 
-	if (options.book_allowed && book_get_moves(play->book, play->board, book_moves)) {
+	if (options.book_allowed && book_get_moves(play->book, &play->board, &book_moves)) {
 		foreach_move (m, book_moves) if (n) {
 			--n;
-			line_init(pv, play->player);
-			book_get_line(play->book, play->board, m, pv);
-			movelist_exclude(search->movelist, m->x);
+			line_init(&pv, play->player);
+			book_get_line(play->book, &play->board, m, &pv);
+			movelist_exclude(&search->movelist, m->x);
 			if (play->type == UI_NBOARD) {
-				board_next(play->board, m->x, b);
-				book_get_game_stats(play->book, b, &stat);
-				printf("book "); line_print(pv, 10, NULL, stdout);
+				board_next(&play->board, m->x, &b);
+				book_get_game_stats(play->book, &b, &stat);
+				printf("book "); line_print(&pv, 10, NULL, stdout);
 				printf(" %d %llu %d\n", m->score, stat.n_lines, play->book->options.level);
 			} else {
 				printf("book    %+02d                                          ", m->score);
-				line_print(pv, options.width - 54, " ", stdout); putchar('\n');
+				line_print(&pv, options.width - 54, " ", stdout); putchar('\n');
 			}
 		}
 	}
@@ -413,13 +413,13 @@ void play_hint(Play *play, int n)
 		search_run(search);
 		search->options.multipv_depth = MULTIPV_DEPTH;
 		if (play->type == UI_NBOARD) {
-			printf("search "); line_print(search->result->pv, 10, NULL, stdout);
+			printf("search "); line_print(&search->result->pv, 10, NULL, stdout);
 			printf(" %d 0 %d\n", search->result->score, search->result->depth);
 		} else {
 			if (options.verbosity == 0) search->observer(search->result);
 		}
 		if (search->stop != STOP_END) break;
-		movelist_exclude(search->movelist, search->result->move);
+		movelist_exclude(&search->movelist, search->result->move);
 	}
 	if (options.verbosity) {
 		info("\n[stop thinking]\n");
@@ -442,43 +442,43 @@ void play_hint(Play *play, int n)
 void* play_ponder_run(void *v)
 {
 	extern Log xboard_log[1];
-	Play *play = (Play*) v;
+	Play *const play = (Play*) v;
 	int player;
-	Search *search = play->search;
-	Board board[1];
-	Move move[1];
+	Search *search = &play->search;
+	Board board;
+	Move move;
 	char m[4];
 
-	lock(play->ponder);
+	lock(&play->ponder);
 	if (play->state == IS_PONDERING || play->state == IS_ANALYZING) {
-		*board = *play->board;
+		board = play->board;
 		player = play->player;
 		search_set_game_time(search, TIME_MAX);
-		search->options.keep_date = (play->state == IS_PONDERING && search->pv_table->date > 0);
-		if (play->ponder->verbose) search->options.verbosity = options.verbosity;
+		search->options.keep_date = (play->state == IS_PONDERING && search->pv_table.date > 0);
+		if (play->ponder.verbose) search->options.verbosity = options.verbosity;
 		else search->options.verbosity = 0;
 
-		move->x = search_guess(search, board);
+		move.x = search_guess(search, &board);
 
 		// guess opponent move and start the search
-		if (play->state == IS_PONDERING && move->x != NOMOVE) {
-			board_get_move(board, move->x, move);
+		if (play->state == IS_PONDERING && move.x != NOMOVE) {
+			board_get_move_flip(&board, move.x, &move);
 
-			board_update(board, move);
-				*play->ponder->board = *board;
-				search_set_board(search, board, player ^ 1);
-				search_set_level(search, options.level, search->n_empties);
+			board_update(&board, &move);
+				play->ponder.board = board;
+				search_set_board(search, &board, player ^ 1);
+				search_set_level(search, options.level, search->eval.n_empties);
 				search_run(search);
 				if (options.info && play->state == IS_PONDERING) {
-					printf("[ponder after %s id.%d: ", move_to_string(move->x, player, m), search->id);
+					printf("[ponder after %s id.%d: ", move_to_string(move.x, player, m), search->id);
 					result_print(search->result, stdout);
 					printf("]\n");
 				}
-			board_restore(board, move);
+			board_restore(&board, &move);
 		} else {
-			*play->ponder->board = *board;
-			search_set_board(search, board, player);
-			search_set_ponder_level(search, options.level, search->n_empties);
+			play->ponder.board = board;
+			search_set_board(search, &board, player);
+			search_set_ponder_level(search, options.level, search->eval.n_empties);
 			log_print(xboard_log, "edax (ponder)> start search\n");
 			search_run(search);
 			log_print(xboard_log, "edax (ponder)> search ended\n");
@@ -493,7 +493,7 @@ void* play_ponder_run(void *v)
 		play->state = IS_WAITING;
 		search->options.keep_date = false;
 	}
-	unlock(play->ponder);
+	unlock(&play->ponder);
 
 	return NULL;
 }
@@ -510,11 +510,11 @@ void play_ponder(Play *play)
 {
 	if (play_is_game_over(play)) return;
 	if (options.can_ponder && play->state == IS_WAITING) {
-		play->ponder->board->player = play->ponder->board->opponent = 0;
-		play->state = IS_PONDERING;		
+		play->ponder.board.player = play->ponder.board.opponent = 0;
+		play->state = IS_PONDERING;
 		info("\n[start ponderation]\n");
-		thread_create(&play->ponder->thread, play_ponder_run, play);
-		play->ponder->launched = true;
+		thread_create(&play->ponder.thread, play_ponder_run, play);
+		play->ponder.launched = true;
 	}
 }
 
@@ -530,14 +530,14 @@ void play_stop_pondering(Play *play)
 {
 	while (play->state == IS_PONDERING) {
 		info("[stop pondering]\n");
-		search_stop_all(play->search, STOP_PONDERING);
+		search_stop_all(&play->search, STOP_PONDERING);
 		relax(10);
 	}
 
-	if (play->ponder->launched) {
+	if (play->ponder.launched) {
 		info("[joining thread]\n");
-		thread_join(play->ponder->thread);
-		play->ponder->launched = false;
+		thread_join(play->ponder.thread);
+		play->ponder.launched = false;
 		info("[thread joined]\n");
 	}
 }
@@ -548,7 +548,7 @@ void play_stop_pondering(Play *play)
  */
 void play_stop(Play *play)
 {
-	search_stop_all(play->search, STOP_ON_DEMAND);
+	search_stop_all(&play->search, STOP_ON_DEMAND);
 	info("[stop on user demand]\n");
 }
 
@@ -560,11 +560,11 @@ void play_undo(Play *play)
 {
 	if (play->i_game > 0) {
 		play_stop_pondering(play);
-		lock(play->ponder);
+		lock(&play->ponder);
 		play_force_restore(play);
-		board_restore(play->board, &play->game[--play->i_game]);
+		board_restore(&play->board, &play->game[--play->i_game]);
 		play->player ^= 1;
-		unlock(play->ponder);
+		unlock(&play->ponder);
 	}
 }
 
@@ -577,7 +577,7 @@ void play_redo(Play *play)
 	if (play->i_game < play->n_game) {
 		play_stop_pondering(play);
 		play_force_update(play);
-		board_update(play->board, &play->game[play->i_game++]);
+		board_update(&play->board, &play->game[play->i_game++]);
 		play->player ^= 1;
 	}
 }
@@ -590,11 +590,11 @@ void play_redo(Play *play)
 void play_set_board(Play *play, const char *board)
 {
 	play_stop_pondering(play);
-	play->initial_player = board_set(play->initial_board, board);
+	play->initial_player = board_set(&play->initial_board, board);
 	if (play->initial_player == EMPTY) { /* bad board ? */
-		play->initial_board->opponent &= (~play->initial_board->player);
-		play->initial_player = (board_count_empties(play->initial_board) & 1);
-		if (play->initial_player == WHITE) board_swap_players(play->initial_board);
+		play->initial_board.opponent &= (~play->initial_board.player);
+		play->initial_player = (board_count_empties(&play->initial_board) & 1);
+		if (play->initial_player == WHITE) board_swap_players(&play->initial_board);
 	}
 	play_force_init(play, "");
 	play_new(play);
@@ -608,7 +608,7 @@ void play_set_board(Play *play, const char *board)
 void play_set_board_from_FEN(Play *play, const char *board)
 {
 	play_stop_pondering(play);
-	play->initial_player = board_from_FEN(play->initial_board, board);
+	play->initial_player = board_from_FEN(&play->initial_board, board);
 	if (play->initial_player != EMPTY) {
 		play_force_init(play, "");
 		play_new(play);
@@ -622,7 +622,7 @@ void play_set_board_from_FEN(Play *play, const char *board)
  */
 void play_game(Play *play, const char *string)
 {
-	Move move[1];
+	Move move;
 	const char *next;
 
 	play_stop_pondering(play);
@@ -631,9 +631,9 @@ void play_game(Play *play, const char *string)
 	next = opening_get_line(string);
 	if (next) string = next;	
 
-	while ((next = parse_move(string, play->board, move)) != string || move->x == PASS) {
+	while ((next = parse_move(string, &play->board, &move)) != string || move.x == PASS) {
 		string = next;
-		play_update(play, move);
+		play_update(play, &move);
 	}
 }
 
@@ -645,12 +645,12 @@ void play_game(Play *play, const char *string)
  */
 bool play_move(Play *play, int x)
 {
-	Move move[1];
+	Move move;
 
-	*move = MOVE_INIT;
-	board_get_move(play->board, x, move);
-	if (board_check_move(play->board, move)) {
-		play_update(play, move);
+	move = MOVE_INIT;
+	board_get_move_flip(&play->board, x, &move);
+	if (board_check_move(&play->board, &move)) {
+		play_update(play, &move);
 		return true;
 	} else {
 		return false;
@@ -665,10 +665,10 @@ bool play_move(Play *play, int x)
  */
 bool play_user_move(Play *play, const char *string)
 {
-	Move move[1];
+	Move move;
 
-	if (parse_move(string, play->board, move) != string) {
-		play_update(play, move);
+	if (parse_move(string, &play->board, &move) != string) {
+		play_update(play, &move);
 		return true;
 	} else {
 		return false;
@@ -699,31 +699,34 @@ Move* play_get_last_move(Play *play)
  */
 static int play_alternative(Play *play, Move *played, Move *alternative, int *depth, int *percent)
 {
-	Search *search = play->search;
-	Result *result = search->result;
-	Board excluded[1], board[1], unique[1];
+	Search *const search = &play->search;
+	Result *const result = search->result;
+	Board excluded, board, unique;
 	Move *move;
+	unsigned long long hash_code;
 
-	search_set_board(search, play->board, play->player);
+	search_set_board(search, &play->board, play->player);
 	if (A1 <= played->x && played->x <= H8) {
-		movelist_exclude(search->movelist, played->x);
-		hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), played->x);
-		hash_exclude_move(search->hash_table, search->board, board_get_hash_code(search->board), played->x);
+		movelist_exclude(&search->movelist, played->x);
+		hash_code = board_get_hash_code(&search->board);
+		hash_exclude_move(&search->pv_table, &search->board, hash_code, played->x);
+		hash_exclude_move(&search->hash_table, &search->board, hash_code, played->x);
 		// also remove moves leading to symetrical positions
-		board_next(play->board, played->x, board);
-		board_unique(board,  excluded);
+		board_next(&play->board, played->x, &board);
+		board_unique(&board, &excluded);
 		foreach_move (move, search->movelist) {
-			board_next(play->board, move->x, board);
-			board_unique(board, unique);
-			if (board_equal(excluded, unique)) {
-				hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), move->x);
-				hash_exclude_move(search->hash_table, search->board, board_get_hash_code(search->board), move->x);
-				move = movelist_exclude(search->movelist, move->x);
+			board_next(&play->board, move->x, &board);
+			board_unique(&board, &unique);
+			if (board_equal(&excluded, &unique)) {
+				hash_code = board_get_hash_code(&search->board);
+				hash_exclude_move(&search->pv_table, &search->board, hash_code, move->x);
+				hash_exclude_move(&search->hash_table, &search->board, hash_code, move->x);
+				move = movelist_exclude(&search->movelist, move->x);
 			}
 		}
 	}
-	if (search->movelist->n_moves >= 1 || played->x == NOMOVE) {
-		search_set_level(search, options.level, search->n_empties);
+	if (search->movelist.n_moves >= 1 || played->x == NOMOVE) {
+		search_set_level(search, options.level, search->eval.n_empties);
 		search->options.verbosity = 0;
 		search_run(search);
 		search->options.verbosity = options.verbosity;
@@ -732,7 +735,7 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 		*depth = result->depth;
 		*percent = selectivity_table[result->selectivity].percent;
 	}
-	return search->movelist->n_moves;
+	return search->movelist.n_moves;
 }
 
 /**
@@ -753,7 +756,7 @@ static void play_write_analysis(Play *play, const Move *m, const Move *a, const 
 	char s[4];
 
 	if (n_moves >= 0) {
-		int n_empties = board_count_empties(play->board);
+		int n_empties = board_count_empties(&play->board);
 		fprintf(f, "%3d ", 61 - n_empties);
 		if (depth == -1) fputs("  book  ", f);
 		else {
@@ -791,7 +794,7 @@ void play_analyze(Play *play, int n)
 {
 	int i, score, n_alternatives;
 	int depth = 0, percent = 0, n_empties;
-	Move *move, alternative[1];
+	Move *move, alternative;
 	int n_exact[2] = {0, 0}, n_eval[2] = {0, 0};
 	int n_error[2] = {0, 0}, n_rejection[2] = {0, 0};
 	int disc_error[2] = {0, 0}, disc_rejection[2] = {0, 0};
@@ -804,39 +807,39 @@ void play_analyze(Play *play, int n)
 	puts("ply  level   alt. move  score     score   move");
 	puts("---+-------+-----+-----------+--+---------------");
 
-	search_cleanup(play->search);
-	search_set_board(play->search, play->board, play->player);
-	alternative->x = NOMOVE;
-	play_alternative(play, alternative, alternative, &depth, &percent);
-	score = alternative->score;
+	search_cleanup(&play->search);
+	search_set_board(&play->search, &play->board, play->player);
+	alternative.x = NOMOVE;
+	play_alternative(play, &alternative, &alternative, &depth, &percent);
+	score = alternative.score;
 
 	for (i = play->i_game - 1; i >= 0 && i >= play->i_game - n; --i) {
 		move = play->game + i;
 		move->score = -score;
 		play->player ^= 1;
-		board_restore(play->board, move);
+		board_restore(&play->board, move);
 		if (move->x == PASS) ++n;
 
-		n_empties = board_count_empties(play->board);
-		n_alternatives = play_alternative(play, move, alternative, &depth, &percent);
+		n_empties = board_count_empties(&play->board);
+		n_alternatives = play_alternative(play, move, &alternative, &depth, &percent);
 		if (options.verbosity == 1) fputs(clr, stdout);
-		play_write_analysis(play, move, alternative, n_alternatives, depth, percent, stdout);
+		play_write_analysis(play, move, &alternative, n_alternatives, depth, percent, stdout);
 
 		score = move->score; 
 		if (n_alternatives > 0) {
 			if (depth == n_empties && percent == 100) ++n_exact[play->player]; else ++n_eval[play->player];
-			if (alternative->score > score) {
+			if (alternative.score > score) {
 				if (depth == n_empties && percent == 100) {
 					++n_error[play->player];
-					disc_error[play->player] += alternative->score - score;
+					disc_error[play->player] += alternative.score - score;
 				} else {
 					++n_rejection[play->player];
-					disc_rejection[play->player] += alternative->score - score;
+					disc_rejection[play->player] += alternative.score - score;
 				}
-				score = alternative->score;
+				score = alternative.score;
 			}
 		}
-		if (play->search->stop == STOP_ON_DEMAND) break;
+		if (play->search.stop == STOP_ON_DEMAND) break;
 	}
 	puts("\n      | rejections : discs | errors    : discs | error rate |");
 	printf("Black | %3d / %3d  :  %+4d | %3d / %3d :  %+4d |      %5.3f |\n",
@@ -846,7 +849,7 @@ void play_analyze(Play *play, int n)
 
 	if (i < 0 || i < play->i_game - n) ++i;
 	for (; i < play->i_game; ++i) {
-		board_update(play->board, play->game + i);
+		board_update(&play->board, play->game + i);
 		play->player ^= 1;
 	}
 }
@@ -861,29 +864,29 @@ void play_analyze(Play *play, int n)
  */
 static int play_book_alternative(Play *play, Move *played, Move* alternative)
 {
-	MoveList movelist[1];
+	MoveList movelist;
 	Move *exclude, *best;
-	Board excluded[1], board[1], unique[1];
+	Board excluded, board, unique;
 	Move *move;
 
-	if (book_get_moves(play->book, play->board, movelist)) {
-		exclude = movelist_exclude(movelist, played->x);
+	if (book_get_moves(play->book, &play->board, &movelist)) {
+		exclude = movelist_exclude(&movelist, played->x);
 
 		if (exclude && exclude->x == played->x) {
 			played->score = exclude->score;
 			// also remove moves leading to symetrical positions
-			board_next(play->board, played->x, board);
-			board_unique(board,  excluded);
+			board_next(&play->board, played->x, &board);
+			board_unique(&board, &excluded);
 			foreach_move (move, movelist) {
-				board_next(play->board, move->x, board);
-				board_unique(board, unique);
-				if (board_equal(excluded, unique)) move = movelist_exclude(movelist, move->x);
+				board_next(&play->board, move->x, &board);
+				board_unique(&board, &unique);
+				if (board_equal(&excluded, &unique)) move = movelist_exclude(&movelist, move->x);
 			}
-			if (movelist->n_moves) {
-				best = movelist_best(movelist);
+			if (movelist.n_moves) {
+				best = movelist_best(&movelist);
 				*alternative = *best;
 			}
-			return movelist->n_moves;
+			return movelist.n_moves;
 		}
 	}
 	return -1;
@@ -897,7 +900,7 @@ static int play_book_alternative(Play *play, Move *played, Move* alternative)
 void play_book_analyze(Play *play, int n)
 {
 	int i, n_alternatives;
-	Move *move, alternative[1];
+	Move *move, alternative;
 
 	play_stop_pondering(play);
 
@@ -908,18 +911,18 @@ void play_book_analyze(Play *play, int n)
 	for (i = play->i_game - 1; i >= 0 && i >= play->i_game - n; --i) {
 		move = play->game + i;
 		play->player ^= 1;
-		board_restore(play->board, move);
+		board_restore(&play->board, move);
 		if (move->x == PASS) ++n;
 
-		n_alternatives = play_book_alternative(play, move, alternative);
-		play_write_analysis(play, move, alternative, n_alternatives, -1, 100, stdout);
+		n_alternatives = play_book_alternative(play, move, &alternative);
+		play_write_analysis(play, move, &alternative, n_alternatives, -1, 100, stdout);
 
-		if (play->search->stop == STOP_ON_DEMAND) break;
+		if (play->search.stop == STOP_ON_DEMAND) break;
 	}
 
 	if (i < 0 || i < play->i_game - n) ++i;
 	for (; i < play->i_game; ++i) {
-		board_update(play->board, play->game + i);
+		board_update(&play->board, play->game + i);
 		play->player ^= 1;
 	}
 }
@@ -931,7 +934,7 @@ void play_book_analyze(Play *play, int n)
  */
 void play_store(Play *play)
 {
-	Board board[1];
+	Board board;
 	int i;
 	char file[FILENAME_MAX + 1];
 
@@ -939,16 +942,16 @@ void play_store(Play *play)
 
 	play->book->stats.n_nodes = play->book->stats.n_links = 0;
 
-	*board = *play->initial_board;
-	for (i = 0; i < play->n_game && board_check_move(board, play->game + i); ++i) {
-		board_update(board, play->game + i);
+	board = play->initial_board;
+	for (i = 0; i < play->n_game && board_check_move(&board, play->game + i); ++i) {
+		board_update(&board, play->game + i);
 	}
 
 	for (--i; i >= 0; --i) {
-		book_add_board(play->book, board);
-		board_restore(board, play->game + i);
+		book_add_board(play->book, &board);
+		board_restore(&board, play->game + i);
 	}
-	book_add_board(play->book, board);
+	book_add_board(play->book, &board);
 	if (play->book->stats.n_nodes + play->book->stats.n_links) {
 		book_link(play->book);
 		book_negamax(play->book);
@@ -983,20 +986,35 @@ void play_print(Play *play, FILE *f)
 {
 	int i, j, x, discs[2], mobility[2], square;
 	char history[64];
-	const char *color = "?*O-." + 1;
+	const char color[5] = "?*O-.";
 	const char big_color[3][4] = {"|##", "|()", "|  "};
 	const char player[2][6] = {"Black", "White"};
-	Board *board = play->board;
 	const int p = play->player;
-	const int o = !p;
-	const int ip = play->player ^ (play->i_game & 1);
-	unsigned long long moves;
+	unsigned long long bk, wh, bk0, wh0, moves;
+	bool gameover;
 
-	moves = get_moves(board->player, board->opponent);
-	discs[p] = bit_count(board->player);
-	discs[o] = bit_count(board->opponent);
-	mobility[p] = get_mobility(board->player, board->opponent);
-	mobility[o] = get_mobility(board->opponent, board->player);
+	if (p == BLACK) {
+		bk = play->board.player;
+		wh = play->board.opponent;
+	} else {
+		bk = play->board.opponent;
+		wh = play->board.player;
+	}
+	if ((p ^ (play->i_game & 1)) == BLACK) {
+		bk0 = play->initial_board.player;
+		wh0 = play->initial_board.opponent;
+	} else {
+		bk0 = play->initial_board.opponent;
+		wh0 = play->initial_board.player;
+	}
+
+	moves = board_get_moves(&play->board);
+	discs[BLACK] = bit_count(bk);
+	discs[WHITE] = bit_count(wh);
+	mobility[BLACK] = get_mobility(bk, wh);
+	mobility[WHITE] = get_mobility(wh, bk);
+	gameover = (mobility[BLACK] + mobility[WHITE] == 0);
+
 	memset(history, 0, 64);
 	for (i = j = 0; i < play->i_game; i++) {
 		x = play->game[i].x;
@@ -1008,12 +1026,14 @@ void play_print(Play *play, FILE *f)
 		fputc(i + '1', f);
 		fputc(' ', f);
 		for (j = 0; j < 8; j++) {
-			x = i * 8 + j;
-			if (p == BLACK) square = 2 - ((board->opponent >> x) & 1) - 2 * ((board->player >> x) & 1);
-			else square = 2 - ((board->player >> x) & 1) - 2 * ((board->opponent >> x) & 1);
-			if (square == EMPTY && (moves & x_to_bit(x))) ++square;
-			fputc(color[square], f);
+			square = 2 - (wh & 1) - 2 * (bk & 1);
+			if ((square == EMPTY) && (moves & 1))
+				square = EMPTY + 1;
+			fputc(color[square + 1], f);
 			fputc(' ', f);
+			bk >>= 1;
+			wh >>= 1;
+			moves >>= 1;
 		}
 		fputc(i + '1', f);
 
@@ -1022,21 +1042,21 @@ void play_print(Play *play, FILE *f)
 			fputs("  ", f); time_print(play->time[BLACK].spent, true, f); fputs("       ", f);
 			break;
 		case 1:
-			fprintf(f,"   %2d discs  %2d moves   ", discs[BLACK], mobility[BLACK]);
+			fprintf(f, "   %2d discs  %2d moves   ", discs[BLACK], mobility[BLACK]);
 			break;
 		case 3:
-			if (mobility[BLACK] + mobility[WHITE] == 0) fprintf(f,"       Game over        ");
-			else fprintf(f,"  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(board));
+			if (gameover) fprintf(f, "       Game over        ");
+			else fprintf(f, "  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(&play->board));
 			break;
 		case 4:
-			if (mobility[BLACK] + mobility[WHITE] == 0) {
-				if (discs[BLACK] > discs[WHITE]) fprintf(f,"       %s won        ", player[BLACK]);
-				else if (discs[BLACK] < discs[WHITE]) fprintf(f,"       %s won        ", player[WHITE]);
-				else fprintf(f,"          draw          ");
-			} else fprintf(f,"    %s's turn (%c)    ",player[p], color[p]);
+			if (gameover) {
+				if (discs[BLACK] > discs[WHITE]) fprintf(f, "       %s won        ", player[BLACK]);
+				else if (discs[BLACK] < discs[WHITE]) fprintf(f, "       %s won        ", player[WHITE]);
+				else fprintf(f, "          draw          ");
+			} else fprintf(f, "    %s's turn (%c)    ", player[p], color[p + 1]);
 			break;
 		case 6:
-			fprintf(f,"   %2d discs  %2d moves   ",discs[WHITE], mobility[WHITE]);
+			fprintf(f, "   %2d discs  %2d moves   ", discs[WHITE], mobility[WHITE]);
 			break;
 		case 7:
 			fputs("  ", f); time_print(play->time[WHITE].spent, true, f); fputs("       ", f);
@@ -1048,12 +1068,12 @@ void play_print(Play *play, FILE *f)
 		fputc(i + '1', f); fputc(' ', f);
 		for (j = 0; j < 8; j++){
 			x = i * 8 + j;
-			if (history[x]) fprintf(f,"|%2d",history[x]);
-			else {
-				if (ip == BLACK) square = 2 - ((play->initial_board->opponent >> x) & 1) - 2 * ((play->initial_board->player >> x) & 1);
-				else square = 2 - ((play->initial_board->player >> x) & 1) - 2 * ((play->initial_board->opponent >> x) & 1);
-				fputs(big_color[square], f);
-			}
+			if (history[x])
+				fprintf(f, "|%2d", history[x]);
+			else
+				fputs(big_color[2 - (wh0 & 1) - 2 * (bk0 & 1)], f);
+			wh0 >>= 1;
+			bk0 >>= 1;
 		}
 		fprintf(f, "| %1d\n", i + 1);
 	}
@@ -1069,25 +1089,25 @@ void play_print(Play *play, FILE *f)
  */
 void play_force_init(Play *play, const char *string)
 {
-	Move move[1];
+	Move move;
 	const char *next;
-	Board board[1];
+	Board board;
 
 	play->force.n_move = play->force.i_move = 0;
-	*board = *play->initial_board;
-	play->force.real[play->force.n_move] = *board;
-	board_unique(board, play->force.unique + play->force.n_move);
+	board = play->initial_board;
+	play->force.real[play->force.n_move] = board;
+	board_unique(&board, play->force.unique + play->force.n_move);
 
 	next = opening_get_line(string);
 	if (next) string = next;
 
-	while ((next = parse_move(string, board, move)) != string || move->x == PASS) {
+	while ((next = parse_move(string, &board, &move)) != string || move.x == PASS) {
 		string = next;
-		play->force.move[play->force.n_move] = *move;
-		board_update(board, move);
+		play->force.move[play->force.n_move] = move;
+		board_update(&board, &move);
 		++play->force.n_move;
-		play->force.real[play->force.n_move] = *board;
-		board_unique(board, play->force.unique + play->force.n_move);
+		play->force.real[play->force.n_move] = board;
+		board_unique(&board, play->force.unique + play->force.n_move);
 	}
 }
 
@@ -1101,10 +1121,10 @@ void play_force_init(Play *play, const char *string)
  */
 void play_force_update(Play *play)
 {
-	Board unique[1];
+	Board unique;
 	if (play->force.i_move < play->force.n_move) {
-		board_unique(play->board, unique);
-		if ((board_equal(unique, play->force.unique + play->force.i_move))) {
+		board_unique(&play->board, &unique);
+		if ((board_equal(&unique, play->force.unique + play->force.i_move))) {
 			++play->force.i_move;
 		}
 	}
@@ -1120,10 +1140,10 @@ void play_force_update(Play *play)
  */
 void play_force_restore(Play *play)
 {
-	Board unique[1];
+	Board unique;
 	if (play->force.i_move > 0) {
-		board_unique(play->board, unique);
-		if (board_equal(unique, play->force.unique + play->force.i_move)) {
+		board_unique(&play->board, &unique);
+		if (board_equal(&unique, play->force.unique + play->force.i_move)) {
 			--play->force.i_move;
 		}
 	}
@@ -1140,23 +1160,23 @@ void play_force_restore(Play *play)
  */
 bool play_force_go(Play *play, Move *move)
 {
-	Board unique[1];
-	Board sym[1];
+	Board unique;
+	Board sym;
 	int s, x;
 
 	if (play->force.i_move < play->force.n_move) {
-		if (board_equal(play->board, play->force.real + play->force.i_move)) {
+		if (board_equal(&play->board, play->force.real + play->force.i_move)) {
 			*move = play->force.move[play->force.i_move];
 			return true;
 		}
 
-		board_unique(play->board, unique);
-		if (board_equal(unique, play->force.unique + play->force.i_move)) {
+		board_unique(&play->board, &unique);
+		if (board_equal(&unique, play->force.unique + play->force.i_move)) {
 			for (s = 1; s < 8; ++s) {
-				board_symetry(play->force.real + play->force.i_move, s, sym);
-				if (board_equal(play->board, sym)) {
+				board_symetry(play->force.real + play->force.i_move, s, &sym);
+				if (board_equal(&play->board, &sym)) {
 					x = symetry(play->force.move[play->force.i_move].x, s);
-					board_get_move(play->board, x, move);
+					board_get_move_flip(&play->board, x, move);
 					return true;
 				}
 			}
@@ -1176,15 +1196,15 @@ void play_symetry(Play *play, const int sym)
 {
 	int i, x;
 	Move move = MOVE_INIT;
-	Board board[1];
+	Board board;
 
-	board_symetry(play->initial_board, sym, play->initial_board);
-	board_symetry(play->board, sym, play->board);
-	*board = *play->initial_board;
+	board_symetry(&play->initial_board, sym, &play->initial_board);
+	board_symetry(&play->board, sym, &play->board);
+	board = play->initial_board;
 	for (i = 0; i  < play->n_game; ++i) {
 		x = symetry(play->game[i].x, sym);
-		board_get_move(board, x, &move);
-		board_update(board, &move);
+		board_get_move_flip(&board, x, &move);
+		board_update(&board, &move);
 		play->game[i] = move;
 	}
 }
@@ -1195,14 +1215,14 @@ void play_symetry(Play *play, const int sym)
 const char* play_show_opening_name(Play *play, const char *(*opening_get_name)(const Board*))
 {
 	int i;
-	Board board[1];
+	Board board;
 	const char *name;
 	const char *last = NULL;
 
-	*board = *play->initial_board;
+	board = play->initial_board;
 	for (i = 0; i  < play->i_game; ++i) {
-		board_update(board, play->game + i);
-		name = opening_get_name(board);
+		board_update(&board, play->game + i);
+		name = opening_get_name(&board);
 		if (name != NULL) last = name;
 	}
 
