@@ -30,7 +30,11 @@
 #if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_CARRY
 	#include "count_last_flip_carry_64.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE
-	#include "count_last_flip_sse.c"
+	#ifdef hasSSE2
+		#include "count_last_flip_sse.c"
+	#else
+		#include "count_last_flip_neon.c"
+	#endif
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BITSCAN
 	#include "count_last_flip_bitscan.c"
 #elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN
@@ -58,6 +62,8 @@
 =======
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 	#include "endgame_sse.c"	// vectorcall version
+#elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+	#include "endgame_neon.c"
 #endif
 
 >>>>>>> 6506166 (More SSE optimizations)
@@ -210,7 +216,7 @@ int board_score_1(const Board *board, const int beta, const int x)
 	return score;
 }
 
-#if !(((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE))
+#if ((MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)) || (LAST_FLIP_COUNTER != COUNT_LAST_FLIP_SSE)
 /**
  * @brief Get the final score.
  *

@@ -46,12 +46,21 @@
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
 	#include "flip_sse.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN
+<<<<<<< HEAD
   #ifdef __ARM_NEON
 	#define	flip_neon	flip
 	#include "flip_neon_bitscan.c"
   #else
 	#include "flip_bitscan.c"
   #endif
+=======
+	#ifdef hasNeon
+		#define	flip_neon	flip
+		#include "flip_neon_bitscan.c"
+	#else
+		#include "flip_bitscan.c"
+	#endif
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_ROXANE
 	#include "flip_roxane.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
@@ -66,6 +75,7 @@
 #elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
 	#include "flip_avx512cd.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+<<<<<<< HEAD
   #ifdef __aarch64__
 	#include "flip_neon_rbit.c"
   #else
@@ -83,6 +93,13 @@
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 	#include "flip_neon_lzcnt.c"
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+	#ifdef __aarch64__
+		#include "flip_neon_rbit.c"
+	#else
+		#include "flip_neon_lzcnt.c"
+	#endif
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
 #endif
@@ -121,45 +138,12 @@ unsigned char edge_stability[256 * 256];
 	#include "board_sse.c"
 =======
 /** conversion from an 8-bit line to the A1-A8 line */
-const unsigned long long A1_A8[256] = {
-	0x0000000000000000, 0x0000000000000001, 0x0000000000000100, 0x0000000000000101, 0x0000000000010000, 0x0000000000010001, 0x0000000000010100, 0x0000000000010101,
-	0x0000000001000000, 0x0000000001000001, 0x0000000001000100, 0x0000000001000101, 0x0000000001010000, 0x0000000001010001, 0x0000000001010100, 0x0000000001010101,
-	0x0000000100000000, 0x0000000100000001, 0x0000000100000100, 0x0000000100000101, 0x0000000100010000, 0x0000000100010001, 0x0000000100010100, 0x0000000100010101,
-	0x0000000101000000, 0x0000000101000001, 0x0000000101000100, 0x0000000101000101, 0x0000000101010000, 0x0000000101010001, 0x0000000101010100, 0x0000000101010101,
-	0x0000010000000000, 0x0000010000000001, 0x0000010000000100, 0x0000010000000101, 0x0000010000010000, 0x0000010000010001, 0x0000010000010100, 0x0000010000010101,
-	0x0000010001000000, 0x0000010001000001, 0x0000010001000100, 0x0000010001000101, 0x0000010001010000, 0x0000010001010001, 0x0000010001010100, 0x0000010001010101,
-	0x0000010100000000, 0x0000010100000001, 0x0000010100000100, 0x0000010100000101, 0x0000010100010000, 0x0000010100010001, 0x0000010100010100, 0x0000010100010101,
-	0x0000010101000000, 0x0000010101000001, 0x0000010101000100, 0x0000010101000101, 0x0000010101010000, 0x0000010101010001, 0x0000010101010100, 0x0000010101010101,
-	0x0001000000000000, 0x0001000000000001, 0x0001000000000100, 0x0001000000000101, 0x0001000000010000, 0x0001000000010001, 0x0001000000010100, 0x0001000000010101,
-	0x0001000001000000, 0x0001000001000001, 0x0001000001000100, 0x0001000001000101, 0x0001000001010000, 0x0001000001010001, 0x0001000001010100, 0x0001000001010101,
-	0x0001000100000000, 0x0001000100000001, 0x0001000100000100, 0x0001000100000101, 0x0001000100010000, 0x0001000100010001, 0x0001000100010100, 0x0001000100010101,
-	0x0001000101000000, 0x0001000101000001, 0x0001000101000100, 0x0001000101000101, 0x0001000101010000, 0x0001000101010001, 0x0001000101010100, 0x0001000101010101,
-	0x0001010000000000, 0x0001010000000001, 0x0001010000000100, 0x0001010000000101, 0x0001010000010000, 0x0001010000010001, 0x0001010000010100, 0x0001010000010101,
-	0x0001010001000000, 0x0001010001000001, 0x0001010001000100, 0x0001010001000101, 0x0001010001010000, 0x0001010001010001, 0x0001010001010100, 0x0001010001010101,
-	0x0001010100000000, 0x0001010100000001, 0x0001010100000100, 0x0001010100000101, 0x0001010100010000, 0x0001010100010001, 0x0001010100010100, 0x0001010100010101,
-	0x0001010101000000, 0x0001010101000001, 0x0001010101000100, 0x0001010101000101, 0x0001010101010000, 0x0001010101010001, 0x0001010101010100, 0x0001010101010101,
-	0x0100000000000000, 0x0100000000000001, 0x0100000000000100, 0x0100000000000101, 0x0100000000010000, 0x0100000000010001, 0x0100000000010100, 0x0100000000010101,
-	0x0100000001000000, 0x0100000001000001, 0x0100000001000100, 0x0100000001000101, 0x0100000001010000, 0x0100000001010001, 0x0100000001010100, 0x0100000001010101,
-	0x0100000100000000, 0x0100000100000001, 0x0100000100000100, 0x0100000100000101, 0x0100000100010000, 0x0100000100010001, 0x0100000100010100, 0x0100000100010101,
-	0x0100000101000000, 0x0100000101000001, 0x0100000101000100, 0x0100000101000101, 0x0100000101010000, 0x0100000101010001, 0x0100000101010100, 0x0100000101010101,
-	0x0100010000000000, 0x0100010000000001, 0x0100010000000100, 0x0100010000000101, 0x0100010000010000, 0x0100010000010001, 0x0100010000010100, 0x0100010000010101,
-	0x0100010001000000, 0x0100010001000001, 0x0100010001000100, 0x0100010001000101, 0x0100010001010000, 0x0100010001010001, 0x0100010001010100, 0x0100010001010101,
-	0x0100010100000000, 0x0100010100000001, 0x0100010100000100, 0x0100010100000101, 0x0100010100010000, 0x0100010100010001, 0x0100010100010100, 0x0100010100010101,
-	0x0100010101000000, 0x0100010101000001, 0x0100010101000100, 0x0100010101000101, 0x0100010101010000, 0x0100010101010001, 0x0100010101010100, 0x0100010101010101,
-	0x0101000000000000, 0x0101000000000001, 0x0101000000000100, 0x0101000000000101, 0x0101000000010000, 0x0101000000010001, 0x0101000000010100, 0x0101000000010101,
-	0x0101000001000000, 0x0101000001000001, 0x0101000001000100, 0x0101000001000101, 0x0101000001010000, 0x0101000001010001, 0x0101000001010100, 0x0101000001010101,
-	0x0101000100000000, 0x0101000100000001, 0x0101000100000100, 0x0101000100000101, 0x0101000100010000, 0x0101000100010001, 0x0101000100010100, 0x0101000100010101,
-	0x0101000101000000, 0x0101000101000001, 0x0101000101000100, 0x0101000101000101, 0x0101000101010000, 0x0101000101010001, 0x0101000101010100, 0x0101000101010101,
-	0x0101010000000000, 0x0101010000000001, 0x0101010000000100, 0x0101010000000101, 0x0101010000010000, 0x0101010000010001, 0x0101010000010100, 0x0101010000010101,
-	0x0101010001000000, 0x0101010001000001, 0x0101010001000100, 0x0101010001000101, 0x0101010001010000, 0x0101010001010001, 0x0101010001010100, 0x0101010001010101,
-	0x0101010100000000, 0x0101010100000001, 0x0101010100000100, 0x0101010100000101, 0x0101010100010000, 0x0101010100010001, 0x0101010100010100, 0x0101010100010101,
-	0x0101010101000000, 0x0101010101000001, 0x0101010101000100, 0x0101010101000101, 0x0101010101010000, 0x0101010101010001, 0x0101010101010100, 0x0101010101010101,
-};
+unsigned long long A1_A8[256];
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 #include "board_mmx.c"
 #endif
-#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2)
+#if !defined(ANDROID) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(hasNeon))
 #include "board_sse.c"
 >>>>>>> 1dc032e (Improve visual c compatibility)
 #endif
@@ -332,7 +316,7 @@ bool board_lesser(const Board *b1, const Board *b2)
 	else	return (b1->opponent < b2->opponent);
 }
 
-#ifndef hasSSE2	// SSE version in board_sse.c
+#if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c
 /**
  * @brief symetric board
  *
@@ -611,10 +595,14 @@ void board_pass(Board *board)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_AVX512) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
 =======
 #if !(defined(hasSSE2) && ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)))	// SSE version in endgame_sse.c
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *
@@ -660,11 +648,15 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__x86_64__) && !defined(_M_X64) && !defined(__AVX2__)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64) && !defined(__AVX2__)	// sse version in board_sse.c
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#if !defined(hasSSE2) && !defined(hasNeon)	// sse version in board_sse.c
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
  * @brief Get a part of the moves.
  *
@@ -756,6 +748,7 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 	unsigned long long moves, OM;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 =======
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -767,9 +760,16 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasMMX)
 =======
+=======
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+	if (hasSSE2)
+		return get_moves_sse(P, O);
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	else if (hasMMX)
 >>>>>>> 0f2fb39 (Chage 32-bit get_moves_mmx/sse parameters to 64 bits)
 		return get_moves_mmx(P, O);
+	#endif
 	#endif
 
 	OM = O & 0x7e7e7e7e7e7e7e7e;
@@ -780,7 +780,11 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 
 	return moves & ~(P|O);	// mask with empties
 }
+<<<<<<< HEAD
 #endif // hasSSE2/__ARM_NEON
+=======
+#endif // hasSSE2/hasNeon
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 /**
  * @brief Get legal moves on a 6x6 board.
@@ -813,6 +817,7 @@ bool can_move(const unsigned long long P, const unsigned long long O)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasMMX) || defined(__ARM_NEON)
 =======
 #if defined(USE_GAS_MMX) || defined(__x86_64__) || defined(USE_MSVC_X86)
@@ -820,6 +825,9 @@ bool can_move(const unsigned long long P, const unsigned long long O)
 =======
 #if defined(__x86_64__) || defined(_M_X64) || defined(hasMMX)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#if defined(hasMMX) || defined(hasNeon)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	return get_moves(P, O) != 0;
 
 #else
@@ -1047,11 +1055,16 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 }
 
 /**
+<<<<<<< HEAD
  * @brief Initialize the edge stability table.
+=======
+ * @brief Initialize the edge stability and A1_A8 tables.
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
  */
 void edge_stability_init(void)
 {
 	int P, O, PO, rPO;
+	unsigned long long Q;
 	// long long t = cpu_clock();
 
 	for (PO = 0; PO < 256 * 256; ++PO) {
@@ -1078,6 +1091,7 @@ void edge_stability_init(void)
 	// printf("edge_stability_init: %d\n", (int)(cpu_clock() - t));
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
@@ -1086,6 +1100,14 @@ void edge_stability_init(void)
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 =======
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+
+	Q = 0;
+	for (P = 0; P < 256; ++P) {
+		A1_A8[P] = Q;
+		Q = ((Q | ~0x0101010101010101) + 1) & 0x0101010101010101;
+	}
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 }
 
 #ifdef HAS_CPU_64
@@ -1097,9 +1119,31 @@ void edge_stability_init(void)
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
+=======
+#ifndef HAS_CPU_64
+/**
+ * @brief Get stable edge.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return a bitboard with (some of) player's stable discs.
+ *
+ */
+unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+{	// compute the exact stable edges (from precomputed tables)
+	return edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
+	    |  (unsigned long long) edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 56
+	    |  A1_A8[edge_stability[packA1A8(P) * 256 + packA1A8(O)]]
+	    |  A1_A8[edge_stability[packH1H8(P) * 256 + packH1H8(O)]] << 7;
+}
+#endif
+
+#if !defined(HAS_CPU_64) && !(defined(ANDROID) && (defined(hasNeon) || defined(hasSSE2)))
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
  * @brief Get full lines.
  *
@@ -1201,6 +1245,7 @@ static unsigned long long get_full_lines_v(unsigned long long full)
 
 >>>>>>> 1dc032e (Improve visual c compatibility)
 /**
+<<<<<<< HEAD
  * @brief Get stable edge.
  *
  * Compute the exact stable edges from precomputed tables.
@@ -1225,6 +1270,8 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
 /**
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
  * @brief Estimate the stability.
  *
  * Count the number (in fact a lower estimate) of stable discs.
@@ -1238,7 +1285,10 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	unsigned long long P_central, disc, full_h, full_v, full_d7, full_d9;
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, old_stable;
 
-#if (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
+#ifdef ANDROID
+	if (hasSSE2)
+		return get_stability_sse(P, O);
+#elif (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
 	if (hasMMX)
 		return get_stability_mmx(P, O);
 #endif
@@ -1272,7 +1322,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 
 	return bit_count(stable);
 }
-#endif // __x86_64__
+#endif // HAS_CPU_64/ANDROID
 
 /**
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)

@@ -21,14 +21,19 @@
 #include <assert.h>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "bit_intrinsics.h"
 =======
 #include "bit.h"
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#include "bit_intrinsics.h"
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #include "board.h"
 #include "move.h"
 #include "eval.h"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 extern const EVAL_FEATURE_V EVAL_FEATURE[65];
@@ -38,6 +43,9 @@ extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 =======
 #if defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+#ifdef __ARM_NEON__
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #define __m128i		int16x8_t
 #define	_mm_add_epi16	vaddq_s16
 #define _mm_sub_epi16	vsubq_s16
@@ -86,9 +94,9 @@ typedef union {
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif
 
-#if defined(hasSSE2) || defined(hasNeon) || defined(USE_MSVC_X86)
+#if defined(hasSSE2) || defined(__ARM_NEON__) || defined(USE_MSVC_X86)
 
-static void eval_update_sse_0(Eval *eval_out, const Eval *eval_in, const Move *move)
+void eval_update_sse_0(Eval *eval_out, const Eval *eval_in, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;
@@ -227,7 +235,7 @@ static void eval_update_sse_0(Eval *eval_out, const Eval *eval_in, const Move *m
  * @param eval  Evaluation function.
  * @param move  Move.
  */
-static void eval_update_sse_1(Eval *eval_out, const Eval *eval_in, const Move *move)
+void eval_update_sse_1(Eval *eval_out, const Eval *eval_in, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;

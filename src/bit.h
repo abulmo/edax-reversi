@@ -68,6 +68,7 @@ int get_rand_bit(unsigned long long, struct Random*);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (__ARM_NEON)
@@ -91,8 +92,17 @@ unsigned long long vertical_mirror(unsigned long long);
 extern const unsigned long long X_TO_BIT[];
 /** Return a bitboard with bit x set. */
 #define x_to_bit(x) X_TO_BIT[x]
+=======
+extern unsigned long long X_TO_BIT[];
+extern const unsigned long long NEIGHBOUR[];
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
-//#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
+/** Return a bitboard with bit x set. */
+#ifdef __aarch64__ // 1% slower on Sandy Bridge
+#define x_to_bit(x) (1ULL << (x))
+#else
+#define x_to_bit(x) X_TO_BIT[x]
+#endif
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -190,7 +200,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #endif
 
 // popcount
-#if !defined(POPCOUNT) && (defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64))
+#if !defined(POPCOUNT) && defined(hasNeon)
 	#define	POPCOUNT	1
 #endif
 
@@ -395,6 +405,10 @@ typedef union {
 	#endif
 #endif
 
+#if defined(ANDROID) && ((defined(__arm__) && !defined(hasNeon)) || (defined(__i386__) && !defined(hasSSE2)))
+extern bool	hasSSE2;
+#endif
+
 typedef union {
 	unsigned long long	ull[2];
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
@@ -501,7 +515,7 @@ typedef union {
 #endif
 
 // X64 compatibility sims for X86
-#if !defined(__x86_64__) && !defined(_M_X64)
+#ifndef HAS_CPU_64
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
 	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
@@ -520,6 +534,6 @@ static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #endif
-#endif
+#endif // !HAS_CPU_64
 
 #endif // EDAX_BIT_H

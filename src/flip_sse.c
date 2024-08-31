@@ -1412,10 +1412,14 @@ static __m128i vectorcall flip_C6(const __m128i OP)
 static __m128i vectorcall flip_D6(const __m128i OP)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	__m128i	flipped, flipped_c7e7, index_d;
 =======
 	__m128i	flipped, flipped_h_c7e7, index_d;
 >>>>>>> 80c96fb (adding back MSB to get flip mask)
+=======
+	__m128i	flipped, flipped_c7e7, index_d;
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	unsigned int outflank_h, outflank_v, outflank_d, index_v;
 	const __m128i mask = _mm_set_epi64x(0x0000081422418000, 0x0808080808080808);	// A3D6H2
 
@@ -1430,11 +1434,15 @@ static __m128i vectorcall flip_D6(const __m128i OP)
 	outflank_h = OUTFLANK_3[(_mm_extract_epi16(OP, 6) >> 9) & 0x3f] & rotl8(_mm_extract_epi16(OP, 2) >> 8, 3);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	flipped_c7e7 = _mm_shuffle_epi32(OP, 0xf5);
 	flipped_c7e7 = _mm_and_si128(flipped_c7e7, _mm_set_epi32(0x00100000, 0x00040000, 0x20000000, 0x02000000));
 	flipped_c7e7 = _mm_min_epi16(flipped_c7e7, _mm_shuffle_epi32(flipped_c7e7, SWAP64));
 	flipped = _mm_or_si128(flipped, _mm_unpacklo_epi16(
 		_mm_slli_epi64(_mm_loadl_epi64((__m128i *) &FLIPPED_3_H[outflank_h]), 56), flipped_c7e7));
+<<<<<<< HEAD
 =======
 	flipped_h_c7e7 = _mm_unpacklo_epi64(_mm_srli_epi64(OP, 7), _mm_srli_epi64(OP, 9));
 	flipped_h_c7e7 = _mm_and_si128(flipped_h_c7e7, _mm_shuffle_epi32(OP, DUPHI));
@@ -1442,6 +1450,8 @@ static __m128i vectorcall flip_D6(const __m128i OP)
 	flipped_h_c7e7 = _mm_and_si128(flipped_h_c7e7, _mm_set_epi64x(0x0010000000000000, 0x0004ff0000000000));
 	flipped = _mm_or_si128(flipped, flipped_h_c7e7);
 >>>>>>> 80c96fb (adding back MSB to get flip mask)
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 	return _mm_or_si128(flipped, _mm_shuffle_epi32(flipped, SWAP64));
 }
@@ -1456,10 +1466,14 @@ static __m128i vectorcall flip_D6(const __m128i OP)
 static __m128i vectorcall flip_E6(const __m128i OP)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	__m128i	flipped, flipped_d7f7, index_d;
 =======
 	__m128i	flipped, flipped_h_d7f7, index_d;
 >>>>>>> 80c96fb (adding back MSB to get flip mask)
+=======
+	__m128i	flipped, flipped_d7f7, index_d;
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	unsigned int outflank_h, outflank_v, outflank_d, index_v;
 	const __m128i mask = _mm_set_epi64x(0x0000102844820100, 0x1010101010101010);	// A2E6H3
 
@@ -1474,11 +1488,15 @@ static __m128i vectorcall flip_E6(const __m128i OP)
 	outflank_h = OUTFLANK_4[(_mm_extract_epi16(OP, 6) >> 9) & 0x3f] & rotl8(_mm_extract_epi16(OP, 2) >> 8, 2);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	flipped_d7f7 = _mm_shuffle_epi32(OP, 0xf5);
 	flipped_d7f7 = _mm_and_si128(flipped_d7f7, _mm_set_epi32(0x00200000, 0x00080000, 0x40000000, 0x04000000));
 	flipped_d7f7 = _mm_min_epi16(flipped_d7f7, _mm_shuffle_epi32(flipped_d7f7, SWAP64));
 	flipped = _mm_or_si128(flipped, _mm_unpacklo_epi16(
 		_mm_slli_epi64(_mm_loadl_epi64((__m128i *) &FLIPPED_4_H[outflank_h]), 56), flipped_d7f7));
+<<<<<<< HEAD
 =======
 	flipped_h_d7f7 = _mm_unpacklo_epi64(_mm_srli_epi64(OP, 7), _mm_srli_epi64(OP, 9));
 	flipped_h_d7f7 = _mm_and_si128(flipped_h_d7f7, _mm_shuffle_epi32(OP, DUPHI));
@@ -1486,6 +1504,8 @@ static __m128i vectorcall flip_E6(const __m128i OP)
 	flipped_h_d7f7 = _mm_and_si128(flipped_h_d7f7, _mm_set_epi64x(0x0020000000000000, 0x0008ff0000000000));
 	flipped = _mm_or_si128(flipped, flipped_h_d7f7);
 >>>>>>> 80c96fb (adding back MSB to get flip mask)
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 	return _mm_or_si128(flipped, _mm_shuffle_epi32(flipped, SWAP64));
 }

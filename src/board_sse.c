@@ -23,22 +23,36 @@
 #include "board.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(ANDROID) && !defined(HAS_CPU_64) && !defined(hasSSE2)
+=======
+#if defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #include "android/cpu-features.h"
 
 bool	hasSSE2 = false;
 
 void init_neon (void)
 {
+<<<<<<< HEAD
   #ifdef __arm__
+=======
+#ifdef __arm__
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	if (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) {
 	#if (MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN)
 		extern unsigned long long (*flip_neon[66])(const unsigned long long, const unsigned long long);
 		memcpy(flip, flip_neon, sizeof(flip_neon));
 	#endif
+<<<<<<< HEAD
 		hasSSE2 = true;	// for eval_update_sse
 	}
   #elif defined(__i386__)	// android x86 w/o SSE2 - uncommon and not tested
+=======
+		hasSSE2 = true;
+	}
+#else	// android x86 w/o SSE2 - uncommon and not tested
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	int	cpuid_edx, cpuid_ecx;
 	__asm__ (
 		"movl	$1, %%eax\n\t"
@@ -46,12 +60,19 @@ void init_neon (void)
 	: "=d" (cpuid_edx), "=c" (cpuid_ecx) :: "%eax", "%ebx" );
 	if ((cpuid_edx & 0x04000000u) != 0)
 		hasSSE2 = true;
+<<<<<<< HEAD
   #endif
 }
 #endif
 
 =======
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#endif
+}
+#endif
+
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
  * @brief SSE2 translation of board_symetry
  *
@@ -314,7 +335,42 @@ void board_symetry(const Board *board, const int s, Board *sym)
 	board_check(sym);
 }
 
-#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+#elif defined(hasNeon)
+
+void board_symetry(const Board *board, const int s, Board *sym)
+{
+	uint64x2_t bb = vld1q_u64((uint64_t *) board);
+	uint64x2_t tt;
+
+	if (s & 1) {	// horizontal_mirror
+#ifdef HAS_CPU_64
+		bb = vreinterpretq_u64_u8(vrbitq_u8(vreinterpretq_u8_u64(bb)));
+#else
+		bb = vbslq_u64(vdupq_n_u64(0x5555555555555555), vshrq_n_u64(bb, 1), vshlq_n_u64(bb, 1));
+		bb = vbslq_u64(vdupq_n_u64(0x3333333333333333), vshrq_n_u64(bb, 2), vshlq_n_u64(bb, 2));
+		bb = vreinterpretq_u64_u8(vsliq_n_u8(vshrq_n_u8(vreinterpretq_u8_u64(bb), 4), vreinterpretq_u8_u64(bb), 4));
+#endif
+	}
+
+	if (s & 2) {	// vertical_mirror
+		bb = vreinterpretq_u64_u8(vrev64q_u8(vreinterpretq_u8_u64(bb)));
+	}
+
+	if (s & 4) {	// transpose
+		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 7)), vdupq_n_u64(0x00AA00AA00AA00AA));
+		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 7));
+		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 14)), vdupq_n_u64(0x0000CCCC0000CCCC));
+		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 14));
+		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 28)), vdupq_n_u64(0x00000000F0F0F0F0));
+		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 28));
+	}
+
+	vst1q_u64((uint64_t *) sym, bb);
+	board_check(sym);
+}
+
+#endif // hasSSE2/Neon
+
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *
@@ -325,12 +381,17 @@ void board_symetry(const Board *board, const int s, Board *sym)
  * @return flipped discs.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
 
 unsigned long long vectorcall board_next_sse(__m128i OP, const int x, Board *next)
 {
 	__m128i flipped = reduce_vflip(mm_Flip(OP, x));
 =======
+=======
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 unsigned long long board_next(const Board *board, const int x, Board *next)
 {
 	__m128i OP = _mm_loadu_si128((__m128i *) board);
@@ -343,6 +404,7 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 	return _mm_cvtsi128_si64(flipped);
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 
@@ -362,6 +424,24 @@ unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next)
 #endif
 
 =======
+=======
+#elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+
+unsigned long long board_next(const Board *board, const int x, Board *next)
+{
+	uint64x2_t OP = vld1q_u64((uint64_t *) board);
+	uint64x2_t flipped = mm_Flip(OP, x);
+
+	OP = veorq_u64(OP, flipped);
+	vst1_u64((uint64_t *) &next->player, vget_high_u64(OP));
+	vst1_u64((uint64_t *) &next->opponent, vorr_u64(vget_low_u64(OP), vcreate_u64(X_TO_BIT[x])));
+
+	return vgetq_lane_u64(flipped, 0);
+}
+
+#endif
+
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
  * @brief Compute a board resulting of an opponent move played on a previous board.
  *
@@ -372,6 +452,8 @@ unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next)
  * @param next resulting board.
  * @return flipped discs.
  */
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+
 unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 {
 	__m128i	PO = _mm_shuffle_epi32(_mm_loadu_si128((__m128i *) board), 0x4e);
@@ -382,9 +464,23 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 
 	return _mm_cvtsi128_si64(flipped);
 }
-#endif
 
-#endif // hasSSE2
+#elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+
+unsigned long long board_pass_next(const Board *board, const int x, Board *next)
+{
+	uint64x2_t OP = vld1q_u64((uint64_t *) board);
+	uint64x2_t PO = vextq_u64(OP, OP, 1);
+	uint64x2_t flipped = mm_Flip(PO, x);
+
+	PO = veorq_u64(PO, flipped);
+	vst1_u64((uint64_t *) &next->player, vget_high_u64(PO));
+	vst1_u64((uint64_t *) &next->opponent, vorr_u64(vget_low_u64(PO), vcreate_u64(X_TO_BIT[x])));
+
+	return vgetq_lane_u64(flipped, 0);
+}
+
+#endif
 
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
@@ -482,10 +578,14 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(__aarch64__) || defined(_M_ARM64)	// 4 CPU
 =======
 #elif 0	// 4 CPU
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#elif defined(__aarch64__) || defined(_M_ARM64)	// 4 CPU
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
@@ -510,6 +610,7 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(__ARM_NEON)	// 3 Neon, 1 CPU(32)
 
   #ifndef DISPATCH_NEON
@@ -517,12 +618,70 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
   #endif
 =======
 #else // __x86_64__
+=======
+#elif defined(__ARM_NEON__)	// 3 Neon, 1 CPU(32)
+
+#ifdef hasNeon
+#define	get_moves_sse	get_moves	// no dispatch
+#endif
+
+unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
+{
+	unsigned int	mO, movesL, movesH, flip1, pre1;
+	uint64x1_t	rP, rO;
+	uint64x2_t	PP, OO, MM, flip, pre;
+
+		/* vertical_mirror in PP[1], OO[1] */				mO = (unsigned int) O & 0x7e7e7e7e;
+	rP = vreinterpret_u64_u8(vrev64_u8(vcreate_u8(P)));			flip1  = mO & ((unsigned int) P << 1);
+	PP = vcombine_u64(vcreate_u64(P), rP);					flip1 |= mO & (flip1 << 1);
+										pre1   = mO & (mO << 1);
+	rO = vreinterpret_u64_u8(vrev64_u8(vcreate_u8(O)));			flip1 |= pre1 & (flip1 << 2);
+	OO = vcombine_u64(vcreate_u64(O), rO);					flip1 |= pre1 & (flip1 << 2);
+										movesL = flip1 << 1;
+
+	flip = vandq_u64(OO, vshlq_n_u64(PP, 8));				flip1  = mO & ((unsigned int) P >> 1);
+	flip = vorrq_u64(flip, vandq_u64(OO, vshlq_n_u64(flip, 8)));		flip1 |= mO & (flip1 >> 1);
+	pre  = vandq_u64(OO, vshlq_n_u64(OO, 8));				pre1 >>= 1;
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 16)));		flip1 |= pre1 & (flip1 >> 2);
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 16)));		flip1 |= pre1 & (flip1 >> 2);
+	MM = vshlq_n_u64(flip, 8);						movesL |= flip1 >> 1;
+
+	OO = vandq_u64(OO, vdupq_n_u64(0x7e7e7e7e7e7e7e7e));			mO = (unsigned int) (O >> 32) & 0x7e7e7e7e;
+	flip = vandq_u64(OO, vshlq_n_u64(PP, 7));				flip1  = mO & ((unsigned int) (P >> 32) << 1);
+	flip = vorrq_u64(flip, vandq_u64(OO, vshlq_n_u64(flip, 7)));		flip1 |= mO & (flip1 << 1);
+	pre  = vandq_u64(OO, vshlq_n_u64(OO, 7));				pre1   = mO & (mO << 1);
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 14)));		flip1 |= pre1 & (flip1 << 2);
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 14)));		flip1 |= pre1 & (flip1 << 2);
+	MM = vorrq_u64(MM, vshlq_n_u64(flip, 7));				movesH = flip1 << 1;
+
+	flip = vandq_u64(OO, vshlq_n_u64(PP, 9));				flip1  = mO & ((unsigned int) (P >> 32) >> 1);
+	flip = vorrq_u64(flip, vandq_u64(OO, vshlq_n_u64(flip, 9)));		flip1 |= mO & (flip1 >> 1);
+	pre  = vandq_u64(OO, vshlq_n_u64(OO, 9));				pre1 >>= 1;
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 18)));		flip1 |= pre1 & (flip1 >> 2);
+	flip = vorrq_u64(flip, vandq_u64(pre, vshlq_n_u64(flip, 18)));		flip1 |= pre1 & (flip1 >> 2);
+	MM = vorrq_u64(MM, vshlq_n_u64(flip, 9));				movesH |= flip1 >> 1;
+
+	movesL |= vgetq_lane_u32(MM, 0) | __rev(vgetq_lane_u32(MM, 3));
+	movesH |= vgetq_lane_u32(MM, 1) | __rev(vgetq_lane_u32(MM, 2));
+	return (movesL | ((unsigned long long) movesH << 32)) & ~(P|O);	// mask with empties
+}
+
+#else // AVX/x86_64/arm
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
- * @brief SSE optimized get_moves for x86 (3 SSE, 1 CPU)
+ * @brief SSE optimized get_moves for x86 - 3 SSE, 1 CPU(32)
  *
  */
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#if defined(hasSSE2) || defined(USE_MSVC_X86) || defined(ANDROID)
+
+#ifdef hasSSE2
+#define	get_moves_sse	get_moves	// no dispatch
+#endif
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
 {
@@ -583,8 +742,11 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 	__m128i	OP, rOP, PP, OO, MM, flip, pre;
 =======
 	__m128i	OP, rOP, PP, OO, MM, flip, pre;
+<<<<<<< HEAD
 	const __m128i mask7e = _mm_set1_epi8(0x7e);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 		// vertical_mirror in PP[1], OO[1]
 	OP  = _mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O));		mO = (unsigned int) O & 0x7e7e7e7eU;
@@ -608,10 +770,14 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 	MM = _mm_slli_epi64(flip, 8);							movesL |= flip1 >> 1;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	OO = _mm_and_si128(OO, _mm_set1_epi8(0x7e));					mO = (unsigned int) (O >> 32) & 0x7e7e7e7eU;
 =======
 	OO = _mm_and_si128(OO, mask7e);							mO = (unsigned int) (O >> 32) & 0x7e7e7e7eU;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	OO = _mm_and_si128(OO, _mm_set1_epi8(0x7e));					mO = (unsigned int) (O >> 32) & 0x7e7e7e7eU;
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	flip = _mm_and_si128(OO, _mm_slli_epi64(PP, 7));				flip1  = mO & ((unsigned int) (P >> 32) << 1);
 	flip = _mm_or_si128(flip, _mm_and_si128(OO, _mm_slli_epi64(flip, 7)));		flip1 |= mO & (flip1 << 1);
 	pre = _mm_and_si128(OO, _mm_slli_epi64(OO, 7));					pre1   = mO & (mO << 1);
@@ -763,7 +929,6 @@ unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
 #endif // hasSSE2
 #endif // x86
 
-#if defined(__x86_64__) || defined(_M_X64)
 /**
  * @brief SSE optimized get_stable_edge
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -773,6 +938,7 @@ unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
  * @return a bitboard with (some of) player's stable discs.
  *
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
   #if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
 unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
@@ -813,6 +979,23 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 	unsigned int a1a8, h1h8;
 =======
 static unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+=======
+#if defined(__aarch64__) || defined(_M_ARM64)
+unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
+{	// compute the exact stable edges (from precomputed tables)
+	const int16x8_t shiftv = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	uint8x16_t PO = vzipq_u8(vreinterpretq_u8_u64(vdupq_n_u64(O)), vreinterpretq_u8_u64(vdupq_n_u64(P))).val[0];
+	uint16x8_t a1a8 = vshlq_u16(vreinterpretq_u16_u8(vandq_u8(PO, vdupq_n_u8(1))), shiftv);
+	uint16x8_t h1h8 = vshlq_u16(vreinterpretq_u16_u8(vshrq_n_u8(PO, 7)), shiftv);
+	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
+	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
+	    |  A1_A8[edge_stability[vaddvq_u16(a1a8)]]
+	    |  A1_A8[edge_stability[vaddvq_u16(h1h8)]] << 7;
+}
+
+#elif defined(__x86_64__) || defined(_M_X64)
+unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 {
 	// compute the exact stable edges (from precomputed tables)
 	unsigned int a1a8po, h1h8po;
@@ -895,14 +1078,16 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	a1a8po = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
 	h1h8po = _mm_movemask_epi8(PO);
 #if 0 // def __BMI2__ // pdep is slow on AMD
-	stable_edge |= _pdep_u64(edge_stability[a1a8po], 0x0101010101010101ULL)
-		| _pdep_u64(edge_stability[h1h8po], 0x8080808080808080ULL);
+	stable_edge |= _pdep_u64(edge_stability[a1a8po], 0x0101010101010101)
+		| _pdep_u64(edge_stability[h1h8po], 0x8080808080808080);
 #else
 	stable_edge |= A1_A8[edge_stability[a1a8po]] | (A1_A8[edge_stability[h1h8po]] << 7);
 #endif
 	return stable_edge;
 }
+#endif // __aarch64__/__x86_64__/_M_X64
 
+#if defined(HAS_CPU_64) || defined(ANDROID)
 /**
  * @brief X64 optimized get_stability
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -933,11 +1118,11 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long disc = (P | O);
-	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00ULL);
+	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
 	unsigned long long l8, stable;
 	__m128i	l81, l79, v2_stable, v2_old_stable, v2_P_central;
 	__m256i	lr79, v4_disc, v4_stable, v4_full;
-	const __m128i kff = _mm_set1_epi64x(0xffffffffffffffff);
+	const __m128i kff = _mm_set1_epi64x(0xffffffffffffffff);;
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
 #if 0 // PCMPEQQ
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -1909,36 +2094,56 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
 =======
 
-#else
+#else // __AVX2__
 
-int get_stability(const unsigned long long P, const unsigned long long O)
+#if defined(hasNeon) || defined(hasSSE2)
+#define	get_stability_sse	get_stability	// no dispatch
+#endif
+
+int get_stability_sse(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long disc = (P | O);
-	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00ULL);
+	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
 	unsigned long long l8, full_h, full_v, full_d7, full_d9, stable;
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
-#if 1	// 1 CPU, 3 SSE
+#ifdef __ARM_NEON__
+	uint8x8_t l01;
+	uint64x2_t l79, r79;
+	const uint64x2_t e790 = vdupq_n_u64(0x007e7e7e7e7e7e00);
+	const uint64x2_t e791 = vdupq_n_u64(0x00003f3f3f3f3f3f);
+	const uint64x2_t e792 = vdupq_n_u64(0x0f0f0f0ff0f0f0f0);
+
+	l01 = vcreate_u8(disc);			l79 = r79 = vreinterpretq_u64_u8(vcombine_u8(l01, vrev64_u8(l01)));
+	l01 = vceq_u8(l01, vdup_n_u8(0xff));	l79 = vandq_u64(l79, vornq_u64(vshrq_n_u64(l79, 9), e790));
+	full_h = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
+						r79 = vandq_u64(r79, vornq_u64(vshlq_n_u64(r79, 9), e790));
+	l8 = disc;				l79 = vbicq_u64(l79, vbicq_u64(e791, vshrq_n_u64(l79, 18)));	// De Morgan
+	l8 &= (l8 >> 8) | (l8 << 56);		r79 = vbicq_u64(r79, vshlq_n_u64(vbicq_u64(e791, r79), 18));
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e792, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
+	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = vgetq_lane_u64(l79, 0);
+	full_v = l8;				full_d7 = vertical_mirror(vgetq_lane_u64(l79, 1));
+
+#elif 1	// 1 CPU, 3 SSE
 	__m128i l01, l79, r79;	// full lines
 	const __m128i kff  = _mm_set1_epi64x(0xffffffffffffffff);
 	const __m128i edge = _mm_set1_epi64x(0xff818181818181ff);
-	const __m128i e791 = _mm_set1_epi64x(0xffffc0c0c0c0c0c0);
-	const __m128i e792 = _mm_set1_epi64x(0x030303030303ffff);
-	const __m128i e793 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
+	const __m128i e791 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);
+	const __m128i e792 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
 
 	l01 = l79 = _mm_cvtsi64_si128(disc);	r79 = _mm_cvtsi64_si128(vertical_mirror(disc));
 	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = r79 = _mm_unpacklo_epi64(l79, r79);
 	full_h = _mm_cvtsi128_si64(l01);	l79 = _mm_and_si128(l79, _mm_or_si128(edge, _mm_srli_epi64(l79, 9)));
 						r79 = _mm_and_si128(r79, _mm_or_si128(edge, _mm_slli_epi64(r79, 9)));
-	l8 = disc;				l79 = _mm_and_si128(l79, _mm_or_si128(e791, _mm_srli_epi64(l79, 18)));
-	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_and_si128(r79, _mm_or_si128(e792, _mm_slli_epi64(r79, 18)));
-	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
+	l8 = disc;				l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e791), l79);	// De Morgan
+	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e791), 18), r79);
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e792, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
 	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = _mm_cvtsi128_si64(l79);
 	full_v = l8;				full_d7 = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
 
 #else	// 4 CPU
 	unsigned long long l1, l7, l9, r7, r9;	// full lines
-	static const unsigned long long edge = 0xff818181818181ffULL;
-	static const unsigned long long k01 = 0x0101010101010101ULL;
+	static const unsigned long long edge = 0xff818181818181ff;
+	static const unsigned long long k01 = 0x0101010101010101;
 	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
 	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
 
@@ -1978,7 +2183,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 }
 
 #endif // __AVX2__
-#endif // __x86_64__
+#endif // HAS_CPU_64/ANDROID
 
 /**
  * @brief SSE translation of board_get_hash_code.

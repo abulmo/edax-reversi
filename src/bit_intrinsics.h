@@ -247,6 +247,16 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	#define	hasMMX	1
 #endif
 
+#if defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+	#define hasNeon	1
+	#ifndef __ARM_NEON__
+		#define	__ARM_NEON__	1
+	#endif
+#endif
+#ifdef __ARM_NEON__
+#include "arm_neon.h"
+#endif
+
 #ifdef _MSC_VER
 	#include <intrin.h>
 	#ifdef _M_IX86
@@ -281,7 +291,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #elif defined(_MSC_VER)
 	#define	rotl8(x,y)	_rotl8((x),(y))
 #else	// may not compile into 8-bit rotate
-	#define	rotl8(x,y)	((unsigned char)(((x)<<(y))|((unsigned)(x)>>(8-(y)))))
+	#define	rotl8(x,y)	((unsigned char)(((x)<<(y))|((unsigned char)(x)>>(8-(y)))))
 #endif
 
 // bswap
@@ -360,6 +370,12 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	#define lzcnt_u64(x)	_CountLeadingZeros64(x)
 
 #elif defined(_MSC_VER)
+	static inline int lzcnt_u32(unsigned int n) {
+		unsigned int i;
+		if (!_BitScanReverse(&i, n))
+			i = 32 ^ 31;
+		return i ^ 31;
+	}
 	#ifdef _M_X64
 		static inline int lzcnt_u64(unsigned long long n) {
 			unsigned long i;

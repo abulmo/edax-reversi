@@ -111,6 +111,7 @@ Loop optimization and flip using carry propagation. One time execution but affec
 
 ## 3. eval.c
 Eval feature calculation using SSE2 / AVX2 (now in eval_sse.c) improves midgame by 15-30% and endgame by 8-12%.
+Restoring eval from backup instead of rewinding.
 eval_open (one time execution) is also optimized.
 
 ## 4. hash.c

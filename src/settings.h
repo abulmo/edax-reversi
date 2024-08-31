@@ -40,8 +40,12 @@
 #define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX	// 7.21Mnps (neon_bitscan)
 =======
 #define MOVE_GENERATOR_SSE 3		// 34.4Mnps	// best for generic X64
+<<<<<<< HEAD
 #define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX	// 7.21Mnps (neon_bitscan)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #define MOVE_GENERATOR_ROXANE 5		// 29.0Mnps
 #define MOVE_GENERATOR_32 6		// 31.3Mnps	// best for 32bit X86
 #define MOVE_GENERATOR_SSE_BSWAP 7	// 30.6Mnps
@@ -60,6 +64,7 @@
 =======
 #define MOVE_GENERATOR_AVX512	9
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
 #define MOVE_GENERATOR_NEON 10
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
@@ -67,6 +72,9 @@
 #define MOVE_GENERATOR_NEON 10		// neon_lzcnt (6.51Mnps), neon_ppfill (5.55Mnps)
 #define MOVE_GENERATOR_NEON_BITSCAN 11	// neon_bitscan (6.43Mnps)
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
+=======
+#define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 #define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -138,8 +146,9 @@
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512
 	#elif defined(__AVX2__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
-	#elif defined(hasSSE2)
+	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
 		#define MOVE_GENERATOR MOVE_GENERATOR_SSE
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -151,11 +160,18 @@
 	#elif defined(__aarch64__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_NEON
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
+=======
+	#elif defined(__aarch64__) || defined(_M_ARM64)
+		#define MOVE_GENERATOR MOVE_GENERATOR_NEON
+	#elif defined(__arm__) || defined(_M_ARM)
+		#define MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	#else
 		#define MOVE_GENERATOR MOVE_GENERATOR_32
 	#endif
 #endif
 #ifndef LAST_FLIP_COUNTER
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -192,6 +208,11 @@
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 =======
 	#elif defined(__aarch64__)
+=======
+	#if defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64)
+		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
+	#elif defined(__arm__) || defined(_M_ARM)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BITSCAN
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	#else

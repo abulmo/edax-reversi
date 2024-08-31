@@ -17,10 +17,17 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
+=======
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.4
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
  * 
  */
 
@@ -110,7 +117,10 @@ const unsigned char COUNT_FLIP[8][256] = {
 	},
 };
 
+<<<<<<< HEAD
 #ifdef HAS_CPU_64
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /* bit masks for diagonal lines (interleaved) */
 const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x000000000000ff01, 0x0000000000000000 }, { 0x0801040102010101, 0x8001400120011001 }},
@@ -178,6 +188,7 @@ const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x0000000000000000, 0xff40008000000000 }, { 0x0440024001400040, 0x4040204010400840 }},
 	{{ 0x0000000000000000, 0xff80000000000000 }, { 0x0880048002800180, 0x8080408020801080 }}
 };
+<<<<<<< HEAD
 #else
 /* bit masks for diagonal lines */
 const uint64x2_t mask_dvhd[64][2] = {
@@ -247,6 +258,8 @@ const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x8000000000000000, 0xff00000000000000 }, { 0x8080808080808080, 0x8040201008040201 }}
 };
 #endif
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -256,6 +269,7 @@ const uint64x2_t mask_dvhd[64][2] = {
  * @return flipped disc count.
  */
 
+<<<<<<< HEAD
 int last_flip(int pos, unsigned long long P)
 {
 	unsigned int	n_flips;
@@ -288,6 +302,29 @@ int last_flip(int pos, unsigned long long P)
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
 #endif
+=======
+#ifndef HAS_CPU_64
+#define vaddvq_u16(x)	vget_lane_u64(vpaddl_u32(vpaddl_u16(vadd_u16(vget_high_u16(x), vget_low_u16(x)))), 0)
+#endif
+
+int last_flip(int pos, unsigned long long P)
+{
+	unsigned int	n_flips, t;
+	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+	uint8x16_t	PP;
+	const uint8x16_t dmask = { 1, 1, 2, 2, 4, 4, 8, 8, 16, 16, 32, 32, 64, 64, 128, 128 };
+
+	PP = vreinterpretq_u8_u64(vdupq_n_u64(P));
+	PP = vzipq_u8(PP, PP).val[0];
+	t = vaddvq_u16(vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0])));
+	n_flips  = COUNT_FLIP_X[t >> 8];
+	n_flips += COUNT_FLIP_X[(unsigned char) t];
+	t = vaddvq_u16(vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask)));
+	n_flips += COUNT_FLIP_Y[t >> 8];
+	n_flips += COUNT_FLIP_Y[(unsigned char) t];
+
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	return n_flips;
 }
 

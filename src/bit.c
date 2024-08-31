@@ -26,11 +26,16 @@
 #include "bit.h"
 #include "util.h"
 
+<<<<<<< HEAD
 /** Table for a 32-bits-at-a-time software CRC-32C calculation.
  * This tablehas built into it the pre and post bit inversion of the CRC. */
 #ifndef crc32c_u64
 static unsigned int crc32c_table[4][256];
 #endif
+=======
+/** coordinate to bit table converter */
+unsigned long long X_TO_BIT[66];
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 /** coordinate to bit table converter */
 unsigned long long X_TO_BIT[66];
@@ -242,15 +247,29 @@ static int bit_count_32(unsigned int b)
  */
 void bit_init(void)
 {
-#ifndef POPCOUNT
 	unsigned int	i;
+	unsigned long long	ll;
+
+	ll = 1;
+	for (i = 0; i < 66; ++i) {	// X_TO_BIT[64] = X_TO_BIT[65] = 0 for passing move & nomove
+		X_TO_BIT[i] = ll;
+		ll <<= 1;
+	}
+
+#ifndef POPCOUNT
 	for (i = 0; i < (1 << 16); ++i)
 		PopCnt16[i] = bit_count_32(i);
 #endif
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	init_mmx();
 #endif
+<<<<<<< HEAD
 >>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
+=======
+#if defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
+	init_neon();
+#endif
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 }
 
 /**
@@ -754,28 +773,42 @@ unsigned long long vertical_mirror(unsigned long long b)
 unsigned int horizontal_mirror_32(unsigned int b)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef __ARM_ACLE
 	return __rev(__rbit(b));
 #else
 =======
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#ifdef __ARM_ACLE
+	return __rev(__rbit(b));
+#else
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	b = ((b >> 1) & 0x55555555U) +  2 * (b & 0x55555555U);
 	b = ((b >> 2) & 0x33333333U) +  4 * (b & 0x33333333U);
 	b = ((b >> 4) & 0x0F0F0F0FU) + 16 * (b & 0x0F0F0F0FU);
 	return b;
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif
 =======
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#endif
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 }
 
 unsigned long long horizontal_mirror(unsigned long long b)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(HAS_CPU_64) && !defined(__ARM_ACLE)
 =======
 #ifdef HAS_CPU_64
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#if defined(HAS_CPU_64) && !defined(__ARM_ACLE)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	b = ((b >> 1) & 0x5555555555555555ULL) | ((b & 0x5555555555555555ULL) << 1);
 	b = ((b >> 2) & 0x3333333333333333ULL) | ((b & 0x3333333333333333ULL) << 2);
 	b = ((b >> 4) & 0x0F0F0F0F0F0F0F0FULL) | ((b & 0x0F0F0F0F0F0F0F0FULL) << 4);

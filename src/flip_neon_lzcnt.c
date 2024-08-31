@@ -239,6 +239,7 @@ static const uint64x2_t rmask_v4[66][2] = {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifndef HAS_CPU_64
 #define vceqzq_u32(x)	vmvnq_u32(vtstq_u32((x), (x)))
 #endif
@@ -280,19 +281,26 @@ uint64x2_t mm_Flip(uint64x2_t OP, int pos)
 =======
 =======
 #ifndef __aarch64__
+=======
+#ifndef HAS_CPU_64
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #define vceqzq_u32(x)	vmvnq_u32(vtstq_u32((x), (x)))
 #define	vnegq_s64(x)	vsubq_s64(vdupq_n_s64(0), (x))
 #endif
 
+<<<<<<< HEAD
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
+=======
+uint64x2_t mm_Flip(uint64x2_t OP, int pos)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 {
 	uint64x2_t	flip, oflank0, mask0;				uint64x2_t	oflank1, mask1;
 	int32x4_t	clz0;						int32x4_t	clz1;
 	uint32x4_t	msb0;						uint32x4_t	msb1;
 	const uint64x2_t one = vdupq_n_u64(1);
-	uint64x2_t PP = vdupq_n_u64(P);
-	uint64x2_t OO = vdupq_n_u64(O);
+	uint64x2_t PP = vdupq_lane_u64(vget_low_u64(OP), 0);
+	uint64x2_t OO = vdupq_lane_u64(vget_high_u64(OP), 0);
 
 	mask0 = lrmask_v4[pos][2];					mask1 = lrmask_v4[pos][3];
 		// isolate non-opponent MS1B
@@ -317,7 +325,7 @@ unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
 	oflank0 = vqsubq_u64(oflank0, one);				oflank1 = vqsubq_u64(oflank1, one);
 	flip = vbslq_u64(mask1, oflank1, vbslq_u64(mask0, oflank0, flip));
 
-	return vget_lane_u64(vorr_u64(vget_low_u64(flip), vget_high_u64(flip)), 0);
+	return vorrq_u64(flip, vextq_u64(flip, flip, 1));
 }
 <<<<<<< HEAD
 

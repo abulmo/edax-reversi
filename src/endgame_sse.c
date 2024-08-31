@@ -638,34 +638,27 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
  */
 static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int pos)
 {
-	int	score, score2;
 	unsigned char	n_flips;
-	unsigned long long	P;
 	unsigned int	t;
+	unsigned long long P = _mm_cvtsi128_si64(OP);
+	int	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
+	int	score2;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-#ifdef AVXLASTFLIP
-	__m256i	MP, MO;
-#else
-	__m128i	PP, OO;
-#endif
 	__m128i	II;
-
-	P = _mm_cvtsi128_si64(OP);
-	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
 
 	// n_flips = last_flip(pos, P);
 #ifdef AVXLASTFLIP
+	__m256i	MP = _mm256_and_si256(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
-	MP = _mm256_and_si256(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), MP));
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 	t >>= 16;
 #else
-	PP = _mm_shuffle_epi32(OP, DUPLO);
+	__m128i	PP = _mm_shuffle_epi32(OP, DUPLO);
 	II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
-	n_flips  = COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-	n_flips += COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
 	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
 #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
@@ -680,16 +673,16 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(pos, EXTRACT_O(OP));
 #ifdef AVXLASTFLIP
-			MO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mask_dvhd[pos].v4);
-			II = _mm_sad_epu8(_mm256_castsi256_si128(MO), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(MO, 1)));
+			MP = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mask_dvhd[pos].v4);
+			II = _mm_sad_epu8(_mm256_castsi256_si128(MP), _mm_setzero_si128());
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(MP, 1)));
 #else
-			OO = _mm_shuffle_epi32(OP, DUPHI);
-			II = _mm_sad_epu8(_mm_and_si128(OO, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(OO, mask_dvhd[pos].v2[1])));
+			PP = _mm_shuffle_epi32(OP, DUPHI);
+			II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
 #endif
-			n_flips  = COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-			n_flips += COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+			n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+			n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
 			n_flips += COUNT_FLIP_Y[t >> 8];
 			n_flips += COUNT_FLIP_Y[(unsigned char) t];
 
@@ -834,7 +827,7 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, volatile unsigned lo
  * @param n_nodes Node counter.
  * @return The final score, as a disc difference.
  */
-static int vectorcall search_solve_sse_3(__m128i OP, int alpha, unsigned int sort3, volatile unsigned long long *n_nodes, __m128i empties)
+static int vectorcall search_solve_sse_3(__m128i OP, int alpha, int sort3, volatile unsigned long long *n_nodes, __m128i empties)
 {
 	__m128i flipped, PO;
 	int score, bestscore, x;
@@ -888,7 +881,7 @@ static int vectorcall search_solve_sse_3(__m128i OP, int alpha, unsigned int sor
 	empties = _mm_cvtepu8_epi16(empties);	// to ease shuffle
 	// parity based move sorting
 	if (sort3 & 0x03) {
-#ifndef __AVX__
+#if !(defined(__SSSE3__) || defined(__AVX__))
 		if (sort3 & 0x01)
 			empties = _mm_shufflelo_epi16(empties, 0xd8); // case 1(x2) 2(x1 x3)
 		else
@@ -1045,39 +1038,45 @@ static int search_solve_4(Search *search, int alpha)
  * @return The final score, as a disc difference.
  */
 
-typedef union {
-	unsigned int	ui[4];
-	__m128i	v4;
-} V4SI;
-
 int search_solve_4(Search *search, const int alpha)
 {
 	__m128i	OP, flipped;
 	__m128i	empties_series;	// B15:4th, B11:3rd, B7:2nd, B3:1st, lower 3 bytes for 3 empties
-	int x1, x2, x3, x4, q1, q2, q3;
-	int score, bestscore;
-	unsigned int parity;
+	int x1, x2, x3, x4, paritysort, score, bestscore;
 	unsigned long long opp;
 	// const int beta = alpha + 1;
-#ifdef __AVX__
-	static const V4SI shuf_x1_1_2[2] = {	// case 1(x1) 1(x4) 2(x2 x3), case 1(x1) 1(x3) 2(x2 x4)
-		 {{ 0x03000201, 0x00030201, 0x02030100, 0x01030200 }},		// x3x1x2x4-x2x1x3x4-x4x1x2x3-x1x4x2x3
-		 {{ 0x03010200, 0x01030200, 0x02030100, 0x00030201 }}};		// x4x1x2x3-x2x1x3x4-x3x1x2x4-x1x3x2x4
-	static const V4SI shuf_x2_1_2[2] = {	// case 1(x2) 1(x4) 2(x1 x3), case 1(x2) 1(x3) 2(x1 x4)
-		 {{ 0x02000301, 0x00020301, 0x03020100, 0x01030200 }},		// x3x1x2x4-x1x2x3x4-x4x2x1x3-x2x4x1x3
-		 {{ 0x02010300, 0x01020300, 0x03020100, 0x00030201 }}};		// x4x1x2x3-x1x2x3x4-x3x2x1x4-x2x3x1x4
-	static const V4SI shuf_1_3[2][2] = {
-		{{{ 0x03020100, 0x02030100, 0x01030200, 0x00030201 }},  	// case 1(x1) 3(x2 x3 x4), case 1 1 1 1
-		 {{ 0x03020100, 0x02030100, 0x01020300, 0x00020301 }}}, 	// case 1(x2) 3(x1 x3 x4)
-		{{{ 0x03010200, 0x02010300, 0x01030200, 0x00010302 }},  	// case 1(x3) 3(x1 x2 x4)
-		 {{ 0x03000201, 0x02000301, 0x01000302, 0x00030201 }}}};	// case 1(x4) 3(x1 x2 x3)
-	static const V4SI shuf_2_2[2][2] = {
-		{{{ 0x03000201, 0x02010300, 0x01020300, 0x00030201 }},  	// case 2(x1 x4) 2(x2 x3)
-		 {{ 0x03010200, 0x02000301, 0x01030200, 0x00020301 }}}, 	// case 2(x1 x3) 2(x2 x4)
-		{{{ 0x03020100, 0x02030100, 0x01000302, 0x00010302 }},  	// case 2(x1 x2) 2(x3 x4)
-		 {{ 0x03020100, 0x02030100, 0x01030200, 0x00030201 }}}};	// case 4
+	static const unsigned char parity_case[64] = {	/* x4x3x2x1 = */
+		/*0000*/  0, /*0001*/  0, /*0010*/  1, /*0011*/  9, /*0100*/  2, /*0101*/ 10, /*0110*/ 11, /*0111*/  3,
+		/*0002*/  0, /*0003*/  0, /*0012*/  0, /*0013*/  0, /*0102*/  4, /*0103*/  4, /*0112*/  5, /*0113*/  5,
+		/*0020*/  1, /*0021*/  0, /*0030*/  1, /*0031*/  0, /*0120*/  6, /*0121*/  7, /*0130*/  6, /*0131*/  7,
+		/*0022*/  9, /*0023*/  0, /*0032*/  0, /*0033*/  9, /*0122*/  8, /*0123*/  0, /*0132*/  0, /*0133*/  8,
+		/*0200*/  2, /*0201*/  4, /*0210*/  6, /*0211*/  8, /*0300*/  2, /*0301*/  4, /*0310*/  6, /*0311*/  8,
+		/*0202*/ 10, /*0203*/  4, /*0212*/  7, /*0213*/  0, /*0302*/  4, /*0303*/ 10, /*0312*/  0, /*0313*/  7,
+		/*0220*/ 11, /*0221*/  5, /*0230*/  6, /*0231*/  0, /*0320*/  6, /*0321*/  0, /*0330*/ 11, /*0331*/  5,
+		/*0222*/  3, /*0223*/  5, /*0232*/  7, /*0233*/  8, /*0322*/  8, /*0323*/  7, /*0332*/  5, /*0333*/  3
+	};
+#if defined(__SSSE3__) || defined(__AVX__)
+	union V4SI {
+		unsigned int	ui[4];
+		__m128i	v4;
+	};
+	static const union V4SI shuf_mask[] = {	// make search order identical to 4.4.0
+		{{ 0x03020100, 0x02030100, 0x01030200, 0x00030201 }},	//  0: 1(x1) 3(x2 x3 x4), 1(x1) 1(x2) 2(x3 x4), 1 1 1 1, 4
+		{{ 0x03020100, 0x02030100, 0x01020300, 0x00020301 }},	//  1: 1(x2) 3(x1 x3 x4)
+		{{ 0x03010200, 0x02010300, 0x01030200, 0x00010302 }},	//  2: 1(x3) 3(x1 x2 x4)
+		{{ 0x03000201, 0x02000301, 0x01000302, 0x00030201 }},	//  3: 1(x4) 3(x1 x2 x3)
+		{{ 0x03010200, 0x01030200, 0x02030100, 0x00030201 }},	//  4: 1(x1) 1(x3) 2(x2 x4)
+		{{ 0x03000201, 0x00030201, 0x02030100, 0x01030200 }},	//  5: 1(x1) 1(x4) 2(x2 x3)
+		{{ 0x02010300, 0x01020300, 0x03020100, 0x00030201 }},	//  6: 1(x2) 1(x3) 2(x1 x4)
+		{{ 0x02000301, 0x00020301, 0x03020100, 0x01030200 }},	//  7: 1(x2) 1(x4) 2(x1 x3)
+		{{ 0x01000302, 0x00010302, 0x03020100, 0x02030100 }},	//  8: 1(x3) 1(x4) 2(x1 x2)
+		{{ 0x03020100, 0x02030100, 0x01000302, 0x00010302 }},	//  9: 2(x1 x2) 2(x3 x4)
+		{{ 0x03010200, 0x02000301, 0x01030200, 0x00020301 }},	// 10: 2(x1 x3) 2(x2 x4)
+		{{ 0x03000201, 0x02010300, 0x01020300, 0x00030201 }}	// 11: 2(x1 x4) 2(x2 x3)
+	};
 	enum { sort3 = 0 };	// sort is done on 4 empties
 #else
+<<<<<<< HEAD
 	unsigned int sort3;	// for move sorting on 3 empties
 	static const short sort3_1_3[2][2] =
 		{{ 0x0000,	// case 1(x1) 3(x2 x3 x4)	// x4x1x2x3-x3x1x2x4-x2x1x3x4-x1x2x3x4
@@ -1090,6 +1089,23 @@ int search_solve_4(Search *search, const int alpha)
 		 { 0x2200,	// case 2(x1 x2) 2(x3 x4)	// x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
 		   0x0000 }};	// case 4			// x4x1x2x3-x3x1x2x4-x2x1x3x4-x1x2x3x4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	int sort3;	// for move sorting on 3 empties
+	static const short sort3_shuf[] = {
+		0x0000,	//  0: 1(x1) 3(x2 x3 x4), 1(x1) 1(x2) 2(x3 x4), 1 1 1 1, 4
+		0x1100,	//  1: 1(x2) 3(x1 x3 x4)	x4x2x1x3-x3x2x1x4-x2x1x3x4-x1x2x3x4
+		0x2011,	//  2: 1(x3) 3(x1 x2 x4)	x4x3x1x2-x3x1x2x4-x2x3x1x4-x1x3x2x4
+		0x0222,	//  3: 1(x4) 3(x1 x2 x3)	x4x1x2x3-x3x4x1x2-x2x4x1x3-x1x4x2x3
+		0x0001,	//  4: 1(x1) 1(x3) 2(x2 x4)	x4x1x2x3-x2x1x3x4-x3x1x2x4-x1x3x2x4
+		0x0002,	//  5: 1(x1) 1(x4) 2(x2 x3)	x3x1x2x4-x2x1x3x4-x4x1x2x3-x1x4x2x3
+		0x0011,	//  6: 1(x2) 1(x3) 2(x1 x4)	x4x1x2x3-x1x2x3x4-x3x2x1x4-x2x3x1x4
+		0x0012,	//  7: 1(x2) 1(x4) 2(x1 x3)	x3x1x2x4-x1x2x3x4-x4x2x1x3-x2x4x1x3
+		0x0022,	//  8: 1(x3) 1(x4) 2(x1 x2)	x2x1x3x4-x1x2x3x4-x4x3x1x2-x3x4x1x2
+		0x2200,	//  9: 2(x1 x2) 2(x3 x4)	x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
+		0x1021,	// 10: 2(x1 x3) 2(x2 x4)	x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
+		0x0112	// 11: 2(x1 x4) 2(x2 x3)	x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
+	};
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #endif
 
 	SEARCH_STATS(++statistics.n_search_solve_4);
@@ -1113,6 +1129,7 @@ int search_solve_4(Search *search, const int alpha)
 	// The following hole sizes are possible:
 	//    4 - 1 3 - 2 2 - 1 1 2 - 1 1 1 1
 	// Only the 1 1 2 case needs move sorting on this ply.
+<<<<<<< HEAD
 <<<<<<< HEAD
 	paritysort = parity_case[((x3 ^ x4) & 0x24) + ((((x2 ^ x4) & 0x24) * 2 + ((x1 ^ x4) & 0x24)) >> 2)];
 #if defined(__SSSE3__) || defined(__AVX__)
@@ -1149,6 +1166,12 @@ int search_solve_4(Search *search, const int alpha)
 		}
 	}
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	paritysort = parity_case[((x3 ^ x4) & 0x24) + ((((x2 ^ x4) & 0x24) * 2 + ((x1 ^ x4) & 0x24)) >> 2)];
+#if defined(__SSSE3__) || defined(__AVX__)
+	empties_series = _mm_cvtsi32_si128((x1 << 24) | (x2 << 16) | (x3 << 8) | x4);
+	empties_series = _mm_shuffle_epi8(empties_series, shuf_mask[paritysort].v4);
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 #else // SSE
 	empties_series = _mm_cvtsi32_si128((x3 << 16) | x4);
@@ -1728,40 +1751,25 @@ int search_solve_4(Search *search, const int alpha)
 =======
 	empties_series = _mm_packus_epi16(_mm_unpacklo_epi64(empties_series, _mm_shufflelo_epi16(empties_series, 0xb4)),
 		_mm_unpacklo_epi64(_mm_shufflelo_epi16(empties_series, 0x78), _mm_shufflelo_epi16(empties_series, 0x39)));
-							// x4x1x2x3-x3x1x2x4-x2x1x3x4-x1x2x3x4
-	if (parity & q1) {
-		if (parity & q2) {
-			sort3 = 0;	// case 1(x1) 1(x2) 2(x3 x4)
-			if (parity & q3) { // case 1 3, case 1 1 1 1
-				sort3 = sort3_1_3[q1 == q2][q1 == q3];
-			}
-		} else {
-			if (parity & q3) { // case 1(x1) 1(x3) 2(x2 x4)
-				empties_series = _mm_shuffle_epi32(empties_series, 0xd8);	// x4...x2...x3...x1...
-				sort3 = 0x0001;		// ..-x1x3x2x4
-			} else { // case 1(x1) 1(x4) 2(x2 x3)
-				empties_series = _mm_shuffle_epi32(empties_series, 0x9c);	// x3...x2...x4...x1...
-				sort3 = 0x0002;		// ..-x1x4x2x3
-			}
-		}
-	} else {
-		if (parity & q2) {
-			if (parity & q3) { // case 1(x2) 1(x3) 2(x1 x4)
-				empties_series = _mm_shuffle_epi32(empties_series, 0xc9);	// x4...x1...x3...x2...
-				sort3 = 0x0011;		// ..-x3x2x1x4-x2x3x1x4
-			} else { // case 1(x2) 1(x4) 2(x1 x3)
-				empties_series = _mm_shuffle_epi32(empties_series, 0x8d);	// x3...x1...x4...x2...
-				sort3 = 0x0012;		// ..-x4x2x1x3-x2x4x1x3
-			}
-		} else {
-			if (parity & q3) { // case 1(x3) 1(x4) 2(x1 x2)
-				empties_series = _mm_shuffle_epi32(empties_series, 0x4e);	// x2...x1...x4...x3...
-				sort3 = 0x0022;		// ..-x4x3x1x2-x3x4x1x2
-			} else {	// case 2 2, case 4
-				sort3 = sort3_2_2[q1 == q2][q1 == q3];
-			}
-		}
+			// x4x1x2x3-x3x1x2x4-x2x1x3x4-x1x2x3x4
+	switch (paritysort) {
+		case 4: // case 1(x1) 1(x3) 2(x2 x4)
+			empties_series = _mm_shuffle_epi32(empties_series, 0xd8);	// x4...x2...x3...x1...
+			break;
+		case 5: // case 1(x1) 1(x4) 2(x2 x3)
+			empties_series = _mm_shuffle_epi32(empties_series, 0x9c);	// x3...x2...x4...x1...
+			break;
+		case 6:	// case 1(x2) 1(x3) 2(x1 x4)
+			empties_series = _mm_shuffle_epi32(empties_series, 0xc9);	// x4...x1...x3...x2...
+			break;
+		case 7: // case 1(x2) 1(x4) 2(x1 x3)
+			empties_series = _mm_shuffle_epi32(empties_series, 0x8d);	// x3...x1...x4...x2...
+			break;
+		case 8:	// case 1(x3) 1(x4) 2(x1 x2)
+			empties_series = _mm_shuffle_epi32(empties_series, 0x4e);	// x2...x1...x4...x3...
+			break;
 	}
+	sort3 = sort3_shuf[paritysort];
 #endif
 
 	// best move alphabeta search

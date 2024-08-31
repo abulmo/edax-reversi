@@ -37,11 +37,6 @@
 #include "bit.h"
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
-#if defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64)
-#define hasNeon
-#include "arm_neon.h"
-#endif
-
 /** number of features */
 enum { EVAL_N_FEATURE = 47 };
 
@@ -90,7 +85,7 @@ typedef struct Eval {
 =======
 typedef union {
 	unsigned short us[48];
-#ifdef hasNeon
+#ifdef __ARM_NEON__
 	int16x8_t v8[6];
 #elif defined(hasSSE2) || defined(USE_MSVC_X86)
 	__m128i	v8[6];

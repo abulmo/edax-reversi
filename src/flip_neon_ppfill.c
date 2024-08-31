@@ -16,6 +16,9 @@
 #include "arm_neon.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 static const uint64x2_t lrmask_v4[66][4] = {
 	{{ 0x00000000000000fe, 0x0101010101010100 }, { 0x8040201008040200, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200 }, { 0x0080402010080400, 0x0000000000000100 }, { 0x0000000000000001, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }},
@@ -83,6 +86,7 @@ static const uint64x2_t lrmask_v4[66][4] = {
 	{{ 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x7f00000000000000, 0x0080808080808080 }, { 0x0040201008040201, 0x0000000000000000 }},
 	{{ 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }}
+<<<<<<< HEAD
 =======
 static const uint64x2_t lmask_v4[66][2] = {
 	{{ 0x00000000000000fe, 0x0101010101010100 }, { 0x8040201008040200, 0x0000000000000000 }},
@@ -221,6 +225,8 @@ static const uint64x2_t rmask_v4[66][2] = {
 	{{ 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000 }, { 0x0000000000000000, 0x0000000000000000 }}
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 };
 
 /**
@@ -232,6 +238,7 @@ static const uint64x2_t rmask_v4[66][2] = {
  * @return flipped disc pattern.
  */
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 uint64x2_t mm_Flip(uint64x2_t OP, int pos)
 {
@@ -266,40 +273,44 @@ uint64x2_t mm_Flip(uint64x2_t OP, int pos)
 	return vorrq_u64(flip, vextq_u64(flip, flip, 1));
 =======
 unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
+=======
+uint64x2_t mm_Flip(uint64x2_t OP, int pos)
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 {
-	uint64x2_t	flip0, oflank0, eraser0, mask0;			uint64x2_t	flip1, oflank1, eraser1, mask1;
-	const int64x2_t lshift18 = { 1, 8 };				const int64x2_t lshift79 = { 7, 9 };
-	int64x2_t rshift18 = { -1, -8 };				int64x2_t rshift79 = { -7, -9 };
-	const uint64x2_t minusone = vdupq_n_u64(-1);
-	uint64x2_t PP = vdupq_n_u64(P);
-	uint64x2_t OO = vdupq_n_u64(O);
+	uint64x2_t	flip, oflank0, eraser0, mask0;			uint64x2_t	oflank1, eraser1, mask1;
+	const int64x2_t lshift18 = { 1, 8 };				const int64x2_t lshift79 = { 9, 7 };
+	int64x2_t rshift18 = { -1, -8 };				int64x2_t rshift79 = { -9, -7 };
+	const uint64x2_t one = vdupq_n_u64(1);
+	uint64x2_t PP = vdupq_lane_u64(vget_low_u64(OP), 0);
+	uint64x2_t OO = vdupq_lane_u64(vget_high_u64(OP), 0);
 
-	mask0 = rmask_v4[pos][0];					mask1 = rmask_v4[pos][1];
+	mask0 = lrmask_v4[pos][2];					mask1 = lrmask_v4[pos][3];
 		// isolate non-opponent MS1B by clearing lower bits
 	eraser0 = vbicq_u64(mask0, OO);					eraser1 = vbicq_u64(mask1, OO);
 		// clear valid bits only using variable shift
-	oflank0 = vshlq_s64(vandq_u64(PP, mask0), lshift18);		oflank1 = vshlq_s64(vandq_u64(PP, mask1), lshift79);
-	eraser0 = vorrq_u64(eraser0, vshlq_s64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_s64(eraser1, rshift79));
+	oflank0 = vshlq_u64(vandq_u64(PP, mask0), lshift18);		oflank1 = vshlq_u64(vandq_u64(PP, mask1), lshift79);
+	eraser0 = vorrq_u64(eraser0, vshlq_u64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_u64(eraser1, rshift79));
 	rshift18 = vaddq_s64(rshift18, rshift18);			rshift79 = vaddq_s64(rshift79, rshift79);
-	eraser0 = vorrq_u64(eraser0, vshlq_s64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_s64(eraser1, rshift79));
-	eraser0 = vorrq_u64(eraser0, vshlq_s64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_s64(eraser1, rshift79));
+	eraser0 = vorrq_u64(eraser0, vshlq_u64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_u64(eraser1, rshift79));
+	eraser0 = vorrq_u64(eraser0, vshlq_u64(eraser0, rshift18));	eraser1 = vorrq_u64(eraser1, vshlq_u64(eraser1, rshift79));
 	oflank0 = vbicq_u64(oflank0, eraser0);				oflank1 = vbicq_u64(oflank1, eraser1);
 		// set mask bits higher than oflank
-	flip0 = vbicq_u64(mask0, vandq_u64(oflank0, minusone));		flip1 = vbicq_u64(mask1, vandq_u64(oflank1, minusone));
+	flip = vbicq_u64(mask0, vsubq_u64(oflank0, one));		flip = vorrq_u64(flip, vbicq_u64(mask1, vsubq_u64(oflank1, one)));
 
-	mask0 = lmask_v4[pos][0];					mask1 = lmask_v4[pos][1];
-		// look for non-opponent LS1B
-	oflank0 = vbicq_u64(mask0, OO);					oflank1 = vbicq_u64(mask1, OO);
-	oflank0 = vbicq_u64(oflank0, vaddq_u64(oflank0, minusone));	oflank1 = vbicq_u64(oflank1, vaddq_u64(oflank1, minusone));
-	oflank0 = vandq_u64(oflank0, PP);				oflank1 = vandq_u64(oflank1, PP);
-		// set all bits lower than oflank
-	oflank0 = vaddq_u64(oflank0, minusone);				oflank1 = vaddq_u64(oflank1, minusone);
-		// sign bit becomes 1 only if oflank was 0, if so add back 1
-	oflank0 = vaddq_u64(oflank0, vshrq_n_u64(oflank0, 63));		oflank1 = vaddq_u64(oflank1, vshrq_n_u64(oflank1, 63));
-	flip0 = vorrq_u64(flip0, vandq_u64(oflank0, mask0));		flip1 = vorrq_u64(flip1, vandq_u64(oflank1, mask1));
+	mask0 = lrmask_v4[pos][0];					mask1 = lrmask_v4[pos][1];
+		// get outflank with carry-propagation
+	oflank0 = vaddq_u64(vornq_u64(OO, mask0), one);			oflank1 = vaddq_u64(vornq_u64(OO, mask1), one);
+	oflank0 = vandq_u64(vandq_u64(PP, mask0), oflank0);		oflank1 = vandq_u64(vandq_u64(PP, mask1), oflank1);
+		// set all bits lower than oflank, using satulation if oflank = 0
+	oflank0 = vqsubq_u64(oflank0, one);				oflank1 = vqsubq_u64(oflank1, one);
+	flip = vbslq_u64(mask1, oflank1, vbslq_u64(mask0, oflank0, flip));
 
+<<<<<<< HEAD
 	flip0 = vorrq_u64(flip0, flip1);
 	return vget_lane_u64(vorr_u64(vget_low_u64(flip0), vget_high_u64(flip0)), 0);
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+	return vorrq_u64(flip, vextq_u64(flip, flip, 1));
+>>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 }
 
