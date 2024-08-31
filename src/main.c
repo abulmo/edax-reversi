@@ -8,6 +8,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2018
@@ -24,6 +25,9 @@
 =======
  * @date 1998 - 2023
 >>>>>>> 4087529 (Revise board0 usage; fix unused flips)
+=======
+ * @date 1998 - 2024
+>>>>>>> a09308f (Renew version string and copyright year)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -58,6 +62,7 @@ void version(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
 =======
 
@@ -72,6 +77,9 @@ void version(void)
 =======
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 23 Toshihiko Okuhara\n\n");
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
+>>>>>>> a09308f (Renew version string and copyright year)
 }
 
 

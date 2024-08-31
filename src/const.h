@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2020
@@ -16,6 +17,9 @@
 =======
  * @date 1998 - 2023
 >>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
+=======
+ * @date 1998 - 2024
+>>>>>>> a09308f (Renew version string and copyright year)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -108,6 +112,7 @@ typedef	unsigned char	NodeType;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
 =======
@@ -150,6 +155,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.5.1"
 #define EDAX_NAME "Edax 4.5.1"
 >>>>>>> 4087529 (Revise board0 usage; fix unused flips)
+=======
+#define VERSION_STRING "4.5.2"
+#define EDAX_NAME "Edax 4.5.2"
+>>>>>>> a09308f (Renew version string and copyright year)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

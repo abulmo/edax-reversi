@@ -9,6 +9,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2020 - 2024
 =======
  * @date 2020 - 2022
@@ -16,6 +17,9 @@
 =======
  * @date 2020 - 2023
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+ * @date 2020 - 2024
+>>>>>>> a09308f (Renew version string and copyright year)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
