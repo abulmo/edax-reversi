@@ -555,16 +555,6 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 		w_mid_parity = 1 << 2,
 		w_high_parity = 1 << 1
 	};
-	static const char parity_weight_table[64] = {	// https://eukaryote.hateblo.jp/entry/2020/05/16/082757
-		w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity,
-		w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity,
-		w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_high_parity, w_high_parity, w_high_parity,
-		w_high_parity, w_high_parity, w_high_parity, w_high_parity, w_high_parity, w_high_parity, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0
-	};
 #endif
 	static const char min_depth_table[64] = {
 		19, 18, 18, 18, 17, 17, 17, 16,
@@ -583,6 +573,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	Search_Backup backup;
 
 	empties = search->eval.n_empties;
+<<<<<<< HEAD
 #ifdef TUNE_EDAX
 	parity_weight = (empties < 12) ? w_low_parity : ((empties < 21) ? w_mid_parity : ((empties < 30) ? w_high_parity : 0));
 <<<<<<< HEAD
@@ -605,6 +596,11 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 #else
 	parity_weight = parity_weight_table[empties];
 #endif
+=======
+	if (empties < 21)
+		parity_weight = (empties < 12) ? w_low_parity : w_mid_parity;
+	else	parity_weight = (empties < 30) ? w_high_parity : 0;
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	// min_depth = 9;
 	// if (empties <= 27) min_depth += (30 - empties) / 3;
 	min_depth = min_depth_table[empties];

@@ -145,12 +145,18 @@ const Selectivity selectivity_table [] = {
 /** threshold values to try stability cutoff during NWS search */
 // TODO: better values may exist.
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 =======
 const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	 99, 99, 99, 99,  6,  8, 10, 12,
 	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
+=======
+const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+	 99, 99, 99, 99,  4,  8, 10, 12,
+	 14, 16, 20, 22, 24, 26, 28, 30,
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	 32, 34, 36, 38, 40, 42, 44, 46,
 	 48, 48, 50, 50, 52, 52, 54, 54,
 	 56, 56, 58, 58, 60, 60, 62, 62,
@@ -162,10 +168,14 @@ const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 /** threshold values to try stability cutoff during PVS search */
 // TODO: better values may exist.
 <<<<<<< HEAD
+<<<<<<< HEAD
 const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 =======
 const unsigned char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	 99, 99, 99, 99, -2,  0,  2,  4,
 	  6,  8, 12, 14, 16, 18, 20, 22,
 	 24, 26, 28, 30, 32, 34, 36, 38,
@@ -1140,7 +1150,6 @@ void search_restore_endgame(Search *search, const Move *move)
 =======
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 }
-#endif
 
 /**
  * @brief Update the search state after a passing move.

@@ -351,6 +351,18 @@ uint64x2_t bit_weighted_count_neon(unsigned long long Q0, unsigned long long Q1)
 #elif 0	// SWAR, for record
 int bit_weighted_count(unsigned long long v)
 {
+<<<<<<< HEAD
+=======
+#if defined(POPCOUNT)
+
+  #ifdef HAS_CPU_64
+	return bit_count(v) + bit_count(v & 0x8100000000000081ULL);
+  #else
+	return bit_count(v) + bit_count_32(((unsigned int)(v >> 32) & 0x81000000) | ((unsigned int) v & 0x00000081));
+  #endif
+
+#else
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	int	c;
 
 	v  = v - ((v >> 1) & 0x1555555555555515) + (v & 0x0100000000000001);
@@ -379,14 +391,14 @@ int bit_weighted_count(unsigned long long v)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	v  = v - ((v >> 1) & 0x1555555555555515ULL) + (v & 0x0100000000000001ULL);
 	v  = ((v >> 2) & 0x3333333333333333ULL) + (v & 0x3333333333333333ULL);
-#ifdef HAS_CPU_64
+  #ifdef HAS_CPU_64
 	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
 	c = (v * 0x0101010101010101ULL) >> 56;
-#else
+  #else
 	c = (v >> 32) + v;
 	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
 	c = (c * 0x01010101) >> 24;
-#endif
+  #endif
 	return c;
 #endif
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)

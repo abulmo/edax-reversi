@@ -1589,13 +1589,13 @@ int get_corner_stability(const unsigned long long P)
 	// stable = (((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P;
 	unsigned long long stable = 0x8100000000000081 & P;
 	stable |= ((((stable * 5) >> 1) & 0x4200000000000042) | (stable << 8) | (stable >> 8)) & P;
-	return _mm_popcnt_u64(stable);
+	return bit_count(stable);
 
   #else
 	unsigned int P1278 = ((unsigned int)(P >> 48) << 16) | (unsigned short) P;
 	unsigned int stable = 0x81000081 & P1278;
 	stable |= ((((stable * 5) >> 1) & 0x42000042) | (stable << 8) | (stable >> 8)) & P1278;
-	return _mm_popcnt_u32(stable);
+	return bit_count_32(stable);
   #endif
 >>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 
@@ -1612,7 +1612,11 @@ int get_corner_stability(const unsigned long long P)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// BMI2 CPU has POPCOUNT
+=======
+  #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// kindergarten for generic modern build
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
 

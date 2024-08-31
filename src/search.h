@@ -184,6 +184,7 @@ extern const unsigned char QUADRANT_ID[];
 extern const unsigned long long quadrant_mask[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
+<<<<<<< HEAD
 // extern const signed char NWS_STABILITY_THRESHOLD[];
 extern const signed char PVS_STABILITY_THRESHOLD[];
 =======
@@ -195,6 +196,10 @@ extern const int NO_SELECTIVITY;
 extern const unsigned char NWS_STABILITY_THRESHOLD[];
 extern const unsigned char PVS_STABILITY_THRESHOLD[];
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+extern const signed char NWS_STABILITY_THRESHOLD[];
+extern const signed char PVS_STABILITY_THRESHOLD[];
+>>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 extern const unsigned char SQUARE_TYPE[];
 
 /* function definition */
