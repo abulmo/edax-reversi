@@ -3,7 +3,7 @@
  *
  * Go Text Protocol
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -97,11 +97,11 @@ void ui_init_gtp(UI *ui)
 	options.verbosity = 0;
 	options.info = 0;
 
-	play_init(play, ui->book);
-	ui->book->search = play->search;
-	book_load(ui->book, options.book_file);
-	play->search->id = 1;
-	search_set_observer(play->search, gtp_observer);
+	play_init(play, &ui->book);
+	ui->book.search = &play->search;
+	book_load(&ui->book, options.book_file);
+	play->search.id = 1;
+	search_set_observer(&play->search, gtp_observer);
 	ui->mode = 3;
 	play->type = ui->type;
 
@@ -114,8 +114,8 @@ void ui_init_gtp(UI *ui)
  */
 void ui_free_gtp(UI *ui)
 {
-	if (ui->book->need_saving) book_save(ui->book, options.book_file);
-	book_free(ui->book);
+	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
+	book_free(&ui->book);
 	play_free(ui->play);
 	log_close(gtp_log);
 }
@@ -322,7 +322,7 @@ void ui_loop_gtp(UI *ui)
 		} else if (strcmp(cmd, "showboard") == 0) {
 			printf("= ");
 			if (has_id) printf("%d\n", id);
-			board_print(play->board, play->player, stdout);
+			board_print(&play->board, play->player, stdout);
 			putchar('\n'); fflush(stdout);
 
 		// error: unknown message
