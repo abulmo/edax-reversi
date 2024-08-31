@@ -180,8 +180,12 @@ void hash_cleanup(HashTable *hash_table)
 =======
 
   #if defined(hasSSE2) || defined(USE_MSVC_X86)
+<<<<<<< HEAD
 	if (hasSSE2 && (sizeof(Hash) == 24) && (((uintptr_t) pHash & 0x1f) == 0) && (imax >= 7)) {
 >>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
+=======
+	if (hasSSE2 && (sizeof(Hash) == 24) && (((size_t) pHash & 0x1f) == 0) && (imax >= 7)) {
+>>>>>>> 47c2589 (Fix w32-modern build and gcc build)
 		for (; i < 4; ++i, ++pHash) {
 			HASH_COLLISIONS(pHash->key = 0;)
 			pHash->board.player = pHash->board.opponent = 0;

@@ -1342,10 +1342,14 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
 	__m128i l81, l79, l8;
 	__m256i	v4_disc, lr79;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	const __m128i kff  = _mm_set1_epi8(-1);
 =======
 	const __m128i kff  = _mm_set1_epi8(0xff);
 >>>>>>> 593fff4 (use appropriate _mm_set1)
+=======
+	const __m128i kff  = _mm_set1_epi8(-1);
+>>>>>>> 47c2589 (Fix w32-modern build and gcc build)
     #if 0 // PCMPEQQ
 =======
  * @param P bitboard with player's discs.
