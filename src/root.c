@@ -1258,10 +1258,14 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	for (search->depth = start; search->depth < end; search->depth += 2) {
 		search->depth_pv_extension = get_pv_extension(search->depth, search->eval.n_empties);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		score = aspiration_search(search, SCORE_MIN, SCORE_MAX/*alpha, beta*/, search->depth, score);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
 =======
 		score = aspiration_search(search, alpha, beta, search->depth, score);
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		score = aspiration_search(search, SCORE_MIN, SCORE_MAX/*alpha, beta*/, search->depth, score);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
+>>>>>>> 011233a (Update root.c)
 		if (!search_continue(search)) return;
 		if (abs(score) >= SCORE_MAX - 1 && search->depth > end - ITERATIVE_MIN_EMPTIES && search->options.depth >= search->eval.n_empties) break;
 	}
