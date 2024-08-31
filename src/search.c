@@ -1461,16 +1461,30 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 		Board next;
 		HashData etc;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		HashStoreData hash_data;
 =======
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		HashStoreData hash_store_data;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		unsigned long long etc_hash_code;
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
 		const int beta = alpha + 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	
+=======
+
+		hash_store_data.data.depth = depth;
+		hash_store_data.data.selectivity = selectivity;
+		hash_store_data.data.cost = 0;
+		hash_store_data.alpha = alpha;
+		hash_store_data.beta = beta;
+
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		CUTOFF_STATS(++statistics.n_etc_try;)
 		foreach_move (move, *movelist) {
 			next.opponent = search->board.player ^ (move->flipped | x_to_bit(move->x));
@@ -1501,8 +1515,14 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
 				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
 				if (*score > alpha) {
+<<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+					hash_store_data.score = *score;
+					hash_store_data.move = move->x;
+					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
@@ -1520,8 +1540,14 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.selectivity >= selectivity && etc.depth >= etc_depth) {
 				*score = -etc.upper;
 				if (*score > alpha) {
+<<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+					hash_store_data.score = *score;
+					hash_store_data.move = move->x;
+					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}

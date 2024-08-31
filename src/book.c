@@ -1059,11 +1059,16 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 	const unsigned long long hash_code = board_get_hash_code(board);
 	MoveList movelist;
 	Move *m;
+<<<<<<< HEAD
 	HashStoreData hash_data;
+=======
+	HashStoreData hash_store_data;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 	position = book_probe(book, board);
 	if (position) {
 		const int n_empties = board_count_empties(&position->board);
+<<<<<<< HEAD
 <<<<<<< HEAD
 		const int score = position->score.value;
 		int move = NOMOVE;
@@ -1078,6 +1083,14 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 		int move = NOMOVE;
 
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		const int score = position->score.value;
+		int move = NOMOVE;
+
+		hash_store_data.data.depth = LEVEL[position->level][n_empties].depth;
+		hash_store_data.data.selectivity = LEVEL[position->level][n_empties].selectivity;
+
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		position_get_moves(position, board, &movelist);
 		foreach_move(m, movelist) {
 			if (move == NOMOVE) move = m->x;
@@ -1085,6 +1098,7 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 		hash_data.data.lower = hash_data.data.upper = score;
@@ -1095,6 +1109,13 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 		hash_feed(&search->hash_table, board, hash_code, depth, selectivity, score, score, move);
 		if (is_pv) hash_feed(&search->pv_table, board, hash_code, depth, selectivity, score, score, move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+
+		hash_store_data.data.lower = hash_store_data.data.upper = score;
+		hash_store_data.move = move;
+		hash_feed(&search->hash_table, board, hash_code, &hash_store_data);
+		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_store_data);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	}
 }
 

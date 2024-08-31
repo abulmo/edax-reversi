@@ -378,17 +378,23 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	HashData hash_data[1];
 	MoveList *movelist = search->movelist;
 	Board *board = search->board;
 =======
+=======
+	unsigned long long hash_code;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	HashData hash_data;
+	HashStoreData hash_store_data;
 	MoveList *const movelist = &search->movelist;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Move *move;
 	Node node;
 	Eval Ev0;
+<<<<<<< HEAD
 	long long cost = -search_count_nodes(search);
 <<<<<<< HEAD
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
@@ -402,6 +408,8 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	Node node;
 	Eval eval0;
 	Board board0;
+=======
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	long long nodes_org = search_count_nodes(search);
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -544,12 +552,26 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		record_best_move(search, &search->board, movelist_first(movelist), alpha, beta, depth);
 
 		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
+<<<<<<< HEAD
 			cost += search_count_nodes(search);
 			cost_bits = last_bit(cost);
 			hash_store(&search->hash_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
 			else hash_store(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			hash_store_data.data.depth = depth;
+			hash_store_data.data.selectivity = search->selectivity;
+			hash_store_data.data.cost = last_bit(search_count_nodes(search) - nodes_org);
+			hash_store_data.alpha = alpha;
+			hash_store_data.beta = beta;
+			hash_store_data.score = node.bestscore;
+			hash_store_data.move = node.bestmove;
+
+			hash_store(&search->hash_table, &search->board, hash_code, &hash_store_data);
+			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_store_data);
+			else hash_store(&search->pv_table, &search->board, hash_code, &hash_store_data);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);

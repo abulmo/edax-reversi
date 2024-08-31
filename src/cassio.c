@@ -434,6 +434,7 @@ void engine_free(void *v)
 
 void feed_all_hash_table(Search *search, Board *board, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
+<<<<<<< HEAD
 	HashStoreData hash_data;
 	const unsigned long long hash_code = board_get_hash_code(board);
 
@@ -449,6 +450,18 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 	hash_feed(&search->hash_table, board, hash_code, depth, selectivity, lower, upper, move);
 	hash_feed(&search->pv_table, board, hash_code, depth, selectivity, lower, upper, move);	
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	HashStoreData hash_store_data;
+	const unsigned long long hash_code = board_get_hash_code(board);
+
+	hash_store_data.data.depth = depth;
+	hash_store_data.data.selectivity = selectivity;
+	hash_store_data.data.lower = lower;
+	hash_store_data.data.upper = upper;
+	hash_store_data.move = move;
+	hash_feed(&search->hash_table, board, hash_code, &hash_store_data);
+	hash_feed(&search->pv_table, board, hash_code, &hash_store_data);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 }
 
 /**

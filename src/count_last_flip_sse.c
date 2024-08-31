@@ -419,7 +419,7 @@ int last_flip(int pos, unsigned long long P)
 	unsigned int	t;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-#ifdef __AVX2__
+#ifdef AVXLASTFLIP
 	__m256i	MP = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), mask_dvhd[pos].v4);
 
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];

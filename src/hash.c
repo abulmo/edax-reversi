@@ -205,11 +205,19 @@ static void data_update(HashData *data, HashStoreData *storedata)
 
 	if (score < storedata->beta && score < data->upper) data->upper = (signed char) score;
 	if (score > storedata->alpha && score > data->lower) data->lower = (signed char) score;
+<<<<<<< HEAD
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
 		data->move[0] = storedata->data.move[0];
 	}
 	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);
+=======
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->move) {
+		data->move[1] = data->move[0];
+		data->move[0] = storedata->move;
+	}
+	data->cost = (unsigned char) MAX(storedata->data.cost, data->cost);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	HASH_STATS(++statistics.n_hash_update;)
 }
 
@@ -234,12 +242,22 @@ static void data_upgrade(HashData *data, HashStoreData *storedata)
 
 	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
 	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
+<<<<<<< HEAD
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
 		data->move[0] = storedata->data.move[0];
 	}
 	data->wl.us.selectivity_depth = storedata->data.wl.us.selectivity_depth;
 	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);  // this may not work well in parallel search.
+=======
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->move) {
+		data->move[1] = data->move[0];
+		data->move[0] = storedata->move;
+	}
+	data->depth = storedata->data.depth;
+	data->selectivity = storedata->data.selectivity;
+	data->cost = (unsigned char) MAX(storedata->data.cost, data->cost);  // this may not work well in parallel search.
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	HASH_STATS(++statistics.n_hash_upgrade;)
 
 	assert(data->upper >= data->lower);
@@ -262,12 +280,21 @@ static void data_new(HashData *data, HashStoreData *storedata)
 {
 	int score = storedata->score;
 
+<<<<<<< HEAD
 	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
 	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
 	if (score > storedata->alpha || score == SCORE_MIN) data->move[0] = storedata->data.move[0];
 	else data->move[0] = NOMOVE;
 	data->move[1] = NOMOVE;
 	data->wl = storedata->data.wl;
+=======
+	if (score < storedata->beta) storedata->data.upper = (signed char) score; else storedata->data.upper = SCORE_MAX;
+	if (score > storedata->alpha) storedata->data.lower = (signed char) score; else storedata->data.lower = SCORE_MIN;
+	if (score > storedata->alpha || score == SCORE_MIN) storedata->data.move[0] = storedata->move;
+	else storedata->data.move[0] = NOMOVE;
+	storedata->data.move[1] = NOMOVE;
+	*data = storedata->data;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	assert(data->upper >= data->lower);
 }
 
@@ -291,7 +318,11 @@ static void data_new(HashData *data, HashStoreData *storedata)
  * @param storedata.score Best score.
  * @param storedata.move Best move.
  */
+<<<<<<< HEAD
 static void hash_new(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+=======
+static void hash_new(Hash *hash, HashLock *lock, const Board* board, HashStoreData *storedata)
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 {
 	spin_lock(lock);
 	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
@@ -329,6 +360,11 @@ static void hash_set(Hash *hash, HashLock *lock, const Board *board, HashStoreDa
 	HASH_STATS(++statistics.n_hash_new;)
 	HASH_COLLISIONS(hash->key = storedata->hash_code;)
 	hash->board = *board;
+<<<<<<< HEAD
+=======
+	storedata->data.move[0] = storedata->move;
+	storedata->data.move[1] = NOMOVE;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	hash->data = storedata->data;
 	assert(hash->data.upper >= hash->data.lower);
 	spin_unlock(lock);
@@ -359,9 +395,14 @@ static void hash_set(Hash *hash, HashLock *lock, const Board *board, HashStoreDa
 static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	bool ok = false;
+<<<<<<< HEAD
+=======
+	HashData *const data = &hash->data;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
+<<<<<<< HEAD
 		if (board_equal(&hash->board, board)) {
 			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth)
 				data_update(&hash->data, storedata);
@@ -369,6 +410,15 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 			hash->data.wl.c.date = storedata->data.wl.c.date;
 			if (hash->data.lower > hash->data.upper) { // reset the hash-table...
 				data_new(&hash->data, storedata);
+=======
+		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+			if (data->selectivity == storedata->data.selectivity && data->depth == storedata->data.depth)
+				data_update(data, storedata);
+			else	data_upgrade(data, storedata);
+			data->date = storedata->data.date;
+			if (data->lower > data->upper) { // reset the hash-table...
+				data_new(data, storedata);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 			}
 			ok = true;
 		} 
@@ -408,7 +458,11 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
 	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 		spin_lock(lock);
+<<<<<<< HEAD
 		if (board_equal(&hash->board, board)) {
+=======
+		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 			data_new(&hash->data, storedata);
 			ok = true;
 		}
@@ -433,6 +487,7 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
 static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	bool ok = false;
+<<<<<<< HEAD
 
 	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
@@ -452,6 +507,31 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStore
 				// } else {
 				//	hash->data.move[1] = storedata->data.move[0];
 				// }
+=======
+	HashData *const data = &hash->data;
+
+	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+		spin_lock(lock);
+		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+			if (data->selectivity == storedata->data.selectivity && data->depth == storedata->data.depth) {
+				if (data->lower < storedata->data.lower) data->lower = storedata->data.lower;
+				if (data->upper > storedata->data.upper) data->upper = storedata->data.upper;
+			} else {
+				data->depth = storedata->data.depth;
+				data->selectivity = storedata->data.selectivity;
+				data->lower = storedata->data.lower;
+				data->upper = storedata->data.upper;
+			}
+			data->cost = 0;
+			data->date = storedata->data.date;
+			if (storedata->move != NOMOVE) {
+				if (data->move[0] != storedata->move) {
+					data->move[1] = data->move[0];
+					data->move[0] = storedata->move;
+				} else {
+					data->move[1] = storedata->move;
+				}
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 			}
 			ok = true;
 		}
@@ -477,8 +557,13 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
 	HashLock *lock; 
 	int i;
 
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date ? hash_table->date : 1;
 	storedata->data.wl.c.cost = 0;
+=======
+
+	storedata->data.date = hash_table->date ? hash_table->date : 1;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
@@ -494,6 +579,10 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
 
 	// new entry
 	HASH_COLLISIONS(storedata->hash_code = hash_code;)
+<<<<<<< HEAD
+=======
+	storedata->data.cost = 0;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	hash_set(worst, lock, board, storedata);
 }
 
@@ -534,7 +623,11 @@ void hash_store(HashTable *hash_table, const Board *board, const unsigned long l
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date;
+=======
+	storedata->data.date = hash_table->date;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	if (hash_update(hash, lock, board, storedata)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
@@ -574,11 +667,16 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date;
 	if (hash_replace(hash, lock, board, storedata)) return;
 =======
 	if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	storedata->data.date = hash_table->date;
+	if (hash_replace(hash, lock, board, storedata)) return;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
@@ -589,6 +687,7 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	HASH_COLLISIONS(storedata->hash_code = hash_code;)
 	hash_new(worst, lock, board, storedata);
 =======
@@ -598,6 +697,10 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
 #endif
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	HASH_COLLISIONS(storedata->hash_code = hash_code;)
+	hash_new(worst, lock, board, storedata);
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 }
 
 /**

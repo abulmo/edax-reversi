@@ -896,10 +896,15 @@ int NWS_endgame(Search *search, const int alpha)
 	unsigned long long hash_code;
 	// const int beta = alpha + 1;
 	HashData hash_data;
+	HashStoreData hash_store_data;
 	MoveList movelist;
 	Move *move, *bestmove;
+<<<<<<< HEAD
 	long long cost;
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	long long nodes_org;
+>>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 	if (search->stop) return alpha;
 
@@ -937,7 +942,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 	search_get_movelist(search, &movelist);
 
-	cost = -search->n_nodes;
+	nodes_org = search->n_nodes;
 
 	// special cases
 	if (movelist_is_empty(&movelist)) {
@@ -1082,8 +1087,15 @@ int NWS_endgame(Search *search, const int alpha)
 			bestscore = search_solve(search);
 =======
 	if (!search->stop) {
-		cost += search->n_nodes;
-		hash_store(hash_table, &search->board, hash_code, search->n_empties, NO_SELECTIVITY, last_bit(cost), alpha, alpha + 1, bestmove->score, bestmove->x);
+		hash_store_data.data.depth = search->n_empties;
+		hash_store_data.data.selectivity = NO_SELECTIVITY;
+		hash_store_data.data.cost = last_bit(search->n_nodes - nodes_org);
+		hash_store_data.alpha = alpha;
+		hash_store_data.beta = alpha + 1;
+		hash_store_data.score = bestmove->score;
+		hash_store_data.move = bestmove->x;
+		hash_store(hash_table, &search->board, hash_code, &hash_store_data);
+
 		if (SQUARE_STATS(1) + 0) {
 			foreach_move(move, movelist)
 				++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];

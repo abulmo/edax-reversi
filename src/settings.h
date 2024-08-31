@@ -236,7 +236,7 @@
  *
  * Various macro / constants to control algorithm usage.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -277,6 +277,7 @@
 #ifndef LAST_FLIP_COUNTER
 	#ifdef hasSSE2
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
+		// #define AVXLASTFLIP	1	// slower on slow vzeroupper CPU
 	#else
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_32
 	#endif

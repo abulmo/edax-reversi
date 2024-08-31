@@ -938,7 +938,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 	unsigned int	t;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-#ifdef __AVX2__
+#ifdef AVXLASTFLIP
 	__m256i	MP, MO;
 #else
 	__m128i	PP, OO;
@@ -949,7 +949,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
 
 	// n_flips = last_flip(x, board->player);
-#ifdef __AVX2__
+#ifdef AVXLASTFLIP
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
 	MP = _mm256_and_si256(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), MP));
@@ -973,7 +973,7 @@ static int vectorcall board_score_sse_1(__m128i OP, const int beta, const int po
 
 		if (score < beta) {	// lazy cut-off
 			// n_flips = last_flip(x, board->opponent);
-#ifdef __AVX2__
+#ifdef AVXLASTFLIP
 			MO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mask_dvhd[pos].v4);
 			II = _mm_sad_epu8(_mm256_castsi256_si128(MO), _mm_setzero_si128());
 			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm256_extracti128_si256(MO, 1)));

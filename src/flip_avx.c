@@ -9,7 +9,7 @@
  * For MSB to LSB direction, sequencial search with parallel prefix
  * is used.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2020
  * @author Toshihiko Okuhara
  * @version 4.4
  */
@@ -104,7 +104,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	PP = _mm256_broadcastq_epi64(OP);
 	mOO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55), mflip1897);
 
-	ocontig = _mm256_broadcastq_epi64(_mm_loadl_epi64((__m128i *) &X_TO_BIT[pos]));
+	ocontig = _mm256_broadcastq_epi64(*(__m128i *) &X_TO_BIT[pos]);
 	shift = shift1897;
 	ocontig = _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift));
 	ocontig = _mm256_or_si256(ocontig, _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift)));
