@@ -383,6 +383,28 @@ static const UINT64 mask_c1h6 = 0x0000804020100804;
 #endif
 >>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
+/**
+ * _mm_movepi64_pi64 equivalent to avoid large-to-small mismatch
+ *
+ * AMD 47414 pp.96
+ */
+static inline UINT64 SSE2 movepi64_by_movd(__v2di x)
+{
+#ifdef __SSE2__
+	return ((unsigned int) _mm_cvtsi128_si32(x))
+		| ((UINT64) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32);
+#else
+	UINT64 y;
+	__asm__ ( "movd	%1,%%eax\n\t"
+		"psrlq	$32,%1\n\t"
+		"movd	%1,%%edx"
+		: "=A" (y) : "x" (x));
+	return y;
+#endif
+}
+
+#ifdef __SSE2__
+
 #define	SWAP64	0x4e	// for _mm_shuffle_epi32
 #define	SWAP32	0xb1
 #define	DUPLO	0x44
@@ -440,6 +462,7 @@ static inline __m128i set1_by_movd (unsigned int L, unsigned int H) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define FLIP_CARRY_2_VEC(flip_l)	__m128i	outflank_vd;\
 	outflank_vd = _mm_andnot_si128(set1_by_movd(OL, OH), mask.v2);\
 	outflank_vd = _mm_and_si128(_mm_and_si128(outflank_vd, _mm_sub_epi64(_mm_setzero_si128(), outflank_vd)), set1_by_movd(PL, PH));\
@@ -479,6 +502,15 @@ static inline UINT64 SSE2 movepi64_by_movd(__v2di x)
 	flipped = _mm_cvtsi128_si64(_mm_or_si128(flipped_v2, _mm_shuffle_epi32(flipped_v2, SWAP64)))
 
 #define	FLIP_CARRY_3_VEC(flip_l)	__m128i	outflank_vd, outflank_d_, PP, OO, mask2_;\
+=======
+#define FLIP_CARRY_2_VEC(flip_l)	__v2di	outflank_v_d;\
+	outflank_v_d = _mm_andnot_si128(mask, (set1_by_movd(OL, OH) | mask) - minusone) & set1_by_movd(PL, PH);\
+	outflank_v_d = _mm_andnot_si128(mask, outflank_v_d - (flipmask(outflank_v_d) - minusone));\
+	outflank_v_d |= _mm_shuffle_epi32(outflank_v_d, SWAP64);\
+	flipped = (flip_l) | movepi64_by_movd(outflank_v_d)
+
+#define	FLIP_CARRY_3_VEC(flip_l)	__v2di	outflank_v_d, outflank_d_0, PP, OO, mask2_;\
+>>>>>>> e558fdb (Some cleanups for clang / android build)
 	OO = set1_by_movd(OL, OH);\
 	PP = set1_by_movd(PL, PH);\
 	mask2_ = _mm_loadl_epi64((__m128i *) &mask2);\

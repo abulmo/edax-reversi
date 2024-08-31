@@ -92,10 +92,16 @@ int board_count_empties(const Board *board);
 
 extern unsigned char edge_stability[256 * 256];
 
+<<<<<<< HEAD
 // a1/a8/h1/h8 are already stable in horizontal line, so omit them in vertical line to ease kindergarten for CPU_64
 #if 0 // defined(__BMI2__) && defined(HAS_CPU_64) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__) // pdep is slow on AMD before Zen3
 	#define	unpackA2A7(x)	_pdep_u64((x), 0x0101010101010101)
 	#define	unpackH2H7(x)	_pdep_u64((x), 0x8080808080808080)
+=======
+/* Define function attributes directive when available */
+#if defined(__GNUC__) && !defined(__clang__) && defined(__i386__)
+	#define	REGPARM	__attribute__((regparm(2)))
+>>>>>>> e558fdb (Some cleanups for clang / android build)
 #else
 	#define	unpackA2A7(x)	((((x) & 0x7e) * 0x0000040810204080) & 0x0001010101010100)
 	#define	unpackH2H7(x)	((((x) & 0x7e) * 0x0002040810204000) & 0x0080808080808000)

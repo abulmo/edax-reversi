@@ -130,6 +130,9 @@ ifeq ($(COMP),gcc)
 	ifeq ($(OS),android)
 		CFLAGS += -DANDROID=1
 	endif
+	ifeq ($(OS),android)
+		CFLAGS += -DANDROID=1
+	endif
 	ifeq ($(OS),windows)
 		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x0501
 <<<<<<< HEAD
@@ -362,7 +365,15 @@ ifeq ($(OS),windows)
 	endif
 endif
 ifeq ($(OS),osx)
+<<<<<<< HEAD
 	EXE = mEdax-$(ARCH)
+=======
+	ifeq ($(ARCH),x64)
+		EXE = mEdax
+	else
+		EXE = mEdax-$(ARCH)
+	endif
+>>>>>>> e558fdb (Some cleanups for clang / android build)
 	LIBS += -lpthread
 endif
 
@@ -451,7 +462,11 @@ release:
 	$(MAKE) pgo-build ARCH=x64 OS=linux COMP=gcc 
 	$(MAKE) build ARCH=x64 OS=windows COMP=gcc CC='x86_64-w64-mingw32-gcc'
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
+<<<<<<< HEAD
 	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
+=======
+	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
+>>>>>>> e558fdb (Some cleanups for clang / android build)
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 
