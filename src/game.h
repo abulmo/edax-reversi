@@ -3,7 +3,7 @@
  *
  * Header file for game management
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -20,7 +20,7 @@
 struct Random;
 
 typedef struct Game {
-	Board initial_board[1];
+	Board initial_board;
 	struct {
 		short year;
 		signed char month;
@@ -63,7 +63,7 @@ void game_import_text(Game*, FILE*);
 void game_import_wthor(Game*, FILE*);
 void game_import_ggf(Game*, FILE*);
 void game_import_sgf(Game*, FILE *);
-char *parse_ggf(Game*, const char*);
+int parse_ggf(Game*, const char*);
 void game_import_pgn(Game*, FILE *);
 void game_export_text(const Game*, FILE*);
 void game_export_ggf(const Game*, FILE*);
