@@ -280,11 +280,15 @@ int board_score_1(const unsigned long long player, const int alpha, const int x)
 {
 	int score, score2, n_flips;
 
-	score = SCORE_MAX - 2 - 2 * bit_count(player);	// = 2 * bit_count(opponent) - SCORE_MAX
+	score = 2 * bit_count(player) - SCORE_MAX  + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 
 	n_flips = last_flip(x, player);
+<<<<<<< HEAD
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
 	score -= n_flips;
+=======
+	score += n_flips;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 
 <<<<<<< HEAD
 	if (n_flips == 0) {
@@ -292,21 +296,30 @@ int board_score_1(const unsigned long long player, const int alpha, const int x)
 =======
 	if (n_flips == 0) {	// (23%)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 		score2 = score + 2;	// empty for player
 =======
 		score2 = score + 2;	// empty for opponent
 >>>>>>> 0ba5408 (add vectorcall to inline functions in case not inlined)
 		if (score >= 0)
+=======
+		score2 = score - 2;	// empty for opponent
+		if (score <= 0)
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 			score = score2;
-		if (score <= alpha) {	// lazy cut-off (40%)
+		if (score > alpha) {	// lazy cut-off (40%)
 			if ((n_flips = last_flip(x, ~player)) != 0)	// (98%)
+<<<<<<< HEAD
 				score = score2 + n_flips;
 <<<<<<< HEAD
 			}
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 >>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
+=======
+				score = score2 - n_flips;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 		}
 	}
 
@@ -317,10 +330,14 @@ int board_score_1(const unsigned long long player, const int alpha, const int x)
  * @brief Get the final score.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Get the final min score, when 2 empty squares remain.
 =======
  * Get the final max score, when 2 empty squares remain.
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+ * Get the final min score, when 2 empty squares remain.
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
  *
  * @param player Board.player to evaluate.
  * @param opponent Board.opponent to evaluate.
@@ -328,6 +345,7 @@ int board_score_1(const unsigned long long player, const int alpha, const int x)
  * @param x1 First empty square coordinate.
  * @param x2 Second empty square coordinate.
  * @param n_nodes Node counter.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @return The final min score, as a disc difference.
@@ -381,6 +399,9 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 =======
  * @return The final max score, as a disc difference.
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+ * @return The final min score, as a disc difference.
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
  */
 static int board_solve_2(unsigned long long player, unsigned long long opponent, int alpha, int x1, int x2, volatile unsigned long long *n_nodes)
 >>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
@@ -394,9 +415,9 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
 	if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (84%/84%)
 		bestscore = board_score_1(opponent ^ flipped, alpha, x2);
 
-		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (50%/93%/92%)
+		if ((bestscore > alpha) && (NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (50%/93%/92%)
 			score = board_score_1(opponent ^ flipped, alpha, x1);
-			if (score > bestscore)
+			if (score < bestscore)
 				bestscore = score;
 			nodes = 3;
 		} else	nodes = 2;
@@ -410,9 +431,9 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
 		if ((flipped = Flip(x1, opponent, player))) {	// (95%)
 			bestscore = board_score_1(player ^ flipped, alpha, x2);
 
-			if ((bestscore <= alpha) && (flipped = Flip(x2, opponent, player))) {	// (20%/100%)
+			if ((bestscore > alpha) && (flipped = Flip(x2, opponent, player))) {	// (20%/100%)
 				score = board_score_1(player ^ flipped, alpha, x1);
-				if (score > bestscore)
+				if (score < bestscore)
 					bestscore = score;
 				nodes = 3;
 			} else	nodes = 2;
@@ -452,7 +473,7 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
 			nodes = 2;
 
 		} else {	// gameover
-			bestscore = board_solve(opponent, 2);
+			bestscore = board_solve(player, 2);
 			nodes = 1;
 >>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 		}
@@ -481,10 +502,14 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
  * @brief Get the final score.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Get the final max score, when 3 empty squares remain.
 =======
  * Get the final min score, when 3 empty squares remain.
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+ * Get the final max score, when 3 empty squares remain.
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -507,6 +532,7 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
  * @param x2 Second empty square coordinate.
  * @param x3 Third empty square coordinate.
  * @param n_nodes Node counter.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @return The final max score, as a disc difference.
@@ -556,6 +582,9 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 =======
  * @return The final min score, as a disc difference.
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+ * @return The final max score, as a disc difference.
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
  */
 static int search_solve_3(unsigned long long player, unsigned long long opponent, int alpha, int sort3, int x1, int x2, int x3, volatile unsigned long long *n_nodes)
 {
@@ -591,6 +620,7 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 >>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -658,6 +688,9 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 >>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
 =======
 	bestscore = SCORE_INF;	// min stage
+=======
+	bestscore = -SCORE_INF;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 	pol = 1;
 	do {
 		// best move alphabeta search
@@ -666,15 +699,15 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x1));
 			bestscore = board_solve_2(next_player, next_opponent, alpha, x2, x3, n_nodes);
-			if (bestscore <= alpha) return bestscore * pol;	// (78%/63%)
+			if (bestscore > alpha) return bestscore * pol;	// (78%/63%)
 		}
 
 		if (/* (NEIGHBOUR[x2] & opponent) && */ (flipped = Flip(x2, player, opponent))) {	// (97%/78%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x2));
 			score = board_solve_2(next_player, next_opponent, alpha, x1, x3, n_nodes);
-			if (score <= alpha) return score * pol;	// (32%/9%)
-			else if (score < bestscore) bestscore = score;
+			if (score > alpha) return score * pol;	// (32%/9%)
+			else if (score > bestscore) bestscore = score;
 		}
 
 <<<<<<< HEAD
@@ -692,6 +725,7 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x3));
 			score = board_solve_2(next_player, next_opponent, alpha, x1, x2, n_nodes);
+<<<<<<< HEAD
 <<<<<<< HEAD
 			if (score > bestscore) bestscore = score;
 			return bestscore * pol;	// (26%)
@@ -713,10 +747,13 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 =======
 			if (score < bestscore) bestscore = score;
 >>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
+=======
+			if (score > bestscore) bestscore = score;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 			return bestscore * pol;	// (26%)
 		}
 
-		if (bestscore < SCORE_INF)	// (76%)
+		if (bestscore > -SCORE_INF)	// (76%)
 			return bestscore * pol;	// (9%)
 
 <<<<<<< HEAD
@@ -754,13 +791,18 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 		alpha = ~alpha;	// = -(alpha + 1)
 	} while ((pol = -pol) < 0);
 
+<<<<<<< HEAD
 	return board_solve(opponent, 3);	// gameover
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+	return board_solve(player, 3);	// gameover
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 }
 
 /**
  * @brief Get the final score.
  *
+<<<<<<< HEAD
 <<<<<<< HEAD
  * Get the final min score, when 4 empty squares remain.
  *
@@ -774,6 +816,13 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
  * @param alpha Upper score value.
  * @return The final max score, as a disc difference.
 >>>>>>> c8118a8 (Use minimax instead of nagamax for solve 4 or less)
+=======
+ * Get the final min score, when 4 empty squares remain.
+ *
+ * @param search Search position.
+ * @param alpha Upper score value.
+ * @return The final min score, as a disc difference.
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
  */
 static int search_solve_4(Search *search, int alpha)
 {
@@ -872,6 +921,7 @@ static int search_solve_4(Search *search, int alpha)
 	// stability cutoff (try 12%, cut 7%)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (search_SC_NWS_4(search, alpha, &score)) return score;
 
 	x1 = search->empties[NOMOVE].next;
@@ -884,6 +934,9 @@ static int search_solve_4(Search *search, int alpha)
 =======
 	if (search_SC_NWS(search, alpha, 4, &score)) return score;
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+	if (search_SC_NWS_4(search, alpha, &score)) return score;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 
 	x1 = search->empties[NOMOVE].next;
 	x2 = search->empties[x1].next;
@@ -947,6 +1000,7 @@ static int search_solve_4(Search *search, int alpha)
 <<<<<<< HEAD
 	player = search->board.player;
 	opponent = search->board.opponent;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1065,6 +1119,9 @@ static int search_solve_4(Search *search, int alpha)
 >>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
 =======
 	bestscore = -SCORE_INF;
+=======
+	bestscore = SCORE_INF;	// min stage
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 	pol = 1;
 	do {
 		// best move alphabeta search
@@ -1073,34 +1130,34 @@ static int search_solve_4(Search *search, int alpha)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x1));
 			bestscore = search_solve_3(next_player, next_opponent, alpha, sort3, x2, x3, x4, &search->n_nodes);
-			if (bestscore > alpha) return bestscore * pol;	// (68%)
+			if (bestscore <= alpha) return bestscore * pol;	// (68%)
 		}
 
 		if ((NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (87%/84%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x2));
 			score = search_solve_3(next_player, next_opponent, alpha, sort3 >> 4, x1, x3, x4, &search->n_nodes);
-			if (score > alpha) return score * pol;	// (37%)
-			else if (score > bestscore) bestscore = score;
+			if (score <= alpha) return score * pol;	// (37%)
+			else if (score < bestscore) bestscore = score;
 		}
 
 		if ((NEIGHBOUR[x3] & opponent) && (flipped = Flip(x3, player, opponent))) {	// (77%/80%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x3));
 			score = search_solve_3(next_player, next_opponent, alpha, sort3 >> 8, x1, x2, x4, &search->n_nodes);
-			if (score > alpha) return score * pol;	// (14%)
-			else if (score > bestscore) bestscore = score;
+			if (score <= alpha) return score * pol;	// (14%)
+			else if (score < bestscore) bestscore = score;
 		}
 
 		if ((NEIGHBOUR[x4] & opponent) && (flipped = Flip(x4, player, opponent))) {	// (79%/88%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x4));
 			score = search_solve_3(next_player, next_opponent, alpha, sort3 >> 12, x1, x2, x3, &search->n_nodes);
-			if (score > bestscore) bestscore = score;
+			if (score < bestscore) bestscore = score;
 			return bestscore * pol;	// (37%)
 		}
 
-		if (bestscore > -SCORE_INF)	// (72%)
+		if (bestscore < SCORE_INF)	// (72%)
 			return bestscore * pol;	// (13%)
 
 		next_opponent = player; player = opponent; opponent = next_opponent;	// pass
@@ -1108,11 +1165,15 @@ static int search_solve_4(Search *search, int alpha)
 	} while ((pol = -pol) < 0);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return board_solve(search->board.player, 4);	// gameover
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 =======
 	return board_solve(player, 4);	// gameover
 >>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
+=======
+	return board_solve(opponent, 4);	// gameover
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 }
 #endif
 
@@ -1200,11 +1261,15 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 	// stability cutoff (try 15%, cut 5%)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 =======
 	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+	if (search_SC_NWS(search, alpha, &score)) return score;
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1425,7 +1490,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 				prioritymoves &= ~x_to_bit(x);
 				search->empties[prev].next = search->empties[x].next;	// remove - maintain single link only
 				vboard_next(board0, x, &search->board);
-				score = -search_solve_4(search, ~alpha);
+				score = search_solve_4(search, alpha);
 				search->empties[prev].next = x;	// restore
 
 				if (score > alpha)

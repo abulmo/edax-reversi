@@ -1122,7 +1122,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	hash_prefetch(hash_table, hash_code);
 
 	// stability cutoff
-	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
+	if (search_SC_NWS(search, alpha, &score)) return score;
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1777,7 +1777,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	hash_prefetch(&search->hash_table, hash_code);
 
 	// stability cutoff
-	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
+	if (search_SC_NWS(search, alpha, &score)) return score;
 
 <<<<<<< HEAD
 	hash_code = board_get_hash_code(&search->board);

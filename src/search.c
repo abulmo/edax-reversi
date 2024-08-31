@@ -1591,8 +1591,9 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  * @param score Score to return in case of a cutoff is found.
  * @return 'true' if a cutoff is found, false otherwise.
  */
-bool search_SC_NWS(Search *search, const int alpha, const int n_empties, int *score)
+bool search_SC_NWS(Search *search, const int alpha, int *score)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1611,6 +1612,9 @@ bool search_SC_NWS(Search *search, const int alpha, const int n_empties, int *sc
 =======
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[n_empties]) {
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= alpha) {
@@ -1624,6 +1628,9 @@ bool search_SC_NWS(Search *search, const int alpha, const int n_empties, int *sc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 // for 4 empties (min stage)
 bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 {
@@ -1631,6 +1638,7 @@ bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = 2 * get_stability(search->board.opponent, search->board.player) - SCORE_MAX;
 		if (*score > alpha) {
+<<<<<<< HEAD
 =======
 bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, unsigned long long allfull, V4DI *full)
 =======
@@ -1642,6 +1650,8 @@ bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, cons
 		*score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, full);
 		if (*score <= alpha) {
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
+=======
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return true;
 		}
@@ -1651,8 +1661,11 @@ bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, cons
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
+=======
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 #if 0	// unused
 =======
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)

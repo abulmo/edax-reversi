@@ -295,8 +295,13 @@ bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
 =======
 // bool search_SC_PVS(Search*, int*, int*, int*);
+<<<<<<< HEAD
 bool search_SC_NWS(Search*, const int, const int, int*);
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+bool search_SC_NWS(Search*, const int, int*);
+bool search_SC_NWS_4(Search*, const int, int*);
+>>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 // bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
 bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 // bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, int*, int*, int*);
