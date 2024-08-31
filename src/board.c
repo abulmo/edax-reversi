@@ -1340,7 +1340,7 @@ int get_stability_fulls_given(const unsigned long long P, const unsigned long lo
 	P_central = (P & 0x007e7e7e7e7e7e00);
 	stable |= (full[4] & P_central);
 
-	if (stable == 0)
+	if (stable == 0)	// (2%)
 		return 0;
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
@@ -1351,7 +1351,7 @@ int get_stability_fulls_given(const unsigned long long P, const unsigned long lo
 		stable_d9 = ((stable >> 9) | (stable << 9) | full[2]);
 		stable_d7 = ((stable >> 7) | (stable << 7) | full[3]);
 		stable |= (stable_h & stable_v & stable_d9 & stable_d7 & P_central);
-	} while (stable != old_stable);
+	} while (stable != old_stable);	// (44%)
 
 	return bit_count(stable);
 }

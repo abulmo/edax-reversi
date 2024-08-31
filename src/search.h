@@ -180,12 +180,16 @@ struct Node;
 
 extern const unsigned char QUADRANT_ID[];
 <<<<<<< HEAD
+<<<<<<< HEAD
 extern const unsigned long long quadrant_mask[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
 // extern const signed char NWS_STABILITY_THRESHOLD[];
 extern const signed char PVS_STABILITY_THRESHOLD[];
 =======
+=======
+extern const unsigned long long quadrant_mask[];
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
 extern const unsigned char NWS_STABILITY_THRESHOLD[];
@@ -286,12 +290,17 @@ int NWS_endgame(Search*, const int);
 
 int search_eval_0(Search*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 int search_eval_1(Search*, int, int, unsigned long long);
 int search_eval_2(Search*, int, int, unsigned long long);
 =======
 int search_eval_1(Search*, const int, int, unsigned long long);
 int search_eval_2(Search*, int, const int, unsigned long long);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+int search_eval_1(Search*, const int, int, bool);
+int search_eval_2(Search*, int, const int, bool);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 int NWS_midgame(Search*, const int, int, struct Node*);
 int PVS_midgame(Search*, const int, const int, int, struct Node*);
 // static int NWS_shallow(Search*, const int, int, HashTable*);

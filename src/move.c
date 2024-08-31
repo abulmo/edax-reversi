@@ -721,10 +721,10 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 					score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
 					break;
 				case 1:
-					score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 2 level score bonus
+					score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 2 level score bonus
 					break;
 				case 2:
-					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 3 level score bonus
+					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 3 level score bonus
 					break;
 				default:
 					if (hash_get(&search->hash_table, &search->board, board_get_hash_code(&search->board), &dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table

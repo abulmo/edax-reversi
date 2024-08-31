@@ -356,10 +356,14 @@ int search_eval_0(Search *search)
  * @return An evaluated min score.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 =======
 int search_eval_1(Search *search, const int alpha, int beta, unsigned long long moves)
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -413,6 +417,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	const short *w;
 <<<<<<< HEAD
@@ -428,6 +433,9 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 	const Eval_weight *w;
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
+=======
+	unsigned long long moves = get_moves(search->board.player, search->board.opponent);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -592,6 +600,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 		}
 
 	} else {
+<<<<<<< HEAD
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
 <<<<<<< HEAD
@@ -607,6 +616,14 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 		} else { // game over
 			bestscore = -search_solve(search);
+=======
+		if (pass1) { // game over
+			bestscore = search_solve(search);
+		} else {
+			search_update_pass_midgame(search, &Ev);
+			bestscore = -search_eval_1(search, -beta, -alpha, true);
+			search_restore_pass_midgame(search, &Ev);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 		}
 	}
 
@@ -626,10 +643,14 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
  * @return An evaluated best score.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 int search_eval_2(Search *search, int alpha, int beta, unsigned long long moves)
 =======
 int search_eval_2(Search *search, int alpha, const int beta, unsigned long long moves)
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -666,7 +687,11 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 =======
 	Search_Backup backup;
+<<<<<<< HEAD
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+	unsigned long long moves = get_moves(search->board.player, search->board.opponent);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 	SEARCH_STATS(++statistics.n_search_eval_2);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -741,9 +766,14 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 =======
 				eval_update_leaf(x, flipped, &search->eval, &backup.eval);
+<<<<<<< HEAD
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 				score = -search_eval_1(search, -beta, -alpha, get_moves(search->board.player, search->board.opponent));
 				// empty_restore(search->empties, x);
+=======
+				score = -search_eval_1(search, -beta, -alpha, false);
+				search->empties[prev].next = x;	// restore
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 				if (score > bestscore) {
 					bestscore = score;
@@ -775,6 +805,7 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 		search->board = backup.board;
 
 	} else {
+<<<<<<< HEAD
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
 <<<<<<< HEAD
@@ -787,7 +818,14 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 			search_restore_pass_midgame(search, &backup.eval);
 		} else {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (pass1) { // game over
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 			bestscore = search_solve(search);
+		} else {
+			search_update_pass_midgame(search, &backup.eval);
+			bestscore = -search_eval_2(search, -beta, -alpha, true);
+			search_restore_pass_midgame(search, &backup.eval);
 		}
 	}
 
@@ -962,11 +1000,15 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	long long nodes_org = search->n_nodes;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (depth == 2) return search_eval_2(search, alpha, alpha + 1);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
 	if (depth == 2) return search_eval_2(search, alpha, alpha + 1, get_moves(search->board.player, search->board.opponent));
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	if (depth == 2) return search_eval_2(search, alpha, alpha + 1, false);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 	SEARCH_STATS(++statistics.n_NWS_midgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -1012,7 +1054,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	if (movelist_is_empty(&movelist)) { // no moves ?
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
 			search_update_pass_midgame(search, &backup.eval);
-			bestscore = -NWS_shallow(search, -(alpha + 1), depth, hash_table);
+			bestscore = -NWS_shallow(search, ~alpha, depth, hash_table);
 			hash_store_data.data.move[0] = PASS;
 			search_restore_pass_midgame(search, &backup.eval);
 		} else { // game-over !
@@ -1074,7 +1116,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		move = movelist.move[0].next;
 		do {
 			search_update_midgame(search, move);
-			score = -NWS_shallow(search, -(alpha + 1), depth - 1, hash_table);
+			score = -NWS_shallow(search, ~alpha, depth - 1, hash_table);
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			if (score > bestscore) {
@@ -1190,10 +1232,14 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (depth == 2) return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 =======
 	if (depth == 2) return search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	if (depth == 2) return search_eval_2(search, alpha, beta, false);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 	SEARCH_STATS(++statistics.n_PVS_shallow);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -1783,8 +1829,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 >>>>>>> 4303b09 (Returns all full lines in full[4])
 	else if (depth == 2 && search->eval.n_empties > 2)
+<<<<<<< HEAD
 		return search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+		return search_eval_2(search, alpha, beta, false);
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 <<<<<<< HEAD
 <<<<<<< HEAD

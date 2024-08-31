@@ -92,6 +92,9 @@ Log search_log[1];
 /** a quadrant id for each square */
 const unsigned char QUADRANT_ID[] = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
@@ -110,6 +113,7 @@ const unsigned long long quadrant_mask[] = {
 	0xF0F0F0F000000000, 0xF0F0F0F00F0F0F0F, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0FFFFFFFF,
 	0xFFFFFFFF00000000, 0xFFFFFFFF0F0F0F0F, 0xFFFFFFFFF0F0F0F0, 0xFFFFFFFFFFFFFFFF
 };
+<<<<<<< HEAD
 =======
 		1, 1, 1, 1, 2, 2, 2, 2,
 		1, 1, 1, 1, 2, 2, 2, 2,
@@ -122,6 +126,8 @@ const unsigned long long quadrant_mask[] = {
 		0, 0
 	};
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+>>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 /** level with no selectivity */
 const int NO_SELECTIVITY = 5;
