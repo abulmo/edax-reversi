@@ -321,6 +321,7 @@ typedef union {
 	unsigned long long	ull[2];
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 	__m128i	v2;
+	__m128d	d2;
 #endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
 }
@@ -402,22 +403,35 @@ typedef union {
 >>>>>>> 1dc032e (Improve visual c compatibility)
 #endif
 
+/* Define function attributes directive when available */
+
+#if defined(_MSC_VER) || defined(__clang__)
+#define	vectorcall	__vectorcall
+#elif defined(__GNUC__) && defined(__i386__)
+#define	vectorcall	__attribute__((sseregparm))
+#elif 0 // defined(__GNUC__)	// erroreous result on pgo-build
+#define	vectorcall	__attribute__((sysv_abi))
+#else
+#define	vectorcall
+#endif
+
 // X64 compatibility sims for X86
 #if !defined(__x86_64__) && !defined(_M_X64)
-#ifdef hasSSE2
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
 	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
 }
 #endif
 
+// Double casting (unsigned long long) (unsigned int) improves MSVC code
 #ifdef __AVX2__
 static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
-	return ((unsigned long long) _mm_extract_epi32(x, 1) << 32)
+	return ((unsigned long long) (unsigned int) _mm_extract_epi32(x, 1) << 32)
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #elif defined(hasSSE2) || defined(USE_MSVC_X86)
 static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
-	return ((unsigned long long) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32)
+	return ((unsigned long long) (unsigned int) _mm_cvtsi128_si32(_mm_shuffle_epi32(x, 0xb1)) << 32)
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #endif

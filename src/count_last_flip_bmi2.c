@@ -233,7 +233,7 @@ inline int last_flip(int pos, unsigned long long P)
 #include "bit.h"
 
 /** precomputed count flip array */
-static const unsigned char COUNT_FLIP[8][256] = {
+const unsigned char COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -317,7 +317,7 @@ static const unsigned char COUNT_FLIP[8][256] = {
 };
 
 /* bit masks for diagonal/vertical/all lines */
-static const unsigned long long mask_x[64][4] = {
+const unsigned long long mask_x[64][4] = {
 	{ 0x0000000000000001ULL, 0x8040201008040201ULL, 0x0101010101010101ULL, 0x81412111090503ffULL },
 	{ 0x0000000000000102ULL, 0x0080402010080402ULL, 0x0202020202020202ULL, 0x02824222120a07ffULL },
 	{ 0x0000000000010204ULL, 0x0000804020100804ULL, 0x0404040404040404ULL, 0x0404844424150effULL },
@@ -392,7 +392,7 @@ static const unsigned long long mask_x[64][4] = {
  * @return flipped disc count.
  */
 
-int last_flip(int pos, unsigned long long P)
+inline int last_flip(int pos, unsigned long long P)
 {
 	unsigned char	n_flipped;
 	int	x = pos & 7;

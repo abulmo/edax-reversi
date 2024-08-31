@@ -42,7 +42,7 @@ endif
 
 # gcc 4.x (x >= 7)
 ifeq ($(COMP),gcc)
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -DUNICODE
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
 
@@ -163,7 +163,7 @@ endif
 
 ifeq ($(COMP),gcc-old)
 	CC = gcc
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -DUNICODE
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O3 -fwhole-program -DNDEBUG
@@ -214,7 +214,7 @@ endif
 
 # g++
 ifeq ($(COMP),g++)
-	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -DUNICODE
+	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
 
@@ -257,6 +257,7 @@ endif
 ifeq ($(COMP),icc)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
 =======
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
@@ -264,6 +265,9 @@ ifeq ($(COMP),icc)
 =======
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -DUNICODE
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
+>>>>>>> 6506166 (More SSE optimizations)
 	PGO_GEN = -prof_gen
 	PGO_USE = -prof_use -wd11505
 
@@ -292,7 +296,7 @@ endif
 
 #pcc
 ifeq ($(COMP),pcc)
-	CFLAGS = - -DUNICODE
+	CFLAGS = - -D_GNU_SOURCE=1 -DUNICODE
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O4 -DNDEBUG
@@ -315,6 +319,7 @@ endif
 ifeq ($(COMP),clang)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
 =======
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
@@ -322,6 +327,9 @@ ifeq ($(COMP),clang)
 =======
 	CFLAGS = -std=c99 -pedantic -W -Wall -DUNICODE -Wno-invalid-source-encoding
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
+>>>>>>> 6506166 (More SSE optimizations)
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
