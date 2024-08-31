@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> 5de3726 (inline board_update and omit restore)
+=======
+ * @date 1998 - 2023
+>>>>>>> 61f4b30 (dirty fix for ICC linux optimization bug)
  * @author Richard Delorme
  * @version 4.5
  */
