@@ -1006,10 +1006,14 @@ static int search_solve_4(Search *search, int alpha)
  * No hashtable are used and anticipated cut-off is limited to stability cut-off.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param search Search. (breaks board and parity; caller has a copy)
 =======
  * @param search Search. (breaks board and parity)
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
+=======
+ * @param search Search. (breaks board and parity; caller take a copy)
+>>>>>>> ea8595b (Split v3hi_empties from search_solve_3 & moved to solve_4)
  * @param alpha Alpha bound.
  * @return The final score, as a disc difference.
  */
