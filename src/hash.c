@@ -90,7 +90,11 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 {
 	int i, n_way;
 
+<<<<<<< HEAD
 	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// round up HASH_N_WAY to 2 ^ n
+=======
+	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// 2 ^ n, at leaset HASH_N_WAY
+>>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
 
 	assert(hash_table != NULL);
 	assert((n_way & -n_way) == n_way);
@@ -104,12 +108,17 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 
 	if (HASH_ALIGNED) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		size_t alignment = n_way * sizeof (Hash);	// (4 * 24)
 		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x1f)
 =======
 		size_t alignment = n_way * sizeof (Hash);
 		alignment = (alignment & -alignment) - 1;	// LS1B - 1
 >>>>>>> c7739ca (Clearer Hash align for non-pow-2 sizeof(HASH))
+=======
+		size_t alignment = n_way * sizeof (Hash);	// (4 * 48)
+		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x3f)
+>>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
 		hash_table->hash = (Hash*) (((size_t) hash_table->memory + alignment) & ~alignment);
 		hash_table->hash_mask = size - n_way;
 	} else {
@@ -137,6 +146,7 @@ void hash_cleanup(HashTable *hash_table)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
 	Hash *pHash = hash_table->hash;
 =======
@@ -144,6 +154,9 @@ void hash_cleanup(HashTable *hash_table)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 	unsigned int i, imax = hash_table->hash_mask + HASH_N_WAY;
+=======
+	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
+>>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
 	Hash *pHash = hash_table->hash;
 >>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 
@@ -151,9 +164,15 @@ void hash_cleanup(HashTable *hash_table)
 
 	info("< cleaning hashtable >\n");
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   #if defined(hasSSE2) || defined(USE_MSVC_X86)
 	if (hasSSE2 && (sizeof(Hash) == 24) && (((size_t) pHash & 0x1f) == 0) && (imax >= 7)) {
+=======
+
+  #if defined(hasSSE2) || defined(USE_MSVC_X86)
+	if (hasSSE2 && (sizeof(Hash) == 24) && (((uintptr_t) pHash & 0x1f) == 0) && (imax >= 7)) {
+>>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
 		for (; i < 4; ++i, ++pHash) {
 			HASH_COLLISIONS(pHash->key = 0;)
 			pHash->board.player = pHash->board.opponent = 0;
@@ -178,6 +197,7 @@ void hash_cleanup(HashTable *hash_table)
 			_mm_stream_si128((__m128i *) pHash + 2, d2);
 		}
     #endif
+<<<<<<< HEAD
 		_mm_sfence();
 	}
   #endif
@@ -185,6 +205,11 @@ void hash_cleanup(HashTable *hash_table)
 =======
 	for (i = 0; i <= imax; ++i, ++pHash) {
 >>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
+=======
+	}
+  #endif
+	for (; i <= imax; ++i, ++pHash) {
+>>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
 		HASH_COLLISIONS(pHash->key = 0;)
 		pHash->board.player = pHash->board.opponent = 0; 
 		pHash->data = HASH_DATA_INIT;
