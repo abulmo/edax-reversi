@@ -16,6 +16,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
@@ -23,6 +24,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -132,15 +136,21 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 void hash_cleanup(HashTable *hash_table)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
 	Hash *pHash = hash_table->hash;
 =======
 	unsigned int i;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	unsigned int i, imax = hash_table->hash_mask + HASH_N_WAY;
+	Hash *pHash = hash_table->hash;
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 
 	assert(hash_table != NULL && hash_table->hash != NULL);
 
 	info("< cleaning hashtable >\n");
+<<<<<<< HEAD
 
   #if defined(hasSSE2) || defined(USE_MSVC_X86)
 	if (hasSSE2 && (sizeof(Hash) == 24) && (((size_t) pHash & 0x1f) == 0) && (imax >= 7)) {
@@ -172,6 +182,9 @@ void hash_cleanup(HashTable *hash_table)
 	}
   #endif
 	for (; i <= imax; ++i, ++pHash) {
+=======
+	for (i = 0; i <= imax; ++i, ++pHash) {
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 		HASH_COLLISIONS(pHash->key = 0;)
 		pHash->board.player = pHash->board.opponent = 0; 
 		pHash->data = HASH_DATA_INIT;
@@ -916,11 +929,16 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
 void hash_copy(const HashTable *src, HashTable *dest)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned int i, imax = src->hash_mask + HASH_N_WAY;
 	Hash *pSrc = src->hash, *pDest = dest->hash;
 =======
 	unsigned int i;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	unsigned int i, imax = src->hash_mask + HASH_N_WAY;
+	Hash *pSrc = src->hash, *pDest = dest->hash;
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 
 	assert(src->hash_mask == dest->hash_mask);
 	info("<hash copy>\n");

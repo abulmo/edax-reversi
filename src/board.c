@@ -1548,6 +1548,7 @@ unsigned long long get_all_full_lines(const unsigned long long disc)
 int get_corner_stability(const unsigned long long P)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef POPCOUNT
 	// stable = (((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P;
   	unsigned int P2187 = (P >> 48) | (P << 16);	// ror 48
@@ -1560,6 +1561,21 @@ int get_corner_stability(const unsigned long long P)
 	const unsigned long long stable = ((((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P);
 	return bit_count(stable);
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#ifdef POPCOUNT
+  #ifdef HAS_CPU_64
+	// stable = (((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P;
+	unsigned long long stable = 0x8100000000000081 & P;
+	stable |= ((((stable * 5) >> 1) & 0x4200000000000042) | (stable << 8) | (stable >> 8)) & P;
+	return _mm_popcnt_u64(stable);
+
+  #else
+	unsigned int P1278 = ((unsigned int)(P >> 48) << 16) | (unsigned short) P;
+	unsigned int stable = 0x81000081 & P1278;
+	stable |= ((((stable * 5) >> 1) & 0x42000042) | (stable << 8) | (stable >> 8)) & P1278;
+	return _mm_popcnt_u32(stable);
+  #endif
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 
 #else	// kindergarten
 	static const char n_stable_h2a2h1g1b1a1[64] = {
@@ -1569,6 +1585,7 @@ int get_corner_stability(const unsigned long long P)
 		0, 2, 0, 3, 0, 2, 0, 3, 2, 4, 2, 5, 3, 5, 3, 6
 	};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1615,6 +1632,23 @@ int get_corner_stability(const unsigned long long P)
 	// assert(cnt == bit_count((((0x0100000000000001ULL & P) << 1) | ((0x8000000000000080ULL & P) >> 1) | ((0x0000000000000081ULL & P) << 8) | ((0x8100000000000000ULL & P) >> 8) | 0x8100000000000081ULL) & P));
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
 =======
+=======
+  #if 0 // defined(__BMI2__) && !defined(AMD_BEFORE_ZEN3)	// kindergarten for generic modern build
+	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
+		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
+
+  #else
+	static const char n_stable_h8g8b8a8h7a7[64] = {
+		0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 0, 2, 3, 2, 3,
+		0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 0, 2, 3, 2, 3,
+		1, 1, 2, 2, 2, 3, 3, 4, 1, 1, 2, 2, 3, 4, 4, 5,
+		2, 2, 3, 3, 3, 4, 4, 5, 2, 2, 3, 3, 4, 5, 5, 6
+	};
+
+	int cnt = n_stable_h8g8b8a8h7a7[(((unsigned int) (P >> 32) & 0xc3810000) * 0x00000411) >> 26]
+		+ n_stable_h2a2h1g1b1a1[(((unsigned int) P & 0x000081c3) * 0x04410000) >> 26];
+  #endif
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 	// assert(cnt == bit_count((((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P));
 >>>>>>> 6506166 (More SSE optimizations)
 	return cnt;

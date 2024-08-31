@@ -544,25 +544,48 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	Board board0;
 =======
 #ifndef TUNE_EDAX
-	const int w_hash = 1 << 15;
-	const int w_eval = 1 << 15;
-	const int w_mobility = 1 << 15;
-	const int w_corner_stability = 1 << 11;
-	const int w_edge_stability = 1 << 11;
-	const int w_potential_mobility = 1 << 5;
-	const int w_low_parity = 1 << 3;
-	const int w_mid_parity = 1 << 2;
-	const int w_high_parity = 1 << 1;
-#endif	
+	enum {
+		w_hash = 1 << 15,
+		w_eval = 1 << 15,
+		w_mobility = 1 << 15,
+		w_corner_stability = 1 << 11,
+		w_edge_stability = 1 << 11,
+		w_potential_mobility = 1 << 5,
+		w_low_parity = 1 << 3,
+		w_mid_parity = 1 << 2,
+		w_high_parity = 1 << 1
+	};
+	static const char parity_weight_table[64] = {	// https://eukaryote.hateblo.jp/entry/2020/05/16/082757
+		w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_low_parity,
+		w_low_parity, w_low_parity, w_low_parity, w_low_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity,
+		w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_mid_parity, w_high_parity, w_high_parity, w_high_parity,
+		w_high_parity, w_high_parity, w_high_parity, w_high_parity, w_high_parity, w_high_parity, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+#endif
+	static const char min_depth_table[64] = {
+		19, 18, 18, 18, 17, 17, 17, 16,
+		16, 16, 15, 15, 15, 14, 14, 14,
+		13, 13, 13, 12, 12, 12, 11, 11,
+		11, 10, 10, 10,  9,  9,  9,  9,
+		 9,  9,  9,  9,  9,  9,  9,  9,
+		 9,  9,  9,  9,  9,  9,  9,  9,
+		 9,  9,  9,  9,  9,  9,  9,  9,
+		 9,  9,  9,  9,  9,  9,  9,  9
+	};
 	Move *move;
 	int	sort_depth, min_depth, sort_alpha, score, empties, parity_weight, org_selectivity;
 	HashData dummy;
 	unsigned long long P, O;
 	Search_Backup backup;
 
-	// https://eukaryote.hateblo.jp/entry/2020/05/16/082757
 	empties = search->eval.n_empties;
+#ifdef TUNE_EDAX
 	parity_weight = (empties < 12) ? w_low_parity : ((empties < 21) ? w_mid_parity : ((empties < 30) ? w_high_parity : 0));
+<<<<<<< HEAD
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 
 	empties = search->eval.n_empties;
@@ -578,6 +601,15 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 =======
 	min_depth = 9;
 	if (empties <= 27) min_depth += (30 - empties) / 3;
+=======
+#else
+	parity_weight = parity_weight_table[empties];
+#endif
+	// min_depth = 9;
+	// if (empties <= 27) min_depth += (30 - empties) / 3;
+	min_depth = min_depth_table[empties];
+
+>>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 	if (depth >= min_depth) {
 		sort_depth = (depth - 15) / 3;
 		if (hash_data && hash_data->upper < alpha) sort_depth -= 2; 
