@@ -1677,13 +1677,16 @@ int NWS_endgame(Search *search, const int alpha)
 		Move move[DEPTH_MIDGAME_TO_ENDGAME];
 	} movelist;
 
-	if (search->stop) return alpha;
-
 	assert(bit_count(~(search->board.player|search->board.opponent)) < DEPTH_MIDGAME_TO_ENDGAME);
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (search->stop) return alpha;
+
+>>>>>>> 19da175 (differed movelist sort in PVS/NWS_shallow)
 	SEARCH_STATS(++statistics.n_NWS_endgame);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1911,7 +1914,7 @@ int NWS_endgame(Search *search, const int alpha)
 	// special cases
 	} else if (movelist.n_moves == 1) {	// (3%)
 		parity0 = search->eval.parity;
-		move = movelist.move[0].next;
+		move = movelist_first(&movelist);
 		search_swap_parity(search, move->x);
 		empty_remove(search->empties, move->x);
 		rboard_update(&search->board, board0, move);
