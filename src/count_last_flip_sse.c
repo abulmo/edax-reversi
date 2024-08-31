@@ -442,13 +442,6 @@ y	{{ 0x0000000000010204ULL, 0x2010080402010000ULL }}, {{ 0x0000000001020408ULL, 
 };
 #endif
 
-#if !defined(__x86_64__) && !defined(_M_X64)
-// to utilize store to load forwarding
-static inline __v2di _mm_cvtsi64_si128(const unsigned long long x) {
-	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
-}
-#endif
-
 // Patch for GCC Bug 43514
 #if defined(__GNUC__) && (__GNUC__ == 4) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #ifdef __AVX__

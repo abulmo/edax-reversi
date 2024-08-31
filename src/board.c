@@ -312,6 +312,7 @@ bool board_lesser(const Board *b1, const Board *b2)
 	else	return (b1->opponent < b2->opponent);
 }
 
+#ifndef hasSSE2
 /**
  * @brief symetric board
  *
@@ -351,13 +352,6 @@ void board_symetry(const Board *board, const int s, Board *sym)
 =======
 	register unsigned long long player, opponent;
 
-#if (defined(USE_GAS_MMX) || defined(hasSSE2)) && !defined(DEBUG)	// crashes debug build on GCC5.1
-	if (hasSSE2) {
-		board_symetry_sse(board, s, sym);
-		return;
-	}
-#endif
-
 	player = board->player;
 	opponent = board->opponent;
 
@@ -373,9 +367,6 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		player = transpose(player);
 		opponent = transpose(opponent);
 	}
-
-	// board_symetry_sse(board, s, sym);
-	// assert((sym->player == player) && (sym->opponent == opponent));
 
 	sym->player = player;
 	sym->opponent = opponent;
@@ -1460,8 +1451,21 @@ void board_print(const Board *board, const int player, FILE *f)
 {
 	int i, j, square;
 	unsigned long long bk, wh;
+<<<<<<< HEAD
 	const char color[5] = "?*O-.";
 	unsigned long long moves = board_get_moves(board);
+
+	if (player == BLACK) {
+		bk = board->player;
+		wh = board->opponent;
+	} else {
+		bk = board->opponent;
+		wh = board->player;
+	}
+=======
+	const char *color = "?*O-." + 1;
+	unsigned long long moves = get_moves(board->player, board->opponent);
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 
 	if (player == BLACK) {
 		bk = board->player;
@@ -1479,7 +1483,11 @@ void board_print(const Board *board, const int player, FILE *f)
 			square = 2 - (wh & 1) - 2 * (bk & 1);
 			if ((square == EMPTY) && (moves & 1))
 				square = EMPTY + 1;
+<<<<<<< HEAD
 			fputc(color[square + 1], f);
+=======
+			fputc(color[square], f);
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 			fputc(' ', f);
 			bk >>= 1;
 			wh >>= 1;

@@ -85,14 +85,6 @@ static const V4DI lmask[66] = {
 	{{ ~0x0000000000000000, ~0x0000000000000000, ~0x0000000000000000, ~0x0000000000000000 }}
 };
 
-#if !defined(__x86_64__) && !defined(_M_X64)
-static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
-	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
-}
-#endif
-
-#define	SWAP64	0x4e	// for _mm_shuffle_epi32
-
 /**
  * Make inverted flip mask if opponent's disc are surrounded by player's.
  *
@@ -139,7 +131,7 @@ unsigned long long flip(int pos, const unsigned long long P, const unsigned long
 	flip = _mm256_or_si256(flip, _mm256_andnot_si256(mask, _mm256_sub_epi64(outflank, _mm256_sub_epi64(flipmask(outflank), minusone.v4))));
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, SWAP64));
+	flip2 = _mm_or_si128(flip2, _mm_unpackhi_epi64(flip2, flip2));
 
 	return _mm_cvtsi128_si64(flip2);
 }

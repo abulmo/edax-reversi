@@ -72,6 +72,7 @@ const unsigned long long NEIGHBOUR[] = {
 int bit_count(unsigned long long b)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int	c;
 
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
@@ -88,6 +89,8 @@ int bit_count(unsigned long long b)
 }
 =======
 	register unsigned long long c;
+=======
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	static const unsigned long long M55 = 0x5555555555555555ULL;
 	static const unsigned long long M33 = 0x3333333333333333ULL;
@@ -163,9 +166,21 @@ void bit_init(void)
 		ll <<= 1;
 	}
 
+<<<<<<< HEAD
 #ifndef POPCOUNT
 	for (n = 0; n < (1 << 16); ++n)
 		PopCnt16[n] = bit_count_32_SWAR(n);
+=======
+	#endif
+
+	b = b - ((b >> 1) & 0x7777777777777777ULL)
+	      - ((b >> 2) & 0x3333333333333333ULL)
+	      - ((b >> 3) & 0x1111111111111111ULL);
+	b = ((b + (b >> 4)) & 0x0F0F0F0F0F0F0F0FULL) * 0x0101010101010101ULL;
+
+	return  (int)(b >> 56);
+}
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 #endif
 
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
@@ -186,8 +201,12 @@ void bit_init(void)
  * @param v 64-bit integer to count bits of.
  * @return the number of bit set, counting the corners twice.
  */
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 __m128i bit_weighted_count_sse(unsigned long long Q0, unsigned long long Q1)
+=======
+int bit_weighted_count(unsigned long long v)
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 {
 	static const V2DI mask15 = {{ 0x1555555555555515, 0x1555555555555515 }};
 	static const V2DI mask01 = {{ 0x0100000000000001, 0x0100000000000001 }};
@@ -223,6 +242,7 @@ int bit_weighted_count(unsigned long long v)
 }
 
 #else
+<<<<<<< HEAD
 int bit_weighted_count(unsigned long long v)
 {
   	unsigned int AH18 = ((v >> 56) | (v << 8)) & 0x8181;	// ror 56
@@ -231,6 +251,16 @@ int bit_weighted_count(unsigned long long v)
   #else
   	return bit_count(v) + PopCnt16[AH18];
   #endif
+=======
+	v  = v - ((v >> 1) & 0x1555555555555515ULL) + (v & 0x0100000000000001ULL);
+	v  = ((v >> 2) & 0x3333333333333333ULL) + (v & 0x3333333333333333ULL);
+	v  = ((v >> 4) + v) & 0x0f0f0f0f0f0f0f0fULL;
+	v *= 0x0101010101010101ULL;
+
+	return  (int)(v >> 56);
+
+#endif
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 }
 #endif
 
@@ -601,6 +631,7 @@ unsigned long long horizontal_mirror(unsigned long long b)
  * @return The transposed unsigned long long.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef __AVX2__
 <<<<<<< HEAD
 unsigned long long transpose(unsigned long long b)
@@ -619,6 +650,9 @@ unsigned long long transpose(unsigned long long b)
 >>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
 =======
 #if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
+=======
+#ifdef __AVX2__
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 unsigned long long transpose(unsigned long long b)
 {
 	static const V4DI s3210 = {{ 3, 2, 1, 0 }};

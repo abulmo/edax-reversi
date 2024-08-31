@@ -30,6 +30,7 @@ struct Random;
 
 /* declaration */
 <<<<<<< HEAD
+<<<<<<< HEAD
 void bit_init(void);
 // int next_bit(unsigned long long*);
 void bitboard_write(unsigned long long, FILE*);
@@ -38,6 +39,11 @@ int bit_weighted_count(const unsigned long long);
 // int next_bit(unsigned long long*);
 void bitboard_write(const unsigned long long, FILE*);
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+int bit_weighted_count(unsigned long long);
+// int next_bit(unsigned long long*);
+void bitboard_write(unsigned long long, FILE*);
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 unsigned long long transpose(unsigned long long);
 <<<<<<< HEAD
 unsigned int horizontal_mirror_32(unsigned int b);
@@ -157,6 +163,7 @@ extern const unsigned long long X_TO_BIT[];
 	int bit_weighted_count(unsigned long long);
 #endif
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 extern unsigned long long X_TO_BIT[];
 extern const unsigned long long NEIGHBOUR[];
@@ -280,6 +287,9 @@ typedef union {
   #endif
 =======
 #if defined(__x86_64__) || defined(_M_X64)
+=======
+#if defined(__x86_64__) || defined(_M_X64) || defined(__AVX2__)
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 	#define hasSSE2	1
 #endif
 
@@ -388,6 +398,81 @@ typedef union {
 	__m256i	v4;
 } V4DI;
 >>>>>>> 1dc032e (Improve visual c compatibility)
+#endif
+
+// X64 compatibility sims for X86
+#if defined hasSSE2 && !defined(__x86_64__) && !defined(_M_X64)
+static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
+	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
+}
+#endif
+
+#if !defined(__x86_64__) && !defined(_M_X64)
+#ifdef __AVX2__
+static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
+	return ((unsigned long long) _mm_extract_epi32(x, 1) << 32)
+		| (unsigned int) _mm_cvtsi128_si32(x);
+}
+#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
+	return ((unsigned long long) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32)
+		| ((unsigned int) _mm_cvtsi128_si32(x));
+}
+#elif defined(USE_GAS_MMX)
+static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
+	unsigned long long y;
+	__asm__ ( "movd	%1,%%eax\n\t"
+		"psrlq	$32,%1\n\t"
+		"movd	%1,%%edx"
+		: "=A" (y) : "x" (x));
+	return y;
+}
+#endif
+#endif
+
+#ifdef USE_GAS_X86
+#ifdef __LNCNT__
+static inline int _lzcnt_u64(unsigned long long x) {
+	int	y;
+	__asm__ (
+		"lzcntl	%1, %0\n\t"
+		"lzcntl	%2, %2\n\t"
+		"leal	(%0, %2), %0\n\t"
+		"cmovnc	%2, %0"
+	: "=&r" (y) : "0" ((unsigned int) x), "r" ((unsigned int) (x >> 32)) );
+	return y;
+}
+#endif
+#ifdef __BMI__
+static inline int _tzcnt_u64(unsigned long long x) {
+	int	y;
+	__asm__ (
+		"tzcntl	%1, %0\n\t"
+		"tzcntl	%2, %2\n\t"
+		"leal	(%0, %2), %0\n\t"
+		"cmovnc	%2, %0"
+	: "=&r" (y) : "0" ((unsigned int) (x >> 32)), "r" ((unsigned int) x) );
+	return y;
+}
+#endif
+#elif defined(USE_MSVC_X86) && defined(__AVX2__)
+static inline int _lzcnt_u64(unsigned long long x) {
+	__asm {
+		lzcnt	eax, dword ptr x
+		lzcnt	edx, dword ptr x+4
+		lea	eax, [eax+edx]
+		cmovnc	eax, edx
+	}
+}
+
+static inline int _tzcnt_u64(unsigned long long x) {
+	__asm {
+		tzcnt	eax, dword ptr x+4
+		tzcnt	edx, dword ptr x
+		lea	eax, [eax+edx]
+		cmovnc	eax, edx
+	}
+}
 #endif
 
 #endif // EDAX_BIT_H

@@ -415,26 +415,6 @@ static const UINT64 mask_c1h6 = 0x0000804020100804;
 #endif
 >>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
-/**
- * _mm_movepi64_pi64 equivalent to avoid large-to-small mismatch
- *
- * AMD 47414 pp.96
- */
-static inline UINT64 SSE2 movepi64_by_movd(__m128i x)
-{
-#if defined(hasSSE2) || defined(USE_MSVC_X86)
-	return ((unsigned int) _mm_cvtsi128_si32(x))
-		| ((UINT64) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32);
-#else
-	UINT64 y;
-	__asm__ ( "movd	%1,%%eax\n\t"
-		"psrlq	$32,%1\n\t"
-		"movd	%1,%%edx"
-		: "=A" (y) : "x" (x));
-	return y;
-#endif
-}
-
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 
 #define	SWAP64	0x4e	// for _mm_shuffle_epi32
@@ -591,7 +571,7 @@ static inline UINT64 SSE2 movepi64_by_movd(__v2di x)
 	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(set1_by_movd(OL, OH), mask.v2), minusone.v2)), set1_by_movd(PL, PH));\
 	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));\
 	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));\
-	flipped = (flip_l) | movepi64_by_movd(outflank_v_d)
+	flipped = (flip_l) | _mm_cvtsi128_si64(outflank_v_d)
 
 #define	FLIP_CARRY_3_VEC(flip_l)	__m128i	outflank_v_d, outflank_d_0, PP, OO, mask2_;\
 	OO = set1_by_movd(OL, OH);\
@@ -602,8 +582,12 @@ static inline UINT64 SSE2 movepi64_by_movd(__v2di x)
 	outflank_v_d = _mm_andnot_si128(mask01.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));\
 	outflank_d_0 = _mm_andnot_si128(mask2_, _mm_sub_epi64(outflank_d_0, _mm_sub_epi64(flipmask(outflank_d_0), minusone.v2)));\
 	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_or_si128(_mm_shuffle_epi32(outflank_v_d, SWAP64), outflank_d_0));\
+<<<<<<< HEAD
 	flipped = (flip_l) | movepi64_by_movd(outflank_v_d)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	flipped = (flip_l) | _mm_cvtsi128_si64(outflank_v_d)
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 
 #else
 

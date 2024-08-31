@@ -88,9 +88,14 @@ typedef	unsigned char	NodeType;
 #define EDAX_NAME "Edax 4.5.3"
 =======
 #define RELEASE 4
+<<<<<<< HEAD
 #define VERSION_STRING "4.4.5"
 #define EDAX_NAME "Edax 4.4.5"
 >>>>>>> 5124720 (-eval-file options added as documented; minor fix on console output)
+=======
+#define VERSION_STRING "4.4.6"
+#define EDAX_NAME "Edax 4.4.6"
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

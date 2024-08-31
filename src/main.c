@@ -38,7 +38,12 @@ void version(void)
 #elif defined(__APPLE__)
 		" for Apple"
 #endif
+<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
+=======
+
+	fprintf(stderr, "copyright 1998 - 2018 Richard Delorme\n\n");
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 }
 
 

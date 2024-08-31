@@ -3,7 +3,11 @@
  *
  * Edax play control.
  *
+<<<<<<< HEAD
  * @date 1998 - 2020
+=======
+ * @date 1998 - 2018
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
  * @author Richard Delorme
  * @version 4.4
  */
@@ -994,6 +998,7 @@ void play_print(Play *play, FILE *f)
 	bool gameover;
 
 	if (p == BLACK) {
+<<<<<<< HEAD
 		bk = play->board.player;
 		wh = play->board.opponent;
 	} else {
@@ -1015,6 +1020,29 @@ void play_print(Play *play, FILE *f)
 	mobility[WHITE] = get_mobility(wh, bk);
 	gameover = (mobility[BLACK] + mobility[WHITE] == 0);
 
+=======
+		bk = board->player;
+		wh = board->opponent;
+	} else {
+		bk = board->opponent;
+		wh = board->player;
+	}
+	if ((p ^ (play->i_game & 1)) == BLACK) {
+		bk0 = play->initial_board->player;
+		wh0 = play->initial_board->opponent;
+	} else {
+		bk0 = play->initial_board->opponent;
+		wh0 = play->initial_board->player;
+	}
+
+	moves = get_moves(board->player, board->opponent);
+	discs[BLACK] = bit_count(bk);
+	discs[WHITE] = bit_count(wh);
+	mobility[BLACK] = get_mobility(bk, wh);
+	mobility[WHITE] = get_mobility(wh, bk);
+	gameover = (mobility[BLACK] + mobility[WHITE] == 0);
+
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 	memset(history, 0, 64);
 	for (i = j = 0; i < play->i_game; i++) {
 		x = play->game[i].x;
@@ -1029,7 +1057,11 @@ void play_print(Play *play, FILE *f)
 			square = 2 - (wh & 1) - 2 * (bk & 1);
 			if ((square == EMPTY) && (moves & 1))
 				square = EMPTY + 1;
+<<<<<<< HEAD
 			fputc(color[square + 1], f);
+=======
+			fputc(color[square], f);
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 			fputc(' ', f);
 			bk >>= 1;
 			wh >>= 1;
@@ -1045,6 +1077,7 @@ void play_print(Play *play, FILE *f)
 			fprintf(f, "   %2d discs  %2d moves   ", discs[BLACK], mobility[BLACK]);
 			break;
 		case 3:
+<<<<<<< HEAD
 			if (gameover) fprintf(f, "       Game over        ");
 			else fprintf(f, "  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(&play->board));
 			break;
@@ -1054,6 +1087,17 @@ void play_print(Play *play, FILE *f)
 				else if (discs[BLACK] < discs[WHITE]) fprintf(f, "       %s won        ", player[WHITE]);
 				else fprintf(f, "          draw          ");
 			} else fprintf(f, "    %s's turn (%c)    ", player[p], color[p + 1]);
+=======
+			if (gameover) fprintf(f,"       Game over        ");
+			else fprintf(f,"  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(board));
+			break;
+		case 4:
+			if (gameover) {
+				if (discs[BLACK] > discs[WHITE]) fprintf(f,"       %s won        ", player[BLACK]);
+				else if (discs[BLACK] < discs[WHITE]) fprintf(f,"       %s won        ", player[WHITE]);
+				else fprintf(f,"          draw          ");
+			} else fprintf(f,"    %s's turn (%c)    ",player[p], color[p]);
+>>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 			break;
 		case 6:
 			fprintf(f, "   %2d discs  %2d moves   ", discs[WHITE], mobility[WHITE]);

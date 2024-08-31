@@ -1148,7 +1148,7 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 #ifdef POPCOUNT
 	ml = _m_to_int(m);
 	mh = _m_to_int(_m_psrlqi(m, 32));
-	count = __popcnt(ml) + __popcnt(mh) + __popcnt(ml & 0x00000081) + __popcnt(mh + 0x81000000);
+	count = __popcnt(ml) + __popcnt(mh) + __popcnt((ml & 0x00000081) + (mh & 0x81000000));
 #else
 	m = _m_paddd(_m_psubd(m, _m_pand(_m_psrlqi(m, 1), *(__m64 *) &mask_15)), _m_pand(m, *(__m64 *) &mask_01));
 	m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
