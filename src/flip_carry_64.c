@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1525ec4 (Use same OutflankToFlip as flip_bitscan, and fix typo bug)
 /**
  * @file flip_carry_64.c
  *
@@ -2093,6 +2096,7 @@ unsigned long long (*flip[])(const unsigned long long, const unsigned long long)
 	flip_pass, flip_pass
 };
 
+<<<<<<< HEAD
 =======
 /**
  * @file flip_carry_64.c
@@ -4181,3 +4185,5 @@ unsigned long long (*flip[])(const unsigned long long, const unsigned long long)
 };
 
 >>>>>>> b3f048d (copyright changes)
+=======
+>>>>>>> 1525ec4 (Use same OutflankToFlip as flip_bitscan, and fix typo bug)

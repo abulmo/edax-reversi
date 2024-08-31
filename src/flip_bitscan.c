@@ -292,17 +292,27 @@ static const unsigned long long FLIPPED_5_V[18] = {
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(_M_X64) && (_MSC_VER >= 1800)
 >>>>>>> 6506166 (More SSE optimizations)
 =======
+=======
+/*
+ * Set all bits below the sole outflank bit if outfrank != 0
+ */
+>>>>>>> 1525ec4 (Use same OutflankToFlip as flip_bitscan, and fix typo bug)
 #if __has_builtin(__builtin_subcll)
 static inline unsigned long long OutflankToFlipmask(unsigned long long outflank) {
 	unsigned long long flipmask, cy;
 	flipmask = __builtin_subcll(outflank, 1, 0, &cy);
 	return __builtin_addcll(flipmask, 0, cy, &cy);
 }
+<<<<<<< HEAD
 #elif (defined(_M_X64) && (_MSC_VER >= 1800)) // || (defined(__GNUC__) && (__GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2))) // not tested
 >>>>>>> b1eae0d (Reduce flip table by rotated outflank; revise lzcnt & rol8 defs)
+=======
+#elif (defined(_M_X64) && (_MSC_VER >= 1800)) || (defined(__x86_64__) && defined(__GNUC__) && (__GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)))
+>>>>>>> 1525ec4 (Use same OutflankToFlip as flip_bitscan, and fix typo bug)
 static inline unsigned long long OutflankToFlipmask(unsigned long long outflank) {
 	unsigned long long flipmask;
 	unsigned char cy = _subborrow_u64(0, outflank, 1, &flipmask);
