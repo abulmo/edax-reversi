@@ -669,6 +669,9 @@ typedef union {
 	static inline unsigned long long vectorcall _mm_cvtsi128_si64(__m128i x) {
 		return *(unsigned long long *) &x;
 	}
+	static inline unsigned long long vectorcall _mm_extract_epi64(__m128i x, int i) {
+		return ((unsigned long long *) &x)[i];
+	}
 
   #if defined(_MSC_VER) && _MSC_VER<1900
 	static inline __m128i _mm_set_epi64x(unsigned long long b, unsigned long long a) {

@@ -513,10 +513,10 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 
 =======
 #ifdef __AVX2__
-			V2DI MM;
-			__m128i PO = _mm_xor_si128(_mm_loadu_si128((__m128i *) &search->board),
+			__m128i PO = _mm_xor_si128(*(__m128i *) &search->board,
 				_mm_or_si128(_mm_broadcastq_epi64(*(__m128i *) &move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
 			score  = get_corner_stability(_mm_cvtsi128_si64(PO)) * w_corner_stability; // corner stability
+<<<<<<< HEAD
 <<<<<<< HEAD
 			__m128i MM = get_moves_and_potential(_mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55), _mm256_broadcastq_epi64(PO));
 			score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
@@ -529,6 +529,11 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 <<<<<<< HEAD
 >>>>>>> 47c2589 (Fix w32-modern build and gcc build)
 =======
+=======
+			__m128i MM = get_moves_and_potential(_mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO)), _mm256_broadcastq_epi64(PO));
+			score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
+			score += (36 - bit_weighted_count(_mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
+>>>>>>> bcc211a (Add _mm_extract_epi64 to x86 sim)
 
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 #else
@@ -785,7 +790,11 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 <<<<<<< HEAD
 <<<<<<< HEAD
 #ifdef __AVX2__
+<<<<<<< HEAD
 				__m128i MM =  get_moves_and_potential(_mm256_set1_epi64x(search->board.player), _mm256_set1_epi64x(search->board.opponent));
+=======
+				__m128i MM =  get_moves_and_potential(_mm256_broadcastq_epi64(*(__m128i *) &search->board.player), _mm256_broadcastq_epi64(*(__m128i *) &search->board.opponent));
+>>>>>>> bcc211a (Add _mm_extract_epi64 to x86 sim)
 				score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
 				score += (36 - bit_weighted_count(moves = _mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
 #else

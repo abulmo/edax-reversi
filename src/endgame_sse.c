@@ -723,7 +723,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 {
 	uint_fast8_t	n_flips;
 	unsigned int	th, tv;
-	unsigned long long P = _mm_extract_epi64(PO, 1);
+	unsigned long long P = EXTRACT_O(PO);
 	unsigned long long mP;
 	int	score, score2;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
@@ -766,7 +766,7 @@ extern	const V8DI lrmask_v4[66];	// in flip_avx512cd.c
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
 	int	score, score2, nflip;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m256i PP = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
 	__m256i	rmP, rmO, flip, outflank, rmask, lmask;
 	__m128i	flip2, p2;
 
@@ -828,7 +828,7 @@ extern	const V8DI lrmask[66];	// in flip_avx512cd.c
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
 	int	score;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m256i PP = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
 	__m256i	rmP, rmO, p_flip, o_flip, op_flip, p_outflank, o_outflank, mask;
 	__m128i	p2;
 	__mmask8 p_pass;
@@ -877,7 +877,7 @@ extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
 	int	score, score2, nflip;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m256i PP = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2, p2;
 
@@ -952,7 +952,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
 	__m256i M = mask_dvhd[pos].v4;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m256i PP = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
 
 	(void) alpha;	// no lazy cut-off
 	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
