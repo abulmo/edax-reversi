@@ -234,10 +234,15 @@ void search_restore_pass_midgame(Search*, const Eval*);
 void search_restore_midgame(Search*, const Move*, const Eval*);
 =======
 void search_restore_midgame(Search*, int, const Search_Backup*);
+<<<<<<< HEAD
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 void search_update_pass_midgame(Search*);
 void search_restore_pass_midgame(Search*);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+void search_update_pass_midgame(Search*, Eval*);
+void search_restore_pass_midgame(Search*, const Eval*);
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 long long search_clock(Search*);
 long long search_time(Search*);
 unsigned long long search_count_nodes(Search*);

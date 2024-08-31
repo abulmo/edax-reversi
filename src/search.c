@@ -1297,7 +1297,11 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 =======
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_pass(&search->board);
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	backup->feature = search->eval.feature;
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 	eval_pass(&search->eval);
 <<<<<<< HEAD
 	++search->height;
@@ -1312,7 +1316,11 @@ void search_update_pass_midgame(Search *search, Eval *backup)
  *
  * @param search  search.
  */
+<<<<<<< HEAD
 void search_restore_pass_midgame(Search *search, const Eval *eval0)
+=======
+void search_restore_pass_midgame(Search *search, const Eval *backup)
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1323,9 +1331,14 @@ void search_restore_pass_midgame(Search *search, const Eval *eval0)
 	board_pass(search->board);
 =======
 	board_pass(&search->board);
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	eval_pass(&search->eval);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	// eval_pass(&search->eval);
+	search->eval.feature = backup->feature;
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 	assert(search->height > 0);
 	--search->height;
 }

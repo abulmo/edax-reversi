@@ -584,11 +584,17 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 	} else {
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
+<<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 			search_update_pass_midgame(search);
 			bestscore = -search_eval_1(search, -beta, -alpha, moves);
 			search_restore_pass_midgame(search);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			search_update_pass_midgame(search, &Ev);
+			bestscore = -search_eval_1(search, -beta, -alpha, moves);
+			search_restore_pass_midgame(search, &Ev);
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 		} else { // game over
 			bestscore = -search_solve(search);
 		}
@@ -761,10 +767,14 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 	} else {
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
+<<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 			search_update_pass_midgame(search);
+=======
+			search_update_pass_midgame(search, &backup.eval);
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 			bestscore = -search_eval_2(search, -beta, -alpha, moves);
-			search_restore_pass_midgame(search);
+			search_restore_pass_midgame(search, &backup.eval);
 		} else {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 			bestscore = search_solve(search);
@@ -991,10 +1001,10 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 
 	if (movelist_is_empty(&movelist)) { // no moves ?
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
-			search_update_pass_midgame(search);
+			search_update_pass_midgame(search, &backup.eval);
 			bestscore = -NWS_shallow(search, -(alpha + 1), depth, hash_table);
 			hash_store_data.data.move[0] = PASS;
-			search_restore_pass_midgame(search);
+			search_restore_pass_midgame(search, &backup.eval);
 		} else { // game-over !
 			bestscore = search_solve(search);
 			hash_store_data.data.move[0] = NOMOVE;
@@ -1209,10 +1219,10 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 	if (movelist_is_empty(&movelist)) { // no moves ?
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
-			search_update_pass_midgame(search);
+			search_update_pass_midgame(search, &backup.eval);
 			bestscore = -PVS_shallow(search, -beta, -alpha, depth);
 			hash_store_data.data.move[0] = PASS;
-			search_restore_pass_midgame(search);
+			search_restore_pass_midgame(search, &backup.eval);
 		} else { // game-over !
 			bestscore = search_solve(search);
 <<<<<<< HEAD
@@ -1503,10 +1513,14 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	if (movelist_is_empty(&movelist)) { // no moves ?
 		node_init(&node, search, alpha, beta, depth, movelist.n_moves, parent);
 		if (can_move(search->board.opponent, search->board.player)) { // pass ?
-			search_update_pass_midgame(search);
+			search_update_pass_midgame(search, &backup.eval);
 			node.bestscore = -NWS_midgame(search, -node.beta, depth, &node);
+<<<<<<< HEAD
 			search_restore_pass_midgame(search);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			search_restore_pass_midgame(search, &backup.eval);
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 		} else { // game-over !
 			node.bestscore = search_solve(search);
 		}
@@ -1782,6 +1796,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	if (movelist_is_empty(&movelist)) {
 		if (can_move(search->board.opponent, search->board.player)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_update_pass_midgame(search, &eval0);
 			search->node_type[search->height] = PV_NODE;
 			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
@@ -1791,6 +1806,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
 			search_restore_pass_midgame(search);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			search_update_pass_midgame(search, &backup.eval);
+			search->node_type[search->height] = PV_NODE;
+			node.bestscore = -PVS_midgame(search, -beta, -alpha, depth, &node);
+			search_restore_pass_midgame(search, &backup.eval);
+>>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 			node.bestmove = PASS;
 		} else {
 			node.alpha = -(node.beta = +SCORE_INF);
