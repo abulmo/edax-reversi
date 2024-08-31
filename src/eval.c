@@ -4,6 +4,7 @@
  * Evaluation function.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -11,6 +12,12 @@
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
+=======
+ * @date 1998 - 2018
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.4
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
  */
 
 #include "eval.h"
@@ -173,6 +180,7 @@ static const CoordinateToFeature EVAL_X2F[] = {
 	{4, {{ 0,     0}, { 0,     0}, { 0,     0}, { 0,     0}}} // <- PASS
 };
 
+<<<<<<< HEAD
 #endif
 #if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 
@@ -457,6 +465,29 @@ static const unsigned short EVAL_OFFSET[] = {
 	    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
 	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
 	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
+=======
+/** feature offset/size */
+// static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
+static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
+
+/** packed feature offset/size */
+static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
+// static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
+
+static const int EVAL_MAX_VALUE[] = {
+	 19682,  19682,  19682,  19682,
+	 59048,  59048,  59048,  59048,	//  78731,  78731,  78731,  78731,
+	 59048,  59048,  59048,  59048,	// 137780, 137780, 137780, 137780,
+	 59048,  59048,  59048,  59048,	// 196829, 196829, 196829, 196829,
+	  6560,   6560,   6560,   6560,	// 203390, 203390, 203390, 203390,
+	  6560,   6560,   6560,   6560,	// 209951, 209951, 209951, 209951,
+	  6560,   6560,			// 216512, 216512,
+	  2186,   2186,   2186,   2186, // 225260, 225260, 225260, 225260,
+	   728,    728,    728,    728, // 225989, 225989, 225989, 225989,
+	   242,    242,    242,    242, // 226232, 226232, 226232, 226232,
+	    80,     80,     80,     80, // 226313, 226313, 226313, 226313,
+	     0				// 226314
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 };
 
 /** packed feature offset/size */
@@ -465,6 +496,7 @@ static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 10
 
 /** feature symetry packing */
 typedef struct {
+<<<<<<< HEAD
 	short EVAL_C10[59049];
 	short EVAL_S10[59049];
 	short EVAL_C9[19683];
@@ -473,16 +505,30 @@ typedef struct {
 	short EVAL_S6[729];
 	short EVAL_S5[243];
 	short EVAL_S4[81];
+=======
+	short EVAL_C10[2][59049];
+	short EVAL_S10[2][59049];
+	short EVAL_C9[2][19683];
+	short EVAL_S8[2][6561];
+	short EVAL_S7[2][2187];
+	short EVAL_S6[2][729];
+	short EVAL_S5[2][243];
+	short EVAL_S4[2][81];
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 } SymetryPacking;
 
 /** eval weight load status */
 static int EVAL_LOADED = 0;
 
 /** eval weights */
+<<<<<<< HEAD
 Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
 
 /** opponent feature */
 static unsigned short *OPPONENT_FEATURE;
+=======
+short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 /** evaluation function error coefficient parameters */
 static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
@@ -496,6 +542,7 @@ static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
  * @param d feature size.
  * @return updated opponent feature pointer
  */
+<<<<<<< HEAD
 // #define OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
 static unsigned short *set_opponent_feature(unsigned short *p, int o, int d)
 {
@@ -554,6 +601,16 @@ static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int 
 		}
 	}
 	return n;
+=======
+#define	OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
+
+static int opponent_feature(int q[], int d)
+{
+	int f = 0;
+	while (--d >= 0)
+		f = f * 3 + OPPONENT(q[d]);
+	return f;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 }
 
 /**
@@ -573,6 +630,7 @@ void eval_open(const char* file)
 	double date;
 	const int n_w = 114364;
 	int *T;
+<<<<<<< HEAD
 	int ply, i, j, k;
 	int r;
 	FILE* f;
@@ -583,6 +641,14 @@ void eval_open(const char* file)
 	static const int kd_S10[] = { 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1 };
 	static const int kd_C10[] = { 19683, 6561, 2187, 729, 81, 243, 27, 9, 3, 1 };
 	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
+=======
+	int ply, i, j, k, kc, l, l4, l5, l6, l7, n, n4, n5, n6, n7, nc, o4, o5, o6, o7;
+	int r;
+	int q[10];
+	FILE* f;
+	short *w;
+	SymetryPacking *P;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 	if (EVAL_LOADED++) return;
 
@@ -593,6 +659,7 @@ void eval_open(const char* file)
 	if (sizeof (short) != 2) fatal_error("short size is not compatible with Edax.\n");
 
 	// create unpacking tables
+<<<<<<< HEAD
 	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));	// 3^10
 	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
 	T = (int *) malloc(2 * 59049 * sizeof(*T));
@@ -630,13 +697,125 @@ void eval_open(const char* file)
 	for (j = 0; j < 59049; ++j) {
 		(*P)[1].EVAL_S10[j] = (*P)[0].EVAL_S10[OPPONENT_FEATURE[j]];
 		(*P)[1].EVAL_C10[j] = (*P)[0].EVAL_C10[OPPONENT_FEATURE[j]];
+=======
+	P = (SymetryPacking *) malloc(sizeof(*P));
+	T = (int *) malloc(59049 * 2 * sizeof(*T));
+	if ((P == NULL) || (T == NULL)) fatal_error("Cannot allocate temporary table variable.\n");
+
+	k = l = n = 0;	/* 8 squares : 6561 -> 3321 */
+	l7 = n7 = 0;	/* 7 squares : 2187 -> 1134 */
+	l6 = n6 = 0;	/* 6 squares : 729 -> 378 */
+	l5 = n5 = 0;	/* 5 squares : 243 -> 135 */
+	l4 = n4 = 0;	/* 4 squares : 81 -> 45 */
+	for (q[7] = 0; q[7] < 3; ++q[7], k += (1 - 3 * 3))
+	for (q[6] = 0; q[6] < 3; ++q[6], k += (3 - 9 * 3))
+	for (q[5] = 0; q[5] < 3; ++q[5], k += (9 - 27 * 3))
+	for (q[4] = 0; q[4] < 3; ++q[4]) {
+		if (k < l4) i = T[k + 9720];
+		else T[l4 + 9720] = i = n4++;
+		o4 = opponent_feature(q + 4, 4);
+		P->EVAL_S4[0][l4] = i;
+		P->EVAL_S4[1][o4] = i;
+
+		for (q[3] = 0; q[3] < 3; ++q[3]) {
+			if (k < l5) i = T[k + 9477];
+			else T[l5 + 9477] = i = n5++;
+			o5 = o4 * 3 + OPPONENT(q[3]);
+			P->EVAL_S5[0][l5] = i;
+			P->EVAL_S5[1][o5] = i;
+
+			for (q[2] = 0; q[2] < 3; ++q[2]) {
+				if (k < l6) i = T[k + 8748];
+				else T[l6 + 8748] = i = n6++;
+				o6 = o5 * 3 + OPPONENT(q[2]);
+				P->EVAL_S6[0][l6] = i;
+				P->EVAL_S6[1][o6] = i;
+
+				for (q[1] = 0; q[1] < 3; ++q[1]) {
+					if (k < l7) i = T[k + 6561];
+					else T[l7 + 6561] = i = n7++;
+					o7 = o6 * 3 + OPPONENT(q[1]);
+					P->EVAL_S7[0][l7] = i;
+					P->EVAL_S7[1][o7] = i;
+
+					for (q[0] = 0; q[0] < 3; ++q[0]) {
+						if (k < l) i = T[k];
+						else T[l] = i = n++;
+						P->EVAL_S8[0][l] = i;
+						P->EVAL_S8[1][o7 * 3 + OPPONENT(q[0])] = i;
+						k += 2187;
+						++l;
+					}
+					k += (729 - 2187 * 3);
+					++l7;
+				}
+				k += (243 - 729 * 3);
+				++l6;
+			}
+			k += (81 - 243 * 3);
+			++l5;
+		}
+		k += (27 - 81 * 3);
+		++l4;
+	}
+
+	k = l = n = 0; /* 9 corner squares : 19683 -> 10206 */
+	for (q[8] = 0; q[8] < 3; ++q[8], k += (6561 - 729 * 3)) 
+	for (q[7] = 0; q[7] < 3; ++q[7], k += (729 - 2187 * 3))
+	for (q[6] = 0; q[6] < 3; ++q[6], k += (2187 - 243 * 3))
+	for (q[5] = 0; q[5] < 3; ++q[5], k += (243 - 27 * 3))
+	for (q[4] = 0; q[4] < 3; ++q[4], k += (27 - 81 * 3))
+	for (q[3] = 0; q[3] < 3; ++q[3], k += (81 - 3 * 3))
+	for (q[2] = 0; q[2] < 3; ++q[2], k += (3 - 9 * 3))
+	for (q[1] = 0; q[1] < 3; ++q[1], k += (9 - 3))
+	for (q[0] = 0; q[0] < 3; ++q[0], ++k) {
+		// k = q[8] * 6561 + q[7] * 729 + q[6] * 2187 + q[5] * 243 + q[4] * 27 + q[3] * 81 + q[2] * 3 + q[1] * 9 + q[0];
+		if (k < l) i = T[k];
+		else T[l] = i = n++;
+		P->EVAL_C9[0][l] = i;
+		P->EVAL_C9[1][opponent_feature(q, 9)] = i;
+		++l;
+	}
+
+	k = l = n = 0;	/* 10 squares (edge + X) : 59049 -> 29646 */
+	nc = 0;		/* 10 squares (angle + X) : 59049 -> 29889 */
+	for (q[9] = 0; q[9] < 3; ++q[9], k += (1 - 3 * 3))
+	for (q[8] = 0; q[8] < 3; ++q[8], k += (3 - 9 * 3))
+	for (q[7] = 0; q[7] < 3; ++q[7], k += (9 - 27 * 3))
+	for (q[6] = 0; q[6] < 3; ++q[6], k += (27 - 81 * 3))
+	for (q[5] = 0; q[5] < 3; ++q[5], k += (81 - 243 * 3))
+	for (q[4] = 0; q[4] < 3; ++q[4], k += (243 - 729 * 3))
+	for (q[3] = 0; q[3] < 3; ++q[3], k += (729 - 2187 * 3))
+	for (q[2] = 0; q[2] < 3; ++q[2], k += (2187 - 6561 * 3))
+	for (q[1] = 0; q[1] < 3; ++q[1], k += (6561 - 19683 * 3))
+	for (q[0] = 0; q[0] < 3; ++q[0], k += 19683) {
+		// k = q[9] + q[8] * 3 + q[7] * 9 + q[6] * 27 + q[5] * 81 + q[4] * 243 + q[3] * 729 + q[2] * 2187 + q[1] * 6561 + q[0] * 19683;
+		if (k < l) i = T[k];
+		else T[l] = i = n++;
+		j = opponent_feature(q, 10);
+		P->EVAL_S10[0][l] = i;
+		P->EVAL_S10[1][j] = i;
+
+		// k = q[9] + q[8] * 3 + q[7] * 9 + q[6] * 27 + q[5] * 243 + q[4] * 81 + q[3] * 729 + q[2] * 2187 + q[1] * 6561 + q[0] * 19683;
+		kc = k + q[5] * (243 - 81) + q[4] * (81 - 243);
+		if (kc < l) i = T[kc + 59049];
+		else T[l + 59049] = i = nc++;
+		P->EVAL_C10[0][l] = i;
+		P->EVAL_C10[1][j] = i;
+		++l;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	}
 
 	free(T);
 
 	// allocation
+<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
+=======
+	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
+	if (EVAL_WEIGHT == NULL) fatal_error("Cannot evaluation weights.\n");
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 	// data reading
 	w = (short*) malloc(n_w * sizeof (*w)); // a temporary to read packed weights
@@ -668,6 +847,7 @@ void eval_open(const char* file)
 
 		if (edax_header == XADE) for (i = 0; i < n_w; ++i) w[i] = bswap_short(w[i]);
 
+<<<<<<< HEAD
 		pe = *EVAL_WEIGHT + ply - 2;
 		pp = *P + (ply & 1);
 		for (k = 0; k < 19683; k++) {
@@ -699,6 +879,41 @@ void eval_open(const char* file)
 			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
 		}
 		pe->S0 = w[EVAL_PACKED_OFS[12]];
+=======
+		for (j = 0; j <= 1; ++j) {
+			for (k = 0; k < EVAL_SIZE[0]; k++) {
+				EVAL_WEIGHT[j][ply][k] = w[P->EVAL_C9[j][k] + EVAL_PACKED_OFS[0]];
+			}
+			for (k = 0; k < EVAL_SIZE[1]; k++) {
+				EVAL_WEIGHT[j][ply][k + 19683] = w[P->EVAL_C10[j][k] + EVAL_PACKED_OFS[1]];
+			}
+			for (k = 0; k < EVAL_SIZE[2]; k++) {
+				i = P->EVAL_S10[j][k];
+				EVAL_WEIGHT[j][ply][k + 78732] = w[i + EVAL_PACKED_OFS[2]];
+				EVAL_WEIGHT[j][ply][k + 137781] = w[i + EVAL_PACKED_OFS[3]];
+			}
+			for (k = 0; k < EVAL_SIZE[4]; k++) {
+				i = P->EVAL_S8[j][k];
+				EVAL_WEIGHT[j][ply][k + 196830] = w[i + EVAL_PACKED_OFS[4]];
+				EVAL_WEIGHT[j][ply][k + 203391] = w[i + EVAL_PACKED_OFS[5]];
+				EVAL_WEIGHT[j][ply][k + 209952] = w[i + EVAL_PACKED_OFS[6]];
+				EVAL_WEIGHT[j][ply][k + 216513] = w[i + EVAL_PACKED_OFS[7]];
+			}
+			for (k = 0; k < EVAL_SIZE[8]; k++) {
+				EVAL_WEIGHT[j][ply][k + 223074] = w[P->EVAL_S7[j][k] + EVAL_PACKED_OFS[8]];
+			}
+			for (k = 0; k < EVAL_SIZE[9]; k++) {
+				EVAL_WEIGHT[j][ply][k + 225261] = w[P->EVAL_S6[j][k] + EVAL_PACKED_OFS[9]];
+			}
+			for (k = 0; k < EVAL_SIZE[10]; k++) {
+				EVAL_WEIGHT[j][ply][k + 225990] = w[P->EVAL_S5[j][k] + EVAL_PACKED_OFS[10]];
+			}
+			for (k = 0; k < EVAL_SIZE[11]; k++) {
+				EVAL_WEIGHT[j][ply][k + 226233] = w[P->EVAL_S4[j][k] + EVAL_PACKED_OFS[11]];
+			}
+			EVAL_WEIGHT[j][ply][226314] = w[EVAL_PACKED_OFS[12]];
+		}
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	}
 
 	fclose(f);
@@ -713,7 +928,14 @@ void eval_open(const char* file)
 	info("<Evaluation function weights version %u.%u.%u loaded>\n", version, release, build);
 
 	// f = fopen("eval.bin", "wb");
+<<<<<<< HEAD
 	// fwrite(*EVAL_WEIGHT, sizeof(Eval_weight), EVAL_N_PLY, f);
+=======
+	// for (i = 0; i < 2; ++i)
+	//	for (ply = 0; ply < EVAL_N_PLY; ply++) {
+	//		fwrite(EVAL_WEIGHT[i][ply], sizeof(short), EVAL_N_WEIGHT, f);
+	//	}
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	// fclose(f);
 }
 
@@ -722,11 +944,15 @@ void eval_open(const char* file)
  */
 void eval_close(void)
 {
+<<<<<<< HEAD
 	free(OPPONENT_FEATURE);
+=======
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	free(EVAL_WEIGHT);
 	EVAL_WEIGHT = NULL;
 }
 
+<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -735,6 +961,8 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
 
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 
+=======
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 /**
  * @brief Set up evaluation features from a board.
  *
@@ -767,11 +995,19 @@ void eval_set(Eval *eval, const Board *board)
 	} else	b = *board;
 
 	for (i = 0; i < EVAL_N_FEATURE; ++i) {
+<<<<<<< HEAD
 		x = 0;
 		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
 			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
 		}
 		eval->feature.us[i] = x + EVAL_OFFSET[i];
+=======
+		eval->feature.us[i] = 0;
+		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
+			c = board_get_square_color(board, EVAL_F2X[i].x[j]);
+			eval->feature.us[i] = eval->feature.us[i] * 3 + c;
+		}
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	}
   #endif
 }
@@ -785,6 +1021,7 @@ void eval_set(Eval *eval, const Board *board)
  */
 static void eval_update_0(int x, unsigned long long f, Eval *eval)
 {
+<<<<<<< HEAD
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
 
@@ -794,15 +1031,46 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	foreach_bit (x, f)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
+=======
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+	register int x;
+	unsigned long long f = move->flipped;
+	
+#ifdef DEBUG
+
+	int i, j;
+	for (i = 0; i < s->n_feature; ++i) {
+		j = s->feature[i].i;
+		assert(0 <= j && j < EVAL_N_FEATURE);
+		eval->feature.us[j] -= 2 * s->feature[i].x;
+		assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+	}
+
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			assert(0 <= j && j < EVAL_N_FEATURE);
+			eval->feature.us[j] -= s->feature[i].x;
+			assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+		}
+	}
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
   #else
 	const CoordinateToFeature *s = EVAL_X2F + x;
 
 	switch (s->n_feature) {
 	default:
+<<<<<<< HEAD
 		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
 	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
+=======
+		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;
+	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;
+	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	case 4:	eval->feature.us[s->feature[3].i] -= 2 * s->feature[3].x;
 		eval->feature.us[s->feature[2].i] -= 2 * s->feature[2].x;
 		eval->feature.us[s->feature[1].i] -= 2 * s->feature[1].x;
@@ -814,9 +1082,15 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
+<<<<<<< HEAD
 			eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
 		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
 		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
+=======
+			eval->feature.us[s->feature[6].i] -= s->feature[6].x;
+		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
+		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 			eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 			eval->feature.us[s->feature[1].i] -= s->feature[1].x;
@@ -836,12 +1110,19 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
  */
 static void eval_update_1(int x, unsigned long long f, Eval *eval)
 {
+<<<<<<< HEAD
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
+=======
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+	register int x;
+	unsigned long long f = move->flipped;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
+<<<<<<< HEAD
 	foreach_bit (x, f)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
@@ -854,6 +1135,33 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
 	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
+=======
+	int i, j;
+	for (i = 0; i < s->n_feature; ++i) {
+		j = s->feature[i].i;
+		assert(0 <= j && j < EVAL_N_FEATURE);
+		eval->feature.us[j] -= s->feature[i].x;
+		assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+	}
+
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			assert(0 <= j && j < EVAL_N_FEATURE);
+			eval->feature.us[j] += s->feature[i].x;
+			assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+		}
+	}
+
+#else
+
+	switch (s->n_feature) {
+	default:
+	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
+	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
+	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 	       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 	       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
@@ -865,9 +1173,15 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
+<<<<<<< HEAD
 		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
 		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
 		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
+=======
+		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
+		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
+		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
 		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
 		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
@@ -896,6 +1210,7 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
+<<<<<<< HEAD
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
 		eval_update_sse(x, f, eval_out, eval_in);
@@ -910,6 +1225,130 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 }
 
 #endif // !defined(hasSSE2) && !defined(__ARM_NEON)
+=======
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+	register int x;
+	unsigned long long f = move->flipped;
+
+#ifdef DEBUG
+
+	int i, j;
+	for (i = 0; i < s->n_feature; ++i) {
+		j = s->feature[i].i;
+		assert(0 <= j && j < EVAL_N_FEATURE);
+		eval->feature.us[j] += 2 * s->feature[i].x;
+		assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+	}
+
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			assert(0 <= j && j < EVAL_N_FEATURE);
+			eval->feature.us[j] += s->feature[i].x;
+			assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+		}
+	}
+
+#else
+
+	switch (s->n_feature) {
+	default:
+	       	eval->feature.us[s->feature[6].i] += 2 * s->feature[6].x;
+	case 6:	eval->feature.us[s->feature[5].i] += 2 * s->feature[5].x;
+	case 5:	eval->feature.us[s->feature[4].i] += 2 * s->feature[4].x;
+	case 4:	eval->feature.us[s->feature[3].i] += 2 * s->feature[3].x;
+	       	eval->feature.us[s->feature[2].i] += 2 * s->feature[2].x;
+	       	eval->feature.us[s->feature[1].i] += 2 * s->feature[1].x;
+	       	eval->feature.us[s->feature[0].i] += 2 * s->feature[0].x;
+	       	break;
+	}
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		switch (s->n_feature) {
+		default:
+		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
+		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
+		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
+		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
+		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
+		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
+		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
+		       	break;
+		}
+	}
+	
+#endif
+
+}
+
+static void eval_restore_1(Eval *eval, const Move *move)
+{
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+	register int x;
+	unsigned long long f = move->flipped;
+
+#ifdef DEBUG
+
+	int i, j;
+	for (i = 0; i < s->n_feature; ++i) {
+		j = s->feature[i].i;
+		assert(0 <= j && j < EVAL_N_FEATURE);
+		eval->feature.us[j] += s->feature[i].x;
+		assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+	}
+
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			assert(0 <= j && j < EVAL_N_FEATURE);
+			eval->feature.us[j] -= s->feature[i].x;
+			assert(0 <= eval->feature.us[j] && eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
+		}
+	}
+
+#else
+
+	switch (s->n_feature) {
+	default:
+	       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
+	case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
+	case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
+	case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
+	       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
+	       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
+	       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
+	       	break;
+	}
+	foreach_bit (x, f) {
+		s = EVAL_X2F + x;
+		switch (s->n_feature) {
+		default:
+		       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
+		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
+		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
+		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
+		       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
+		       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
+		       	eval->feature.us[s->feature[0].i] -= s->feature[0].x;
+		       	break;
+		}
+	}
+
+#endif
+
+}
+
+void eval_restore(Eval *eval, const Move *move)
+{
+	static void (*eval_restore_f[])(Eval*, const Move*) = {eval_restore_0, eval_restore_1};
+	assert(move->flipped);
+	eval_swap(eval);
+	assert(WHITE == eval->player || BLACK == eval->player);
+	eval_restore_f[eval->player](eval, move);
+}
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 /**
  * @brief Update/Restore the features after a passing move.

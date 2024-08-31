@@ -460,9 +460,15 @@ void search_init(Search *search)
 void search_free(Search *search)
 {
 
+<<<<<<< HEAD
 	hash_free(&search->hash_table);
 	hash_free(&search->pv_table);
 	hash_free(&search->shallow_table);
+=======
+	hash_free(search->hash_table);
+	hash_free(search->pv_table);
+	hash_free(search->shallow_table);
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	// eval_free(search->eval);
 	
 	task_stack_free(search->tasks);

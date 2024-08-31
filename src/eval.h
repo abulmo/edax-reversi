@@ -3,7 +3,11 @@
  *
  * Evaluation function's header.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2018
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -11,7 +15,13 @@
 #ifndef EDAX_EVAL_H
 #define EDAX_EVAL_H
 
+<<<<<<< HEAD
 #include "bit.h"
+=======
+#ifdef __SSE2__
+	#include <x86intrin.h>
+#endif
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 /** number of features */
 enum { EVAL_N_FEATURE = 47 };
@@ -34,14 +44,28 @@ typedef union {
 } EVAL_FEATURE_V;
 
 typedef struct Eval {
+<<<<<<< HEAD
 	EVAL_FEATURE_V feature;                       /**!< discs' features (96) */
 	int n_empties;                                /**< number of empty squares (4) */
 	unsigned int parity;                          /**< parity (4) */
+=======
+	union {
+		unsigned short int us[EVAL_N_FEATURE];         /**!< discs' features */
+#ifdef __SSE2__
+		__v8hi	v8[6];
+#endif
+#ifdef __AVX2__
+		__v16hi	v16[3];
+#endif
+	} feature;
+	int player;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 } Eval;
 
 struct Board;
 struct Move;
 
+<<<<<<< HEAD
 /** unpacked weights */
 // enum { EVAL_N_WEIGHT = 226315 };
 typedef struct Eval_weight {
@@ -53,6 +77,15 @@ typedef struct Eval_weight {
 	short	S8x4[6561*4];
 	short	S7654[2187+729+243+81];
 } Eval_weight;
+=======
+/** number of (unpacked) weights */
+enum { EVAL_N_WEIGHT = 226315 };
+
+/** number of plies */
+enum { EVAL_N_PLY = 61 };
+
+extern short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 /** number of plies */
 enum { EVAL_N_PLY = 54 };	// decreased from 60 in 4.5.1

@@ -104,12 +104,33 @@ static int accumlate_eval(int ply, Eval *eval)
  */
 int search_eval_0(Search *search)
 {
+<<<<<<< HEAD
+=======
+	const short *w = EVAL_WEIGHT[search->eval->player][60 - search->n_empties];
+	unsigned short int *f = search->eval->feature.us;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	int score;
 
 	SEARCH_STATS(++statistics.n_search_eval_0);
 	SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 
+<<<<<<< HEAD
 	score = accumlate_eval(60 - search->eval.n_empties,  &search->eval);
+=======
+	score = w[f[ 0] + 0] + w[f[ 1] + 0] + w[f[ 2] + 0] + w[f[ 3] + 0]
+	  + w[f[ 4] + 19683] + w[f[ 5] + 19683] + w[f[ 6] + 19683] + w[f[ 7] + 19683]
+	  + w[f[ 8] + 78732] + w[f[ 9] + 78732] + w[f[10] + 78732] + w[f[11] + 78732]
+	  + w[f[12] + 137781] + w[f[13] + 137781] + w[f[14] + 137781] + w[f[15] + 137781]
+	  + w[f[16] + 196830] + w[f[17] + 196830] + w[f[18] + 196830] + w[f[19] + 196830]
+	  + w[f[20] + 203391] + w[f[21] + 203391] + w[f[22] + 203391] + w[f[23] + 203391]
+	  + w[f[24] + 209952] + w[f[25] + 209952] + w[f[26] + 209952] + w[f[27] + 209952]
+	  + w[f[28] + 216513] + w[f[29] + 216513]
+	  + w[f[30] + 223074] + w[f[31] + 223074] + w[f[32] + 223074] + w[f[33] + 223074]
+	  + w[f[34] + 225261] + w[f[35] + 225261] + w[f[36] + 225261] + w[f[37] + 225261]
+	  + w[f[38] + 225990] + w[f[39] + 225990] + w[f[40] + 225990] + w[f[41] + 225990]
+	  + w[f[42] + 226233] + w[f[43] + 226233] + w[f[44] + 226233] + w[f[45] + 226233]
+	  + w[f[46] + 226314];
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 	if (score > 0) score += 64;	else score -= 64;
 	score /= 128;
@@ -134,18 +155,54 @@ int search_eval_0(Search *search)
  */
 int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 {
+<<<<<<< HEAD
 	int x, score, bestscore, alphathres;
 	unsigned long long flipped;
 	Eval Ev;
 	V2DI board0;
+=======
+	const short *w = EVAL_WEIGHT[search->eval->player ^ 1][61 - search->n_empties];
+	Move move[1];
+	SquareList *empty;
+	register int score, bestscore;
+	const Board *board = search->board;
+	unsigned long long moves = get_moves(board->player, board->opponent);
+	unsigned short int *f;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 	if (moves) {
+<<<<<<< HEAD
 		bestscore = SCORE_INF * 128;	// min stage
 		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
 		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
+=======
+		bestscore = -SCORE_INF;
+		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
+		foreach_empty (empty, search->empties) {
+			if (moves & empty->b) {
+				board_get_move(board, empty->x, move);
+				if (move_wipeout(move, board)) return SCORE_MAX;
+				eval_update(search->eval, move);
+				f = search->eval->feature.us;
+				SEARCH_UPDATE_EVAL_NODES();
+				score = -w[f[ 0] + 0] - w[f[ 1] + 0] - w[f[ 2] + 0] - w[f[ 3] + 0]
+				  - w[f[ 4] + 19683] - w[f[ 5] + 19683] - w[f[ 6] + 19683] - w[f[ 7] + 19683]
+				  - w[f[ 8] + 78732] - w[f[ 9] + 78732] - w[f[10] + 78732] - w[f[11] + 78732]
+				  - w[f[12] + 137781] - w[f[13] + 137781] - w[f[14] + 137781] - w[f[15] + 137781]
+				  - w[f[16] + 196830] - w[f[17] + 196830] - w[f[18] + 196830] - w[f[19] + 196830]
+				  - w[f[20] + 203391] - w[f[21] + 203391] - w[f[22] + 203391] - w[f[23] + 203391]
+				  - w[f[24] + 209952] - w[f[25] + 209952] - w[f[26] + 209952] - w[f[27] + 209952]
+				  - w[f[28] + 216513] - w[f[29] + 216513]
+				  - w[f[30] + 223074] - w[f[31] + 223074] - w[f[32] + 223074] - w[f[33] + 223074]
+				  - w[f[34] + 225261] - w[f[35] + 225261] - w[f[36] + 225261] - w[f[37] + 225261]
+				  - w[f[38] + 225990] - w[f[39] + 225990] - w[f[40] + 225990] - w[f[41] + 225990]
+				  - w[f[42] + 226233] - w[f[43] + 226233] - w[f[44] + 226233] - w[f[45] + 226233]
+				  - w[f[46] + 226314];
+				eval_restore(search->eval, move);
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 		board0.board = search->board;
 		x = NOMOVE;

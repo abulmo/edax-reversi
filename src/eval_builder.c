@@ -1358,7 +1358,11 @@ EvalBuilder* eval_builder_create_edax3c(int n_games) {
 	int vector_times[] = { 4,4,4,4,4,4,4,2,4,4,4,4,1 };
 
 	// eval_init();
+<<<<<<< HEAD
 	eval_builder_set_features = eval_edax_v3_get_packed_features;
+=======
+	eval_builder_set_features = eval_edax_v3r1_get_packed_features;
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	return eval_builder_create(13, vector_size, vector_times, 47, n_games);
 }
 
@@ -1393,8 +1397,13 @@ EvalBuilder* eval_builder_create_logistello(int n_games) {
 	int vector_times[] = { 4,4,8,4,4,4,2,4,4,4,4,1 };
 
 	// eval_init();
+<<<<<<< HEAD
 	eval_builder_set_features = eval_builder_logistello_get_features;
 	return eval_builder_create(12, vector_size, vector_times, 47, n_games);
+=======
+	eval_builder_set_features=eval_builder_logistello_get_features;
+	return eval_builder_create(12,vector_size,vector_times,47,n_games);
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 }
 
 /* create a new EvalBuilder structure for a single feature */
@@ -1403,7 +1412,11 @@ EvalBuilder* eval_builder_create_feature(int n_games, int feature) {
 	int vector_times[] = { 4,1 };
 
 	// eval_init();
+<<<<<<< HEAD
 	switch (feature) {
+=======
+	switch(feature){
+>>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	case EVAL_CORNER3x3:
 		eval_builder_set_features = eval_builder_get_corner3x3_features;
 		vector_size[0] = 10206;
