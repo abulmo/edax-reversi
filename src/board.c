@@ -62,6 +62,7 @@
 	#include "flip_avx_ppfill.c"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
 	#include "flip_avx512cd.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
@@ -75,6 +76,10 @@
 =======
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 =======
+=======
+#elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+	#include "flip_avx512cd.c"
+>>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 	#include "flip_neon_lzcnt.c"
 >>>>>>> f2da03e (Refine arm builds adding neon support.)

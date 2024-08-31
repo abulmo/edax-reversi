@@ -48,6 +48,7 @@
 #define MOVE_GENERATOR_AVX 8		// 34.7Mnps	// best for modern X64
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define MOVE_GENERATOR_AVX512 9
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 #define MOVE_GENERATOR_SVE 11
@@ -56,6 +57,9 @@
 #define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 =======
 =======
+=======
+#define MOVE_GENERATOR_AVX512	9
+>>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
 #define MOVE_GENERATOR_NEON 10
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 

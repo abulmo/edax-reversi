@@ -160,6 +160,7 @@ extern unsigned char edge_stability[256 * 256];
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
@@ -204,6 +205,9 @@ extern unsigned char edge_stability[256 * 256];
 	extern unsigned long long Flip(int, const unsigned long long, const unsigned long long);
 =======
 #if MOVE_GENERATOR == MOVE_GENERATOR_AVX
+=======
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
+>>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O)), (x))))
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x))))
