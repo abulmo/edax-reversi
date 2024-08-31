@@ -469,9 +469,12 @@ void board_rand(Board *board, int n_ply, Random *r)
 unsigned long long board_get_move_flip(const Board *board, const int x, Move *move)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	move->flipped = board_flip(board, x);
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> 542ee82 (Change store order to reduce register saving)
 	move->x = x;
 	move->flipped = board_flip(board, x);
 	return move->flipped;
