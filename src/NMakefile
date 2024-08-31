@@ -9,6 +9,7 @@
 
 # Microsoft Visual C++ 2008 or better for Windows (7 or Vista).
 <<<<<<< HEAD
+<<<<<<< HEAD
 # VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
 VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /MT
 
@@ -113,6 +114,11 @@ icc-pgo-w64-modern:
 =======
 VC_FLAGS = /I"..\include" /O2 /Oi /GL /fp:fast /source-charset:.1252 /execution-charset:.1252\
            /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__"\
+=======
+# VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
+VC_FLAGS = /D UNICODE /utf-8\
+           /I"..\include" /O2 /Oi /GL /GF /fp:fast /D NDEBUG /D inline=__inline /D __func__=__FUNCTION__\
+>>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
            /MT
 
 vc-w64-modern:
