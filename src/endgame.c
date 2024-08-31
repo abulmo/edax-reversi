@@ -187,6 +187,7 @@ int search_solve_0(const Search *search)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
 	#include "endgame_sse.c"	// vectorcall version
 #elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON) || ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE) && defined(SIMULLASTFLIP)))
@@ -200,6 +201,9 @@ int search_solve_0(const Search *search)
 =======
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+#if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2))
+>>>>>>> 9ea5b5e (BMI2 and mm_LastFlip version of board_score_sse_1 added (but not enabled))
 	#include "endgame_sse.c"	// vectorcall version
 #elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 	#include "endgame_neon.c"
@@ -1204,6 +1208,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8ee1734 (Use get_moves in search_shallow)
 =======
 	bestscore  = -SCORE_INF;
@@ -1212,6 +1217,9 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	board0 = search->board;
 =======
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
+=======
+	bestscore = -SCORE_INF;
+>>>>>>> 9ea5b5e (BMI2 and mm_LastFlip version of board_score_sse_1 added (but not enabled))
 	parity0 = search->eval.parity;
 	prioritymoves = moves & quadrant_mask[parity0];
 	if (prioritymoves == 0)	// all even

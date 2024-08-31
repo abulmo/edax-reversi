@@ -670,7 +670,49 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
  * @param pos    Last empty square to play.
  * @return       The final opponent score, as a disc difference.
  */
-#if 1
+#if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2	// slower on Zen1/2, par on intel
+extern const unsigned long long mask_x[64][4];
+
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	unsigned int	n_flips, th, tv;
+	unsigned long long P = _mm_extract_epi64(PO, 1);
+	unsigned long long mP;
+	int	score, score2;
+	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+	mP = P & mask_x[pos][3];	// mask out unrelated bits to make dummy 0 bits for outside
+	// n_flips  = COUNT_FLIP_X[_bextr_u64(mP, pos & 0x38, 8)];
+	n_flips  = COUNT_FLIP_X[th = (unsigned char) (mP >> (pos & 0x38))];
+	n_flips += COUNT_FLIP_Y[_pext_u64(mP, mask_x[pos][0])];
+	n_flips += COUNT_FLIP_Y[_pext_u64(mP, mask_x[pos][1])];
+	n_flips += COUNT_FLIP_Y[tv = _pext_u64(mP, mask_x[pos][2])];
+
+	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
+	score -= n_flips;
+
+	if (n_flips == 0) {
+		score2 = score + 2;	// empty for player
+		if (score >= 0)
+			score = score2;
+
+		if (score < beta) {	// lazy cut-off
+			mP = ~P & mask_x[pos][3];
+			n_flips  = COUNT_FLIP_X[th ^ 0xff];
+			n_flips += COUNT_FLIP_Y[_pext_u64(mP, mask_x[pos][0])];
+			n_flips += COUNT_FLIP_Y[_pext_u64(mP, mask_x[pos][1])];
+			n_flips += COUNT_FLIP_Y[tv ^ 0xff];
+
+			if (n_flips != 0)
+				score = score2 + n_flips;
+		}
+	}
+
+	return score;
+}
+
+#elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE	// reasonably fast on all platforms
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	unsigned int	n_flips, t;
@@ -681,7 +723,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	__m128i	II;
 
 	// n_flips = last_flip(pos, P);
-  #ifdef AVXLASTFLIP
+  #ifdef AVXLASTFLIP	// no gain
 	__m256i M = mask_dvhd[pos].v4;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
 
@@ -729,6 +771,34 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 			if (n_flips != 0)
 				score = score2 + n_flips;
+		}
+	}
+
+	return score;
+}
+
+#elif 0
+// experimental AVX2 lastflip version (a little slower)
+extern unsigned long long vectorcall mm_LastFlip(const __m256i PP, int pos);	// in flip_avx_ppfill.c
+
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	int	score, score2;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	unsigned long long F;
+
+	F = _mm_cvtsi128_si64(mm_LastFlip(PP, pos));
+	score = SCORE_MAX - 2 - 2 * bit_count(P | F);	// 2 * bit_count(O) - SCORE_MAX
+
+	if (F == 0) {
+		score2 = score + 2;	// empty for player
+		if (score >= 0)
+			score = score2;
+		if (score < beta) {	// lazy cut-off
+			F = _mm_cvtsi128_si64(mm_LastFlip(_mm256_xor_si256(PP, _mm256_set1_epi64x(-1)), pos));
+			if (F)
+				score = score2 + bit_count(F) * 2;
 		}
 	}
 
