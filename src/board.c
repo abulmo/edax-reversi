@@ -16,6 +16,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -32,6 +33,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+ * @date 1998 - 2023
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -1371,7 +1375,6 @@ int get_stability_fulls(const unsigned long long P, const unsigned long long O, 
 {
 	unsigned long long stable, P_central, stable_h, stable_v, stable_d7, stable_d9, old_stable;
 
-	// compute the exact stable edges (from precomputed tables)
 	get_all_full_lines(P | O, full);
 
 	// compute the exact stable edges (from precomputed tables)

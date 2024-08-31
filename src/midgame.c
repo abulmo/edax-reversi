@@ -666,6 +666,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 	unsigned long long flipped;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Eval eval0;
 	V2DI board0;
 =======
@@ -699,6 +700,11 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 =======
 	unsigned long long moves = get_moves(search->board.player, search->board.opponent);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	Eval eval0;
+	vBoard board0 = load_vboard(search->board);
+	unsigned long long moves = vboard_get_moves(board0, search->board);
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 
 	SEARCH_STATS(++statistics.n_search_eval_2);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -709,6 +715,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 
 	if (moves) {
 		bestscore = -SCORE_INF;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -751,6 +758,10 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 		backup.eval.n_empties = search->eval.n_empties--;
 		backup.board = search->board;
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+		eval0.feature = search->eval.feature;
+		eval0.n_empties = search->eval.n_empties--;
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 
 <<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
@@ -762,6 +773,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 =======
 		foreach_empty(x, search->empties) {
 			if (moves & x_to_bit(x)) {
+<<<<<<< HEAD
 				flipped = board_next(&backup.board, x, &search->board);
 				// empty_remove(search->empties, x);
 <<<<<<< HEAD
@@ -778,6 +790,11 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 				score = -search_eval_1(search, -beta, -alpha, get_moves(search->board.player, search->board.opponent));
 				// empty_restore(search->empties, x);
 =======
+=======
+				flipped = vboard_next(board0, x, &search->board);
+				search->empties[prev].next = search->empties[x].next;	// remove
+				eval_update_leaf(x, flipped, &search->eval, &eval0);
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 				score = -search_eval_1(search, -beta, -alpha, false);
 				search->empties[prev].next = x;	// restore
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
@@ -807,9 +824,9 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 		if (can_move(search->board.opponent, search->board.player)) {
 =======
 		}
-		search->eval.feature = backup.eval.feature;
-		search->eval.n_empties = backup.eval.n_empties;
-		search->board = backup.board;
+		search->eval.feature = eval0.feature;
+		search->eval.n_empties = eval0.n_empties;
+		store_vboard(search->board, board0);
 
 	} else {
 <<<<<<< HEAD
@@ -830,9 +847,9 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 			bestscore = search_solve(search);
 		} else {
-			search_update_pass_midgame(search, &backup.eval);
+			search_update_pass_midgame(search, &eval0);
 			bestscore = -search_eval_2(search, -beta, -alpha, true);
-			search_restore_pass_midgame(search, &backup.eval);
+			search_restore_pass_midgame(search, &eval0);
 		}
 	}
 

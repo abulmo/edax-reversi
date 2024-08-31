@@ -237,10 +237,14 @@ void search_get_movelist(const Search*, MoveList*);
 // void search_update_endgame(Search*, const Move*);
 // void search_restore_endgame(Search*, const Move*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 // void search_pass_endgame(Search*);
 =======
 void search_pass_endgame(Search*);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+// void search_pass_endgame(Search*);
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 void search_update_midgame(Search*, const Move*);
 <<<<<<< HEAD
 <<<<<<< HEAD

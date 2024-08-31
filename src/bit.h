@@ -10,6 +10,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -32,6 +33,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+ * @date 1998 - 2023
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -578,9 +582,9 @@ typedef union {
 
 /* Define function attributes directive when available */
 
-#if defined(_MSC_VER)	// including clang-win
+#if defined(_MSC_VER) || defined(__clang__)
 #define	vectorcall	__vectorcall
-#elif defined(__GNUC__) && !defined(__clang__) && defined(__i386__)
+#elif defined(__GNUC__) && defined(__i386__)
 #define	vectorcall	__attribute__((sseregparm))
 #elif 0 // defined(__GNUC__)	// erroreous result on pgo-build
 #define	vectorcall	__attribute__((sysv_abi))
@@ -609,5 +613,10 @@ static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 }
   #endif
 #endif // !HAS_CPU_64
+
+#if __clang_major__ == 3	// undefined reference to `llvm.x86.avx.storeu.dq.256'
+#define	_mm_storeu_si128(a,b)	*(__m128i *)(a) = (b)
+#define	_mm256_storeu_si256(a,b)	*(__m256i *)(a) = (b)
+#endif
 
 #endif // EDAX_BIT_H

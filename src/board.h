@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2021
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+ * @date 1998 - 2023
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -59,6 +63,7 @@ void board_update(Board*, const struct Move*);
 void board_restore(Board*, const struct Move*);
 void board_pass(Board*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 bool can_move(const unsigned long long, const unsigned long long);
 unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
@@ -86,6 +91,8 @@ int get_corner_stability(const unsigned long long);
 =======
 unsigned long long board_next(const Board*, const int, Board*);
 >>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
+=======
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 unsigned long long board_get_hash_code(const Board*);
 int board_get_square_color(const Board*, const int);
 bool board_is_occupied(const Board*, const int);
@@ -102,11 +109,14 @@ int board_count_empties(const Board *board);
 	unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(ANDROID) && !defined(__ARM_NEON) && !defined(hasSSE2)
 	void init_neon (void);
 	unsigned long long get_moves_sse(unsigned long long, unsigned long long);
 =======
 unsigned long long get_moves(const unsigned long long, const unsigned long long);
+=======
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 bool can_move(const unsigned long long, const unsigned long long);
 unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
 bool can_move_6x6(const unsigned long long, const unsigned long long);
@@ -371,6 +381,35 @@ extern unsigned long long A1_A8[256];
 
 	#define	board_flip(board,x)	Flip((x), (board)->player, (board)->opponent)
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
+#endif
+
+#if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
+	#define	vBoard	__m128i
+	unsigned long long vectorcall vboard_next(__m128i OP, const int x, Board *next);
+	#define	board_next(board,x,next)	vboard_next(_mm_loadu_si128((__m128i *) (board)), (x), (next))
+	#define	load_vboard(board)	_mm_loadu_si128((__m128i *) &(board))
+	#define	store_vboard(dst,board)	_mm_storeu_si128((__m128i *) &(dst), (board))
+#elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+	#define	vBoard	uint64x2_t
+	unsigned long long vboard_next(uint64x2_t OP, const int x, Board *next);
+	#define	board_next(board,x,next)	vboard_next(vld1q_u64((uint64_t *) (board)), (x), (next))
+	#define	load_vboard(board)	vld1q_u64((uint64_t *) &(board))
+	#define	store_vboard(dst,board)	vst1q_u64((uint64_t *) &(dst), (board))
+#else
+	#define	vBoard	Board
+	unsigned long long board_next(const Board *board, const int x, Board *next);
+	#define	vboard_next(board,x,next)	board_next(&(board), (x), (next))
+	#define	load_vboard(board)	(board)
+	#define	store_vboard(dst,board)	((dst) = (board))
+#endif
+
+#if defined(__AVX2__) && (defined(_MSC_VER) || defined(__clang__))
+	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
+	#define	get_moves(P,O)	get_moves_avx(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)))
+	#define	vboard_get_moves(vboard,board)	get_moves_avx(_mm256_broadcastq_epi64(vboard), _mm256_permute4x64_epi64(_mm256_castsi128_si256(vboard), 0x55))
+#else
+	unsigned long long get_moves(const unsigned long long, const unsigned long long);
+	#define	vboard_get_moves(vboard,board)	get_moves((board).player, (board).opponent)
 #endif
 
 #endif

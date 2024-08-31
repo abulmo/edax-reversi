@@ -1044,7 +1044,11 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	int x, prev, score, bestscore;
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	// const int beta = alpha + 1;
+<<<<<<< HEAD
 	V2DI board0;
+=======
+	vBoard board0;
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 	unsigned int parity0;
 =======
 	Board *board = search->board;
@@ -1087,6 +1091,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1184,6 +1189,10 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 =======
 	moves = get_moves(search->board.player, search->board.opponent);
+=======
+	board0 = load_vboard(search->board);
+	moves = vboard_get_moves(board0, search->board);
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 	if (moves == 0) {	// pass (2%)
 		if (pass1)	// gameover
 			return search_solve(search);
@@ -1198,8 +1207,11 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 >>>>>>> 8ee1734 (Use get_moves in search_shallow)
 =======
 	bestscore  = -SCORE_INF;
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	board0 = search->board;
+=======
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 	parity0 = search->eval.parity;
 	prioritymoves = moves & quadrant_mask[parity0];
 	if (prioritymoves == 0)	// all even
@@ -1259,8 +1271,12 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 			do {
 				if (prioritymoves & x_to_bit(x)) {
 					search->empties[prev].next = search->empties[x].next;	// remove
+<<<<<<< HEAD
 					board_next(&board0, x, &search->board);
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+					vboard_next(board0, x, &search->board);
+>>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 					score = -search_solve_4(search, ~alpha);
 					search->empties[prev].next = x;	// restore
 
@@ -1289,12 +1305,12 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 				if (prioritymoves & x_to_bit(x)) {	// (37%)
 					search->eval.parity = parity0 ^ QUADRANT_ID[x];
 					search->empties[prev].next = search->empties[x].next;	// remove
-					board_next(&board0, x, &search->board);
+					vboard_next(board0, x, &search->board);
 					score = -search_shallow(search, ~alpha, false);
 					search->empties[prev].next = x;	// restore
 
 					if (score > alpha) {	// (40%)
-						// search->board = board0;
+						// store_vboard(search->board, board0);
 						// search->eval.parity = parity0;
 						++search->eval.n_empties;
 						return score;
@@ -1306,7 +1322,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 		} while ((prioritymoves = (moves ^= prioritymoves)));
 		++search->eval.n_empties;
 	}
-	// search->board = board0;
+	// store_vboard(search->board, board0);
 	// search->eval.parity = parity0;
 
 <<<<<<< HEAD
