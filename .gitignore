@@ -19,4 +19,8 @@ generate_count_flip.*
 bcnttest.*
 bin/
 doc/
+<<<<<<< HEAD
 >>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
+=======
+problem/
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)

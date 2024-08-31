@@ -546,6 +546,7 @@ static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
  * @brief Opponent feature.
  *
  * Compute a feature from the opponent point of view.
+<<<<<<< HEAD
  * @param p opponent feature pointer.
  * @param o opponent feature base to next depth.
  * @param d feature size.
@@ -620,6 +621,60 @@ static int opponent_feature(int q[], int d)
 		f = f * 3 + OPPONENT(q[d]);
 	return f;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+ * @param p opponent feature array to set.
+ * @param o opponent feature base to next depth.
+ * @param d feature size.
+ */
+// #define OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
+static void set_opponent_feature(int **p, int o, int d)
+{
+	if (--d > 0) {
+		set_opponent_feature(p, (o + 1) * 3, d);
+		set_opponent_feature(p, o * 3, d);
+		set_opponent_feature(p, (o + 2) * 3, d);
+	} else {
+		*(*p)++ = o + 1;
+		*(*p)++ = o;
+		*(*p)++ = o + 2;
+	}
+}
+
+/**
+ * @brief Create eval packing index.
+ *
+ * Create an index array to reduce mirror positions.
+ * @param pe pointer to array to set result.
+ * @param T internally used array to check mirror positions.
+ * @param kd feature increment at each depth for the mirror position.
+ * @param l feature index.
+ * @param k feature index for the mirror position.
+ * @param n packed count so far.
+ * @param d feature size.
+ * @return updated packed count.
+ */
+static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int n, int d)
+{
+	int	i, j;
+
+	if (--d > 0) {
+		l *= 3;
+		n = set_eval_packing(pe, T, kd, l, k, n, d);
+		l += 3; k += kd[d];
+		n = set_eval_packing(pe, T, kd, l, k, n, d);
+		l += 3; k += kd[d];
+		n = set_eval_packing(pe, T, kd, l, k, n, d);
+	} else {
+		for (j = 0; j < 3; ++j) {
+			if (k < l) i = T[k];
+			else T[l] = i = n++;
+			pe[l] = i;
+			++l;
+			k += kd[d];
+		}
+	}
+	return n;
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)
 }
 
 /**
@@ -640,6 +695,7 @@ void eval_open(const char* file)
 	const int n_w = 114364;
 	int *T;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int ply, i, j, k;
 	int r;
 	FILE* f;
@@ -652,12 +708,21 @@ void eval_open(const char* file)
 	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
 =======
 	int ply, i, j, k, kc, l, l4, l5, l6, l7, n, n4, n5, n6, n7, nc, o4, o5, o6, o7;
+=======
+	int ply, i, j, k, l, n, l4, l5, l6, l7, n4, n5, n6, n7;
+	int kc, nc, c10ofs;
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)
 	int r;
-	int q[10];
+	int q0, q1, q2, q3, q4, q5, q6, q7, q8, q9;
 	FILE* f;
 	short *w;
+	int *O, *pO;
 	SymetryPacking *P;
+<<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)
 
 	if (EVAL_LOADED++) return;
 
@@ -708,50 +773,52 @@ void eval_open(const char* file)
 		(*P)[1].EVAL_C10[j] = (*P)[0].EVAL_C10[OPPONENT_FEATURE[j]];
 =======
 	P = (SymetryPacking *) malloc(sizeof(*P));
-	T = (int *) malloc(59049 * 2 * sizeof(*T));
-	if ((P == NULL) || (T == NULL)) fatal_error("Cannot allocate temporary table variable.\n");
+	T = (int *) malloc(2 * 59049 * sizeof(*T));
+	O = (int *) malloc(59049 * sizeof(*O));
+	if ((P == NULL) || (T == NULL) || (O == NULL))
+		fatal_error("Cannot allocate temporary table variable.\n");
 
-	k = l = n = 0;	/* 8 squares : 6561 -> 3321 */
+	pO = O;
+	set_opponent_feature(&pO, 0, 10);
+
+	l = n = 0;	/* 8 squares : 6561 -> 3321 */
 	l7 = n7 = 0;	/* 7 squares : 2187 -> 1134 */
 	l6 = n6 = 0;	/* 6 squares : 729 -> 378 */
 	l5 = n5 = 0;	/* 5 squares : 243 -> 135 */
 	l4 = n4 = 0;	/* 4 squares : 81 -> 45 */
-	for (q[7] = 0; q[7] < 3; ++q[7], k += (1 - 3 * 3))
-	for (q[6] = 0; q[6] < 3; ++q[6], k += (3 - 9 * 3))
-	for (q[5] = 0; q[5] < 3; ++q[5], k += (9 - 27 * 3))
-	for (q[4] = 0; q[4] < 3; ++q[4]) {
+	k = 0;	// Symetry index
+	for (q7 = 0; q7 < 3; ++q7, k += (1 - 3 * 3))
+	for (q6 = 0; q6 < 3; ++q6, k += (3 - 9 * 3))
+	for (q5 = 0; q5 < 3; ++q5, k += (9 - 27 * 3))
+	for (q4 = 0; q4 < 3; ++q4) {
 		if (k < l4) i = T[k + 9720];
 		else T[l4 + 9720] = i = n4++;
-		o4 = opponent_feature(q + 4, 4);
 		P->EVAL_S4[0][l4] = i;
-		P->EVAL_S4[1][o4] = i;
+		P->EVAL_S4[1][O[l4 + 29484]] = i;
 
-		for (q[3] = 0; q[3] < 3; ++q[3]) {
+		for (q3 = 0; q3 < 3; ++q3) {
 			if (k < l5) i = T[k + 9477];
 			else T[l5 + 9477] = i = n5++;
-			o5 = o4 * 3 + OPPONENT(q[3]);
 			P->EVAL_S5[0][l5] = i;
-			P->EVAL_S5[1][o5] = i;
+			P->EVAL_S5[1][O[l5 + 29403]] = i;
 
-			for (q[2] = 0; q[2] < 3; ++q[2]) {
+			for (q2 = 0; q2 < 3; ++q2) {
 				if (k < l6) i = T[k + 8748];
 				else T[l6 + 8748] = i = n6++;
-				o6 = o5 * 3 + OPPONENT(q[2]);
 				P->EVAL_S6[0][l6] = i;
-				P->EVAL_S6[1][o6] = i;
+				P->EVAL_S6[1][O[l6 + 29160]] = i;
 
-				for (q[1] = 0; q[1] < 3; ++q[1]) {
+				for (q1 = 0; q1 < 3; ++q1) {
 					if (k < l7) i = T[k + 6561];
 					else T[l7 + 6561] = i = n7++;
-					o7 = o6 * 3 + OPPONENT(q[1]);
 					P->EVAL_S7[0][l7] = i;
-					P->EVAL_S7[1][o7] = i;
+					P->EVAL_S7[1][O[l7 + 28431]] = i;
 
-					for (q[0] = 0; q[0] < 3; ++q[0]) {
+					for (q0 = 0; q0 < 3; ++q0) {
 						if (k < l) i = T[k];
 						else T[l] = i = n++;
 						P->EVAL_S8[0][l] = i;
-						P->EVAL_S8[1][o7 * 3 + OPPONENT(q[0])] = i;
+						P->EVAL_S8[1][O[l + 26244]] = i;
 						k += 2187;
 						++l;
 					}
@@ -768,43 +835,30 @@ void eval_open(const char* file)
 		++l4;
 	}
 
-	k = l = n = 0; /* 9 corner squares : 19683 -> 10206 */
-	for (q[8] = 0; q[8] < 3; ++q[8], k += (6561 - 729 * 3)) 
-	for (q[7] = 0; q[7] < 3; ++q[7], k += (729 - 2187 * 3))
-	for (q[6] = 0; q[6] < 3; ++q[6], k += (2187 - 243 * 3))
-	for (q[5] = 0; q[5] < 3; ++q[5], k += (243 - 27 * 3))
-	for (q[4] = 0; q[4] < 3; ++q[4], k += (27 - 81 * 3))
-	for (q[3] = 0; q[3] < 3; ++q[3], k += (81 - 3 * 3))
-	for (q[2] = 0; q[2] < 3; ++q[2], k += (3 - 9 * 3))
-	for (q[1] = 0; q[1] < 3; ++q[1], k += (9 - 3))
-	for (q[0] = 0; q[0] < 3; ++q[0], ++k) {
-		// k = q[8] * 6561 + q[7] * 729 + q[6] * 2187 + q[5] * 243 + q[4] * 27 + q[3] * 81 + q[2] * 3 + q[1] * 9 + q[0];
-		if (k < l) i = T[k];
-		else T[l] = i = n++;
-		P->EVAL_C9[0][l] = i;
-		P->EVAL_C9[1][opponent_feature(q, 9)] = i;
-		++l;
-	}
+	set_eval_packing(P->EVAL_C9[0], T, kd_C9, 0, 0, 0, 9);	 /* 9 corner squares : 19683 -> 10206 */
+	for (j = 0; j < 19683; ++j)
+		P->EVAL_C9[1][j] = P->EVAL_C9[0][O[j + 19683]];
 
 	k = l = n = 0;	/* 10 squares (edge + X) : 59049 -> 29646 */
 	nc = 0;		/* 10 squares (angle + X) : 59049 -> 29889 */
-	for (q[9] = 0; q[9] < 3; ++q[9], k += (1 - 3 * 3))
-	for (q[8] = 0; q[8] < 3; ++q[8], k += (3 - 9 * 3))
-	for (q[7] = 0; q[7] < 3; ++q[7], k += (9 - 27 * 3))
-	for (q[6] = 0; q[6] < 3; ++q[6], k += (27 - 81 * 3))
-	for (q[5] = 0; q[5] < 3; ++q[5], k += (81 - 243 * 3))
-	for (q[4] = 0; q[4] < 3; ++q[4], k += (243 - 729 * 3))
-	for (q[3] = 0; q[3] < 3; ++q[3], k += (729 - 2187 * 3))
-	for (q[2] = 0; q[2] < 3; ++q[2], k += (2187 - 6561 * 3))
-	for (q[1] = 0; q[1] < 3; ++q[1], k += (6561 - 19683 * 3))
-	for (q[0] = 0; q[0] < 3; ++q[0], k += 19683) {
-		// k = q[9] + q[8] * 3 + q[7] * 9 + q[6] * 27 + q[5] * 81 + q[4] * 243 + q[3] * 729 + q[2] * 2187 + q[1] * 6561 + q[0] * 19683;
-		if (k < l) i = T[k];
-		else T[l] = i = n++;
-		j = opponent_feature(q, 10);
-		P->EVAL_S10[0][l] = i;
-		P->EVAL_S10[1][j] = i;
+	for (q9 = 0; q9 < 3; ++q9, k += (1 - 3 * 3))
+	for (q8 = 0; q8 < 3; ++q8, k += (3 - 9 * 3))
+	for (q7 = 0; q7 < 3; ++q7, k += (9 - 27 * 3))
+	for (q6 = 0; q6 < 3; ++q6, k += (27 - 81 * 3))
+	for (q5 = 0; q5 < 3; ++q5, k += (81 - 243 * 3))
+	for (q4 = 0; q4 < 3; ++q4, k += (243 - 729 * 3)) {
+		c10ofs = q5 * (243 - 81) + q4 * (81 - 243);
+		for (q3 = 0; q3 < 3; ++q3, k += (729 - 2187 * 3))
+		for (q2 = 0; q2 < 3; ++q2, k += (2187 - 6561 * 3))
+		for (q1 = 0; q1 < 3; ++q1, k += (6561 - 19683 * 3))
+		for (q0 = 0; q0 < 3; ++q0, k += 19683) {
+			// k = q9 + q8 * 3 + q7 * 9 + q6 * 27 + q5 * 81 + q4 * 243 + q3 * 729 + q2 * 2187 + q1 * 6561 + q0 * 19683;
+			if (k < l) i = T[k];
+			else T[l] = i = n++;
+			P->EVAL_S10[0][l] = i;
+			P->EVAL_S10[1][O[l]] = i;
 
+<<<<<<< HEAD
 		// k = q[9] + q[8] * 3 + q[7] * 9 + q[6] * 27 + q[5] * 243 + q[4] * 81 + q[3] * 729 + q[2] * 2187 + q[1] * 6561 + q[0] * 19683;
 		kc = k + q[5] * (243 - 81) + q[4] * (81 - 243);
 		if (kc < l) i = T[kc + 59049];
@@ -813,8 +867,19 @@ void eval_open(const char* file)
 		P->EVAL_C10[1][j] = i;
 		++l;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+			// k = q9 + q8 * 3 + q7 * 9 + q6 * 27 + q5 * 243 + q4 * 81 + q3 * 729 + q2 * 2187 + q1 * 6561 + q0 * 19683;
+			kc = k + c10ofs;
+			if (kc < l) i = T[kc + 59049];
+			else T[l + 59049] = i = nc++;
+			P->EVAL_C10[0][l] = i;
+			P->EVAL_C10[1][O[l]] = i;
+			++l;
+		}
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)
 	}
 
+	free(O);
 	free(T);
 
 	// allocation
@@ -823,8 +888,12 @@ void eval_open(const char* file)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
 =======
 	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
+<<<<<<< HEAD
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot evaluation weights.\n");
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
+>>>>>>> 48873fa (calc opponent_feature once in eval_open)
 
 	// data reading
 	w = (short*) malloc(n_w * sizeof (*w)); // a temporary to read packed weights
