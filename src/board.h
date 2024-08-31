@@ -159,16 +159,7 @@ int get_stability(const unsigned long long, const unsigned long long);
 int get_stability_fulls(const unsigned long long, const unsigned long long, unsigned long long [5]);
 int get_edge_stability(const unsigned long long, const unsigned long long);
 int get_corner_stability(const unsigned long long);
-
 unsigned long long board_get_hash_code(const Board*);
-#ifdef _M_X64
-unsigned long long vectorcall vboard_get_hash_code(__m128i);
-#elif defined(__aarch64__) || defined(_M_ARM64)
-unsigned long long vboard_get_hash_code(uint64x2_t);
-#else
-#define	vboard_get_hash_code(board)	board_get_hash_code(board)
-#endif
-
 int board_get_square_color(const Board*, const int);
 bool board_is_occupied(const Board*, const int);
 void board_print(const Board*, const int, FILE*);

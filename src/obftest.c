@@ -290,8 +290,8 @@ static void obf_build(Search *search, OBF *obf, int n)
 		++obf->n_moves;
 
 		hash_code = board_get_hash_code(&search->board);
-		hash_exclude_move(&search->pv_table, HBOARD_P(&search->board), hash_code, search->result->move);
-		hash_exclude_move(&search->hash_table, HBOARD_P(&search->board), hash_code, search->result->move);
+		hash_exclude_move(&search->pv_table, &search->board, hash_code, search->result->move);
+		hash_exclude_move(&search->hash_table, &search->board, hash_code, search->result->move);
 		movelist_exclude(&search->movelist, search->result->move);
 	}
 

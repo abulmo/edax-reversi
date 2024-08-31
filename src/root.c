@@ -60,10 +60,14 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
 =======
 	if (hash_get_from_board(&search->pv_table, HBOARD_P(&board), &hash_data)) {
 >>>>>>> 0b8fa13 (More HBOARD hash functions)
+=======
+	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
 	while (x != NOMOVE) {
@@ -86,12 +90,12 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 		player ^= 1;
 
 		hash_code = board_get_hash_code(&board);
-		if (hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data)) {
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 <<<<<<< HEAD
 <<<<<<< HEAD
 			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
-		} else if (hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) {
+		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 =======
@@ -142,8 +146,8 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 		board_update(&board, &move);
 
 		hash_code = board_get_hash_code(&board);
-		if (hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data)
-		 || hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) {
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
+		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 		} else break;
 		if (hash_data.wl.c.depth < search_depth || hash_data.wl.c.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
@@ -190,6 +194,7 @@ static int guess_move(Search *search, Board *board)
 <<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
 <<<<<<< HEAD
+<<<<<<< HEAD
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
 <<<<<<< HEAD
 =======
@@ -204,6 +209,9 @@ static int guess_move(Search *search, Board *board)
 =======
 	hash_get_from_board(&search->shallow_table, HBOARD_P(board), &hash_data);
 >>>>>>> 0b8fa13 (More HBOARD hash functions)
+=======
+	hash_get_from_board(&search->shallow_table, board, &hash_data);
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 
 	search->board = saved; search_setup(search);
 
@@ -291,12 +299,16 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 
 			hash_code = board_get_hash_code(&board);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 			if ((hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data) || hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) 
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			 && (hash_data.wl.c.depth >= expected_depth && hash_data.wl.c.selectivity >= expected_selectivity)
 =======
 			 && (hash_data.depth >= expected_depth && hash_data.selectivity >= expected_selectivity)
@@ -428,7 +440,7 @@ int search_get_pv_cost(Search *search)
 	HashData hash_data;
 	const unsigned long long hash_code = board_get_hash_code(&search->board);
 
-	if ((hash_get(pv_table, HBOARD_P(&search->board), hash_code, &hash_data) || hash_get(hash_table, HBOARD_P(&search->board), hash_code, &hash_data) || hash_get(shallow_table, HBOARD_P(&search->board), hash_code, &hash_data))) {
+	if ((hash_get(pv_table, &search->board, hash_code, &hash_data) || hash_get(hash_table, &search->board, hash_code, &hash_data) || hash_get(shallow_table, &search->board, hash_code, &hash_data))) {
 		return writeable_level(&hash_data);
 	}
 	return 0;
@@ -486,6 +498,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	Node node;
 	Eval eval0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Board board0;
 <<<<<<< HEAD
 =======
@@ -498,6 +511,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 	V2DI board0;
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+	Board board0;
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 	long long nodes_org = search_count_nodes(search);
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -525,7 +541,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	node.pv_node = true;
 	search->node_type[0] = PV_NODE;
 	search->time.can_update = false;
-	board0.board = search->board;
+	board0 = search->board;
 
 	// special cases: pass or game over
 	if (movelist_is_empty(movelist)) {
@@ -603,6 +619,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 <<<<<<< HEAD
 			search_restore_midgame(search, move->x, &eval0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search->board = board0;
 =======
 			search_restore_midgame(search, move, &Ev0);
@@ -617,6 +634,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 			search->board = board0.board;
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+			search->board = board0;
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 			node_update(&node, move);
 			if (search->options.verbosity == 4) pv_debug(search, move, stdout);
@@ -643,6 +663,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 <<<<<<< HEAD
 					search_restore_midgame(search, move->x, &eval0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 					search->board = board0;
 =======
 					search_restore_midgame(search, move, &Ev0);
@@ -657,6 +678,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 					search->board = board0.board;
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+					search->board = board0;
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 					node_update(&node, move);
 					assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -673,6 +697,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 <<<<<<< HEAD
 		hash_code = board_get_hash_code(&search->board);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -681,6 +706,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 		hash_get(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data.data);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+		hash_get(&search->pv_table, &board0, hash_code, &hash_data.data);
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		if (movelist->n_moves) {	// 4.5.1
 			if (depth < search->options.multipv_depth) movelist_sort(movelist);
 			else movelist_sort_cost(movelist, &hash_data.data);
@@ -688,7 +716,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		}
 		record_best_move(search, movelist_first(movelist), alpha, beta, depth);
 
-		if (movelist->n_moves == get_mobility(board0.board.player, board0.board.opponent)) {
+		if (movelist->n_moves == get_mobility(board0.player, board0.opponent)) {
 			hash_data.data.wl.c.depth = depth;
 			hash_data.data.wl.c.selectivity = search->selectivity;
 			hash_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
@@ -697,6 +725,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			hash_data.beta = beta;
 			hash_data.score = node.bestscore;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
@@ -759,6 +788,11 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			if (search->options.guess_pv) hash_force(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data);
 			else hash_store(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+			hash_store(&search->hash_table, &board0, hash_code, &hash_data);
+			if (search->options.guess_pv) hash_force(&search->pv_table, &board0, hash_code, &hash_data);
+			else hash_store(&search->pv_table, &board0, hash_code, &hash_data);
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -943,12 +977,17 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
 		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 =======
 		if (hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data)
 		 || hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) {
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
+		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			x = hash_data.move[0];
 		} else break;
 
@@ -1073,6 +1112,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
 =======
 	if (hash_get(&search->pv_table, &search->board, board_get_hash_code(&search->board), &hash_data)) {
@@ -1083,6 +1123,9 @@ void iterative_deepening(Search *search, int alpha, int beta)
 =======
 	if (hash_get_from_board(&search->pv_table, HBOARD_P(&search->board), &hash_data)) {
 >>>>>>> 0b8fa13 (More HBOARD hash functions)
+=======
+	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",

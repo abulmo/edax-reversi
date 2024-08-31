@@ -107,6 +107,7 @@ typedef struct HashStoreData {
 /* declaration */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
@@ -125,6 +126,8 @@ typedef struct HashStoreData {
 	#define	HBOARD_P(b)	(b)
 	#define	HBOARD_V(b)	(&(b).board)
 #endif
+=======
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 
 >>>>>>> e88638e (add vectorcall interface to hash functions)
 void hash_move_init(void);
@@ -134,12 +137,16 @@ void hash_clear(HashTable*);
 void hash_free(HashTable*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 void hash_feed(HashTable*, const Board *, const unsigned long long, HashStoreData *);
 void hash_store(HashTable*, const Board *, const unsigned long long, HashStoreData *);
 void hash_force(HashTable*, const Board *, const unsigned long long, HashStoreData *);
 bool hash_get(HashTable*, const Board *, const unsigned long long, HashData *);
 bool hash_get_from_board(HashTable*, const Board *, HashData *);
 void hash_exclude_move(HashTable*, const Board *, const unsigned long long, const int);
+<<<<<<< HEAD
 =======
 void hash_feed(HashTable*, const Board*, const unsigned long long, HashStoreData *);
 void hash_store(HashTable*, const Board*, const unsigned long long, HashStoreData *);
@@ -155,6 +162,8 @@ bool vectorcall hash_get(HashTable*, HBOARD, const unsigned long long, HashData 
 bool hash_get_from_board(HashTable*, HBOARD, HashData *);
 void vectorcall hash_exclude_move(HashTable*, HBOARD, const unsigned long long, const int);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 void hash_copy(const HashTable*, HashTable*);
 void hash_print(const HashData*, FILE*);
 extern unsigned int writeable_level(HashData *data);

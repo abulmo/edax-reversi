@@ -1841,6 +1841,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
 <<<<<<< HEAD
+<<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
 <<<<<<< HEAD
 =======
@@ -1862,6 +1863,9 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 =======
 					hash_store(hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+					hash_store(hash_table, &search->board, hash_code, &hash_data);
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
@@ -1871,14 +1875,19 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
 =======
 			if (USE_TC && hash_get(hash_table, HBOARD_P(&next), etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 				*score = -etc.upper;
 				if (*score > alpha) {
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
+<<<<<<< HEAD
 <<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
 <<<<<<< HEAD
@@ -1902,6 +1911,9 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 =======
 					hash_store(hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
 >>>>>>> e88638e (add vectorcall interface to hash functions)
+=======
+					hash_store(hash_table, &search->board, hash_code, &hash_data);
+>>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}
@@ -1982,8 +1994,8 @@ int search_guess(Search *search, const Board *board)
 	unsigned long long hash_code;
 
 	hash_code = board_get_hash_code(board);
-	if (hash_get(&search->pv_table, HBOARD_P(board), hash_code, &hash_data)) move = hash_data.move[0];
-	if (move == NOMOVE && hash_get(&search->hash_table, HBOARD_P(board), hash_code, &hash_data)) move = hash_data.move[0];
+	if (hash_get(&search->pv_table, board, hash_code, &hash_data)) move = hash_data.move[0];
+	if (move == NOMOVE && hash_get(&search->hash_table, board, hash_code, &hash_data)) move = hash_data.move[0];
 
 	return move;
 }
