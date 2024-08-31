@@ -443,6 +443,7 @@ void engine_free(void *v)
 void feed_all_hash_table(Search *search, Board *board, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	HashStoreData hash_data;
 	const unsigned long long hash_code = board_get_hash_code(board);
 
@@ -470,6 +471,18 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 	hash_feed(&search->hash_table, board, hash_code, &hash_store_data);
 	hash_feed(&search->pv_table, board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	HashStoreData hash_data;
+	const unsigned long long hash_code = board_get_hash_code(board);
+
+	hash_data.data.wl.c.depth = depth;
+	hash_data.data.wl.c.selectivity = selectivity;
+	hash_data.data.move[0] = move;
+	hash_data.data.lower = lower;
+	hash_data.data.upper = upper;
+	hash_feed(&search->hash_table, board, hash_code, &hash_data);
+	hash_feed(&search->pv_table, board, hash_code, &hash_data);
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 }
 
 /**

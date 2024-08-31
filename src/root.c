@@ -437,9 +437,13 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 =======
 =======
 	unsigned long long hash_code;
+<<<<<<< HEAD
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 	HashData hash_data;
 	HashStoreData hash_store_data;
+=======
+	HashStoreData hash_data;
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 	MoveList *const movelist = &search->movelist;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Move *move;
@@ -607,6 +611,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 <<<<<<< HEAD
 		hash_code = board_get_hash_code(&search->board);
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
+<<<<<<< HEAD
 		if (movelist->n_moves) {	// 4.5.1
 			if (depth < search->options.multipv_depth) movelist_sort(movelist);
 			else movelist_sort_cost(movelist, &hash_data.data);
@@ -631,12 +636,15 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		hash_code = board_get_hash_code(&search->board);
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data);
+=======
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 		if (depth < search->options.multipv_depth) movelist_sort(movelist);
-		else movelist_sort_cost(movelist, &hash_data);
+		else movelist_sort_cost(movelist, &hash_data.data);
 		movelist_sort_bestmove(movelist, node.bestmove);
 		record_best_move(search, movelist_first(movelist), alpha, beta, depth);
 
 		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 			cost += search_count_nodes(search);
@@ -663,6 +671,19 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_store_data);
 			else hash_store(&search->pv_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+			hash_data.data.wl.c.depth = depth;
+			hash_data.data.wl.c.selectivity = search->selectivity;
+			hash_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
+			hash_data.data.move[0] = node.bestmove;
+			hash_data.alpha = alpha;
+			hash_data.beta = beta;
+			hash_data.score = node.bestscore;
+
+			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
+			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
+			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);

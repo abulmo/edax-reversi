@@ -1765,12 +1765,16 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 		HashData etc;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		HashStoreData hash_data;
 =======
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 		HashStoreData hash_store_data;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+		HashStoreData hash_data;
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 		unsigned long long etc_hash_code;
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
@@ -1781,11 +1785,11 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 	
 =======
 
-		hash_store_data.data.wl.c.depth = depth;
-		hash_store_data.data.wl.c.selectivity = selectivity;
-		hash_store_data.data.wl.c.cost = 0;
-		hash_store_data.alpha = alpha;
-		hash_store_data.beta = beta;
+		hash_data.data.wl.c.depth = depth;
+		hash_data.data.wl.c.selectivity = selectivity;
+		hash_data.data.wl.c.cost = 0;
+		hash_data.alpha = alpha;
+		hash_data.beta = beta;
 
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		CUTOFF_STATS(++statistics.n_etc_try;)
@@ -1815,6 +1819,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
+<<<<<<< HEAD
 =======
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
 =======
@@ -1829,6 +1834,8 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_store_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
@@ -1843,6 +1850,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
+<<<<<<< HEAD
 =======
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.selectivity >= selectivity && etc.depth >= etc_depth) {
 =======
@@ -1858,6 +1866,8 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_store_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}

@@ -32,9 +32,12 @@ typedef struct Move {
 /** (simple) list of a legal moves */
 typedef struct MoveList {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	Move move[MAX_MOVE + 1];   /**< array of legal moves */
 >>>>>>> 4b74548 (Fix MAX_MOVE)
+=======
+>>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 	int n_moves;
 	Move move[MAX_MOVE + 1];   /**< array of legal moves */
 } MoveList;
