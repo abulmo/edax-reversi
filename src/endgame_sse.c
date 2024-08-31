@@ -1059,11 +1059,11 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	// n_flips = last_flip(pos, P);
   #ifdef AVXLASTFLIP	// no gain
 	__m256i M = mask_dvhd[pos].v4;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
-	unsigned int h = (P >> (pos & 0x38)) & 0xFF;
+	__m256i P4 = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	__m128i P2 = _mm_cvtsi128_si64(_mm256_castsi256_si128(P4));
+	unsigned int h = (_mm_cvtsi128_si64(P2) >> (pos & 0x38)) & 0xFF;
 
-	t = TEST_EPI8_MASK32(PP, M);
+	t = TEST_EPI8_MASK32(P4, M);
 	n_flips  = COUNT_FLIP_X[h];
 	n_flips += COUNT_FLIP_Y[t & 0xFF];
 	t >>= 16;
@@ -1071,18 +1071,17 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
   #else
 	__m128i M0 = mask_dvhd[pos].v2[0];
 	__m128i M1 = mask_dvhd[pos].v2[1];
-	__m128i PP = _mm_shuffle_epi32(PO, DUPHI);
-	unsigned long long P = _mm_cvtsi128_si64(PP);
-	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, M0), _mm_setzero_si128());
+	__m128i P2 = _mm_shuffle_epi32(PO, DUPHI);
+	__m128i II = _mm_sad_epu8(_mm_and_si128(P2, M0), _mm_setzero_si128());
 
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-	t = TEST_EPI8_MASK16(PP, M1);
+	t = TEST_EPI8_MASK16(P2, M1);
   #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[t & 0xFF];
 
-	score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	score = 2 * bit_count_si64(P2) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 	score += n_flips;
 
 	if (n_flips == 0) {
@@ -1093,15 +1092,15 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		if (score > alpha) {	// lazy cut-off
 			// n_flips = last_flip(pos, ~P);
   #ifdef AVXLASTFLIP
-			t = TESTNOT_EPI8_MASK32(PP, M);
+			t = TESTNOT_EPI8_MASK32(P4, M);
 			n_flips  = COUNT_FLIP_X[h ^ 0xFF];
 			n_flips += COUNT_FLIP_Y[t & 0xFF];
 			t >>= 16;
   #else
-			II = _mm_sad_epu8(_mm_andnot_si128(PP, M0), _mm_setzero_si128());
+			II = _mm_sad_epu8(_mm_andnot_si128(P2, M0), _mm_setzero_si128());
 			n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 			n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(PP, M1)));
+			t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_andnot_si128(P2, M1)));
   #endif
 			n_flips += COUNT_FLIP_Y[t >> 8];
 			n_flips += COUNT_FLIP_Y[t & 0xFF];

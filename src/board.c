@@ -1383,7 +1383,8 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
  */
-#if !defined(__AVX2__) && !(!defined(hasSSE2) && defined(hasMMX))
+#if !defined(__AVX2__) && !(defined(hasMMX) && !defined(hasSSE2))
+  #if !(defined(hasSSE2) && !defined(HAS_CPU_64))
 // compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
 {
@@ -1403,6 +1404,7 @@ static int get_spreaded_stability(unsigned long long stable, unsigned long long 
 
 	return bit_count(stable);
 }
+  #endif
 
 // returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)

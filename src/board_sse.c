@@ -2602,7 +2602,34 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 
 	return bit_count(_mm_cvtsi128_si64(v2_stable));
 }
+#elif defined(hasSSE2) && !defined(HAS_CPU_64)
+// 32bit SSE optimized get_spreaded_stability
+static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
+{
+	__m128i v_stable, stable_vh, stable_d79, old_stable;
 
+	if (stable == 0)	// (2%)
+		return 0;
+
+	v_stable = _mm_cvtsi64_si128(stable);
+	do {
+		old_stable = v_stable;
+		stable_vh = _mm_loadu_si128((__m128i *) &full[0]);
+		stable_vh = _mm_or_si128(stable_vh, _mm_unpacklo_epi64(_mm_srli_epi64(v_stable, 1), _mm_srli_epi64(v_stable, 8)));
+		stable_vh = _mm_or_si128(stable_vh, _mm_unpacklo_epi64(_mm_slli_epi64(v_stable, 1), _mm_slli_epi64(v_stable, 8)));
+		stable_d79 = _mm_loadu_si128((__m128i *) &full[2]);
+		stable_d79 = _mm_or_si128(stable_d79, _mm_unpacklo_epi64(_mm_srli_epi64(v_stable, 9), _mm_srli_epi64(v_stable, 7)));
+		stable_d79 = _mm_or_si128(stable_d79, _mm_unpacklo_epi64(_mm_slli_epi64(v_stable, 9), _mm_slli_epi64(v_stable, 7)));
+		v_stable = _mm_and_si128(stable_vh, stable_d79);
+		v_stable = _mm_and_si128(v_stable, _mm_unpackhi_epi64(v_stable, v_stable));
+		v_stable = _mm_or_si128(old_stable, _mm_and_si128(v_stable, _mm_loadl_epi64((__m128i *) &P_central)));
+	} while (_mm_movemask_epi8(_mm_cmpeq_epi8(v_stable, old_stable)) != 0xffff);	// (44%)
+
+	return bit_count_si64(v_stable);
+}
+#endif
+
+#ifdef __AVX2__
 // returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
@@ -2651,7 +2678,7 @@ unsigned long long get_all_full_lines(const unsigned long long disc)
 static unsigned long long get_potential_moves(const unsigned long long P, const unsigned long long O)
 {
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
-	__m256i	O4 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
+	__m256i O4 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
 	__m128i O2;
 
 	O4 = _mm256_and_si256(O4, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
