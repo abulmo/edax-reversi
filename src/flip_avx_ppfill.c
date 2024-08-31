@@ -307,7 +307,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 #endif
 		// set mask bits higher than outflank
 	// flip = _mm256_and_si256(mask, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));
-	minusone = _mm256_cmpeq_epi32(mask, mask);	// = _mm256_set1_epi64x(-1), for MSVC
+	minusone = _mm256_set1_epi64x(-1);
 	flip = _mm256_andnot_si256(_mm256_add_epi64(outflank, minusone), mask);
 
 	mask = lmask_v4[pos].v4;

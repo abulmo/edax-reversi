@@ -632,6 +632,7 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 
 	return flipped;
 }
+<<<<<<< HEAD
 #endif
 
 <<<<<<< HEAD
@@ -656,6 +657,8 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 
 	return flipped;
 }
+=======
+>>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
 #endif
 
 <<<<<<< HEAD

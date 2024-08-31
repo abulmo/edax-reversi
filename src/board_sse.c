@@ -442,8 +442,8 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 	vst1q_u64((uint64_t *) next, vextq_u64(OP, OP, 1));
 #else
 	OP = veorq_u64(OP, flipped);
-	vst1_u64(&next->player, vget_high_u64(OP));
-	vst1_u64(&next->opponent, vorr_u64(vget_low_u64(OP), vld1_u64(&X_TO_BIT[x])));
+	OP = vcombine_u64(vget_high_u64(OP), vorr_u64(vget_low_u64(OP), vld1_u64(&X_TO_BIT[x])));
+	vst1q_u64((uint64_t *) next, OP);
 #endif
 	return vgetq_lane_u64(flipped, 0);
 }
@@ -451,6 +451,7 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /**
+<<<<<<< HEAD
  * @brief Compute a board resulting of an opponent move played on a previous board.
  *
  * Compute the board after passing and playing a move.
@@ -496,6 +497,8 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
+=======
+>>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
  * @brief X64 optimized get_moves
  *
  * Diag-7 is converted to diag-9 (v.v.) using vertical mirroring
