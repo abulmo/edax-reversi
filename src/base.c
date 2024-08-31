@@ -3,7 +3,7 @@
  *
  * Header file for game base management.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -131,7 +131,7 @@ static void wthor_players_init(WthorBase *base)
 static void wthor_players_load(WthorBase *base, const char *file)
 {
 	FILE *f;
-	WthorHeader header[1];
+	WthorHeader header;
 	int i, r;
 
 	r = base->n_players = 0;
@@ -143,9 +143,9 @@ static void wthor_players_load(WthorBase *base, const char *file)
 		return;
 	}
 
-	if (wthor_header_read(header, f)) {;
+	if (wthor_header_read(&header, f)) {;
 
-		base->n_players = header->n;
+		base->n_players = header.n;
 
 		base->player = (char (*)[20]) malloc(base->n_players * sizeof (*base->player));
 		if (base->player) {
@@ -174,19 +174,19 @@ static void wthor_players_load(WthorBase *base, const char *file)
 static void wthor_players_save(WthorBase *base, const char *file)
 {
 	FILE *f;
-	WthorHeader header[1];
+	WthorHeader header;
 	int i, r;
 
 	r = 0;
 
-	wthor_header_set(header, 0, base->n_players, 0);
+	wthor_header_set(&header, 0, base->n_players, 0);
 
 	if ((f = fopen(file, "wb")) == NULL) {
 		warn("Cannot open Wthor players' file %s\n", file);
 		return;
 	}
 
-	if (wthor_header_write(header, f)) {
+	if (wthor_header_write(&header, f)) {
 
 		for (i = 0; i < base->n_players; ++i) {
 			r += fwrite(base->player[i], 20, 1, f);
@@ -216,16 +216,15 @@ int wthor_player_get(WthorBase *base, const char *name)
 	assert(base->player != NULL && base->n_players > 0);
 
 	for (i = 0; i < base->n_players; ++i) {
-	    if (strcmp(name, base->player[i]) == 0) return i;            
+		if (strcmp(name, base->player[i]) == 0) return i;
 	}
 	
 	n = base->n_players + 1;
 	player = (char (*)[20]) realloc(base->player, n * sizeof (*base->player));
 	if (player) {
-	    base->player = player;
-	    base->n_players = n; 
-	    strncpy(base->player[i], name, 20); // used on purpose, as strncpy fills with '\0' the field name
-		base->player[i][19] = '\0'; // force null terminated string
+		base->player = player;
+		base->n_players = n;
+		sprintf(base->player[i], "%-.19s", name); // force null terminated string
 	} else {
 		warn("Cannot allocate Wthor players' array\n");
 		i = 0;
@@ -243,7 +242,7 @@ int wthor_player_get(WthorBase *base, const char *name)
 static void wthor_tournaments_load(WthorBase *base, const char *file)
 {
 	FILE *f;
-	WthorHeader header[1];
+	WthorHeader header;
 	int i, r;
 
 	r = 0;
@@ -254,8 +253,8 @@ static void wthor_tournaments_load(WthorBase *base, const char *file)
 		return;
 	}
 
-	if (wthor_header_read(header, f)) {
-		base->n_tournaments = header->n;
+	if (wthor_header_read(&header, f)) {
+		base->n_tournaments = header.n;
 
 		base->tournament = (char (*)[26]) malloc(base->n_tournaments * sizeof (*base->tournament));
 		if (base->tournament) {
@@ -285,7 +284,7 @@ static void wthor_tournaments_load(WthorBase *base, const char *file)
 static void wthor_tournaments_save(WthorBase *base, const char *file)
 {
 	FILE *f;
-	WthorHeader header[1];
+	WthorHeader header;
 	int i, r;
 
 	r = 0;
@@ -294,8 +293,8 @@ static void wthor_tournaments_save(WthorBase *base, const char *file)
 		warn("Cannot open Wthor tournaments' file %s\n", file);
 		return;
 	}
-	wthor_header_set(header, 0, base->n_tournaments, 0);
-	if (wthor_header_write(header, f)) {
+	wthor_header_set(&header, 0, base->n_tournaments, 0);
+	if (wthor_header_write(&header, f)) {
 		for (i = r = 0; i < base->n_tournaments; ++i) {
 			r += fwrite(base->tournament[i], 26, 1, f);
 		}
@@ -344,8 +343,8 @@ bool wthor_load(WthorBase *base, const char *file)
 	wthor_players_load(base, path);
 
 	if ((f = fopen(file, "rb")) != NULL) {
-		if (wthor_header_read(base->header, f) && base->header->board_size == 8) {
-			base->n_games = base->header->n_games;
+		if (wthor_header_read(&base->header, f) && base->header.board_size == 8) {
+			base->n_games = base->header.n_games;
 
 			base->game = (WthorGame*) malloc(base->n_games * sizeof (WthorGame));
 			if (base->game) {
@@ -394,8 +393,8 @@ bool wthor_save(WthorBase *base, const char *file)
 	wthor_players_save(base, path);
 
 	if ((f = fopen(file, "wb")) != NULL) {
-		wthor_header_set(base->header, base->n_games, 0, 0);
-		r = wthor_header_write(base->header, f);
+		wthor_header_set(&base->header, base->n_games, 0, 0);
+		r = wthor_header_write(&base->header, f);
 		if (base->game) {
 			r += (fwrite(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
 		}
@@ -445,20 +444,20 @@ bool base_to_wthor(const Base *base, WthorBase *wthor)
  */
 void wthor_print_game(WthorBase *base, int i, FILE *f)
 {
-	Game game[1];
+	Game game;
 
 	if (0 <= i && i < base->n_games) {
 
 		fprintf(f, "Game #%d: %s: %4d - %s vs. %s: ",
 			i, base->tournament[base->game[i].tournament],
-			base->header->game_year,
+			base->header.game_year,
 			base->player[base->game[i].black],
 			base->player[base->game[i].white]);
 
-		wthor_to_game(base->game + i, game);
-		game_export_text(game, f);
+		wthor_to_game(base->game + i, &game);
+		game_export_text(&game, f);
 
-		fprintf(f, "Theoric score %d empties : %+02d, ", base->header->depth, base->game[i].theoric_score);
+		fprintf(f, "Theoric score %d empties : %+02d, ", base->header.depth, base->game[i].theoric_score);
 		fprintf(f, "Score final : %+02d (as black disc count.)\n", base->game[i].score);
 	}
 }
@@ -474,7 +473,7 @@ void wthor_print_game(WthorBase *base, int i, FILE *f)
 static void wthorgame_get_board(WthorGame *game, const int n_empties, Board *board, int *player)
 {
 	int i;
-	Move move[1];
+	Move move;
 	char s_move[4];
 
 	*player = BLACK; board_init(board);
@@ -482,11 +481,11 @@ static void wthorgame_get_board(WthorGame *game, const int n_empties, Board *boa
 		if (board_is_pass(board)) {
 			board_pass(board); *player ^= 1;
 		}
-		board_get_move(board, move_from_wthor(game->x[i]), move);
-		if (board_check_move(board, move)) {
-			board_update(board, move); *player ^= 1;
+		board_get_move_flip(board, move_from_wthor(game->x[i]), &move);
+		if (board_check_move(board, &move)) {
+			board_update(board, &move); *player ^= 1;
 		} else {
-			warn("Illegal move %s\n", move_to_string(move->x, *player, s_move));
+			warn("Illegal move %s\n", move_to_string(move.x, *player, s_move));
 			break;
 		}
 	}
@@ -501,10 +500,10 @@ static void wthorgame_get_board(WthorGame *game, const int n_empties, Board *boa
  */
 int pv_check(const Board *init_board, Line *pv, Search *search)
 {
-	Game game[1];
+	Game game;
 
-	line_to_game(init_board, pv, game);
-	return game_analyze(game, search, board_count_empties(init_board), false);
+	line_to_game(init_board, pv, &game);
+	return game_analyze(&game, search, board_count_empties(init_board), false);
 }
 
 /**
@@ -515,9 +514,9 @@ int pv_check(const Board *init_board, Line *pv, Search *search)
  */
 void wthor_test(const char *file, Search *search)
 {
-	WthorBase base[1];
+	WthorBase base;
 	WthorGame *wthor;
-	Board board[1];
+	Board board;
 	int player;
 	int score;
 	int n_empties;
@@ -526,7 +525,7 @@ void wthor_test(const char *file, Search *search)
 	long long t;
 	int n_err;
 
-	if (wthor_load(base, file)) {
+	if (wthor_load(&base, file)) {
 
 		if (search->options.verbosity == 1) {
 			if (search->options.header) puts(search->options.header);
@@ -538,11 +537,11 @@ void wthor_test(const char *file, Search *search)
 		t = 0;
 
 		foreach_wthorgame(wthor, base) {
-			wthorgame_get_board(wthor, base->header->depth, board, &player);
-			n_empties = board_count_empties(board);
-			if (n_empties != base->header->depth && !board_is_game_over(board)) {
+			wthorgame_get_board(wthor, base.header.depth, &board, &player);
+			n_empties = board_count_empties(&board);
+			if (n_empties != base.header.depth && !board_is_game_over(&board)) {
 				warn("Incomplete or Illegal game: %d empties\n", n_empties);
-				wthor_print_game(base, wthor - base->game, stderr);
+				wthor_print_game(&base, wthor - base.game, stderr);
 				continue;
 			}
 
@@ -550,33 +549,33 @@ void wthor_test(const char *file, Search *search)
 			else score = 2 * wthor->theoric_score - 64;
 			if (abs(score) > 64) {
 				warn("Impossible theoric score:\n");
-				wthor_print_game(base, wthor - base->game, stderr);
+				wthor_print_game(&base, wthor - base.game, stderr);
 				continue;
 			}
 
 			search_cleanup(search);
-			search_set_board(search, board, player);
-			search_set_level(search, 60, base->header->depth);
+			search_set_board(search, &board, player);
+			search_set_level(search, 60, base.header.depth);
 			search_run(search);
 			if (search->options.verbosity) putchar('\n');
 			n_nodes += search->result->n_nodes;
 			t += search->result->time;
 			if (score != search->result->score) {
 				warn("Wrong theoric score: %+d (Wthor) instead of %+d (Edax)\n", score, search->result->score);
-				wthor_print_game(base, wthor - base->game, stderr);
+				wthor_print_game(&base, wthor - base.game, stderr);
 				++n_failure;
 				assert(false); // stop here when debug is on
 			}
 
 			if (options.pv_check) {
 				Line pv;
-				line_copy(&pv, search->result->pv, 0);
-				n_err = pv_check(board, &pv, search);
+				line_copy(&pv, &search->result->pv, 0);
+				n_err = pv_check(&board, &pv, search);
 				if (n_err) {
 					char s[80];
 					warn("Wrong pv:\n");
-					board_print(board, player, stderr);
-					fprintf(stderr, "setboard %s\nplay ", board_to_string(board, player, s));
+					board_print(&board, player, stderr);
+					fprintf(stderr, "setboard %s\nplay ", board_to_string(&board, player, s));
 					line_print(&pv, 200, " ", stderr);
 					putc('\n', stderr); putc('\n', stderr);
 					assert(false); // stop here when debug is on
@@ -584,7 +583,7 @@ void wthor_test(const char *file, Search *search)
 			}
 
 			if (search->options.verbosity == 0) {
-				printf("%s  game: %4d, error: %2d ; ", file, (int)(wthor - base->game) + 1, n_failure);
+				printf("%s  game: %4d, error: %2d ; ", file, (int)(wthor - base.game) + 1, n_failure);
 				printf("%lld n, ", n_nodes); time_print(t, false, stdout); putchar('\r');
 				fflush(stdout);
 			}
@@ -594,7 +593,7 @@ void wthor_test(const char *file, Search *search)
 		}
 		putchar('\n');
 
-		wthor_free(base);
+		wthor_free(&base);
 	}
 	return;
 }
@@ -610,18 +609,18 @@ void wthor_test(const char *file, Search *search)
  */
 void wthor_eval(const char *file, Search *search, unsigned long long histogram[129][65])
 {
-	WthorBase base[1];
+	WthorBase base;
 	WthorGame *wthor;
-	Board board[1];
+	Board board;
 	int player;
 	int score;
 	int n_empties;
 
-	if (wthor_load(base, file)) {
+	if (wthor_load(&base, file)) {
 		foreach_wthorgame(wthor, base) {
-			wthorgame_get_board(wthor, base->header->depth, board, &player);
-			n_empties = board_count_empties(board);
-			if (n_empties != base->header->depth && !board_is_game_over(board)) {
+			wthorgame_get_board(wthor, base.header.depth, &board, &player);
+			n_empties = board_count_empties(&board);
+			if (n_empties != base.header.depth && !board_is_game_over(&board)) {
 				continue;
 			}
 
@@ -632,12 +631,12 @@ void wthor_eval(const char *file, Search *search, unsigned long long histogram[1
 			}
 
 			search_cleanup(search);
-			search_set_board(search, board, player);
-			search_set_level(search, options.level, base->header->depth);
+			search_set_board(search, &board, player);
+			search_set_level(search, options.level, base.header.depth);
 			search_run(search);
 			++histogram[search->result->score + 64][(score + 64) / 2];
 		}
-		wthor_free(base);
+		wthor_free(&base);
 	}
 	return;
 }
@@ -650,17 +649,17 @@ void wthor_eval(const char *file, Search *search, unsigned long long histogram[1
  */
 void wthor_edaxify(const char *file)
 {
-	WthorBase base[1];
+	WthorBase base;
 	WthorGame *wthor;
 
-	if (wthor_load(base, file)) {
+	if (wthor_load(&base, file)) {
 		foreach_wthorgame(wthor, base) {
 			wthor->black = 1368; // "Edax (delorme)"
 			wthor->white = 1368; // "Edax (delorme)"
 			wthor->tournament = 157; // "Etudes"
 		}
-		wthor_save(base, file);
-		wthor_free(base);
+		wthor_save(&base, file);
+		wthor_free(&base);
 	}
 }
 
@@ -740,11 +739,11 @@ void base_unique(Base *base)
 bool base_load(Base *base, const char *file)
 {
 	void (*load)(Game*, FILE*) = game_import_text;
-	Game game[1];
+	Game game;
 	FILE *f;
 	char ext[8];
 	int l;
-	WthorHeader header[1];
+	WthorHeader header;
 
 	l = strlen(file); strcpy(ext, file + l - 4); string_to_lowercase(ext);
 	if (strcmp(ext, ".txt") == 0) load = game_import_text;
@@ -766,11 +765,11 @@ bool base_load(Base *base, const char *file)
 	}
 
 	info("loading games...");
-	if (load == game_import_wthor) wthor_header_read(header, f);
+	if (load == game_import_wthor) wthor_header_read(&header, f);
 	for (;;) {
-		load(game, f);
+		load(&game, f);
 		if (ferror(f) || feof(f)) break;
-		base_append(base, game);
+		base_append(base, &game);
 	}
 	info("done (%d games loaded)\n", base->n_games);
 
@@ -841,15 +840,15 @@ void base_save(const Base *base, const char *file)
 void base_to_problem(Base *base, const int n_empties, const char *problem)
 {
 	int i;
-	Board board[1];
+	Board board;
 	char s[80];
 	FILE *f;
 
 	f = fopen(problem, "w");
 
 	for (i = 0; i < base->n_games; ++i) {
-		if (game_get_board(base->game + i, 60 - n_empties, board)) {
-			board_to_string(board, n_empties & 1, s);
+		if (game_get_board(base->game + i, 60 - n_empties, &board)) {
+			board_to_string(&board, n_empties & 1, s);
 			fprintf(f, "%s\n", s);
 		}
 	}
@@ -867,14 +866,14 @@ void base_to_problem(Base *base, const int n_empties, const char *problem)
 void base_to_FEN(Base *base, const int n_empties, const char *problem)
 {
 	int i;
-	Board board[1];
+	Board board;
 	FILE *f;
 
 	f = fopen(problem, "w");
 
 	for (i = 0; i < base->n_games; ++i) {
-		if (game_get_board(base->game + i, 60 - n_empties, board)) {
-			board_print_FEN(board, n_empties & 1, f);
+		if (game_get_board(base->game + i, 60 - n_empties, &board)) {
+			board_print_FEN(&board, n_empties & 1, f);
 			putc('\n', f);
 		}
 	}
@@ -943,8 +942,8 @@ void base_complete(Base *base, Search *search)
 void base_compare(const char *file_1, const char *file_2)
 {
 	Base base_1[1], base_2[2];
-	PositionHash hash[1];
-	Board board[1];
+	PositionHash hash;
+	Board board;
 	int i, j;
 	long long n_1, n_2, n_2_only;
 
@@ -955,13 +954,13 @@ void base_compare(const char *file_1, const char *file_2)
 	n_2_only = 0;
 
 	base_load(base_1, file_1);
-	positionhash_init(hash, options.hash_table_size);
+	positionhash_init(&hash, options.hash_table_size);
 	for (i = 0; i < base_1->n_games; ++i) {
 		Game *game = base_1->game + i;
-		*board = *game->initial_board;
+		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
-			if (!game_update_board(board, game->move[j])) break; // BAD MOVE -> end of game
-			if (positionhash_append(hash, board)) {
+			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
+			if (positionhash_append(&hash, &board)) {
 				++n_1;
 			}
 		}
@@ -971,30 +970,30 @@ void base_compare(const char *file_1, const char *file_2)
 	base_load(base_2, file_2);
 	for (i = 0; i < base_2->n_games; ++i) {
 		Game *game = base_2->game + i;
-		*board = *game->initial_board;
+		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
-			if (!game_update_board(board, game->move[j])) break; // BAD MOVE -> end of game
-			if (positionhash_append(hash, board)) {
+			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
+			if (positionhash_append(&hash, &board)) {
 				++n_2_only;
 			}
 		}
 	}
 
-	positionhash_delete(hash);
-	positionhash_init(hash, options.hash_table_size);
+	positionhash_delete(&hash);
+	positionhash_init(&hash, options.hash_table_size);
 	for (i = 0; i < base_2->n_games; ++i) {
 		Game *game = base_2->game + i;
-		*board = *game->initial_board;
+		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
-			if (!game_update_board(board, game->move[j])) break; // BAD MOVE -> end of game
-			if (positionhash_append(hash, board)) {
+			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
+			if (positionhash_append(&hash, &board)) {
 				++n_2;
 			}
 		}
 	}
 	base_free(base_2);
 
-	positionhash_delete(hash);
+	positionhash_delete(&hash);
 
 	printf("%s : %lld positions - %lld original positions\n", file_1, n_1, n_1 - (n_2- n_2_only));
 	printf("%s : %lld positions - %lld original positions\n", file_2, n_2, n_2_only);
