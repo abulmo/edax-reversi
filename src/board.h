@@ -42,6 +42,7 @@ int board_from_FEN(Board*, const char*);
 bool board_lesser(const Board*, const Board*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 void board_horizontal_mirror(const Board *, Board *);
 void board_vertical_mirror(const Board *, Board *);
 void board_transpose(const Board *, Board *);
@@ -50,6 +51,11 @@ bool board_equal(const Board*, const Board*);
 >>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
 =======
 >>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
+=======
+void board_horizontal_mirror(const Board *, Board *);
+void board_vertical_mirror(const Board *, Board *);
+void board_transpose(const Board *, Board *);
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 void board_symetry(const Board*, const int, Board*);
 int board_unique(const Board*, Board*);
 void board_check(const Board*);

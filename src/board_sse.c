@@ -111,13 +111,17 @@ void init_neon (void)
  *
  * @param board input board
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
  * @param s symetry
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
  * @param sym symetric output board
  */
 #ifdef hasSSE2
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 static __m128i vectorcall board_horizontal_mirror_sse(__m128i bb)
 {
@@ -313,88 +317,86 @@ int board_unique(const Board *board, Board *unique)
  * @param OP board to play the move on.
 =======
 void board_symetry(const Board *board, const int s, Board *sym)
+=======
+void board_horizontal_mirror(const Board *board, Board *sym)
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 {
 	__m128i	bb = _mm_loadu_si128((__m128i *) board);
-	__m128i	tt;
 	const __m128i mask0F0F = _mm_set1_epi16(0x0F0F);
-	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
-	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
-	const __m128i mask00F0 = _mm_set1_epi64x(0x00000000F0F0F0F0);
-  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb
-	const __m128i mbswapll = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
+  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb (cf. http://wm.ite.pl/articles/sse-popcount.html)
 	const __m128i mbitrev  = _mm_set_epi8(15, 7, 11, 3, 13, 5, 9, 1, 14, 6, 10, 2, 12, 4, 8, 0);
-
-	if (s & 1) {	// horizontal_mirror (cf. http://wm.ite.pl/articles/sse-popcount.html)
-		bb = _mm_or_si128(_mm_shuffle_epi8(mbitrev, _mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F)),
-			_mm_slli_epi64(_mm_shuffle_epi8(mbitrev, _mm_and_si128(bb, mask0F0F)), 4));
-	}
-
-	if (s & 2) {	// vertical_mirror
-		bb = _mm_shuffle_epi8(bb, mbswapll);
-	}
-
+	bb = _mm_or_si128(_mm_shuffle_epi8(mbitrev, _mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F)),
+		_mm_slli_epi64(_mm_shuffle_epi8(mbitrev, _mm_and_si128(bb, mask0F0F)), 4));
   #else
 	const __m128i mask5555 = _mm_set1_epi16(0x5555);
 	const __m128i mask3333 = _mm_set1_epi16(0x3333);
-
-	if (s & 1) {	// horizontal_mirror
-		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 1), mask5555), _mm_slli_epi64(_mm_and_si128(bb, mask5555), 1));
-		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 2), mask3333), _mm_slli_epi64(_mm_and_si128(bb, mask3333), 2));
-		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F), _mm_slli_epi64(_mm_and_si128(bb, mask0F0F), 4));
-	}
-
-	if (s & 2) {	// vertical_mirror
-		bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
-		bb = _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
-	}
+	bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 1), mask5555), _mm_slli_epi64(_mm_and_si128(bb, mask5555), 1));
+	bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 2), mask3333), _mm_slli_epi64(_mm_and_si128(bb, mask3333), 2));
+	bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F), _mm_slli_epi64(_mm_and_si128(bb, mask0F0F), 4));
   #endif
-
-	if (s & 4) {	// transpose
-		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 7)), mask00AA);
-		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 7));
-		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 14)), maskCCCC);
-		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 14));
-		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 28)), mask00F0);
-		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 28));
-	}
-
 	_mm_storeu_si128((__m128i *) sym, bb);
+}
 
-	board_check(sym);
+void board_vertical_mirror(const Board *board, Board *sym)
+{
+	__m128i	bb = _mm_loadu_si128((__m128i *) board);
+  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb
+	const __m128i mbswapll = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
+	bb = _mm_shuffle_epi8(bb, mbswapll);
+  #else
+	bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
+	bb = _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
+  #endif
+	_mm_storeu_si128((__m128i *) sym, bb);
+}
+
+void board_transpose(const Board *board, Board *sym)
+{
+	__m128i	bb = _mm_loadu_si128((__m128i *) board);
+	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
+	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
+	const __m128i mask00F0 = _mm_set1_epi64x(0x00000000F0F0F0F0);
+	__m128i tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 7)), mask00AA);
+	bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 7));
+	tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 14)), maskCCCC);
+	bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 14));
+	tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 28)), mask00F0);
+	bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 28));
+	_mm_storeu_si128((__m128i *) sym, bb);
 }
 
 #elif defined(__ARM_NEON) && !defined(DISPATCH_NEON)
 
-void board_symetry(const Board *board, const int s, Board *sym)
+void board_horizontal_mirror(const Board *board, Board *sym)
 {
 	uint64x2_t bb = vld1q_u64((uint64_t *) board);
-	uint64x2_t tt;
-
-	if (s & 1) {	// horizontal_mirror
   #ifdef HAS_CPU_64
-		bb = vreinterpretq_u64_u8(vrbitq_u8(vreinterpretq_u8_u64(bb)));
+	bb = vreinterpretq_u64_u8(vrbitq_u8(vreinterpretq_u8_u64(bb)));
   #else
-		bb = vbslq_u64(vdupq_n_u64(0x5555555555555555), vshrq_n_u64(bb, 1), vshlq_n_u64(bb, 1));
-		bb = vbslq_u64(vdupq_n_u64(0x3333333333333333), vshrq_n_u64(bb, 2), vshlq_n_u64(bb, 2));
-		bb = vreinterpretq_u64_u8(vsliq_n_u8(vshrq_n_u8(vreinterpretq_u8_u64(bb), 4), vreinterpretq_u8_u64(bb), 4));
+	bb = vbslq_u64(vdupq_n_u64(0x5555555555555555), vshrq_n_u64(bb, 1), vshlq_n_u64(bb, 1));
+	bb = vbslq_u64(vdupq_n_u64(0x3333333333333333), vshrq_n_u64(bb, 2), vshlq_n_u64(bb, 2));
+	bb = vreinterpretq_u64_u8(vsliq_n_u8(vshrq_n_u8(vreinterpretq_u8_u64(bb), 4), vreinterpretq_u8_u64(bb), 4));
   #endif
-	}
-
-	if (s & 2) {	// vertical_mirror
-		bb = vreinterpretq_u64_u8(vrev64q_u8(vreinterpretq_u8_u64(bb)));
-	}
-
-	if (s & 4) {	// transpose
-		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 7)), vdupq_n_u64(0x00AA00AA00AA00AA));
-		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 7));
-		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 14)), vdupq_n_u64(0x0000CCCC0000CCCC));
-		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 14));
-		tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 28)), vdupq_n_u64(0x00000000F0F0F0F0));
-		bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 28));
-	}
-
 	vst1q_u64((uint64_t *) sym, bb);
-	board_check(sym);
+}
+
+void board_vertical_mirror(const Board *board, Board *sym)
+{
+	uint64x2_t bb = vld1q_u64((uint64_t *) board);
+	bb = vreinterpretq_u64_u8(vrev64q_u8(vreinterpretq_u8_u64(bb)));
+	vst1q_u64((uint64_t *) sym, bb);
+}
+
+void board_transpose(const Board *board, Board *sym)
+{
+	uint64x2_t bb = vld1q_u64((uint64_t *) board);
+	uint64x2_t tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 7)), vdupq_n_u64(0x00AA00AA00AA00AA));
+	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 7));
+	tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 14)), vdupq_n_u64(0x0000CCCC0000CCCC));
+	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 14));
+	tt = vandq_u64(veorq_u64(bb, vshrq_n_u64(bb, 28)), vdupq_n_u64(0x00000000F0F0F0F0));
+	bb = veorq_u64(veorq_u64(bb, tt), vshlq_n_u64(tt, 28));
+	vst1q_u64((uint64_t *) sym, bb);
 }
 
 #endif // hasSSE2/Neon

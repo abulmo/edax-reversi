@@ -357,6 +357,7 @@ bool board_lesser(const Board *b1, const Board *b2)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 /**
  * @brief Compare two board for equality
  *
@@ -376,6 +377,8 @@ bool board_equal(const Board *b1, const Board *b2)
 =======
 #if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 /**
  * @brief symetric board
  *
@@ -401,11 +404,18 @@ void board_transpose(const Board *board, Board *sym)
 	sym->player = transpose(board->player);
 	sym->opponent = transpose(board->opponent);
 }
+<<<<<<< HEAD
 
 void board_symetry(const Board *board, const int s, Board *sym)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+#endif
+
+void board_symetry(const Board *board, const int s, Board *sym)
+{
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 	*sym = *board;
 	if (s & 1)
 		board_horizontal_mirror(sym, sym);
@@ -413,6 +423,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		board_vertical_mirror(sym, sym);
 	if (s & 4)
 		board_transpose(sym, sym);
+<<<<<<< HEAD
 =======
 	register unsigned long long player, opponent;
 =======
@@ -438,10 +449,11 @@ void board_symetry(const Board *board, const int s, Board *sym)
 	sym->player = player;
 	sym->opponent = opponent;
 >>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
+=======
+>>>>>>> 6bc747d (Split board_flip_* from board_symetry)
 
 	board_check(sym);
 }
-#endif
 
 #ifndef __AVX2__	// AVX2 version in board_sse.c
 /**
