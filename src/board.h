@@ -109,21 +109,19 @@ void edge_stability_init(void);
 unsigned long long get_stable_edge(const unsigned long long, const unsigned long long);
 unsigned long long get_all_full_lines(const unsigned long long, V4DI *);
 int get_stability(const unsigned long long, const unsigned long long);
+int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsigned long long allfull, V4DI *full);
 int get_edge_stability(const unsigned long long, const unsigned long long);
 int get_corner_stability(const unsigned long long);
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 void init_mmx (void);
-unsigned long long get_moves_mmx(unsigned long long, unsigned long long);
-unsigned long long get_moves_sse(unsigned long long, unsigned long long);
-int get_stability_mmx(unsigned long long, unsigned long long);
+unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
+unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
 int get_potential_mobility_mmx(unsigned long long, unsigned long long);
 
 #elif defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
 void init_neon (void);
 unsigned long long get_moves_sse(unsigned long long, unsigned long long);
-unsigned long long get_stable_edge_sse(const unsigned long long, const unsigned long long);
-unsigned long long get_all_full_lines_sse(const unsigned long long, V4DI *);
 #endif
 
 <<<<<<< HEAD

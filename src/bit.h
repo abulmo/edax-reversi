@@ -550,8 +550,15 @@ typedef union {
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 =======
 	#ifdef hasSSE2
+<<<<<<< HEAD
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	__m128i	v2[2];
+=======
+		__m128i	v2[2];
+	#endif
+	#ifdef USE_MSVC_X86
+		__m64	v1[4];
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 	#endif
 } V4DI;
 

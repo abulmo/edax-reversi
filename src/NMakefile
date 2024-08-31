@@ -153,6 +153,9 @@ vc-w64:
 vc-w32-sse:
 	cl $(VC_FLAGS) /GL /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-w32-sse.exe
 
+vc-w32-mmx:
+	cl $(VC_FLAGS) /GL /arch:IA32 /D hasMMX all.c ws2_32.lib /Fe..\bin\wEdax-w32-mmx.exe
+
 vc-w32:
 	cl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
 

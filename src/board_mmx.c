@@ -250,10 +250,14 @@ void board_restore(Board *board, const Move *move)
 #ifdef USE_MSVC_X86
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 unsigned long long get_moves_mmx(const unsigned long long P_, const unsigned long long O_)
 =======
 unsigned long long get_moves_mmx(unsigned long long P_, unsigned long long O_)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+unsigned long long get_moves_mmx(const unsigned long long P_, const unsigned long long O_)
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 {
 	unsigned int movesL, movesH, mO1, flip1, pre1;
 	__m64	P, O, M, mO, flip, pre;
@@ -323,10 +327,14 @@ unsigned long long get_moves_mmx(unsigned long long P_, unsigned long long O_)
 #else
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 unsigned long long get_moves_mmx(const unsigned long long P, const unsigned long long O)
 =======
 unsigned long long get_moves_mmx(unsigned long long P, unsigned long long O)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+unsigned long long get_moves_mmx(const unsigned long long P, const unsigned long long O)
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 {
 	unsigned long long moves;
 	__asm__ (
@@ -472,6 +480,7 @@ unsigned long long get_moves_mmx(unsigned long long P, unsigned long long O)
  *
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef hasMMX
 static void get_full_lines(const unsigned long long disc_, unsigned long long full[4])
 {
@@ -553,6 +562,10 @@ int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned lon
 #ifdef USE_MSVC_X86
 
 unsigned long long get_all_full_lines_mmx(const unsigned long long disc_, V4DI *full)
+=======
+#if defined(hasMMX) && !defined(hasSSE2)
+unsigned long long get_all_full_lines(const unsigned long long disc_, V4DI *full)
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 {
 	__m64	disc = *(__m64 *) &disc_;
 	__m64	full_l, full_r;
@@ -590,14 +603,10 @@ unsigned long long get_all_full_lines_mmx(const unsigned long long disc_, V4DI *
 	return full->ull[0] & full->ull[1] & full->ull[2] & full->ull[3];
 }
 
-int get_stability_mmx(unsigned long long P, unsigned long long O)
+int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsigned long long allfull, V4DI *full)
 {
-	V4DI	full;
-	unsigned long long allfull;
 	__m64	P_central, stable, stable_h, stable_v, stable_d7, stable_d9, old_stable, m;
 	unsigned int	OL, OH, PL, PH, t, a1a8, h1h8, SL, SH;
-
-	allfull = get_all_full_lines_mmx(P | O, &full);
 
 	// compute the exact stable edges (from precomputed tables)
 	OL = (unsigned int) O;	OH = (unsigned int)(O >> 32);
@@ -627,6 +636,7 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 		do {
 			old_stable = stable;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			stable_h = _m_por(_m_por(_m_psrlqi(stable, 1), _m_psllqi(stable, 1)), full_h);
 			stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), full_v);
 			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full_d7);
@@ -638,6 +648,12 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full.v1[3]);
 			stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), full.v1[2]);
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+			stable_h = _m_por(_m_por(_m_psrlqi(stable, 1), _m_psllqi(stable, 1)), full->v1[0]);
+			stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), full->v1[1]);
+			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full->v1[3]);
+			stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), full->v1[2]);
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 			stable = _m_por(stable, _m_pand(_m_pand(_m_pand(_m_pand(stable_h, stable_v), stable_d7), stable_d9), P_central));
 			m = _m_pxor(stable, old_stable);
 		} while (_m_to_int(_m_packsswb(m, m)) != 0);
@@ -648,7 +664,11 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
   #else
 =======
 #ifdef POPCOUNT
+	#ifdef _MSC_VER
 		t = __popcnt(_m_to_int(stable)) + __popcnt(_m_to_int(_m_psrlqi(stable, 32)));
+	#else
+		t = __builtin_popcount(_m_to_int(stable)) + __builtin_popcount(_m_to_int(_m_psrlqi(stable, 32)));
+	#endif
 #else
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		m = _m_psubd(stable, _m_pand(_m_psrlqi(stable, 1), *(__m64 *) &mask_55));
@@ -664,6 +684,7 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 	_mm_empty();
 	return t;
 }
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -841,6 +862,9 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 	return t;
 }
 #endif // USE_MSVC_X86
+=======
+#endif // hasMMX
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 
 /**
  * @brief MMX translation of get_potential_mobility

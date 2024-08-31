@@ -1021,7 +1021,7 @@ int NWS_endgame(Search *search, const int alpha)
 	int score, ofssolid;
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 	HashTable *const hash_table = &search->hash_table;
-	unsigned long long hash_code, solid_opp;
+	unsigned long long hash_code, allfull, solid_opp;
 	// const int beta = alpha + 1;
 	HashData hash_data;
 	HashStoreData hash_store_data;
@@ -1066,6 +1066,7 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
+<<<<<<< HEAD
 	// stability cutoff
 <<<<<<< HEAD
 	hashboard = board0.board = search->board;
@@ -1079,29 +1080,33 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
+=======
+>>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 	// transposition cutoff
 
 	// Improvement of Serch by Reducing Redundant Information in a Position of Othello
 	// Hidekazu Matsuo, Shuji Narazaki
 	// http://id.nii.ac.jp/1001/00156359/
 	// (1-2% improvement)
-	hashboard = search->board;
-	ofssolid = 0;
 	if (search->eval.n_empties <= MASK_SOLID_DEPTH) {
-#if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)	// no GAS_MMX dispatch
-		if (hasSSE2)
-			solid_opp = get_all_full_lines_sse(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
-		else
-#endif
-#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2) && !defined(hasNeon)
-		if (hasMMX)
-			solid_opp = get_all_full_lines_mmx(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
-		else
-#endif
-			solid_opp = get_all_full_lines(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
-		hashboard.player ^= solid_opp;	// normalize solid to player
-		hashboard.opponent ^= solid_opp;
+		allfull = get_all_full_lines(search->board.player | search->board.opponent, &full);
+
+		// stability cutoff
+		if (search_SC_NWS_fulls_given(search, alpha, &score, allfull, &full))
+			return score;
+
+		solid_opp = allfull & search->board.opponent;
+		hashboard.player = search->board.player ^ solid_opp;	// normalize solid to player
+		hashboard.opponent = search->board.opponent ^ solid_opp;
 		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+
+	} else {
+		// stability cutoff
+		if (search_SC_NWS(search, alpha, &score))
+			return score;
+
+		hashboard = search->board;
+		ofssolid = 0;
 	}
 
 	hash_code = board_get_hash_code(&hashboard);
