@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2020
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2023
+>>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -87,7 +91,11 @@ enum {
 	CUT_NODE,
 	ALL_NODE
 };
+<<<<<<< HEAD
 typedef	unsigned char	NodeType;
+=======
+typedef	char	NodeType;
+>>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 
 #define VERSION 4
 <<<<<<< HEAD

@@ -1205,6 +1205,7 @@ void search_pass_endgame(Search *search)
  * @param search  search.
  * @param move    played move.
  */
+<<<<<<< HEAD
 static void search_update_midgame_tail(Search *search)
 {
 <<<<<<< HEAD
@@ -1215,6 +1216,8 @@ static void search_update_midgame_tail(Search *search)
 	search->node_type[search->height] = next_node_type[search->node_type[search->height - 1]];
 }
 
+=======
+>>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 void search_update_midgame(Search *search, const Move *move)
 {
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
@@ -1228,6 +1231,7 @@ void search_update_midgame(Search *search, const Move *move)
 	eval_update(move->x, move->flipped, &search->eval);
 	assert(search->eval.n_empties > 0);
 	--search->eval.n_empties;
+<<<<<<< HEAD
 =======
 	empty_remove(search->x_to_empties[move->x]);
 =======
@@ -1249,6 +1253,10 @@ void search_update_midgame(Search *search, const Move *move)
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	search_update_midgame_tail(search);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	++search->height;
+	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+>>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 }
 
 /**
@@ -1357,11 +1365,16 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 >>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 	eval_pass(&search->eval);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
 =======
 	search_update_midgame_tail(search);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	++search->height;
+	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+>>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 }
 
 /**
