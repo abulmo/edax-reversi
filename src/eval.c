@@ -31,7 +31,6 @@
 #include "options.h"
 #include "move.h"
 #include "util.h"
-#include "search.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -919,10 +918,14 @@ void eval_open(const char* file)
 	// allocation
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
 =======
 	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(sizeof (*EVAL_WEIGHT));
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
 =======
 	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -963,6 +966,7 @@ void eval_open(const char* file)
 
 		if (edax_header == XADE) for (i = 0; i < n_w; ++i) w[i] = bswap_short(w[i]);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 		pe = *EVAL_WEIGHT + ply - 2;
 		pp = *P + (ply & 1);
@@ -1032,6 +1036,41 @@ void eval_open(const char* file)
 			pe[226314] = w[EVAL_PACKED_OFS[12]];
 		}
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+		pe = (*EVAL_WEIGHT)[ply];
+		pp = *P + (ply & 1);
+		for (k = 0; k < EVAL_SIZE[0]; k++) {
+			pe[k] = w[pp->EVAL_C9[k] + EVAL_PACKED_OFS[0]];
+		}
+		for (k = 0; k < EVAL_SIZE[1]; k++) {
+			pe[k + 19683] = w[pp->EVAL_C10[k] + EVAL_PACKED_OFS[1]];
+		}
+		for (k = 0; k < EVAL_SIZE[2]; k++) {
+			i = pp->EVAL_S10[k];
+			pe[k + 78732] = w[i + EVAL_PACKED_OFS[2]];
+			pe[k + 137781] = w[i + EVAL_PACKED_OFS[3]];
+		}
+		for (k = 0; k < EVAL_SIZE[4]; k++) {
+			i = pp->EVAL_S8[k];
+			pe[k + 196830] = w[i + EVAL_PACKED_OFS[4]];
+			pe[k + 203391] = w[i + EVAL_PACKED_OFS[5]];
+			pe[k + 209952] = w[i + EVAL_PACKED_OFS[6]];
+			pe[k + 216513] = w[i + EVAL_PACKED_OFS[7]];
+		}
+		for (k = 0; k < EVAL_SIZE[8]; k++) {
+			pe[k + 223074] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
+		}
+		for (k = 0; k < EVAL_SIZE[9]; k++) {
+			pe[k + 225261] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
+		}
+		for (k = 0; k < EVAL_SIZE[10]; k++) {
+			pe[k + 225990] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
+		}
+		for (k = 0; k < EVAL_SIZE[11]; k++) {
+			pe[k + 226233] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
+		}
+		pe[226314] = w[EVAL_PACKED_OFS[12]];
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	}
 
 	fclose(f);
@@ -1047,6 +1086,7 @@ void eval_open(const char* file)
 
 	// f = fopen("eval.bin", "wb");
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// fwrite(*EVAL_WEIGHT, sizeof(Eval_weight), EVAL_N_PLY, f);
 =======
 	// for (i = 0; i < 2; ++i)
@@ -1054,6 +1094,11 @@ void eval_open(const char* file)
 	//		fwrite(EVAL_WEIGHT[i][ply], sizeof(short), EVAL_N_WEIGHT, f);
 	//	}
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	// for (ply = 0; ply < EVAL_N_PLY; ply++) {
+	//	fwrite(EVAL_WEIGHT[ply], sizeof(short), EVAL_N_WEIGHT, f);
+	// }
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	// fclose(f);
 }
 
@@ -1074,6 +1119,7 @@ void eval_close(void)
 	EVAL_WEIGHT = NULL;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1107,6 +1153,8 @@ void eval_swap(Eval *eval)
 }
 
 >>>>>>> 6b942ef (Make eval_swap public and inline some)
+=======
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #include "eval_sse.c"
@@ -1118,10 +1166,12 @@ void eval_swap(Eval *eval)
 /**
  * @brief Set up evaluation features from a board.
  *
- * @param search Evaluation function and Board to setup features from.
+ * @param eval  Evaluation function.
+ * @param board Board to setup features from.
  */
-void eval_set(Search *search)
+void eval_set(Eval *eval, const Board *board)
 {
+<<<<<<< HEAD
 	int	i, x;
   #ifdef VECTOR_EVAL_UPDATE
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
@@ -1138,6 +1188,9 @@ void eval_set(Search *search)
 
   #else
 	int	j;
+=======
+	int i, j, x;
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	Board	b;
 
 	if (eval->n_empties & 1) {
@@ -1146,6 +1199,7 @@ void eval_set(Search *search)
 	} else	b = *board;
 
 	for (i = 0; i < EVAL_N_FEATURE; ++i) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 		x = 0;
@@ -1158,10 +1212,13 @@ void eval_set(Search *search)
 =======
 		search->eval.feature.us[i] = 0;
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		x = 0;
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
-			c = board_get_square_color(&search->board, EVAL_F2X[i].x[j]);
-			search->eval.feature.us[i] = search->eval.feature.us[i] * 3 + c;
+			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
 		}
+<<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 	}
 <<<<<<< HEAD
@@ -1169,6 +1226,10 @@ void eval_set(Search *search)
 =======
 	search->eval.player = 0;
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		eval->feature.us[i] = x;
+	}
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 }
 
 /**
@@ -1407,28 +1468,26 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasSSE2) {
-		if (eval->player) {
-			eval->player = 0;
+		if (eval->n_empties & 1)
 			eval_update_sse_1(eval, eval, move);
-		} else {
-			eval->player = 1;
+		else
 			eval_update_sse_0(eval, eval, move);
-		}
 		return;
 	}
 #endif
-	if (eval->player) {
-		eval->player = 0;
+	if (eval->n_empties & 1)
 		eval_update_1(eval, move);
-	} else {
-		eval->player = 1;
+	else
 		eval_update_0(eval, move);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	eval_swap(eval);
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 =======
 	}
 >>>>>>> 6b942ef (Make eval_swap public and inline some)
+=======
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 }
 
 <<<<<<< HEAD
@@ -1440,20 +1499,18 @@ void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 {
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasSSE2) {
-		if (eval_in->player)
+		if (eval_in->n_empties & 1)
 			eval_update_sse_1(eval_out, eval_in, move);
 		else
 			eval_update_sse_0(eval_out, eval_in, move);
-		// eval_out->player = eval_in->player ^ 1;
 		return;
 	}
 #endif
 	eval_out->feature = eval_in->feature;
-	if (eval_in->player)
+	if (eval_in->n_empties & 1)
 		eval_update_1(eval_out, move);
 	else
 		eval_update_0(eval_out, move);
-	// eval_out->player = eval_in->player ^ 1;
 }
 
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
@@ -1616,6 +1673,25 @@ void eval_restore(Eval *eval, const Move *move)
 void eval_pass(Eval *eval)
 {
 	int i;
+<<<<<<< HEAD
+=======
+
+	for (i =  0; i <  4; ++i)	// 9
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
+	for (i =  4; i < 16; ++i)	// 10
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i]];
+	for (i = 16; i < 30; ++i)	// 8
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 26244];
+	for (i = 30; i < 34; ++i)	// 7
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 28431];
+	for (i = 34; i < 38; ++i)	// 6
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29160];
+	for (i = 38; i < 42; ++i)	// 5
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29403];
+	for (i = 42; i < 46; ++i)	// 4
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29484];
+}
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 
 <<<<<<< HEAD
 <<<<<<< HEAD

@@ -422,10 +422,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
  * If both hasMMX and hasSSE2 are undefined, dynamic dispatching code
  * will be generated.  (This setting requires VC or GCC 4.4+)
  *
- * Parameters are passed as 4 ints instead of 2 longlongs to avoid
- * alignment ajust and to enable store to load forwarding.
- *
- * @date 2014 - 2018
+ * @date 2014 - 2020
  * @author Toshihiko Okuhara
  * @version 4.4
  */

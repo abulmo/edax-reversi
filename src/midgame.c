@@ -115,6 +115,7 @@ int search_eval_0(Search *search)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	const short *w = EVAL_WEIGHT[search->eval->player][60 - search->n_empties];
 	unsigned short int *f = search->eval->feature.us;
@@ -124,6 +125,9 @@ int search_eval_0(Search *search)
 =======
 	const short *w = EVAL_WEIGHT[search->eval.player][60 - search->eval.n_empties];
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+	const short *w = (*EVAL_WEIGHT)[60 - search->eval.n_empties];
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	unsigned short int *f = search->eval.feature.us;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	int score;
@@ -231,6 +235,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bestscore = SCORE_INF * 128;	// min stage
 		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
 		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
@@ -241,6 +246,9 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 		w = EVAL_WEIGHT[search->eval.player ^ 1][61 - search->eval.n_empties];
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		w = (*EVAL_WEIGHT)[61 - search->eval.n_empties];
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 		bestscore = -SCORE_INF;
 		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
 		foreach_empty (x, search->empties) {
@@ -425,12 +433,15 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 =======
 		Ev0.feature = search->eval.feature;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 =======
 		Ev0.player = search->eval.player;
 		eval_swap(&search->eval);
+=======
+		Ev0.n_empties = search->eval.n_empties--;
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 		board0 = search->board;
-		--search->eval.n_empties;
 
 <<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
@@ -476,7 +487,6 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 =======
 		}
 		search->eval.feature = Ev0.feature;
-		search->eval.player = Ev0.player;
 		search->board = board0;
 		++search->eval.n_empties;
 

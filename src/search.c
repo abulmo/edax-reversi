@@ -649,6 +649,7 @@ void search_setup(Search *search)
 	// init the evaluation function
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	eval_set(&search->eval, &search->board);
 =======
 	eval_set(&search->eval, board);
@@ -656,6 +657,9 @@ void search_setup(Search *search)
 =======
 	eval_set(search);
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+	eval_set(&search->eval, &search->board);
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 }
 
 /**
@@ -1206,8 +1210,10 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 	empty_restore(search->empties, move->x);
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_restore(&search->board, move);
+	++search->eval.n_empties;
 	// eval_restore(search->eval, move);
 	search->eval.feature = eval_to_restore->feature;
+<<<<<<< HEAD
 	eval_swap(&search->eval);
 <<<<<<< HEAD
 	++search->n_empties;
@@ -1215,6 +1221,8 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 =======
 	++search->eval.n_empties;
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+>>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	assert(search->height > 0);
 	--search->height;
 }

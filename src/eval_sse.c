@@ -941,12 +941,13 @@ static void eval_restore_sse_1(Eval *eval, const Move *move)
 /**
  * @brief Set up evaluation features from a board.
  *
- * @param search Evaluation function and Board to setup features from.
+ * @param eval  Evaluation function.
+ * @param board Board to setup features from.
  */
-void eval_set(Search *search)
+void eval_set(Eval *eval, const Board *board)
 {
 	int x;
-	unsigned long long	b = search->board.player;
+	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
 	static const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 		 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
 		 3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  1093,  1093,
@@ -962,15 +963,15 @@ void eval_set(Search *search)
 		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
 	}
-	b = ~(search->board.opponent | search->board.player);
+	b = ~(board->opponent | board->player);
 	foreach_bit(x, b) {
 		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
 	}
-	search->eval.feature.v16[0] = f0;
-	search->eval.feature.v16[1] = f1;
-	search->eval.feature.v16[2] = f2;
+	eval->feature.v16[0] = f0;
+	eval->feature.v16[1] = f1;
+	eval->feature.v16[2] = f2;
 
 #else
 	__m128i	f0 = EVAL_FEATURE_all_opponent.v8[0];
@@ -988,7 +989,7 @@ void eval_set(Search *search)
 		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
 		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
-	b = ~(search->board.opponent | search->board.player);
+	b = ~(board->opponent | board->player);
 	foreach_bit(x, b) {
 		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
@@ -998,14 +999,13 @@ void eval_set(Search *search)
 		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
 
-	search->eval.feature.v8[0] = f0;
-	search->eval.feature.v8[1] = f1;
-	search->eval.feature.v8[2] = f2;
-	search->eval.feature.v8[3] = f3;
-	search->eval.feature.v8[4] = f4;
-	search->eval.feature.v8[5] = f5;
+	eval->feature.v8[0] = f0;
+	eval->feature.v8[1] = f1;
+	eval->feature.v8[2] = f2;
+	eval->feature.v8[3] = f3;
+	eval->feature.v8[4] = f4;
+	eval->feature.v8[5] = f5;
 #endif
-	search->eval.player = 0;
 }
 
 /**
@@ -1017,23 +1017,18 @@ void eval_set(Search *search)
 void eval_update(Eval *eval, const Move *move)
 {
 	assert(move->flipped);
-	assert(WHITE == eval->player || BLACK == eval->player);
-	if (eval->player) {
-		eval->player = 0;
+	if (eval->n_empties & 1)
 		eval_update_sse_1(eval, eval, move);
-	} else {
-		eval->player = 1;
+	else
 		eval_update_sse_0(eval, eval, move);
-	}
 }
 
 void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 {
-	if (eval_in->player)
+	if (eval_in->n_empties & 1)
 		eval_update_sse_1(eval_out, eval_in, move);
 	else
 		eval_update_sse_0(eval_out, eval_in, move);
-	// eval_out->player = eval_in->player ^ 1;
 }
 
 #endif // hasSSE2
