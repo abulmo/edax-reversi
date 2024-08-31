@@ -517,6 +517,7 @@ void eval_builder_get_corner_block_features(const Board* b, int* X) {
 
 typedef struct Game {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	char	move[60];	// MSB = 1: same player's move after opponent's pass
 	int	score;		// black - white
 	int	suboptimal_ply;
@@ -524,6 +525,11 @@ typedef struct Game {
 	char	move[60];
 	int	score;
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	char	move[60];	// MSB = 1: same player's move after opponent's pass
+	int	score;		// black - white
+	int	suboptimal_ply;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 } Game;
 
 
@@ -533,8 +539,12 @@ typedef struct Gamebase {
 } Gamebase;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 enum { MAX_N_GAMES = 22000 };
+=======
+enum { MAX_N_GAMES = 1000000 };
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 Gamebase* gamebase_create(int i)
@@ -546,6 +556,9 @@ Gamebase* gamebase_create(int i)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 static int compare_moves(const void* a, const void* b)
 {
 	return memcmp((*(Game **)a)->move, (*(Game **)b)->move, 60);
@@ -598,6 +611,7 @@ void gamebase_minimax(Gamebase *base, int ply)
 	free(ga);
 }
 
+<<<<<<< HEAD
 /* f5d6c3d3c4.. */
 void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 {
@@ -607,14 +621,21 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 	Game	*g;
 	FILE	*f = fopen(file_1, "r");
 =======
+=======
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 /* f5d6c3d3c4.. */
-void gamebase_import(Gamebase* base, const char* file_1)
+void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 {
 	int	i, j, m;
-	char	s[130];
+	char	s[130], *p;
 	Board	b;
+<<<<<<< HEAD
 	FILE* f = fopen(file_1, "r");
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	Game	*g;
+	FILE	*f = fopen(file_1, "r");
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 
 	if (f == NULL) {
 		fprintf(stderr, "gamebase_import : can't open %s\n", file_1);
@@ -623,13 +644,18 @@ void gamebase_import(Gamebase* base, const char* file_1)
 
 	i = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	g = base->games;
 =======
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	g = base->games;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 	while (i < MAX_N_GAMES) {
 		if (fgets(s, sizeof(s), f) == NULL)
 			break;	// EOF or error
 		InitBoard(&b);
+<<<<<<< HEAD
 <<<<<<< HEAD
 		j = 0; p = s;
 		while ((((*p >= 'A') && (*p <= 'H')) || ((*p >= 'a') && (*p <= 'h'))) && *(p + 1)) {
@@ -654,16 +680,28 @@ void gamebase_import(Gamebase* base, const char* file_1)
 		while (s[j * 2] && s[j * 2 + 1]) {
 			m = ((s[j * 2] - 'A') & 7) + (s[j * 2 + 1] - '1') * 8;
 			base->games[i].move[j++] = m;
+=======
+		j = 0; p = s;
+		while ((((*p >= 'A') && (*p <= 'H')) || ((*p >= 'a') && (*p <= 'h'))) && *(p + 1)) {
+			m = ((*p - 'A') & 7) + ((*(p + 1) - '1') & 7) * 8;
+			g->move[j++] = m;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 			assert(b.square[m] == PEMPTY);
 			if (!MPerform(&b, m)) {
-				MPerform(&b, PASS);
+				g->move[j - 1] = m | 0x80;
+				b.player ^= (PBLACK ^ PWHITE);
 				if (!MPerform(&b, m))
 					break;
 			}
+			p += 2;
 		}
 		while (j < 60)
+<<<<<<< HEAD
 			base->games[i].move[j++] = PASS;
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+			g->move[j++] = PASS;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		m = b.ScoreDiff;
 		if (b.player != PBLACK)
 			m = -m;
@@ -671,6 +709,7 @@ void gamebase_import(Gamebase* base, const char* file_1)
 			m += 64 - b.BWTotal;
 		else if (m < 0)
 			m -= 64 - b.BWTotal;
+<<<<<<< HEAD
 <<<<<<< HEAD
 		g->score = m;
 		g->suboptimal_ply = -1;
@@ -685,15 +724,28 @@ void gamebase_import(Gamebase* base, const char* file_1)
 		gamebase_minimax(base, minimax_ply);
 =======
 		base->games[i].score = m;
+=======
+		g->score = m;
+		g->suboptimal_ply = -1;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		++i;
+		++g;
 	}
 	fclose(f);
 	base->n_games = i;
+<<<<<<< HEAD
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	printf("eval_builder : read %d games\n", i);
+
+	if (minimax_ply)
+		gamebase_minimax(base, minimax_ply);
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 }
 
 bool game_get_board(Game* g, int ply, Board* b)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	int	i, m, t;
 
@@ -710,15 +762,24 @@ bool game_get_board(Game* g, int ply, Board* b)
 		assert(t);
 =======
 	int	i;
+=======
+	int	i, m;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 
 	InitBoard(b);
 	for (i = 0; i < ply; ++i) {
-		if (!MPerform(b, g->move[i])) {
+		m = g->move[i];
+		if (m & 0x80)
 			b->player ^= (PBLACK ^ PWHITE);
+<<<<<<< HEAD
 			if (!MPerform(b, g->move[i]))
 				return false;
 		}
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		if (!MPerform(b, m & 0x7f))
+			return false;
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 	}
 	return true;
 }
@@ -916,22 +977,31 @@ void sl_plot_axis(sl_Plot* plot, sl_Point* A, sl_Point* B, sl_Point* O)
 		"\t(%d) show\n"
 		"\t76 70 moveto\n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"\t(\\(%d, %d\\)) show\n"
 		"\tnewpath\n\n", A->x, A->y, B->x, B->y, O->x, O->y);
 =======
 		"\t(\\(%d, %d\\)) show\n\n", A->x, A->y, B->x, B->y, O->x, O->y);
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		"\t(\\(%d, %d\\)) show\n"
+		"\tnewpath\n\n", A->x, A->y, B->x, B->y, O->x, O->y);
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 }
 
 void sl_plot_scatter(sl_Plot* plot, sl_Point* X, int I)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 	int	(*sc)[129][129] = (int(*)[129][129]) calloc(129 * 129, sizeof(int));
 	int	i, x, y, t, mx;
 	double	gray;
 
 	assert(sc);
 	mx = 1;
+<<<<<<< HEAD
 	for (i = 0; i < I; ++i) {
 		x = X[i].x;
 		y = X[i].y;
@@ -955,10 +1025,33 @@ void sl_plot_scatter(sl_Plot* plot, sl_Point* X, int I)
 	free(sc);
 =======
 	int	i;
+=======
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 	for (i = 0; i < I; ++i) {
-		fprintf(plot->f, "\t%d %d 1 0 360 arc fill\n", X[i].x + 75, X[i].y + 68);
+		x = X[i].x;
+		y = X[i].y;
+		if ((x >= -64) && (x <= 64) && (y >= -64) && (y <= 64)) {
+			t = ++(*sc)[x + 64][y + 64];
+			if ((x | y) && (t > mx))
+				mx = t;
+		}
 	}
+<<<<<<< HEAD
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	for (y = -64; y <= 64; ++y)
+		for (x = -64; x <= 64; ++x) {
+			t = (*sc)[x + 64][y + 64];
+			if (t) {
+				gray = 0.8 - (double) t / mx;
+				if (gray < 0.0)
+					gray = 0.0;
+				fprintf(plot->f, "\t%f setgray\n", gray);
+				fprintf(plot->f, "\t%d %d 0.75 0 360 arc fill\n", x + 75, y + 68);
+			}
+		}
+	free(sc);
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 }
 
 void sl_plot_close(sl_Plot* plot)
@@ -1664,14 +1757,16 @@ void eval_builder_build_features(EvalBuilder* eval, Gamebase* base, int ply) {
 	Game* g;
 
 	eval_builder_set_ply(eval, ply);
+	g = base->games;
 	for (i = I = 0; i < n; i++) {
-		g = base->games + i;
-		if (game_get_board(g, ply, &b) && (!board_is_game_over(&b) || ply == 60)) {
-			if (b.player == PBLACK) eval->score[I] = g->score;	// b - w
-			else eval->score[I] = -(g->score);	// w - b
-			eval_builder_set_features(&b, eval->feature[I]);
-			I++;
-		}
+		if (ply > g->suboptimal_ply)
+			if (game_get_board(g, ply, &b) && (!board_is_game_over(&b) || ply == 60)) {
+				if (b.player == PBLACK) eval->score[I] = g->score;	// b - w
+				else eval->score[I] = -(g->score);	// w - b
+				eval_builder_set_features(&b, eval->feature[I]);
+				I++;
+			}
+		++g;
 	}
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	eval->n_games = I;
@@ -2605,10 +2700,14 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 	e = (double*)malloc(base->n_games * sizeof(double));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	printf("  feat coeffs evmean evsdev  evmin  evmax scmean scsdev smin smax    a       b       r    erbias ersdev ermin  ermax\n");
 =======
 	printf("feature\tcoeffs\tev mean\tev sdev\tev min\tev max\tsc mean\tsc sdev\tsc min\tsc max\ta\tb\tr\terrbias\terrsdev\terrmin\terrmax\n");
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	printf("  feat coeff evmean evsdev  evmin  evmax scmean  scsdev smin smax     a       b       r    erbias ersdev ermin  ermax\n");
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
@@ -2616,8 +2715,13 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 		n = eval->n_games;
 		for (i = 0; i < n; i++) e[i] = y[i] - x[i];
 <<<<<<< HEAD
+<<<<<<< HEAD
 		printf("%6d", eval_builder_count_features(eval, ply));
 		printf("%7d", eval_builder_count_significant_coefficients(eval, ply));
+=======
+		printf("%6d", eval_builder_count_features(eval, ply));
+		printf("%6d", eval_builder_count_significant_coefficients(eval, ply));
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		printf("%7.2f", sl_mean(x, n));
 		printf("%7.2f", sl_standard_deviation(x, n));
 		printf("%7.2f", sl_min(x, n));
@@ -2633,6 +2737,7 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 		printf("%7.2f", sl_standard_deviation(e, n));
 		printf("%7.2f", sl_min(e, n));
 		printf("%7.2f\n", sl_max(e, n));
+<<<<<<< HEAD
 =======
 		printf("%6d\t", eval_builder_count_features(eval, ply));
 		printf("%6d\t", eval_builder_count_significant_coefficients(eval, ply));
@@ -2652,6 +2757,8 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 		printf("%5.2f\t", sl_min(e, n));
 		printf("%5.2f\n", sl_max(e, n));
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		fflush(stdout);
 	}
 	free(e);
@@ -2776,10 +2883,14 @@ void eval_builder_plot(EvalBuilder* eval, Gamebase* base, const char* plot_file)
 		eval_builder_build_features(eval, base, ply);
 		eval_builder_eval(eval, ply, x, y);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		for (i = 0; i < eval->n_games; i++) X[i].x = x[i], X[i].y = y[i];
 =======
 		for (i = 0; i < I; i++) X[i].x = x[i], X[i].y = y[i];
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		for (i = 0; i < eval->n_games; i++) X[i].x = x[i], X[i].y = y[i];
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		sprintf(file, "%s-%d.eps", plot_file, ply);
 		sprintf(title, "ply %d.eps", ply);
 
@@ -2787,10 +2898,14 @@ void eval_builder_plot(EvalBuilder* eval, Gamebase* base, const char* plot_file)
 		sl_plot_titles(plot, "eval", "score", title);
 		sl_plot_axis(plot, &A, &B, &O);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		sl_plot_scatter(plot, X, eval->n_games);
 =======
 		sl_plot_scatter(plot, X, I);
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		sl_plot_scatter(plot, X, eval->n_games);
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		sl_plot_close(plot);
 	}
 
@@ -2905,9 +3020,13 @@ void print_usage(void) {
 		"    temporal       filter through all plies\n"
 		"  -split <int>[,<int>]  ply to split file before merging them\n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"  -minimax <int>   minimax game score up to n-th move\n"
 =======
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		"  -minimax <int>   minimax game score up to n-th move\n"
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 		"commands:\n"
 		"build <option> game_file [eval_file_in] eval_file_out\n"
 		"process <option> game_file [eval_file_in] eval_file_out\n"
@@ -2975,8 +3094,13 @@ int main(int argc, char** argv) {
 		EVAL_STEEPEST_DESCENT,
 		EVAL_SQUARED_ERROR,
 		1.0,
+<<<<<<< HEAD
 		0.1
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		0.1,
+		0
+>>>>>>> 8e75d91 (add minimax option to eval_builder)
 	};
 
 	int filter, eval;
@@ -3115,6 +3239,9 @@ int main(int argc, char** argv) {
 			else if (strcmp(argv[i], "temporal") == 0) filter = FILTER_TEMPORAL;
 			else print_usage();
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+		}
+		else if (strcmp(argv[i], "-minimax") == 0) {
+			option.minimax_ply = atoi(argv[++i]);
 		}
 		else if (file_1 == NULL) {
 			file_1 = argv[i];
