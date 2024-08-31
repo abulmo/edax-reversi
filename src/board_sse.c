@@ -34,10 +34,14 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(ANDROID) && !defined(HAS_CPU_64) && !defined(hasSSE2)
 =======
 #if defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#if defined(ANDROID) && !defined(HAS_CPU_64) && !defined(hasSSE2)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #include "android/cpu-features.h"
 
 bool	hasSSE2 = false;
@@ -63,6 +67,7 @@ void init_neon (void)
 		hasSSE2 = true;	// for eval_update_sse
 	}
   #elif defined(__i386__)	// android x86 w/o SSE2 - uncommon and not tested
+<<<<<<< HEAD
 =======
 		hasSSE2 = true;
 =======
@@ -75,6 +80,8 @@ void init_neon (void)
 =======
   #else	// android x86 w/o SSE2 - uncommon and not tested
 >>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	int	cpuid_edx, cpuid_ecx;
 	__asm__ (
 		"movl	$1, %%eax\n\t"
@@ -356,7 +363,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 	board_check(sym);
 }
 
-#elif defined(hasNeon)
+#elif defined(__ARM_NEON) && !defined(DISPATCH_NEON)
 
 void board_symetry(const Board *board, const int s, Board *sym)
 {
@@ -709,6 +716,7 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(__ARM_NEON)	// 3 Neon, 1 CPU(32)
 
   #ifndef DISPATCH_NEON
@@ -718,6 +726,9 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 #else // __x86_64__
 =======
 #elif defined(__ARM_NEON__)	// 3 Neon, 1 CPU(32)
+=======
+#elif defined(__ARM_NEON)	// 3 Neon, 1 CPU(32)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
   #ifdef hasNeon
 	#define	get_moves_sse	get_moves	// no dispatch
@@ -852,15 +863,19 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 		// vertical_mirror in PP[1], OO[1]
-	OP  = _mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O));		mO = (unsigned int) O & 0x7e7e7e7eU;
+	OP = _mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O));		mO = (unsigned int) O & 0x7e7e7e7eU;
 	rOP = _mm_shufflelo_epi16(OP, 0x1B);						flip1  = mO & ((unsigned int) P << 1);
 	rOP = _mm_shufflehi_epi16(rOP, 0x1B);						flip1 |= mO & (flip1 << 1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	rOP = _mm_or_si128(_mm_srli_epi16(rOP, 8), _mm_slli_epi16(rOP, 8));		pre1   = mO & (mO << 1);
 =======
 											pre1   = mO & (mO << 1);
 	rOP = _mm_or_si128(_mm_srli_epi16(rOP, 8), _mm_slli_epi16(rOP, 8));
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	rOP = _mm_or_si128(_mm_srli_epi16(rOP, 8), _mm_slli_epi16(rOP, 8));		pre1   = mO & (mO << 1);
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	    										flip1 |= pre1 & (flip1 << 2);
 	PP  = _mm_unpacklo_epi64(OP, rOP);						flip1 |= pre1 & (flip1 << 2);
 	OO  = _mm_unpackhi_epi64(OP, rOP);						movesL = flip1 << 1;
@@ -1033,6 +1048,7 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 #endif // x86
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || (defined(__ARM_NEON) && !defined(DISPATCH_NEON))
 
 /**
@@ -1051,6 +1067,9 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 #if defined(hasSSE2) || defined(hasNeon)
+=======
+#if defined(hasSSE2) || (defined(__ARM_NEON) && !defined(DISPATCH_NEON))
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /**
  * @brief SSE/neon optimized get_stable_edge
@@ -1300,7 +1319,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	return vaddv_u8(vcnt_u8(packedstable));
 }
 
-  #elif defined(hasNeon) // Neon kindergarten
+  #elif defined(__ARM_NEON)	// Neon kindergarten
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
 	const uint64x2_t kMul  = { 0x1020408001020408, 0x1020408001020408 };
@@ -1491,6 +1510,7 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
 }
 
   #elif defined(__ARM_NEON)
+<<<<<<< HEAD
 
 void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
@@ -2430,8 +2450,10 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 
   #elif defined(hasNeon)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
-static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
+void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
 	unsigned long long l8;
 	uint8x8_t l01;
@@ -2454,7 +2476,7 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 
   #else	// 1 CPU, 3 SSE
 
-static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
+void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
 	unsigned long long rdisc = vertical_mirror(disc);
 	unsigned long long l8;
@@ -2584,11 +2606,15 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 =======
   #endif
+<<<<<<< HEAD
 >>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 #endif // hasSSE2/hasNeon
 <<<<<<< HEAD
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 =======
+=======
+#endif // hasSSE2/__ARM_NEON
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 #ifdef __AVX2__
 /**
@@ -2624,7 +2650,7 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 }
 #elif defined(hasSSE2) && !defined(HAS_CPU_64)
 // 32bit SSE optimized get_spreaded_stability
-static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
+int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
 {
 	__m128i v_stable, stable_vh, stable_d79, old_stable;
 

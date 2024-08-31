@@ -317,9 +317,13 @@ void bit_init(void)
 	init_mmx();
 #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
 =======
 #if defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
+=======
+#if defined(ANDROID) && !defined(__ARM_NEON) && !defined(hasSSE2)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	init_neon();
 #endif
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
@@ -360,10 +364,14 @@ __m128i bit_weighted_count_sse(unsigned long long Q0, unsigned long long Q1)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(__ARM_NEON)
 =======
 #elif defined(hasNeon)
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
+=======
+#elif defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 uint64x2_t bit_weighted_count_neon(unsigned long long Q0, unsigned long long Q1)
 {
 	uint64x2_t v = vcombine_u64(vcreate_u64(Q0), vcreate_u64(Q1));

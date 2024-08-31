@@ -8,10 +8,14 @@
  * CPU dependent bit operation intrinsics.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2020 - 2024
 =======
  * @date 2020 - 2022
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+ * @date 2020 - 2023
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -20,6 +24,7 @@
 #ifndef EDAX_BIT_INTRINSICS_H
 #define EDAX_BIT_INTRINSICS_H
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #if defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64)
 	#define	HAS_CPU_64	1
@@ -33,6 +38,13 @@
 
 #if defined(__SSE2__) || defined(_M_X64)
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+#if defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64)
+	#define	HAS_CPU_64	1
+#endif
+
+#if defined(__SSE2__) || defined(__AVX__) || defined(_M_X64)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	#define hasSSE2	1
 #endif
 
@@ -41,11 +53,15 @@
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #if defined(ANDROID) && defined(__arm__)
   #if __ANDROID_API__ < 21
 	#define	DISPATCH_NEON	1
   #else
 	#define	__ARM_NEON	1
+<<<<<<< HEAD
   #endif
 #elif defined(__ARM_NEON__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
 	#define	__ARM_NEON	1
@@ -57,11 +73,20 @@
 	#define hasNeon	1
   #ifndef __ARM_NEON__
 	#define	__ARM_NEON__	1
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
   #endif
+#elif defined(__ARM_NEON__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+	#define	__ARM_NEON	1
 #endif
+<<<<<<< HEAD
 #ifdef __ARM_NEON__
 #include "arm_neon.h"
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+#ifdef __ARM_NEON
+	#include "arm_neon.h"
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #endif
 
 #ifdef _MSC_VER

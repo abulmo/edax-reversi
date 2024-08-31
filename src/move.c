@@ -544,10 +544,14 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 			score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
 			score += (36 - _mm_cvtsi128_si32(MM)) * w_mobility; // real mobility
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(__ARM_NEON)
 =======
   #elif defined(hasNeon)
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
+=======
+  #elif defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 			uint64x2_t MM = bit_weighted_count_neon(get_moves(P, O), get_potential_moves(P, O));
 			score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 2)) * w_potential_mobility; // potential mobility
 			score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 0)) * w_mobility; // real mobility
@@ -836,7 +840,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				__m128i MM = bit_weighted_count_sse(board_get_moves(&search->board), get_potential_moves(search->board.player, search->board.opponent));
 				score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
 				score += (36 - _mm_cvtsi128_si32(MM)) * w_mobility; // real mobility
-#elif defined(hasNeon)
+#elif defined(__ARM_NEON)
 				uint64x2_t MM = bit_weighted_count_neon(board_get_moves(&search->board), get_potential_moves(search->board.player, search->board.opponent));
 				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 2)) * w_potential_mobility; // potential mobility
 				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 0)) * w_mobility; // real mobility

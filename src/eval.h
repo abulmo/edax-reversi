@@ -213,6 +213,7 @@ double eval_sigma(const int, const int, const int);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_MSVC_X86) || defined(ANDROID)
 void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
 #endif
@@ -223,6 +224,12 @@ void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
 #endif
 #if defined(hasSSE2) || defined(hasNeon)
 >>>>>>> 6820748 (Unify eval_update_sse 0 & 1)
+=======
+#if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_MSVC_X86) || defined(ANDROID)
+void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
+#endif
+#if defined(hasSSE2) || defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #define	eval_update(x, f, eval)	eval_update_sse(x, f, eval, eval)
 #define	eval_update_leaf(x, f, eval_out, eval_in)	eval_update_sse(x, f, eval_out, eval_in)
 #else

@@ -47,6 +47,7 @@ extern const EVAL_FEATURE_V EVAL_FEATURE[65];
 extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 
 #ifdef __ARM_NEON
+<<<<<<< HEAD
 =======
 #if defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
@@ -58,6 +59,8 @@ extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 #ifdef __ARM_NEON__
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #define __m128i		int16x8_t
 #define	_mm_add_epi16	vaddq_s16
 #define _mm_sub_epi16	vsubq_s16
@@ -106,7 +109,7 @@ typedef union {
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif
 
-#if defined(hasSSE2) || defined(__ARM_NEON__) || defined(USE_MSVC_X86)
+#if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_MSVC_X86)
 
 void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
@@ -515,6 +518,7 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || (defined(__ARM_NEON) && !defined(DISPATCH_NEON))
 =======
 #ifdef hasSSE2
@@ -522,6 +526,9 @@ void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *ev
 =======
 #if defined(hasSSE2) || defined(hasNeon)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+#if defined(hasSSE2) || (defined(__ARM_NEON) && !defined(DISPATCH_NEON))
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /**
  * @brief Set up evaluation features from a board.

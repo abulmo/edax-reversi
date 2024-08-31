@@ -59,12 +59,16 @@
 	#include "flip_sse.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
   #ifdef __ARM_NEON
 	#define	flip_neon	flip
 	#include "flip_neon_bitscan.c"
   #else
 	#include "flip_bitscan.c"
   #endif
+<<<<<<< HEAD
 =======
 	#ifdef hasNeon
 		#define	flip_neon	flip
@@ -73,6 +77,8 @@
 		#include "flip_bitscan.c"
 	#endif
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_ROXANE
 	#include "flip_roxane.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
@@ -88,11 +94,15 @@
 	#include "flip_avx512cd.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
   #ifdef __aarch64__
 	#include "flip_neon_rbit.c"
   #else
 	#include "flip_neon_lzcnt.c"
   #endif
+<<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SVE
 	#include "flip_sve_lzcnt.c"
 =======
@@ -112,6 +122,8 @@
 		#include "flip_neon_lzcnt.c"
 	#endif
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
 #endif
@@ -147,6 +159,7 @@ unsigned char edge_stability[256 * 256];
 <<<<<<< HEAD
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	#include "board_mmx.c"
+<<<<<<< HEAD
 #endif
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(__ARM_NEON)) && !defined(ANDROID)
 	#include "board_sse.c"
@@ -165,6 +178,11 @@ unsigned char edge_stability[256 * 256];
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(hasNeon)) && !defined(ANDROID)
 #include "board_sse.c"
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+#endif
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(__ARM_NEON)) && !defined(ANDROID)
+	#include "board_sse.c"
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #endif
 
 
@@ -338,6 +356,7 @@ bool board_lesser(const Board *b1, const Board *b2)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /**
  * @brief Compare two board for equality
  *
@@ -354,6 +373,9 @@ bool board_equal(const Board *b1, const Board *b2)
 =======
 >>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 #if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c
+=======
+#if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 /**
  * @brief symetric board
  *
@@ -557,19 +579,27 @@ void board_update(Board *board, const Move *move)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))	// 3DNow CPU has fast emms, and possibly slow SSE
 =======
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))
 >>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
+=======
+#if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))	// 3DNow CPU has fast emms, and possibly slow SSE
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	__m128i	OP = _mm_loadu_si128((__m128i *) board);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
 	_mm_storeu_si128((__m128i *) board, _mm_shuffle_epi32(OP, 0x4e));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(hasMMX)
 =======
 #elif defined(hasMMX)	// 3DNow CPU has fast emms
 >>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
+=======
+#elif defined(hasMMX)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	__m64	F = *(__m64 *) &move->flipped;
 	__m64	P = _m_pxor(*(__m64 *) &board->player, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
 	__m64	O = _m_pxor(*(__m64 *) &board->opponent, F);
@@ -693,6 +723,7 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
 =======
 /**
@@ -731,6 +762,9 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 =======
 #if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
+=======
+#if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 /**
  * @brief Get a part of the moves.
  *
@@ -823,6 +857,7 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 =======
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -836,6 +871,9 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 =======
 =======
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+=======
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	if (hasSSE2)
 		return get_moves_sse(P, O);
 <<<<<<< HEAD
@@ -861,10 +899,14 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 	return moves & ~(P|O);	// mask with empties
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // hasSSE2/__ARM_NEON
 =======
 #endif // hasSSE2/hasNeon
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#endif // hasSSE2/__ARM_NEON
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /**
  * @brief Get legal moves on a 6x6 board.
@@ -904,6 +946,7 @@ bool can_move(const unsigned long long P, const unsigned long long O)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasMMX) || defined(__ARM_NEON)
 =======
 #if defined(USE_GAS_MMX) || defined(__x86_64__) || defined(USE_MSVC_X86)
@@ -914,6 +957,9 @@ bool can_move(const unsigned long long P, const unsigned long long O)
 =======
 #if defined(hasMMX) || defined(hasNeon)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#if defined(hasMMX) || defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	return get_moves(P, O) != 0;
 
 #else
@@ -955,6 +1001,7 @@ int get_mobility(const unsigned long long P, const unsigned long long O)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifndef __AVX2__	// AVX2 version in board_sse.c
 =======
 int get_weighted_mobility(const unsigned long long P, const unsigned long long O)
@@ -970,6 +1017,9 @@ int get_weighted_mobility(const unsigned long long P, const unsigned long long O
 =======
 #ifndef __AVX2__
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
+=======
+#ifndef __AVX2__	// AVX2 version in board_sse.c
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 /**
  * @brief Get some potential moves.
  *
@@ -1251,6 +1301,7 @@ void edge_stability_init(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
@@ -1269,6 +1320,9 @@ void edge_stability_init(void)
 =======
 #if !defined(__AVX2__) && !defined(hasNeon) && !defined(hasSSE2)
 >>>>>>> dc7c79c (Omit unpack from get_edge_stability)
+=======
+#if !defined(__AVX2__) && !defined(__ARM_NEON) && !defined(hasSSE2)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 /**
  * @brief Get stable edge.
  *
@@ -1327,7 +1381,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
  * @param full all 1 if full line, otherwise all 0.
  */
 
-#if !defined(hasNeon) && !defined(hasSSE2) && !defined(hasMMX)
+#if !defined(__ARM_NEON) && !defined(hasSSE2) && !defined(hasMMX)
   #ifdef HAS_CPU_64
 
 static unsigned long long get_full_lines_h(unsigned long long full)
@@ -1366,8 +1420,7 @@ static unsigned long long get_full_lines_v(unsigned long long full)
 	unsigned int	t = (unsigned int) full & (unsigned int)(full >> 32);
 	t &= (t >> 16) | (t << 16);	// ror 16
 	t &= (t >> 8) | (t << 24);	// ror 8
-	full = t | ((unsigned long long) t << 32);
-	return full;
+	return t | ((unsigned long long) t << 32);
 }
 
 <<<<<<< HEAD
@@ -1381,12 +1434,16 @@ unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
   #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 >>>>>>> 4303b09 (Returns all full lines in full[4])
 =======
 static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 >>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
+=======
+void get_full_lines(const unsigned long long disc, unsigned long long full[4])
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 {
 	unsigned long long l7, l9, r7, r9;	// full lines
 
@@ -1404,7 +1461,7 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
 	full[2] = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
 }
-#endif // hasSSE2/hasNeon/hasMMX
+#endif // __ARM_NEON/hasSSE2/hasMMX
 
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 /**
@@ -1443,11 +1500,11 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
  */
-#ifndef __AVX2__
+#ifndef __AVX2__	// AVX2 version in board_sse.c
   #if !(defined(hasMMX) && !defined(hasSSE2))	// MMX version of get_stability in board_mmx.c
     #if !(defined(hasSSE2) && !defined(HAS_CPU_64))	// 32bit SSE version in board_sse.c
 // compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
+int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
 {
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
 

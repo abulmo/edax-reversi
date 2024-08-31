@@ -170,6 +170,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	#elif defined(HAS_CPU_64) // aarch64
@@ -184,6 +185,9 @@
 =======
 	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(hasNeon)
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 		#define MOVE_GENERATOR MOVE_GENERATOR_NEON
 	#elif defined(__arm__) || defined(_M_ARM)
 		#define MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
@@ -198,9 +202,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	#if (defined(__AVX512VL__) || defined(__AVX10_1__)) && (defined(SIMULLASTFLIP512) || defined(SIMULLASTFLIP) || defined(LASTFLIP_HIGHCUT))
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
 	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
+=======
+	#if defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
 	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_NEON

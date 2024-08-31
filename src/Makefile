@@ -160,16 +160,23 @@ ifeq ($(COMP),gcc)
 		endif
 	endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 	ifeq ($(ARCH),armv7)
 		CFLAGS += -march=armv7-a
 		ifeq ($(BUILD),optimize)
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+	ifeq ($(ARCH),armv7)
+		CFLAGS += -march=armv7-a
+		ifeq ($(BUILD),optimize)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
 	ifeq ($(ARCH),arm-neon)
 		CFLAGS += -march=armv7-a+simd -mfloat-abi=softfp
+<<<<<<< HEAD
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
@@ -187,6 +194,8 @@ ifeq ($(COMP),gcc)
 =======
 	ifeq ($(ARCH),ARMv7)
 		CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 >>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
@@ -617,6 +626,7 @@ release:
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
 =======
 	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
@@ -624,6 +634,9 @@ release:
 =======
 	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 

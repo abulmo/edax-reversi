@@ -175,7 +175,7 @@ vc-a64:
 
 vc-a32:
 #	vcvarsamd64_arm.bat
-	cl $(VC_FLAGS) /GL /D hasNeon all.c ws2_32.lib /Fe..\bin\wEdax-a32.exe
+	cl $(VC_FLAGS) /GL all.c ws2_32.lib /Fe..\bin\wEdax-a32.exe
 
 icc-w64-modern:
 	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5

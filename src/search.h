@@ -358,6 +358,9 @@ int search_bound(const Search*, int);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
   #ifdef __AVX2__
 	#define	mm_malloc(s)	_mm_malloc((s), 32)
@@ -378,6 +381,7 @@ int search_bound(const Search*, int);
 	}
 	#define mm_free(p)	free(*((void **)(p) - 1));
   #endif
+<<<<<<< HEAD
 =======
 #ifdef __SSE2__
 =======
@@ -413,6 +417,8 @@ int search_bound(const Search*, int);
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 =======
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #else
 	#define	mm_malloc(s)	malloc(s)
 	#define	mm_free(p)	free(p)

@@ -154,6 +154,12 @@ __m128i vectorcall get_moves_and_potential(__m256i, __m256i);
 
 void edge_stability_init(void);
 unsigned long long get_stable_edge(const unsigned long long, const unsigned long long);
+#ifndef __AVX2__	// public for android dispatch
+	void get_full_lines(const unsigned long long, unsigned long long [4]);
+  #if !(defined(hasMMX) && !defined(hasSSE2))
+	int get_spreaded_stability(unsigned long long, unsigned long long, unsigned long long [4]);
+  #endif
+#endif
 unsigned long long get_all_full_lines(const unsigned long long);
 int get_stability(const unsigned long long, const unsigned long long);
 int get_stability_fulls(const unsigned long long, const unsigned long long, unsigned long long [5]);
@@ -174,7 +180,7 @@ int board_count_empties(const Board *board);
 	unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
 	unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
 
-#elif defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
+#elif defined(ANDROID) && !defined(__ARM_NEON) && !defined(hasSSE2)
 	void init_neon (void);
 	unsigned long long get_moves_sse(unsigned long long, unsigned long long);
 #endif
@@ -267,12 +273,26 @@ extern unsigned long long A1_A8[256];
 <<<<<<< HEAD
 <<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
+<<<<<<< HEAD
 	extern const V4DI lmask_v4[66], rmask_v4[66];
 <<<<<<< HEAD
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 <<<<<<< HEAD
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_set_epi64x((O), (P)), (x)))))
+=======
+	extern __m256i vectorcall mm_Flip(const __m128i OP, int pos);
+	inline __m128i vectorcall reduce_vflip(__m256i flip4) {
+		__m128i flip2 = _mm_or_si128(_mm256_castsi256_si128(flip4), _mm256_extracti128_si256(flip4, 1));
+		return _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
+	}
+  #ifdef HAS_CPU_64
+	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_insert_epi64(_mm_cvtsi64_si128(P), (O), 1), (x)))))
+  #else
+	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_insert_epi32(_mm_insert_epi32(_mm_insert_epi32(\
+		_mm_cvtsi32_si128(P), ((P) >> 32), 1), (O), 2), (O >> 32), 3), (x)))))
+  #endif
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x)))))
 	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip((board).v2, (x)))))
 
@@ -489,7 +509,7 @@ extern unsigned long long A1_A8[256];
 // Pass vboard to get_moves if vectorcall available, otherwise board
 #if defined(__AVX2__) && (defined(_MSC_VER) || defined(__linux__))
 	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
-	#define	get_moves(P,O)	get_moves_avx(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)))
+	#define	get_moves(P,O)	get_moves_avx(_mm256_set1_epi64x(P), _mm256_set1_epi64x(O))
 	#define	board_get_moves(board)	get_moves_avx(_mm256_broadcastq_epi64(*(__m128i *) &(board)->player), _mm256_broadcastq_epi64(*(__m128i *) &(board)->opponent))
 	#define	vboard_get_moves(vboard)	get_moves_avx(_mm256_broadcastq_epi64((vboard).v2), _mm256_broadcastq_epi64(_mm_unpackhi_epi64((vboard).v2, (vboard).v2)))
 #else

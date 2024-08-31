@@ -49,6 +49,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #ifndef __SSE2__
@@ -59,6 +60,9 @@
 =======
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(hasNeon)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+#if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -485,7 +489,7 @@ const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 }};
 
 #endif
-#if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(hasNeon) || defined(ANDROID) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+#if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 
 const EVAL_FEATURE_V EVAL_FEATURE[65] = {
 	{{ // a1
@@ -1529,12 +1533,16 @@ void eval_swap(Eval *eval)
 =======
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
+<<<<<<< HEAD
 #elif defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #include "eval_sse.c"
 #endif
 
-#if !defined(hasSSE2) && !defined(hasNeon)
+#if !defined(hasSSE2) && !defined(__ARM_NEON)
 
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /**
@@ -2011,6 +2019,9 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 	assert(f);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
 		eval_update_sse(x, f, eval, eval);
@@ -2065,7 +2076,7 @@ void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 {
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
 		eval_update_sse(x, f, eval_out, eval_in);
 		return;
@@ -2078,6 +2089,7 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 		eval_update_0(x, f, eval_out);
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
@@ -2236,6 +2248,9 @@ void eval_restore(Eval *eval, const Move *move)
 =======
 #endif // !defined(hasSSE2) && !defined(hasNeon)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#endif // !defined(hasSSE2) && !defined(__ARM_NEON)
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /**
  * @brief Update/Restore the features after a passing move.

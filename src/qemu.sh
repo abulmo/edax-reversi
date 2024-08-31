@@ -19,10 +19,11 @@ fi
 =======
 if [ "$1" = arm32 ]
 then
-make build OS=linux ARCH=ARMv7 COMP=gcc CC=arm-linux-gnueabi-gcc
+make build OS=linux ARCH=arm-neon COMP=gcc CC=arm-linux-gnueabi-gcc
 cd ../bin
-qemu-arm -L /usr/arm-linux-gnueabi ./lEdax-ARMv7 -n 1 -l 60 -solve ../problem/fforum-20-39.obf
+qemu-arm -L /usr/arm-linux-gnueabi ./lEdax-arm-neon -n 1 -l 60 -solve ../problem/fforum-20-39.obf
 else
+<<<<<<< HEAD
 >>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
 make build OS=linux ARCH=ARM COMP=gcc CC=aarch64-linux-gnu-gcc
 cd ../bin
@@ -31,6 +32,11 @@ qemu-aarch64 -L /usr/aarch64-linux-gnu ./lEdax-ARM -n 1 -l 60 -solve ../problem/
 # qemu-arm -L /usr/arm-linux-gnueabi ./lEdax-ARMv7 -n 1 -l 60 -solve ../problem/fforum-20-39.obf
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 =======
+=======
+make build OS=linux ARCH=arm COMP=gcc CC=aarch64-linux-gnu-gcc
+cd ../bin
+qemu-aarch64 -L /usr/aarch64-linux-gnu ./lEdax-arm -n 1 -l 60 -solve ../problem/fforum-20-39.obf
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 fi
 >>>>>>> 23e04d1 (Backport endgame_sse optimizations into endgame.c)
 cd ../src

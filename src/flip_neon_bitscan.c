@@ -50,6 +50,7 @@
 
 // included from board.c or linked in Android Arm32 dispatch build
 #if defined(flip_neon) || defined(DISPATCH_NEON)
+<<<<<<< HEAD
 
 =======
  * can be used to determine contiguous opponent discs.
@@ -75,6 +76,8 @@
 =======
 // included from board.c or linked in Android Arm32 dispatch build
 #if defined(flip_neon) || (defined(ANDROID) && defined(__arm__) && !defined(hasNeon))
+=======
+>>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 /** rotated outflank array (indexed with inner 6 bits) */
