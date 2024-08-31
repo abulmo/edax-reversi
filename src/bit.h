@@ -62,6 +62,7 @@ int get_rand_bit(unsigned long long, struct Random*);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (__ARM_NEON)
@@ -80,6 +81,15 @@ unsigned short bswap_short(unsigned short);
 unsigned int bswap_int(unsigned int);
 unsigned long long vertical_mirror(unsigned long long);
 =======
+=======
+// http://graphics.stanford.edu/~seander/bithacks.html
+#ifdef HAS_CPU_64
+#define mirror_byte(b)	(unsigned char)((((b) * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32)
+#else
+static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x200802) & 0x4422110) + ((b << 7) & 0x880)) * 0x01010101 >> 24); }
+#endif
+
+>>>>>>> 0ee9c1c (mirror_byte added for 1 byte bit reverse)
 #ifndef __has_builtin
 	#define __has_builtin(x) 0  // Compatibility with non-clang compilers.
 >>>>>>> ea39994 (Improve clang compatibility)

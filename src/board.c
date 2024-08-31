@@ -1047,10 +1047,14 @@ void edge_stability_init(void)
 			rPO = horizontal_mirror_32(PO);
 			if (PO > rPO)
 <<<<<<< HEAD
+<<<<<<< HEAD
 				edge_stability[PO] = mirror_byte(edge_stability[rPO]);
 =======
 				edge_stability[PO] = horizontal_mirror_32(edge_stability[rPO]);
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+				edge_stability[PO] = mirror_byte(edge_stability[rPO]);
+>>>>>>> 0ee9c1c (mirror_byte added for 1 byte bit reverse)
 			else
 				edge_stability[PO] = find_edge_stable(P, O, P);
 		}
