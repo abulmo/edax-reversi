@@ -546,10 +546,13 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	#else
 		#define	crc32c_u64(crc,d)	_mm_crc32_u32(_mm_crc32_u32((crc),(d)),((d)>>32))
 	#endif
+	#define	crc32c_u8(crc,d)	_mm_crc32_u8((crc),(d))
 #elif defined(__ARM_FEATURE_CRC32)
 	#define	crc32c_u64(crc,d)	__crc32cd((crc),(d))
+	#define crc32c_u8(crc,d)	__crc32cb((crc),(d))
 #else
 	unsigned int crc32c_u64(unsigned int crc, unsigned long long data);
+	unsigned int crc32c_u8(unsigned int crc, unsigned int data);
 #endif
 
 #endif // EDAX_BIT_INTRINSICS_H

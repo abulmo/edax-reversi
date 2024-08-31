@@ -137,10 +137,14 @@ void ui_loop_nboard(UI *ui)
 
 		} else if (strcmp(cmd, "game") == 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 			Game game;
 			int lastmove = parse_ggf(&game, param);
 			if (lastmove >= 0) {
 				game_get_board(&game, 60, &play->initial_board);
+<<<<<<< HEAD
 				if (lastmove == PASS)	// https://github.com/okuhara/edax-reversi-AVX/issues/1
 					board_pass(&play->initial_board);
 =======
@@ -148,6 +152,10 @@ void ui_loop_nboard(UI *ui)
 			if (parse_ggf(game, param) != param) {
 				game_get_board(game, 60, &play->initial_board);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+				if (lastmove == PASS)
+					board_pass(&play->initial_board);
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 				play_new(play);
 			} else {
 				nboard_fail("Cannot parse game \"%s\"", param);

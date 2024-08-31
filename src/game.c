@@ -4,10 +4,14 @@
  * Game management
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+ * @date 1998 - 2022
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -291,10 +295,14 @@ void text_to_game(const char *line, Game *game)
 		if (s == line && move.x == NOMOVE) return;
 		if (move.x != PASS) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			game->hash = crc32c_u8(game->hash, move.x);
 =======
 			game->hash ^= hash_move[move.x][i];
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			game->hash = crc32c_u8(game->hash, move.x);
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 			game->move[i++] = move.x;
 		}
 		board_update(&board, &move);
@@ -411,10 +419,14 @@ void game_append_line(Game *game, const Line *line, const int from)
 			if (line->move[i] != PASS) {
 				if (game_update_board(&board, line->move[i])) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 					game->hash = crc32c_u8(game->hash, line->move[i]);
 =======
 					game->hash ^= hash_move[(int)line->move[i]][j];
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+					game->hash = crc32c_u8(game->hash, line->move[i]);
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 					game->move[j++] = line->move[i];
 				} else {
 					break;
@@ -1420,6 +1432,16 @@ void game_export_eps(const Game *game, FILE *f)
 		"\t(8)  14  15 moveto show\n"
 		"}def\n"
 		"%%EndProlog\n\n"
+<<<<<<< HEAD
+=======
+
+		"% do the drawing\n"
+		"gsave\n"
+		"\n\t% draw an empty board\n"
+		"\tboard_coord\n"
+		"\tboard_grid\n"
+		"\n\t% draw the discs\n", f);
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 
 <<<<<<< HEAD
 		"% do the drawing\n"

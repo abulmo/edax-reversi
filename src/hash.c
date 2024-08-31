@@ -40,17 +40,21 @@
 #include <assert.h>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /** hashing global data */
 unsigned long long hash_move[64][60];
 
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 /** HashData init value */
 const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMOVE, NOMOVE }};
 <<<<<<< HEAD
 =======
 
 /**
+<<<<<<< HEAD
  * @brief Initialize global hash move data.
  */
 void hash_move_init(void)
@@ -69,6 +73,8 @@ void hash_move_init(void)
 >>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 /**
+=======
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
  * @brief Initialise the hashtable.
  *
  * Allocate the hash table entries and initialise the hash masks.

@@ -917,6 +917,7 @@ unsigned long long transpose(unsigned long long b)
 #endif // __AVX2__
 
 #ifndef crc32c_u64
+<<<<<<< HEAD
 /**
  * @brief Caliculate crc32c checksum for 8 bytes data
  * @param crc Initial crc from previous data.
@@ -954,13 +955,14 @@ unsigned int crc32c_u8(unsigned int crc, unsigned int data)
 #endif // __AVX2__
 >>>>>>> ea39994 (Improve clang compatibility)
 
+=======
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 /**
  * @brief Caliculate crc32c checksum for 8 bytes data
  * @param crc Initial crc from previous data.
  * @param data Data to accumulate.
  * @return Resulting crc.
  */
-#ifndef crc32c_u64
 unsigned int crc32c_u64(unsigned int crc, unsigned long long data)
 {
 	crc ^= (unsigned int) data;
@@ -973,6 +975,17 @@ unsigned int crc32c_u64(unsigned int crc, unsigned long long data)
 		crc32c_table[2][(crc >> 8) & 0xff] ^
 		crc32c_table[1][(crc >> 16) & 0xff] ^
 		crc32c_table[0][crc >> 24];
+}
+
+/**
+ * @brief Caliculate crc32c checksum for a byte
+ * @param crc Initial crc from previous data.
+ * @param data Data to accumulate.
+ * @return Resulting crc.
+ */
+unsigned int crc32c_u8(unsigned int crc, unsigned int data)
+{
+	return	crc32c_table[0][(crc ^ data) & 0xff] ^ (crc >> 8);
 }
 #endif
 

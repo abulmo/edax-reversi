@@ -137,9 +137,12 @@ int main(int argc, char **argv)
 	bit_init();
 	edge_stability_init();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	hash_move_init();
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+>>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 	statistics_init();
 	eval_open(options.eval_file);
 	search_global_init();
