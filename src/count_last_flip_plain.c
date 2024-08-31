@@ -26,7 +26,7 @@
  */
 
 /** precomputed count flip array */
-static const unsigned char COUNT_FLIP[8][256] = {
+const unsigned char COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -110,7 +110,7 @@ static const unsigned char COUNT_FLIP[8][256] = {
 };
 
 /* bit masks for diagonal lines */
-static const unsigned long long mask_d[2][64] = {
+const unsigned long long mask_d[2][64] = {
 	{
 		0x0000000000000001ULL, 0x0000000000000102ULL, 0x0000000000010204ULL, 0x0000000001020408ULL,
 		0x0000000102040810ULL, 0x0000010204081020ULL, 0x0001020408102040ULL, 0x0102040810204080ULL,
@@ -149,6 +149,18 @@ static const unsigned long long mask_d[2][64] = {
 	}
 };
 
+#ifdef HAS_CPU_64
+
+#define	packV(P, x)	(((((P) >> (x)) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56)
+#define packD(PM)	(((PM) * 0x0101010101010101ULL) >> 56)
+
+#else
+
+#define	packV(P, x)	(((((((unsigned int)(P)) >> (x)) & 0x01010101u) + (((((unsigned int)((P) >> 32)) >> (x)) & 0x01010101u) << 4)) * 0x01020408u) >> 24)
+#define	packD(PM)	(((((unsigned int)(PM)) * 0x01010101u) + (((unsigned int)((PM) >> 32)) * 0x01010101u)) >> 24)
+
+#endif // HAS_CPU_64
+
 /**
  * Count last flipped discs when playing on the last empty.
  *
@@ -158,15 +170,17 @@ static const unsigned long long mask_d[2][64] = {
  */
 int last_flip(int pos, unsigned long long P)
 {
-	unsigned char	n_flipped;
+	unsigned long long PM;
+	int	n_flipped;
 	int	x = pos & 0x07;
 	int	y = pos >> 3;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[x];
 
-	n_flipped  = COUNT_FLIP[y][(((P >> x) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56];
-	n_flipped += (*COUNT_FLIP_X)[(unsigned char) (P >> (y * 8))];
-	n_flipped += (*COUNT_FLIP_X)[((P & mask_d[0][pos]) * 0x0101010101010101ULL) >> 56];
-	n_flipped += (*COUNT_FLIP_X)[((P & mask_d[1][pos]) * 0x0101010101010101ULL) >> 56];
+	n_flipped  = COUNT_FLIP[y][packV(P, x)];
+	n_flipped += COUNT_FLIP[x][(unsigned char) (P >> (y * 8))];
+	PM = P & mask_d[0][pos];
+	n_flipped += COUNT_FLIP[x][packD(PM)];
+	PM = P & mask_d[1][pos];
+	n_flipped += COUNT_FLIP[x][packD(PM)];
 
 	return n_flipped;
 }
