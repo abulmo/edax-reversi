@@ -1019,6 +1019,7 @@ static int search_solve_4(Search *search, int alpha)
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param search Search. (breaks board and parity; caller has a copy)
 =======
  * @param search Search. (breaks board and parity)
@@ -1026,6 +1027,9 @@ static int search_solve_4(Search *search, int alpha)
 =======
  * @param search Search. (breaks board and parity; caller take a copy)
 >>>>>>> ea8595b (Split v3hi_empties from search_solve_3 & moved to solve_4)
+=======
+ * @param search Search. (breaks board and parity; caller has a copy)
+>>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
  * @param alpha Alpha bound.
  * @return The final score, as a disc difference.
  */
@@ -1275,8 +1279,10 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 
 	if (search->eval.n_empties == 5)	// transfer to search_solve_n, no longer uses n_empties, parity
 		do {
-			x = search->empties[prev = NOMOVE].next;	// maintain single link only
+			moves ^= prioritymoves;
+			x = NOMOVE;
 			do {
+<<<<<<< HEAD
 				if (prioritymoves & x_to_bit(x)) {
 					search->empties[prev].next = search->empties[x].next;	// remove
 <<<<<<< HEAD
@@ -1304,30 +1310,52 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 			} while ((x = search->empties[prev = x].next) != NOMOVE);
 		} while ((prioritymoves = (moves ^= prioritymoves)));
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+				do {
+					x = search->empties[prev = x].next;
+				} while (!(prioritymoves & x_to_bit(x)));
+
+				prioritymoves &= ~x_to_bit(x);
+				search->empties[prev].next = search->empties[x].next;	// remove - maintain single link only
+				vboard_next(board0, x, &search->board);
+				score = -search_solve_4(search, ~alpha);
+				search->empties[prev].next = x;	// restore
+
+				if (score > alpha)
+					return score;
+				else if (score > bestscore)
+					bestscore = score;
+			} while (prioritymoves);
+		} while ((prioritymoves = moves));
+>>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
 
 	else {
 		--search->eval.n_empties;	// for next depth
 		do {
-			x = search->empties[prev = NOMOVE].next;	// maintain single link only
+			moves ^= prioritymoves;
+			x = NOMOVE;
 			do {
-				if (prioritymoves & x_to_bit(x)) {	// (37%)
-					search->eval.parity = parity0 ^ QUADRANT_ID[x];
-					search->empties[prev].next = search->empties[x].next;	// remove
-					vboard_next(board0, x, &search->board);
-					score = -search_shallow(search, ~alpha, false);
-					search->empties[prev].next = x;	// restore
+				do {
+					x = search->empties[prev = x].next;
+				} while (!(prioritymoves & x_to_bit(x)));
 
-					if (score > alpha) {	// (40%)
-						// store_vboard(search->board, board0);
-						// search->eval.parity = parity0;
-						++search->eval.n_empties;
-						return score;
+				prioritymoves &= ~x_to_bit(x);
+				search->eval.parity = parity0 ^ QUADRANT_ID[x];
+				search->empties[prev].next = search->empties[x].next;	// remove - maintain single link only
+				vboard_next(board0, x, &search->board);
+				score = -search_shallow(search, ~alpha, false);
+				search->empties[prev].next = x;	// restore
 
-					} else if (score > bestscore)
-						bestscore = score;
-				}
-			} while ((x = search->empties[prev = x].next) != NOMOVE);
-		} while ((prioritymoves = (moves ^= prioritymoves)));
+				if (score > alpha) {	// (40%)
+					// store_vboard(search->board, board0);
+					// search->eval.parity = parity0;
+					++search->eval.n_empties;
+					return score;
+
+				} else if (score > bestscore)
+					bestscore = score;
+			} while (prioritymoves);
+		} while ((prioritymoves = moves));
 		++search->eval.n_empties;
 	}
 	// store_vboard(search->board, board0);

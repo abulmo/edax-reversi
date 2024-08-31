@@ -486,6 +486,7 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 		if (beta > SCORE_MAX - 1) betathres = ((SCORE_MAX - 1) * 128) - 64;
 		else betathres = (beta * 128) - ((beta > 0) ? 64 : 63);	// lowest score rounded to beta
 
+<<<<<<< HEAD
 >>>>>>> 8d39e74 (Loop out rounding score)
 		foreach_empty (x, search->empties) {
 			if (moves & x_to_bit(x)) {
@@ -599,6 +600,28 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 				if (bestscore >= betathres) break;
 			}
 		}
+=======
+		x = NOMOVE;
+		do {
+			do {
+				x = search->empties[x].next;
+			} while (!(moves & x_to_bit(x)));
+
+			moves &= ~x_to_bit(x);
+			flipped = board_flip(&search->board, x);
+			if (flipped == search->board.opponent)
+				return SCORE_MAX;	// wipeout
+
+			eval_update_leaf(x, flipped, &Ev, &search->eval);
+			SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
+
+			score = -accumlate_eval(60 - search->eval.n_empties + 1, &Ev);
+
+			if (score > bestscore)
+				bestscore = score;
+			if (bestscore >= betathres) break;
+		} while (moves);
+>>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
 
 		if (bestscore > 0) bestscore += 64;	else bestscore -= 64;
 		bestscore /= 128;
@@ -728,6 +751,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 				x = search->empties[x].next;
 			} while (!(moves & x_to_bit(x)));
 
+<<<<<<< HEAD
 			moves &= ~x_to_bit(x);
 			// search->empties[prev].next = search->empties[x].next;	// let search_eval_1 skip the last occupied
 			flipped = vboard_next(board0, x, &search->board);
@@ -824,6 +848,27 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 		if (can_move(search->board.opponent, search->board.player)) {
 =======
 		}
+=======
+		x = NOMOVE;
+		do {
+			do {
+				x = search->empties[prev = x].next;
+			} while (!(moves & x_to_bit(x)));
+
+			moves &= ~x_to_bit(x);
+			search->empties[prev].next = search->empties[x].next;	// remove - maintain single link only
+			flipped = vboard_next(board0, x, &search->board);
+			eval_update_leaf(x, flipped, &search->eval, &eval0);
+			score = -search_eval_1(search, -beta, -alpha, false);
+			search->empties[prev].next = x;	// restore
+
+			if (score > bestscore) {
+				bestscore = score;
+				if (bestscore >= beta) break;
+				else if (bestscore > alpha) alpha = bestscore;
+			}
+		} while (moves);
+>>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
 		search->eval.feature = eval0.feature;
 		search->eval.n_empties = eval0.n_empties;
 		store_vboard(search->board, board0);
