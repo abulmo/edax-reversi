@@ -14,9 +14,9 @@
  * When doing parallel search with a shared hashtable, a locked implementation
  * avoid concurrency collisions.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2023
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #include "bit.h"
@@ -31,49 +31,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-/** hashing global data */
-unsigned long long hash_rank[16][256];
-
-/** hashing global data */
-unsigned long long hash_move[64][60];
-
 /** HashData init value */
-const HashData HASH_DATA_INIT = {0, 0, 0, 0, -SCORE_INF, SCORE_INF, {NOMOVE, NOMOVE}};
-
-/**
- * @brief Initialize global hash code data.
- */
-void hash_code_init(void)
-{
-	int i, j;
-	Random r;
-
-	random_seed(&r, 0x5DEECE66Dull);
-	for (i = 0; i < 16; ++i)
-	for (j = 0; j < 256; ++j) {
-		do {
-			hash_rank[i][j] = random_get(&r);
-		} while (bit_count(hash_rank[i][j]) < 8); 
-	}
-}
-
-
-/**
- * @brief Initialize global hash move data.
- */
-void hash_move_init(void)
-{
-	int i, j;
-	Random r;
-
-	random_seed(&r, 0x5DEECE66Dull);
-	for (i = 0; i < 64; ++i)
-	for (j = 0; j < 60; ++j) {
-		do {
-			hash_move[i][j] = random_get(&r);
-		} while (bit_count(hash_move[i][j]) < 8); 
-	}
-}
+const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMOVE, NOMOVE }};
 
 /**
  * @brief Initialise the hashtable.
@@ -87,7 +46,7 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 {
 	int i, n_way;
 
-	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);
+	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// round up HASH_N_WAY to 2 ^ n
 
 	assert(hash_table != NULL);
 	assert((n_way & -n_way) == n_way);
@@ -100,7 +59,8 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 	}
 
 	if (HASH_ALIGNED) {
-		const size_t alignment = n_way * sizeof (Hash) - 1;
+		size_t alignment = n_way * sizeof (Hash);	// (4 * 24)
+		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x1f)
 		hash_table->hash = (Hash*) (((size_t) hash_table->memory + alignment) & ~alignment);
 		hash_table->hash_mask = size - n_way;
 	} else {
@@ -110,9 +70,9 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 
 	hash_cleanup(hash_table);
 
-	hash_table->n_lock = 256 * MAX(get_cpu_number(), 1);
+	hash_table->n_lock = 1 << (31 - lzcnt_u32(get_cpu_number() | 1) + 8);	// round down to 2 ^ n, then * 256
 	hash_table->lock_mask = hash_table->n_lock - 1;
-	hash_table->n_lock += n_way + 1;
+	// hash_table->n_lock += n_way + 1;
 	hash_table->lock = (HashLock*) malloc(hash_table->n_lock * sizeof (HashLock));
 
 	for (i = 0; i < hash_table->n_lock; ++i) spin_init(hash_table->lock + i);
@@ -126,15 +86,46 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
  */
 void hash_cleanup(HashTable *hash_table)
 {
-	register unsigned int i;
+	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
+	Hash *pHash = hash_table->hash;
 
 	assert(hash_table != NULL && hash_table->hash != NULL);
 
 	info("< cleaning hashtable >\n");
-	for (i = 0; i <= hash_table->hash_mask + HASH_N_WAY; ++i) {
-		HASH_COLLISIONS(hash_table->hash[i].key = 0;)
-		hash_table->hash[i].board.player = hash_table->hash[i].board.opponent = 0; 
-		hash_table->hash[i].data = HASH_DATA_INIT;
+
+  #if defined(hasSSE2) || defined(USE_MSVC_X86)
+	if (hasSSE2 && (sizeof(Hash) == 24) && (((size_t) pHash & 0x1f) == 0) && (imax >= 7)) {
+		for (; i < 4; ++i, ++pHash) {
+			HASH_COLLISIONS(pHash->key = 0;)
+			pHash->board.player = pHash->board.opponent = 0;
+			pHash->data = HASH_DATA_INIT;
+		}
+    #ifdef __AVX__
+		__m256i d0 = _mm256_load_si256((__m256i *)(pHash - 4));
+		__m256i d1 = _mm256_load_si256((__m256i *)(pHash - 4) + 1);
+		__m256i d2 = _mm256_load_si256((__m256i *)(pHash - 4) + 2);
+		for (i = 4; i <= imax - 3; i += 4, pHash += 4) {
+			_mm256_stream_si256((__m256i *) pHash, d0);
+			_mm256_stream_si256((__m256i *) pHash + 1, d1);
+			_mm256_stream_si256((__m256i *) pHash + 2, d2);
+		}
+    #else
+		__m128i d0 = _mm_load_si128((__m128i *)(pHash - 4));
+		__m128i d1 = _mm_load_si128((__m128i *)(pHash - 4) + 1);
+		__m128i d2 = _mm_load_si128((__m128i *)(pHash - 4) + 2);
+		for (i = 4; i <= imax - 1; i += 2, pHash += 2) {
+			_mm_stream_si128((__m128i *) pHash, d0);
+			_mm_stream_si128((__m128i *) pHash + 1, d1);
+			_mm_stream_si128((__m128i *) pHash + 2, d2);
+		}
+    #endif
+		_mm_sfence();
+	}
+  #endif
+	for (; i <= imax; ++i, ++pHash) {
+		HASH_COLLISIONS(pHash->key = 0;)
+		pHash->board.player = pHash->board.opponent = 0; 
+		pHash->data = HASH_DATA_INIT;
 	}
 	hash_table->date = 0;
 }
@@ -164,6 +155,7 @@ void hash_clear(HashTable *hash_table)
 void hash_free(HashTable *hash_table)
 {
 	int i;
+
 	assert(hash_table != NULL && hash_table->hash != NULL);
 	free(hash_table->memory);
 	hash_table->hash = NULL;
@@ -179,11 +171,11 @@ void hash_free(HashTable *hash_table)
  */
 inline unsigned int writeable_level(HashData *data)
 {
-	if (USE_TYPE_PUNING) { // HACK: depends on little endian.
-		return (*(unsigned int*) data);
-	} else { // slow but more portable implementation.
-		return (((unsigned)data->date) << 24) + (((unsigned)data->cost) << 16) + (data->selectivity << 8) + data->depth;
-	}
+#if USE_TYPE_PUNING	// HACK
+	return (data->wl.ui);
+#else	// slow but more portable implementation.
+	return (data->wl.c.date << 24) + (data->wl.c.cost << 16) + (data->wl.c.selectivity << 8) + data->wl.c.depth;
+#endif
 }
 
 /**
@@ -193,21 +185,23 @@ inline unsigned int writeable_level(HashData *data)
  * Best moves & bound scores are updated, other data are untouched.
  *
  * @param data Hash Data.
- * @param cost Search cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param storedata.data.cost Search cost (log2(node count)).
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  */
-static void data_update(HashData *data, const int cost, const int alpha, const int beta, const int score, const int move)
+static void data_update(HashData *data, HashStoreData *storedata)
 {
-	if (score < beta && score < data->upper) data->upper = (signed char) score;
-	if (score > alpha && score > data->lower) data->lower = (signed char) score;
-	if ((score > alpha || score == SCORE_MIN) && data->move[0] != move) {
+	int score = storedata->score;
+
+	if (score < storedata->beta && score < data->upper) data->upper = (signed char) score;
+	if (score > storedata->alpha && score > data->lower) data->lower = (signed char) score;
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
-		data->move[0] = (unsigned char) move;
+		data->move[0] = storedata->data.move[0];
 	}
-	data->cost = (unsigned char) MAX(cost, data->cost);
+	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);
 	HASH_STATS(++statistics.n_hash_update;)
 }
 
@@ -218,25 +212,26 @@ static void data_update(HashData *data, const int cost, const int alpha, const i
  * Best moves are updated, others data are reset to new value.
  *
  * @param data Hash Data.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Search cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Search cost (log2(node count)).
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  */
-static void data_upgrade(HashData *data, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+static void data_upgrade(HashData *data, HashStoreData *storedata)
 {
-	if (score < beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
-	if (score > alpha) data->lower =(signed char) score; else data->lower = SCORE_MIN;
-	if ((score > alpha || score == SCORE_MIN) && data->move[0] != move) {
+	int score = storedata->score;
+
+	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
+	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
-		data->move[0] = (unsigned char) move;
+		data->move[0] = storedata->data.move[0];
 	}
-	data->depth = depth;
-	data->selectivity = selectivity;
-	data->cost = (unsigned char) MAX(cost, data->cost);  // this may not work well in parallel search.
+	data->wl.us.selectivity_depth = storedata->data.wl.us.selectivity_depth;
+	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);  // this may not work well in parallel search.
 	HASH_STATS(++statistics.n_hash_upgrade;)
 
 	assert(data->upper >= data->lower);
@@ -246,26 +241,25 @@ static void data_upgrade(HashData *data, const int depth, const int selectivity,
  * @brief Set an hash table data item.
  *
  * @param data Hash Data.
- * @param date Search Date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Search cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param storedata.data.date Search Date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Search cost (log2(node count)).
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  */
-static void data_new(HashData *data, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+static void data_new(HashData *data, HashStoreData *storedata)
 {
-	if (score < beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
-	if (score > alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
-	if (score > alpha || score == SCORE_MIN) data->move[0] = (unsigned char) move;
+	int score = storedata->score;
+
+	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
+	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
+	if (score > storedata->alpha || score == SCORE_MIN) data->move[0] = storedata->data.move[0];
 	else data->move[0] = NOMOVE;
 	data->move[1] = NOMOVE;
-	data->depth = depth;
-	data->selectivity = selectivity;
-	data->cost = cost;
-	data->date = date;
+	data->wl = storedata->data.wl;
 	assert(data->upper >= data->lower);
 }
 
@@ -280,27 +274,23 @@ static void data_new(HashData *data, const int date, const int depth, const int 
  * @param hash Hash Entry.
  * @param lock Lock.
  * @param hash_code Hash code.
- * @param date Hash date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Search cost.
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param storedata.data.date Hash date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Search cost.
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  */
-#if (HASH_COLLISIONS(1)+0)
-static void hash_new(Hash *hash, HashLock *lock, const unsigned long long hash_code, const Board* board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
-#else
-static void hash_new(Hash *hash, HashLock *lock, const Board* board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
-#endif
+static void hash_new(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	spin_lock(lock);
 	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
-	HASH_COLLISIONS(hash->key = hash_code;)
+	HASH_COLLISIONS(hash->key = storedata->hash_code;)
 	hash->board = *board;
-	data_new(&hash->data, date, depth, selectivity, cost, alpha, beta, score, move);
+	data_new(&hash->data, storedata);
 	spin_unlock(lock);
 }
 
@@ -314,34 +304,24 @@ static void hash_new(Hash *hash, HashLock *lock, const Board* board, const int d
  *
  * @param hash Hash Entry.
  * @param lock Lock.
- * @param hash_code Hash code.
- * @param date Hash date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Search cost.
- * @param lower Lower score bound.
- * @param upper Upper score bound.
- * @param move Best move.
+ * @param board Bitboard.
+ * @param storedata.data.date Hash date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Search cost.
+ * @param storedata.data.lower Lower score bound.
+ * @param storedata.data.upper Upper score bound.
+ * @param storedata.move Best move.
  */
-#if (HASH_COLLISIONS(1)+0)
-static void hash_set(Hash *hash, HashLock *lock, const unsigned long long hash_code, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int lower, const int upper, const int move)
-#else
-static void hash_set(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int lower, const int upper, const int move)
-#endif
+static void hash_set(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
+	storedata->data.move[1] = NOMOVE;
 	spin_lock(lock);
 	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
-	HASH_COLLISIONS(hash->key = hash_code;)
+	HASH_COLLISIONS(hash->key = storedata->hash_code;)
 	hash->board = *board;
-	hash->data.upper = (signed char) upper;
-	hash->data.lower = (signed char) lower;
-	hash->data.move[0] = (unsigned char) move;
-	hash->data.move[1] = NOMOVE;
-	hash->data.depth = (unsigned char) depth;
-	hash->data.selectivity = (unsigned char) selectivity;
-	hash->data.cost = (unsigned char) cost;
-	hash->data.date = (unsigned char) date;
+	hash->data = storedata->data;
 	assert(hash->data.upper >= hash->data.lower);
 	spin_unlock(lock);
 }
@@ -357,31 +337,30 @@ static void hash_set(Hash *hash, HashLock *lock, const Board *board, const int d
  *
  * @param hash Hash Entry.
  * @param lock Lock.
- * @param hash_code Hash code.
- * @param date Hash date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Hash Cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param board Bitboard.
+ * @param storedata.data.date Hash date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Hash Cost (log2(node count)).
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  * @return true if an entry has been updated, false otherwise.
  */
-static bool hash_update(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	bool ok = false;
-	HashData *data;
 
-	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
-		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
-			data = &hash->data;
-			if (data->selectivity == selectivity && data->depth == depth) data_update(data, cost, alpha, beta, score, move);
-			else data_upgrade(data, depth, selectivity, cost, alpha, beta, score, move);
-			data->date = (unsigned char) date;
-			if (data->lower > data->upper) { // reset the hash-table...
-				data_new(data, date, depth, selectivity, cost, alpha, beta, score, move);
+		if (board_equal(&hash->board, board)) {
+			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth)
+				data_update(&hash->data, storedata);
+			else	data_upgrade(&hash->data, storedata);
+			hash->data.wl.c.date = storedata->data.wl.c.date;
+			if (hash->data.lower > hash->data.upper) { // reset the hash-table...
+				data_new(&hash->data, storedata);
 			}
 			ok = true;
 		} 
@@ -400,25 +379,25 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, const in
  *
  * @param hash Hash Entry.
  * @param lock Lock.
- * @param hash_code Hash code.
- * @param date Hash date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Hash Cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param board Bitboard.
+ * @param storedata.data.date Hash date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.cost Hash Cost (log2(node count)).
+ * @param storedata.alpha Alpha bound.
+ * @param storedata.beta Beta bound.
+ * @param storedata.score Best score.
+ * @param storedata.move Best move.
  * @return true if an entry has been replaced, false otherwise.
  */
-static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	bool ok = false;
-	
-	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+
+	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
-		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
-			data_new(&hash->data, date, depth, selectivity, cost, alpha, beta, score, move);
+		if (board_equal(&hash->board, board)) {
+			data_new(&hash->data, storedata);
 			ok = true;
 		}
 		spin_unlock(lock);
@@ -431,41 +410,36 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, const i
  *
  * @param hash Hash Entry.
  * @param lock Lock.
- * @param hash_code Hash code.
- * @param date Hash date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param lower Lower score bound.
- * @param upper Upper score bound.
- * @param move Best move.
+ * @param board Bitboard.
+ * @param storedata.data.date Hash date.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Search selectivity.
+ * @param storedata.data.lower Lower score bound.
+ * @param storedata.data.upper Upper score bound.
+ * @param storedata.move Best move.
  */
-static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, const int date, const int depth, const int selectivity, const int lower, const int upper, const int move)
+static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
 {
 	bool ok = false;
-	HashData *data;
-	
-	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+
+	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
-		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
-			data = &hash->data;
-			if (data->selectivity == selectivity && data->depth == depth) {
-				if (data->lower < lower) data->lower = (signed char) lower;
-				if (data->upper > upper) data->upper = (signed char) upper;
+		if (board_equal(&hash->board, board)) {
+			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth) {
+				if (hash->data.lower < storedata->data.lower) hash->data.lower = storedata->data.lower;
+				if (hash->data.upper > storedata->data.upper) hash->data.upper = storedata->data.upper;
 			} else {
-				data->depth = (unsigned char) depth;
-				data->selectivity = (unsigned char) selectivity;
-				data->lower = (signed char) lower;
-				data->upper = (signed char) upper;		
+				hash->data.lower = storedata->data.lower;
+				hash->data.upper = storedata->data.upper;
 			}
-			data->cost = 0;
-			data->date = (unsigned char) date;
-			if (move != NOMOVE) {
-				if (data->move[0] != move) {
-					data->move[1] = data->move[0];
-					data->move[0] = (unsigned char) move;
-				} else {
-					data->move[1] = (unsigned char) move;
-				}
+			hash->data.wl = storedata->data.wl;
+			if (storedata->data.move[0] != NOMOVE) {
+				// if (hash->data.move[0] != storedata->data.move[0]) {
+					hash->data.move[1] = hash->data.move[0];
+					hash->data.move[0] = storedata->data.move[0];
+				// } else {
+				//	hash->data.move[1] = storedata->data.move[0];
+				// }
 			}
 			ok = true;
 		}
@@ -474,43 +448,41 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, const int
 	return ok;
 }
 
-
 /**
  * @brief feed hash table (from Cassio).
  *
  * @param hash_table Hash Table.
- * @param hash_code Hash code.
- * @param depth Search depth.
- * @param selectivity Selectivity level.
- * @param lower Alpha bound.
- * @param upper Beta bound.
- * @param move best move.
+ * @param board Bitboard.
+ * @param storedata.data.depth Search depth.
+ * @param storedata.data.selectivity Selectivity level.
+ * @param storedata.data.lower Alpha bound.
+ * @param storedata.data.upper Beta bound.
+ * @param storedata.move best move.
  */
-void hash_feed(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int depth, const int selectivity, const int lower, const int upper, const int move)
+void hash_feed(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
 {
 	Hash *hash, *worst;
 	HashLock *lock; 
 	int i;
-	int date = hash_table->date ? hash_table->date : 1;
+
+	storedata->data.wl.c.date = hash_table->date ? hash_table->date : 1;
+	storedata->data.wl.c.cost = 0;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	if (hash_reset(hash, lock, board, date, depth, selectivity, lower, upper, move)) return;
+	if (hash_reset(hash, lock, board, storedata)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_reset(hash, lock, board, date, depth, selectivity, lower, upper, move)) return;
+		if (hash_reset(hash, lock, board, storedata)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
 		}
 	}
 
 	// new entry
-#if (HASH_COLLISIONS(1)+0) 
-	hash_set(worst, lock, hash_code, board, date, depth, selectivity, 0, lower, upper, move);
-#else 
-	hash_set(worst, lock, board, date, depth, selectivity, 0, lower, upper, move);
-#endif
+	HASH_COLLISIONS(storedata->hash_code = hash_code;)
+	hash_set(worst, lock, board, storedata);
 }
 
 /**
@@ -532,37 +504,37 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
  * already exists with better data, nothing is stored.
  *
  * @param hash_table Hash table to update.
+ * @param board Bitboard.
  * @param hash_code  Hash code of an othello board.
- * @param alpha      Alpha bound when calling the alphabeta function.
- * @param depth      Search depth.
- * @param selectivity   Search selectivity.
- * @param cost       Search cost (i.e. log2(node count)).
- * @param beta       Beta bound when calling the alphabeta function.
- * @param score      Best score found.
- * @param move       Best move found.
+ * @param storedata.data.depth      Search depth.
+ * @param storedata.data.selectivity   Search selectivity.
+ * @param storedata.data.cost       Search cost (i.e. log2(node count)).
+ * @param storedata.alpha      Alpha bound when calling the alphabeta function.
+ * @param storedata.beta       Beta bound when calling the alphabeta function.
+ * @param storedata.score      Best score found.
+ * @param storedata.move       Best move found.
  */
-void hash_store(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+void hash_store(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
 {
-	register int i;
+	int i;
 	Hash *worst, *hash;
 	HashLock *lock;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	if (hash_update(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
+	storedata->data.wl.c.date = hash_table->date;
+	if (hash_update(hash, lock, board, storedata)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_update(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
+		if (hash_update(hash, lock, board, storedata)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
 		}
 	}
-#if (HASH_COLLISIONS(1)+0) 
-	hash_new(worst, lock, hash_code, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
-#else 
-	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
-#endif
+
+	HASH_COLLISIONS(storedata->hash_code = hash_code;)
+	hash_new(worst, lock, board, storedata);
 }
 
 /**
@@ -571,51 +543,51 @@ void hash_store(HashTable *hash_table, const Board *board, const unsigned long l
  * Does the same as hash_store() except it always store the current search state
  *
  * @param hash_table Hash table to update.
+ * @param board Bitboard.
  * @param hash_code  Hash code of an othello board.
- * @param alpha      Alpha bound when calling the alphabeta function.
- * @param depth      Search depth.
- * @param selectivity   Search selectivity.
- * @param cost       Search cost (i.e. log2(node count)).
- * @param beta       Beta bound when calling the alphabeta function.
- * @param score      Best score found.
- * @param move       Best move found.
+ * @param storedata.data.depth      Search depth.
+ * @param storedata.data.selectivity   Search selectivity.
+ * @param storedata.data.cost       Search cost (i.e. log2(node count)).
+ * @param storedata.alpha      Alpha bound when calling the alphabeta function.
+ * @param storedata.beta       Beta bound when calling the alphabeta function.
+ * @param storedata.score      Best score found.
+ * @param storedata.move       Best move found.
  */
-void hash_force(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int depth, const int selectivity, const int cost, const int alpha, const int beta, const int score, const int move)
+void hash_force(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
 {
-	register int i;
+	int i;
 	Hash *worst, *hash;
 	HashLock *lock;
-	
+
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
-	
+	storedata->data.wl.c.date = hash_table->date;
+	if (hash_replace(hash, lock, board, storedata)) return;
+
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
+		if (hash_replace(hash, lock, board, storedata)) return;
 		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
 			worst = hash;
 		}
 	}
-	
-#if (HASH_COLLISIONS(1)+0) 
-	hash_new(worst, lock, hash_code, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
-#else 
-	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
-#endif
+
+	HASH_COLLISIONS(storedata->hash_code = hash_code;)
+	hash_new(worst, lock, board, storedata);
 }
 
 /**
  * @brief Find an hash table entry according to the evaluated board hash codes.
  *
  * @param hash_table Hash table.
+ * @param board Bitboard.
  * @param hash_code Hash code of an othello board.
  * @param data Output hash data.
  * @return True the board was found, false otherwise.
  */
 bool hash_get(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashData *data)
 {
-	register int i;
+	int i;
 	Hash *hash;
 	HashLock *lock;
 	bool ok = false;
@@ -623,11 +595,11 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 	HASH_STATS(++statistics.n_hash_search;)
 	HASH_COLLISIONS(++statistics.n_hash_n;)
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
 		HASH_COLLISIONS(if (hash->key == hash_code) {)
+		HASH_COLLISIONS(	lock = hash_table->lock + (hash_code & hash_table->lock_mask);)
 		HASH_COLLISIONS(	spin_lock(lock);)
-		HASH_COLLISIONS(	if (hash->key == hash_code && (hash->board.player != board->player || hash->board.opponent != board->opponent)) {)
+		HASH_COLLISIONS(	if (hash->key == hash_code && !vboard_equal(board, &hash->board)) {)
 		HASH_COLLISIONS(		++statistics.n_hash_collision;)
 		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
 		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
@@ -635,12 +607,13 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 		HASH_COLLISIONS(	})
 		HASH_COLLISIONS(	spin_unlock(lock);)
 		HASH_COLLISIONS(})
-		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+		if (board_equal(&hash->board, board)) {
+			lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 			spin_lock(lock);
-			if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+			if (board_equal(&hash->board, board)) {
 				*data = hash->data;
 				HASH_STATS(++statistics.n_hash_found;)
-				hash->data.date = hash_table->date;
+				hash->data.wl.c.date = hash_table->date;
 				ok = true;
 			}
 			spin_unlock(lock);
@@ -653,24 +626,38 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 }
 
 /**
+ * @brief Find an hash table entry from the board.
+ *
+ * @param hash_table Hash table.
+ * @param board Bitboard.
+ * @param data Output hash data.
+ * @return True the board was found, false otherwise.
+ */
+bool hash_get_from_board(HashTable *hash_table, const Board *board, HashData *data)
+{
+	return hash_get(hash_table, board, board_get_hash_code(board), data);
+}
+
+/**
  * @brief Erase an hash table entry.
  *
  * @param hash_table Hash table.
+ * @param board Bitboard.
  * @param hash_code Hash code of an othello board.
  * @param move Move to exclude.
  */
 void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int move)
 {
-	register int i;
+	int i;
 	Hash *hash;
 	HashLock *lock;
 
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
-		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+		if (board_equal(&hash->board, board)) {
+			lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 			spin_lock(lock);
-			if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+			if (board_equal(&hash->board, board)) {
 				if (hash->data.move[0] == move) {
 					hash->data.move[0] = hash->data.move[1];
 					hash->data.move[1] = NOMOVE;
@@ -694,12 +681,13 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
  */
 void hash_copy(const HashTable *src, HashTable *dest)
 {
-	register unsigned int i;
+	unsigned int i, imax = src->hash_mask + HASH_N_WAY;
+	Hash *pSrc = src->hash, *pDest = dest->hash;
 
 	assert(src->hash_mask == dest->hash_mask);
 	info("<hash copy>\n");
-	for (i = 0; i <= src->hash_mask + HASH_N_WAY; ++i) {
-		dest->hash[i] = src->hash[i];
+	for (i = 0; i <= imax; ++i) {
+		*pDest++ = *pSrc++;
 	}
 	dest->date = src->date;
 }
@@ -713,11 +701,9 @@ void hash_copy(const HashTable *src, HashTable *dest)
 void hash_print(const HashData *data, FILE *f)
 {
 	char s_move[4];
-	int p_selectivity[] = {72, 87, 95, 98, 99, 100};
 
 	fprintf(f, "moves = %s, ", move_to_string(data->move[0], WHITE, s_move));
 	fprintf(f, "%s ; ", move_to_string(data->move[1], WHITE, s_move));
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
-	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->date, data->cost, data->depth, p_selectivity[data->selectivity]);
+	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->wl.c.date, data->wl.c.cost, data->wl.c.depth, selectivity_table[data->wl.c.selectivity].percent);
 }
-
