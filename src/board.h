@@ -125,7 +125,7 @@ int get_weighted_mobility(const unsigned long long, const unsigned long long);
 int get_potential_mobility(const unsigned long long, const unsigned long long);
 void edge_stability_init(void);
 unsigned long long get_stable_edge(const unsigned long long, const unsigned long long);
-void get_all_full_lines(const unsigned long long, unsigned long long [5]);
+unsigned long long get_all_full_lines(const unsigned long long);
 int get_stability(const unsigned long long, const unsigned long long);
 int get_stability_fulls(const unsigned long long, const unsigned long long, unsigned long long [5]);
 int get_edge_stability(const unsigned long long, const unsigned long long);

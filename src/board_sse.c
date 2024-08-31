@@ -1017,6 +1017,7 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
   #endif // hasSSE2
 #endif // x86
 
+<<<<<<< HEAD
 #if defined(hasSSE2) || (defined(__ARM_NEON) && !defined(DISPATCH_NEON))
 
 /**
@@ -1033,6 +1034,12 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 /**
  * @brief SSE optimized get_stable_edge
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#if defined(hasSSE2) || defined(hasNeon)
+
+/**
+ * @brief SSE/neon optimized get_stable_edge
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
  *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
@@ -1176,6 +1183,7 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
  * @brief SSE/neon optimized get_edge_stability
  *
  * Compute the exact stable edges from precomputed tables.
+<<<<<<< HEAD
  *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
@@ -1257,6 +1265,8 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 =======
 =======
  * @brief SSE optimized get_edge_stability
+=======
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
  *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
@@ -1308,14 +1318,19 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
   #endif
 
 /**
+<<<<<<< HEAD
 >>>>>>> dc7c79c (Omit unpack from get_edge_stability)
  * @brief AVX2/SSE optimized get_stability
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
+=======
+ * @brief AVX2/SSE/neon optimized get_full_lines.
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
  *
  * SSE pcmpeqb for horizontal get_full_lines.
  * CPU rotate for vertical get_full_lines.
  * Diag-7 is converted to diag-9 using vertical mirroring.
  * 
+<<<<<<< HEAD
 <<<<<<< HEAD
  * @param disc all discs on the board.
  * @param full all 1 if full line, otherwise all 0.
@@ -1332,10 +1347,14 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
+=======
+ * @param disc all discs on the board.
+ * @param full all 1 if full line, otherwise all 0.
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
  */
   #ifdef __AVX2__
 
-void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
+static __m256i vectorcall get_full_lines(const unsigned long long disc)
 {
 	__m128i l81, l79, l8;
 	__m256i	v4_disc, lr79;
@@ -1445,6 +1464,7 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
     #endif
 	l81 = _mm_unpacklo_epi64(l81, l8);
 	return _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1);
+<<<<<<< HEAD
 }
 
   #elif defined(__ARM_NEON)
@@ -1597,6 +1617,8 @@ int get_stability_fulls(const unsigned long long P, const unsigned long long O, 
 	} while (!_mm_testc_si128(v2_old_stable, v2_stable));
 
 	return bit_count(_mm_cvtsi128_si64(v2_stable));
+=======
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
 }
 <<<<<<< HEAD
 #elif defined(hasSSE2) && !defined(HAS_CPU_64)
@@ -2385,7 +2407,8 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 
   #elif defined(hasNeon)
-void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
+
+static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
 	unsigned long long l8;
 	uint8x8_t l01;
@@ -2404,12 +2427,11 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e793, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
 	l8 &= (l8 >> 32) | (l8 << 32);		full[2] = vgetq_lane_u64(l79, 0);
 	full[1] = l8;				full[3] = vertical_mirror(vgetq_lane_u64(l79, 1));
-
-	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
   #else	// 1 CPU, 3 SSE
-void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
+
+static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
 	unsigned long long l8;
 	__m128i l01, l79, r79;	// full lines
@@ -2428,8 +2450,6 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
 	l8 &= (l8 >> 32) | (l8 << 32);		_mm_storel_epi64((__m128i *) &full[2], l79);
 	full[1] = l8;				full[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
-
-	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
 <<<<<<< HEAD
@@ -2547,6 +2567,74 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 
 #ifdef __AVX2__
+/**
+ * @brief AVX2 optimized get_stability
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return the number of stable discs.
+ */
+
+// compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned long long P_central, __m256i v4_full)
+{
+	__m128i	v2_stable, v2_old_stable, v2_P_central;
+	__m256i	v4_stable;
+	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
+
+	if (stable == 0)
+		return 0;
+
+	v2_stable = _mm_cvtsi64_si128(stable);
+	v2_P_central = _mm_cvtsi64_si128(P_central);
+	do {
+		v2_old_stable = v2_stable;
+		v4_stable = _mm256_broadcastq_epi64(v2_stable);
+		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), v4_full);
+		v2_stable = _mm_and_si128(_mm256_castsi256_si128(v4_stable), _mm256_extracti128_si256(v4_stable, 1));
+		v2_stable = _mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable));
+		v2_stable = _mm_or_si128(v2_old_stable, _mm_and_si128(v2_stable, v2_P_central));
+	} while (!_mm_testc_si128(v2_old_stable, v2_stable));
+
+	return bit_count(_mm_cvtsi128_si64(v2_stable));
+}
+
+// returns stability count only
+int get_stability(const unsigned long long P, const unsigned long long O)
+{
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+
+	__m256i	v4_full = get_full_lines(P | O);	// add full lines
+	__m128i v2_full = _mm_and_si128(_mm256_castsi256_si128(v4_full), _mm256_extracti128_si256(v4_full, 1));
+	stable |= (P_central & _mm_cvtsi128_si64(_mm_and_si128(v2_full, _mm_unpackhi_epi64(v2_full, v2_full))));
+
+	return get_spreaded_stability(stable, P_central, v4_full);	// compute the other stable discs
+}
+
+// returns all full in full[4] in addition to stability count
+int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
+{
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+
+	__m256i	v4_full = get_full_lines(P | O);	// add full lines
+	__m128i v2_full = _mm_and_si128(_mm256_castsi256_si128(v4_full), _mm256_extracti128_si256(v4_full, 1));
+	// _mm256_storeu_si256((__m256i *) full, v4_full);
+	full[4] = _mm_cvtsi128_si64(_mm_and_si128(v2_full, _mm_unpackhi_epi64(v2_full, v2_full)));
+	stable |= (P_central & full[4]);
+
+	return get_spreaded_stability(stable, P_central, v4_full);	// compute the other stable discs
+}
+
+// returns all full lines only
+unsigned long long get_all_full_lines(const unsigned long long disc)
+{
+	__m256i v4_full = get_full_lines(disc);
+	__m128i v2_full = _mm_and_si128(_mm256_castsi256_si128(v4_full), _mm256_extracti128_si256(v4_full, 1));
+	return _mm_cvtsi128_si64(_mm_and_si128(v2_full, _mm_unpackhi_epi64(v2_full, v2_full)));
+}
+
 /**
  * @brief AVX2 optimized get_potential_moves.
  *

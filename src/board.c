@@ -1210,6 +1210,8 @@ void edge_stability_init(void)
 /**
  * @brief Get stable edge.
  *
+ * Compute the exact stable edges from precomputed tables.
+ *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
  * @return a bitboard with (some of) player's stable discs.
@@ -1260,7 +1262,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
  * @brief Get full lines.
  *
  * @param disc all discs on the board.
- * @param full all 1 if full line, otherwise all 0.  full[4] = and of [0] to [3]
+ * @param full all 1 if full line, otherwise all 0.
  */
 
 #if !defined(hasNeon) && !defined(hasSSE2) && !defined(hasMMX)
@@ -1316,9 +1318,13 @@ unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 =======
   #endif
 
+<<<<<<< HEAD
 >>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 >>>>>>> 4303b09 (Returns all full lines in full[4])
+=======
+static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
+>>>>>>> 2969de2 (Refactor get_full_lines; fix get_stability MMX)
 {
 	unsigned long long l7, l9, r7, r9;	// full lines
 
@@ -1337,8 +1343,6 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
 	l9 = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
 	full[2] = l9;
-
-	full[4] =  full[0] & full[1] & l9 & l7;
 }
 #endif // hasSSE2/hasNeon/hasMMX
 
@@ -1379,24 +1383,15 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
  */
-#if !defined(__AVX2__) && !(defined(hasMMX) && !defined(hasSSE2))
-int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
+#if !defined(__AVX2__) && !(!defined(hasSSE2) && defined(hasMMX))
+// compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
 {
-	unsigned long long stable, P_central, stable_h, stable_v, stable_d7, stable_d9, old_stable;
-
-	get_all_full_lines(P | O, full);
-
-	// compute the exact stable edges (from precomputed tables)
-	stable = get_stable_edge(P, O);
-
-	// add full lines
-	P_central = (P & 0x007e7e7e7e7e7e00);
-	stable |= (full[4] & P_central);
+	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
 
 	if (stable == 0)	// (2%)
 		return 0;
 
-	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 	do {
 		old_stable = stable;
 		stable_h = ((stable >> 1) | (stable << 1) | full[0]);
@@ -1408,14 +1403,50 @@ int get_stability_fulls(const unsigned long long P, const unsigned long long O, 
 
 	return bit_count(stable);
 }
-#endif
 
+// returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
-	unsigned long long full[5];
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+	unsigned long long full[4];
 
-	return get_stability_fulls(P, O, full);
+	get_full_lines(P | O, full);	// add full lines
+	stable |= (P_central & full[0] & full[1] & full[2] & full[3]);
+
+	return get_spreaded_stability(stable, P_central, full);	// compute the other stable discs
 }
+
+// returns all full in full[4] in addition to stability count
+int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
+{
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+
+	get_full_lines(P | O, full);	// add full lines
+	full[4] = full[0] & full[1] & full[2] & full[3];
+	stable |= (P_central & full[4]);
+
+	return get_spreaded_stability(stable, P_central, full);	// compute the other stable discs
+}
+#endif
+
+#ifndef __AVX2__
+/**
+ * @brief Get intersection of full lines.
+ *
+ * Get intersection of full lines.
+ *
+ * @param disc bitboard with occupied discs.
+ * @return the intersection of full lines.
+ */
+unsigned long long get_all_full_lines(const unsigned long long disc)
+{
+	unsigned long long full[4];
+	get_full_lines(disc, full);
+	return full[0] & full[1] & full[2] & full[3];
+}
+#endif
 
 /**
 <<<<<<< HEAD
