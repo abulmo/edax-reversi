@@ -10,6 +10,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -23,6 +24,9 @@
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
  * @date 1998 - 2022
+=======
+ * @date 1998 - 2023
+>>>>>>> 6de3ab1 (Omit eval_weight table for ply > 53)
  * @author Richard Delorme
  * @version 4.5
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
@@ -157,8 +161,9 @@ typedef struct Eval_weight {
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
 /** number of plies */
-enum { EVAL_N_PLY = 60 };
+enum { EVAL_N_PLY = 54 };	// decreased from 60 in 4.5.1
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 extern short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
 <<<<<<< HEAD
@@ -183,6 +188,9 @@ extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
 =======
 extern Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY];
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
+=======
+extern Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
+>>>>>>> 6de3ab1 (Omit eval_weight table for ply > 53)
 
 /* function declaration */
 void eval_open(const char*);
