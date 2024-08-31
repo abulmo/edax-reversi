@@ -1351,14 +1351,25 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		}
 
 		// loop over all moves
+<<<<<<< HEAD
 		bestscore = -SCORE_INF;
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		lower = alpha;
+=======
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 		backup.board = search->board;
 		backup.eval = search->eval;
 		move = movelist.move[0].next;
-		do {
+
+		search_update_midgame(search, move);
+		bestscore = -PVS_shallow(search, -beta, -alpha, depth - 1);
+		hash_store_data.data.move[0] = move->x;
+		search_restore_midgame(search, move->x, &backup);
+		lower = (bestscore > alpha) ? bestscore : alpha;
+
+		while ((move = move->next) && (bestscore < beta)) {
 			search_update_midgame(search, move);
+<<<<<<< HEAD
 				if (bestscore == -SCORE_INF) {
 					score = -PVS_shallow(search, -beta, -lower, depth - 1);
 				} else {
@@ -1371,6 +1382,11 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 			search_restore_midgame(search, move, &Ev0);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
+=======
+			score = -NWS_shallow(search, -lower - 1, depth - 1, hash_table);
+			if (lower < score && score < beta)
+				lower = score = -PVS_shallow(search, -beta, -lower, depth - 1);
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 			search_restore_midgame(search, move->x, &backup);
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			if (score > bestscore) {
@@ -1382,6 +1398,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 				hash_store_data.move = move->x;
 =======
 				hash_store_data.data.move[0] = move->x;
+<<<<<<< HEAD
 >>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 				if (score >= beta) break;
 				else if (score > lower) lower = score;
@@ -1418,6 +1435,10 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 =======
 		} while ((move = move->next));
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+			}
+		}
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 	}
 
 <<<<<<< HEAD
@@ -1511,10 +1532,14 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 
 	search_check_timeout(search);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 	if (search->stop)
 		return alpha;
 
 	if (search->eval.n_empties == 0)
+<<<<<<< HEAD
 		return search_solve_0(search);
 	else if (depth < search->eval.n_empties) {
 		if (depth <= 3)
@@ -1538,6 +1563,16 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	else if (search->eval.n_empties <= depth && depth < DEPTH_MIDGAME_TO_ENDGAME)
 		return NWS_endgame(search, alpha);
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
+=======
+		return search_solve_0(search);
+	else if (depth < search->eval.n_empties) {
+		if (depth <= 3)
+			return NWS_shallow(search, alpha, depth, hash_table);
+	} else {
+		if (depth < DEPTH_MIDGAME_TO_ENDGAME)
+			return NWS_endgame(search, alpha);
+	}
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
 	SEARCH_STATS(++statistics.n_NWS_midgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -1886,6 +1921,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		if (movelist.n_moves > 1) {
 			//IID
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (!hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data))
 				hash_get(&search->hash_table, &search->board, hash_code, &hash_data.data);
 
@@ -1893,6 +1929,10 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 				if (depth == search->eval.n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
 =======
 			if (!hash_get(pv_table, &search->board, hash_code, &hash_data)) hash_get(hash_table, &search->board, hash_code, &hash_data);
+=======
+			if (!hash_get(pv_table, &search->board, hash_code, &hash_data))
+				hash_get(hash_table, &search->board, hash_code, &hash_data);
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 			if (USE_IID && hash_data.move[0] == NOMOVE) {
 <<<<<<< HEAD
 				if (depth == search->n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;

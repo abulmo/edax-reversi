@@ -1471,10 +1471,13 @@ int NWS_endgame(Search *search, const int alpha)
 			hashboard.opponent ^= solid_opp;
 			ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
 		}
+<<<<<<< HEAD
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+		hash_code = board_get_hash_code(&hashboard);
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
 		// transposition cutoff
-		hash_code = board_get_hash_code(&hashboard);
 		if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
 			hash_data.lower -= ofssolid;
 			hash_data.upper -= ofssolid;
@@ -1482,7 +1485,7 @@ int NWS_endgame(Search *search, const int alpha)
 				return score;
 		}
 		// else if (ofssolid)	// slows down
-		//	hash_get(hash_table, &search->board, board_get_hash_code(&search->board), &hash_data);
+		//	hash_get_from_board(hash_table, &search->board, &hash_data);
 
 		movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
 

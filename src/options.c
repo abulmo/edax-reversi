@@ -3,7 +3,11 @@
  *
  * Options reader.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2022
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -20,7 +24,11 @@
 
 /** global options with default value */
 Options options = {
+<<<<<<< HEAD
 	22, // hash table size (2^22 * 24 * 1.125 = 113MB)
+=======
+	21, // hash table size (2^21 * 24 * 2.0625 = 104MB)
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
 	{0,-2,-3}, // inc_sort_depth
 

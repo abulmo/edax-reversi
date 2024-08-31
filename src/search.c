@@ -397,7 +397,11 @@ void search_global_init(void)
 void search_resize_hashtable(Search *search) {
 	if (search->options.hash_size != options.hash_table_size) {
 		const int hash_size = 1u << options.hash_table_size;
+<<<<<<< HEAD
 		const int pv_shallow_size = hash_size > 16 ? hash_size >> 4 : 1;
+=======
+		const int pv_size = hash_size > 16 ? hash_size >> 4 : 1;
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
 		hash_init(&search->hash_table, hash_size);
 <<<<<<< HEAD
@@ -697,10 +701,14 @@ void search_clone(Search *search, Search *master)
 	search->hash_table = master->hash_table; // share the hashtable
 	search->pv_table = master->pv_table; // share the pvtable
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search->shallow_table = master->shallow_table; // share the shallowtable
 =======
 	search->shallow_table = master->shallow_table; // share the pvtable
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	search->shallow_table = master->shallow_table; // share the shallowtable
+>>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 	search->tasks = master->tasks;
 	search->observer = master->observer;
 
