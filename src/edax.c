@@ -174,10 +174,14 @@ void help_options(void)
 		"  noise [n]            start displaying Edax search result from this depth\n  (default 5).\n"
 		"  witdh [n]            display edax search results using <width> characters\n  (default 80).\n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"  hash-table-size [n]  set hashtable size (default 22 bits).\n"
 =======
 		"  hash-table-size [n]  set hashtable size (default 18 bits).\n"
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+		"  hash-table-size [n]  set hashtable size (default 22 bits).\n"
+>>>>>>> 42dc349 (add sfence to be sure; correct comments)
 		"  n-tasks [n]          control the number of parallel threads used in searching\n  (default 1).\n"
 		"  l|level [n]          search using limited depth (default 21).\n"
 		"  t|game-time <time>   search using limited time per game.\n"

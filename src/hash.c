@@ -91,10 +91,14 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 	int i, n_way;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// round up HASH_N_WAY to 2 ^ n
 =======
 	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// 2 ^ n, at leaset HASH_N_WAY
 >>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
+=======
+	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// round up HASH_N_WAY to 2 ^ n
+>>>>>>> 42dc349 (add sfence to be sure; correct comments)
 
 	assert(hash_table != NULL);
 	assert((n_way & -n_way) == n_way);
@@ -109,6 +113,7 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 	if (HASH_ALIGNED) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		size_t alignment = n_way * sizeof (Hash);	// (4 * 24)
 		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x1f)
 =======
@@ -119,6 +124,10 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
 		size_t alignment = n_way * sizeof (Hash);	// (4 * 48)
 		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x3f)
 >>>>>>> 494a38b (AVX/SSE optimized hash_cleanup)
+=======
+		size_t alignment = n_way * sizeof (Hash);	// (4 * 24)
+		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x1f)
+>>>>>>> 42dc349 (add sfence to be sure; correct comments)
 		hash_table->hash = (Hash*) (((size_t) hash_table->memory + alignment) & ~alignment);
 		hash_table->hash_mask = size - n_way;
 	} else {
@@ -198,6 +207,9 @@ void hash_cleanup(HashTable *hash_table)
 		}
     #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 42dc349 (add sfence to be sure; correct comments)
 		_mm_sfence();
 	}
   #endif

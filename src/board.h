@@ -277,7 +277,7 @@ extern unsigned long long A1_A8[256];
 =======
 =======
 	extern __m256i vectorcall mm_Flip(const __m128i OP, int pos);
-	__m128i inline vectorcall reduce_vflip(__m256i flip4) {
+	inline __m128i vectorcall reduce_vflip(__m256i flip4) {
 		__m128i flip2 = _mm_or_si128(_mm256_castsi256_si128(flip4), _mm256_extracti128_si256(flip4, 1));
 		return _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
 	}
