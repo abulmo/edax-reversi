@@ -12,8 +12,11 @@
  * @version 5.0
  */
 
+<<<<<<< HEAD
 enum { MAX_N_GAMES = 3200000 };
 
+=======
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 #define _CRT_SECURE_NO_WARNINGS
 
  // #include "const.h"
@@ -312,8 +315,13 @@ void InitBoard(Board *b)
 
 	for (i = 0; i < 64; ++i)
 		b->square[i] = PEMPTY;
+<<<<<<< HEAD
 	b->square[E4] = b->square[D5] = PBLACK;
 	b->square[D4] = b->square[E5] = PWHITE;
+=======
+	b->square[28] = b->square[35] = PBLACK;
+	b->square[27] = b->square[36] = PWHITE;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	b->player = PBLACK;
 	b->BWTotal = 4;
 	b->ScoreDiff = 0;
@@ -472,10 +480,17 @@ void eval_edax_v3_get_packed_features(const Board* b, int* X)
 void eval_builder_get_angle_X_features(const Board* b, int* X) {
 	int p = b->player;
 	const char* x = b->square;
+<<<<<<< HEAD
 	X[0] = c10[p][x[A5] * 19683 + x[A4] * 6561 + x[A3] * 2187 + x[A2] * 729 + x[A1] * 243 + x[B2] * 81 + x[B1] * 27 + x[C1] * 9 + x[D1] * 3 + x[E1]];
 	X[1] = c10[p][x[H5] * 19683 + x[H4] * 6561 + x[H3] * 2187 + x[H2] * 729 + x[H1] * 243 + x[G2] * 81 + x[G1] * 27 + x[F1] * 9 + x[E1] * 3 + x[D1]];
 	X[2] = c10[p][x[A4] * 19683 + x[A5] * 6561 + x[A6] * 2187 + x[A7] * 729 + x[A8] * 243 + x[B7] * 81 + x[B8] * 27 + x[C8] * 9 + x[D8] * 3 + x[E8]];
 	X[3] = c10[p][x[H4] * 19683 + x[H5] * 6561 + x[H6] * 2187 + x[H7] * 729 + x[H8] * 243 + x[G7] * 81 + x[G8] * 27 + x[F8] * 9 + x[E8] * 3 + x[D8]];
+=======
+	X[0] = c10[p][x[A5] * 19683 + x[A4] * 6561 + x[A3] * 2187 + x[A2] * 729 + x[A1] * 243 + x[B2] * 81 + x[B1] * 27 + x[C1] * 9 + x[D1] * 3 + x[E1]] + 10206;
+	X[1] = c10[p][x[H5] * 19683 + x[H4] * 6561 + x[H3] * 2187 + x[H2] * 729 + x[H1] * 243 + x[G2] * 81 + x[G1] * 27 + x[F1] * 9 + x[E1] * 3 + x[D1]] + 10206;
+	X[2] = c10[p][x[A4] * 19683 + x[A5] * 6561 + x[A6] * 2187 + x[A7] * 729 + x[A8] * 243 + x[B7] * 81 + x[B8] * 27 + x[C8] * 9 + x[D8] * 3 + x[E8]] + 10206;
+	X[3] = c10[p][x[H4] * 19683 + x[H5] * 6561 + x[H6] * 2187 + x[H7] * 729 + x[H8] * 243 + x[G7] * 81 + x[G8] * 27 + x[F8] * 9 + x[E8] * 3 + x[D8]] + 10206;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	X[4] = 29889;
 }
 
@@ -484,19 +499,31 @@ void eval_builder_get_angle_X_features(const Board* b, int* X) {
 void eval_builder_get_corner_block_features(const Board* b, int* X) {
 	int p = b->player;
 	const char* x = b->square;
+<<<<<<< HEAD
 	X[0] = s10[p][x[A1] * 19683 + x[C1] * 6561 + x[D1] * 2187 + x[C2] * 729 + x[D2] * 243 + x[E2] * 81 + x[F2] * 27 + x[E1] * 9 + x[F1] * 3 + x[H1]];
 	X[1] = s10[p][x[A8] * 19683 + x[C8] * 6561 + x[D8] * 2187 + x[C7] * 729 + x[D7] * 243 + x[E7] * 81 + x[F7] * 27 + x[E8] * 9 + x[F8] * 3 + x[H8]];
 	X[2] = s10[p][x[A1] * 19683 + x[A3] * 6561 + x[A4] * 2187 + x[B3] * 729 + x[B4] * 243 + x[B5] * 81 + x[B6] * 27 + x[A5] * 9 + x[A6] * 3 + x[A8]];
 	X[3] = s10[p][x[H1] * 19683 + x[H3] * 6561 + x[H4] * 2187 + x[G3] * 729 + x[G4] * 243 + x[G5] * 81 + x[G6] * 27 + x[H5] * 9 + x[H6] * 3 + x[H8]];
+=======
+	X[0] = s10[p][x[A1] * 19683 + x[C1] * 6561 + x[D1] * 2187 + x[C2] * 729 + x[D2] * 243 + x[E2] * 81 + x[F2] * 27 + x[E1] * 9 + x[F1] * 3 + x[H1]] + 69741;
+	X[1] = s10[p][x[A8] * 19683 + x[C8] * 6561 + x[D8] * 2187 + x[C7] * 729 + x[D7] * 243 + x[E7] * 81 + x[F7] * 27 + x[E8] * 9 + x[F8] * 3 + x[H8]] + 69741;
+	X[2] = s10[p][x[A1] * 19683 + x[A3] * 6561 + x[A4] * 2187 + x[B3] * 729 + x[B4] * 243 + x[B5] * 81 + x[B6] * 27 + x[A5] * 9 + x[A6] * 3 + x[A8]] + 69741;
+	X[3] = s10[p][x[H1] * 19683 + x[H3] * 6561 + x[H4] * 2187 + x[G3] * 729 + x[G4] * 243 + x[G5] * 81 + x[G6] * 27 + x[H5] * 9 + x[H6] * 3 + x[H8]] + 69741;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	X[4] = 29646;
 }
 
 /* gamebase */
 
 typedef struct Game {
+<<<<<<< HEAD
 	char	move[60];	// MSB = 1: same player's move after opponent's pass
 	int	score;		// black - white
 	int	suboptimal_ply;
+=======
+	char	move[60];
+	int	score;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 } Game;
 
 
@@ -505,6 +532,11 @@ typedef struct Gamebase {
 	Game	games[];
 } Gamebase;
 
+<<<<<<< HEAD
+=======
+enum { MAX_N_GAMES = 22000 };
+
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 Gamebase* gamebase_create(int i)
 {
 	Gamebase* base = (Gamebase*) malloc(sizeof(int) + sizeof(Game) * MAX_N_GAMES);
@@ -513,6 +545,7 @@ Gamebase* gamebase_create(int i)
 	return base;
 }
 
+<<<<<<< HEAD
 static int compare_moves(const void* a, const void* b)
 {
 	return memcmp((*(Game **)a)->move, (*(Game **)b)->move, 60);
@@ -573,6 +606,15 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 	Board	b;
 	Game	*g;
 	FILE	*f = fopen(file_1, "r");
+=======
+/* f5d6c3d3c4.. */
+void gamebase_import(Gamebase* base, const char* file_1)
+{
+	int	i, j, m;
+	char	s[130];
+	Board	b;
+	FILE* f = fopen(file_1, "r");
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 
 	if (f == NULL) {
 		fprintf(stderr, "gamebase_import : can't open %s\n", file_1);
@@ -580,11 +622,15 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 	}
 
 	i = 0;
+<<<<<<< HEAD
 	g = base->games;
+=======
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	while (i < MAX_N_GAMES) {
 		if (fgets(s, sizeof(s), f) == NULL)
 			break;	// EOF or error
 		InitBoard(&b);
+<<<<<<< HEAD
 		j = 0; p = s;
 		while ((((*p >= 'A') && (*p <= 'H')) || ((*p >= 'a') && (*p <= 'h'))) && *(p + 1)) {
 			m = ((*p - 'A') & 7) + ((*(p + 1) - '1') & 7) * 8;
@@ -603,6 +649,21 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 		}
 		while (j < 60)
 			g->move[j++] = NOMOVE;
+=======
+		j = 0;
+		while (s[j * 2] && s[j * 2 + 1]) {
+			m = ((s[j * 2] - 'A') & 7) + (s[j * 2 + 1] - '1') * 8;
+			base->games[i].move[j++] = m;
+			assert(b.square[m] == PEMPTY);
+			if (!MPerform(&b, m)) {
+				MPerform(&b, PASS);
+				if (!MPerform(&b, m))
+					break;
+			}
+		}
+		while (j < 60)
+			base->games[i].move[j++] = PASS;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		m = b.ScoreDiff;
 		if (b.player != PBLACK)
 			m = -m;
@@ -610,6 +671,7 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 			m += 64 - b.BWTotal;
 		else if (m < 0)
 			m -= 64 - b.BWTotal;
+<<<<<<< HEAD
 		g->score = m;
 		g->suboptimal_ply = -1;
 		++i;
@@ -621,10 +683,18 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 
 	if (minimax_ply)
 		gamebase_minimax(base, minimax_ply);
+=======
+		base->games[i].score = m;
+		++i;
+	}
+	fclose(f);
+	base->n_games = i;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 }
 
 bool game_get_board(Game* g, int ply, Board* b)
 {
+<<<<<<< HEAD
 	int	i, m, t;
 
 	InitBoard(b);
@@ -638,6 +708,17 @@ bool game_get_board(Game* g, int ply, Board* b)
 		}
 		t = MPerform(b, m & 0x7f);
 		assert(t);
+=======
+	int	i;
+
+	InitBoard(b);
+	for (i = 0; i < ply; ++i) {
+		if (!MPerform(b, g->move[i])) {
+			b->player ^= (PBLACK ^ PWHITE);
+			if (!MPerform(b, g->move[i]))
+				return false;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	}
 	return true;
 }
@@ -655,8 +736,13 @@ typedef struct sl_Plot {
 double sl_min(double* x, int n)
 {
 	int	i;
+<<<<<<< HEAD
 	double	y = x[0];
 	for (i = 1; i < n; ++i)
+=======
+	double	y = INFINITY;
+	for (i = 0; i < n; ++i)
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		if (x[i] < y)
 			y = x[i];
 	return y;
@@ -665,8 +751,13 @@ double sl_min(double* x, int n)
 double sl_max(double* x, int n)
 {
 	int	i;
+<<<<<<< HEAD
 	double	y = x[0];
 	for (i = 1; i < n; ++i)
+=======
+	double	y = -INFINITY;
+	for (i = 0; i < n; ++i)
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		if (x[i] > y)
 			y = x[i];
 	return y;
@@ -675,8 +766,13 @@ double sl_max(double* x, int n)
 double sl_mean(double* x, int n)
 {
 	int	i;
+<<<<<<< HEAD
 	double	s = x[0];
 	for (i = 1; i < n; ++i)
+=======
+	double	s = 0.0;
+	for (i = 0; i < n; ++i)
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		s += x[i];
 	return s / n;
 }
@@ -819,12 +915,17 @@ void sl_plot_axis(sl_Plot* plot, sl_Point* A, sl_Point* B, sl_Point* O)
 		"\t76 128 moveto\n"
 		"\t(%d) show\n"
 		"\t76 70 moveto\n"
+<<<<<<< HEAD
 		"\t(\\(%d, %d\\)) show\n"
 		"\tnewpath\n\n", A->x, A->y, B->x, B->y, O->x, O->y);
+=======
+		"\t(\\(%d, %d\\)) show\n\n", A->x, A->y, B->x, B->y, O->x, O->y);
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 }
 
 void sl_plot_scatter(sl_Plot* plot, sl_Point* X, int I)
 {
+<<<<<<< HEAD
 	int	(*sc)[129][129] = (int(*)[129][129]) calloc(129 * 129, sizeof(int));
 	int	i, x, y, t, mx;
 	double	gray;
@@ -852,6 +953,12 @@ void sl_plot_scatter(sl_Plot* plot, sl_Point* X, int I)
 			}
 		}
 	free(sc);
+=======
+	int	i;
+	for (i = 0; i < I; ++i) {
+		fprintf(plot->f, "\t%d %d 1 0 360 arc fill\n", X[i].x + 75, X[i].y + 68);
+	}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 }
 
 void sl_plot_close(sl_Plot* plot)
@@ -1359,10 +1466,14 @@ EvalBuilder* eval_builder_create_edax3c(int n_games) {
 
 	// eval_init();
 <<<<<<< HEAD
+<<<<<<< HEAD
 	eval_builder_set_features = eval_edax_v3_get_packed_features;
 =======
 	eval_builder_set_features = eval_edax_v3r1_get_packed_features;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	eval_builder_set_features = eval_edax_v3_get_packed_features;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	return eval_builder_create(13, vector_size, vector_times, 47, n_games);
 }
 
@@ -1398,12 +1509,17 @@ EvalBuilder* eval_builder_create_logistello(int n_games) {
 
 	// eval_init();
 <<<<<<< HEAD
+<<<<<<< HEAD
 	eval_builder_set_features = eval_builder_logistello_get_features;
 	return eval_builder_create(12, vector_size, vector_times, 47, n_games);
 =======
 	eval_builder_set_features=eval_builder_logistello_get_features;
 	return eval_builder_create(12,vector_size,vector_times,47,n_games);
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	eval_builder_set_features = eval_builder_logistello_get_features;
+	return eval_builder_create(12, vector_size, vector_times, 47, n_games);
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 }
 
 /* create a new EvalBuilder structure for a single feature */
@@ -1413,10 +1529,14 @@ EvalBuilder* eval_builder_create_feature(int n_games, int feature) {
 
 	// eval_init();
 <<<<<<< HEAD
+<<<<<<< HEAD
 	switch (feature) {
 =======
 	switch(feature){
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	switch (feature) {
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	case EVAL_CORNER3x3:
 		eval_builder_set_features = eval_builder_get_corner3x3_features;
 		vector_size[0] = 10206;
@@ -1496,6 +1616,7 @@ EvalBuilder* eval_builder_create_feature(int n_games, int feature) {
 	}
 }
 
+<<<<<<< HEAD
 /* select feature type and create */
 EvalBuilder* eval_builder_select_feature(int n_games, int eval) {
 	switch (eval) {
@@ -1535,23 +1656,41 @@ void eval_builder_build_features(EvalBuilder* eval, Gamebase* base, int ply) {
 			}
 		++g;
 	}
+=======
+/* build the features */
+void eval_builder_build_features(EvalBuilder* eval, Gamebase* base, int ply) {
+	int n = base->n_games, i, I;
+	Board b;
+	Game* g;
+
+	eval_builder_set_ply(eval, ply);
+	for (i = I = 0; i < n; i++) {
+		g = base->games + i;
+		if (game_get_board(g, ply, &b) && (!board_is_game_over(&b) || ply == 60)) {
+			if (b.player == PBLACK) eval->score[I] = g->score;	// b - w
+			else eval->score[I] = -(g->score);	// w - b
+			eval_builder_set_features(&b, eval->feature[I]);
+			I++;
+		}
+	}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	eval->n_games = I;
 }
 
 /* equalize */
-void eval_builder_equalize(EvalBuilder *eval,double *w){
+void eval_builder_equalize(EvalBuilder* eval, double* w) {
 	int i, j;
 	int K = eval->n_data, I = eval->n_vectors - 1;
 	double correction;
 
-	for (i = 0; i < I; i++){
+	for (i = 0; i < I; i++) {
 		correction = 0.0;
 		for (j = 0; j < eval->vector_size[i]; j++)
 			correction += w[j];
 		correction /= j;
 		for (j = 0; j < eval->vector_size[i]; j++)
 			w[j] -= correction;
-		w[K-1] += correction * eval->vector_times[i] / eval->vector_times[I];
+		w[K - 1] += correction * eval->vector_times[i] / eval->vector_times[I];
 	}
 }
 
@@ -1583,6 +1722,7 @@ void eval_builder_eval(EvalBuilder* eval, int ply, double* x, double* y) {
 /* count non zero coefficients */
 int eval_builder_count_features(EvalBuilder* eval, int ply) {
 	int i, j, k, n;
+<<<<<<< HEAD
 	int* h = (int*)calloc(eval->n_data, sizeof(int));
 
 	for (i = 0; i < eval->n_games; i++)
@@ -1590,6 +1730,15 @@ int eval_builder_count_features(EvalBuilder* eval, int ply) {
 			h[eval->feature[i][j]]++;
 	for (k = n = 0; k < eval->n_data; k++)
 		if (h[k] > 0) n++;
+=======
+	int I = eval->n_games, J = eval->n_features, K = eval->n_data;
+	int** x = eval->feature;
+	int* h = (int*)calloc(K, sizeof(int));
+
+	for (i = 0; i < I; i++)
+		for (j = 0; j < J; j++) h[x[i][j]]++;
+	for (k = n = 0; k < K; k++) if (h[k] > 0) n++;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 
 	free(h);
 
@@ -1645,7 +1794,11 @@ void eval_builder_set_coefficient(EvalBuilder* eval, double* w) {
 	for (k = 0; k < K; k++) a[k] = (short)(128.0 * w[k] + 0.5);
 }
 
+<<<<<<< HEAD
 /* compute abs error */
+=======
+/* compute error */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 double eval_builder_get_abs_error(EvalBuilder* eval, double* w, double* e) {
 	int i, j, I = eval->n_games, J = eval->n_features;
 	double E = 0.0, score;
@@ -1662,7 +1815,11 @@ double eval_builder_get_abs_error(EvalBuilder* eval, double* w, double* e) {
 	return E;
 }
 
+<<<<<<< HEAD
 /* compute abs error gradient */
+=======
+/* compute error gradient */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 void eval_builder_get_abs_error_gradient(EvalBuilder* eval, double* e, double* g, int* N, int N_min) {
 	int i, j, k;
 	const int I = eval->n_games, J = eval->n_features, K = eval->n_data;
@@ -1670,17 +1827,28 @@ void eval_builder_get_abs_error_gradient(EvalBuilder* eval, double* e, double* g
 
 	for (k = 0; k < K; k++) g[k] = 0.0;
 	for (i = 0; i < I; i++) {
+<<<<<<< HEAD
 		if (e[i] < 0.0) for (j = 0; j < J; j++) g[x[i][j]]++;
 		else if (e[i] > 0.0) for (j = 0; j < J; j++) g[x[i][j]]--;
 	}
 	if (N == NULL)
 		for (k = 0; k < K; k++) g[k] *= 1.0 / I;
+=======
+		if (e[i] < 0.0) for (j = 0; j < J; j++) g[x[i][j]] ++;
+		else if (e[i] > 0.0) for (j = 0; j < J; j++) g[x[i][j]] --;
+	}
+	if (N == NULL) for (k = 0; k < K; k++) g[k] *= 1.0 / I;
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	else
 		for (k = 0; k < K; k++)
 			g[k] *= (N[k] < N_min ? 0.0 : (N[k] < 20 ? 0.05 : 1.0 / N[k])) / J;
 }
 
+<<<<<<< HEAD
 /* compute squared error */
+=======
+/* compute error */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 double eval_builder_get_squared_error(EvalBuilder* eval, double* w, double* e) {
 	int i, j, I = eval->n_games, J = eval->n_features;
 	double E = 0.0, score;
@@ -1697,7 +1865,11 @@ double eval_builder_get_squared_error(EvalBuilder* eval, double* w, double* e) {
 	return E;
 }
 
+<<<<<<< HEAD
 /* compute squared error gradient */
+=======
+/* compute error gradient */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 void eval_builder_get_squared_error_gradient(EvalBuilder* eval, double* e, double* g, int* N, int N_min) {
 	int i, j, k;
 	const int I = eval->n_games, J = eval->n_features, K = eval->n_data;
@@ -1750,7 +1922,11 @@ double eval_builder_minimize_dir_abs_error(EvalBuilder* eval, double* w, double*
 	return l;
 }
 
+<<<<<<< HEAD
 /* minimize the squared error along the gradient direction */
+=======
+/* minimize the absolute error along the gradient direction */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 double eval_builder_minimize_dir_squared_error(EvalBuilder* eval, double* w, double* d) {
 	const int I = eval->n_games, J = eval->n_features;
 	int* x;
@@ -1898,7 +2074,11 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 		err1 = sqrt(eval_builder_get_squared_error(eval, w, e));
 	}
 	r1 = 1.0 - (err1 * err1) / (v);
+<<<<<<< HEAD
 	printf("%2d %4d %6.2f %6.3f %8.4f %12.8f\r", ply, 0, 0.0, 0.0, err1, r1);
+=======
+	printf("%2d %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f\r", ply, 0, 0.0, 0.0, err1, r1, 0.0, 0.0);
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	fflush(stdout);
 
 	for (iter = 1; iter <= option->max_iter; iter++) {
@@ -1952,7 +2132,12 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 			}
 			if (option->error_type == EVAL_ABS_ERROR) {
 				lambda = eval_builder_minimize_dir_abs_error(eval, w, d);
+<<<<<<< HEAD
 			} else {
+=======
+			}
+			else {
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 				lambda = eval_builder_minimize_dir_squared_error(eval, w, d);
 			}
 		}
@@ -1981,10 +2166,18 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 		if (option->unbias_frequency && (iter % option->unbias_frequency == 0)) {
 			if (option->error_type == EVAL_ABS_ERROR) {
 				eval_builder_get_abs_error(eval, w, e);
+<<<<<<< HEAD
 				w[K - 1] += sl_median(e, I);
 			} else {
 				eval_builder_get_squared_error(eval, w, e);
 				w[K - 1] += sl_mean(e, I);
+=======
+				w[K - 1] += (m = sl_median(e, I));
+			}
+			else {
+				eval_builder_get_abs_error(eval, w, e);
+				w[K - 1] += (m = sl_mean(e, I));
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 			}
 		}
 
@@ -1996,11 +2189,20 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 		/* compute and show error */
 		if (option->error_type == EVAL_ABS_ERROR) {
 			err2 = eval_builder_get_abs_error(eval, w, e);
+<<<<<<< HEAD
 		} else {
 			err2 = sqrt(eval_builder_get_squared_error(eval, w, e));
 		}
 		r2 = 1.0 - err2 * err2 / v;
 		printf("%2d %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f %11.8f\r", ply, iter, lambda, gamma, err2, r2, max_delta, mean_delta, fabs(err2 - err1));
+=======
+		}
+		else {
+			err2 = sqrt(eval_builder_get_squared_error(eval, w, e));
+		}
+		r2 = 1.0 - err2 * err2 / v;
+		printf("%2d  %4d %6.2f %6.3f %8.4f %12.8f %9.7f %9.7f  %10.8f \r", ply, iter, lambda, gamma, err2, r2, max_delta, mean_delta, fabs(err2 - err1));
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		fflush(stdout);
 		if ((iter > option->min_iter || ply < 2) && (fabs(err2 - err1) <= option->accuracy && fabs(max_delta) < 1000 * option->accuracy && fabs(mean_delta) <= 10 * option->accuracy))
 			break;
@@ -2020,11 +2222,19 @@ int eval_builder_conjugate_gradient(EvalBuilder* eval, int ply, EvalOption* opti
 	if (option->unbias_frequency) {
 		if (option->error_type == EVAL_ABS_ERROR) {
 			eval_builder_get_abs_error(eval, w, e);
+<<<<<<< HEAD
 			w[K - 1] += sl_median(e, I);
 		}
 		else {
 			eval_builder_get_squared_error(eval, w, e);
 			w[K - 1] += sl_mean(e, I);
+=======
+			w[K - 1] += (m = sl_median(e, I));
+		}
+		else {
+			eval_builder_get_abs_error(eval, w, e);
+			w[K - 1] += (m = sl_mean(e, I));
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		}
 	}
 
@@ -2060,7 +2270,11 @@ void eval_builder_build(EvalBuilder* eval, Gamebase* base, EvalOption* option) {
 	printf("error    = %d\n", option->error_type);
 	printf("algo     = %d\n", option->minimization_algorithm);
 
+<<<<<<< HEAD
 	printf("ply iter lambda gamma  error     r2         max_delta mean_delta err_delta\n");
+=======
+	printf("ply iter  lambda gamma  error     r2         max_delta mean_delta err_delta\n");
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
 		eval_builder_conjugate_gradient(eval, ply, option);
@@ -2168,7 +2382,11 @@ void eval_builder_get_sub_features(int n, int offset, int feature, int** subfeat
 		}
 }
 
+<<<<<<< HEAD
 /*  filter spatially (between patterns) the coefficients */
+=======
+/*  filter temporally (between plies) the coefficients */
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 void eval_builder_spatial_filter(EvalBuilder* eval, Gamebase* base, int max_iter, double accuracy) {
 	int power_3[] = { 1,3,9,27,81,243,729,2187,6561,19683,59049,177147,531441 };
 	int i, j, k, p, n, l, iter;
@@ -2386,13 +2604,18 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 	y = (double*)malloc(base->n_games * sizeof(double));
 	e = (double*)malloc(base->n_games * sizeof(double));
 
+<<<<<<< HEAD
 	printf("  feat coeffs evmean evsdev  evmin  evmax scmean scsdev smin smax    a       b       r    erbias ersdev ermin  ermax\n");
+=======
+	printf("feature\tcoeffs\tev mean\tev sdev\tev min\tev max\tsc mean\tsc sdev\tsc min\tsc max\ta\tb\tr\terrbias\terrsdev\terrmin\terrmax\n");
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
 		eval_builder_eval(eval, ply, x, y);
 		n = eval->n_games;
 		for (i = 0; i < n; i++) e[i] = y[i] - x[i];
+<<<<<<< HEAD
 		printf("%6d", eval_builder_count_features(eval, ply));
 		printf("%7d", eval_builder_count_significant_coefficients(eval, ply));
 		printf("%7.2f", sl_mean(x, n));
@@ -2410,6 +2633,25 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 		printf("%7.2f", sl_standard_deviation(e, n));
 		printf("%7.2f", sl_min(e, n));
 		printf("%7.2f\n", sl_max(e, n));
+=======
+		printf("%6d\t", eval_builder_count_features(eval, ply));
+		printf("%6d\t", eval_builder_count_significant_coefficients(eval, ply));
+		printf("%5.2f\t", sl_mean(x, n));
+		printf("%5.2f\t", sl_standard_deviation(x, n));
+		printf("%5.2f\t", sl_min(x, n));
+		printf("%5.2f\t", sl_max(x, n));
+		printf("%5.2f\t", sl_mean(y, n));
+		printf("%5.2f\t", sl_standard_deviation(y, n));
+		printf("%3.0f\t", sl_min(y, n));
+		printf("%3.0f\t", sl_max(y, n));
+		printf("%7.4f\t", sl_regression_a(x, y, n));
+		printf("%7.4f\t", sl_regression_b(x, y, n));
+		printf("%7.4f\t", sl_correlation_r(x, y, n));
+		printf("%5.2f\t", sl_mean(e, n));
+		printf("%5.2f\t", sl_standard_deviation(e, n));
+		printf("%5.2f\t", sl_min(e, n));
+		printf("%5.2f\n", sl_max(e, n));
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		fflush(stdout);
 	}
 	free(e);
@@ -2533,14 +2775,22 @@ void eval_builder_plot(EvalBuilder* eval, Gamebase* base, const char* plot_file)
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
 		eval_builder_eval(eval, ply, x, y);
+<<<<<<< HEAD
 		for (i = 0; i < eval->n_games; i++) X[i].x = x[i], X[i].y = y[i];
+=======
+		for (i = 0; i < I; i++) X[i].x = x[i], X[i].y = y[i];
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		sprintf(file, "%s-%d.eps", plot_file, ply);
 		sprintf(title, "ply %d.eps", ply);
 
 		plot = sl_plot_open(file);
 		sl_plot_titles(plot, "eval", "score", title);
 		sl_plot_axis(plot, &A, &B, &O);
+<<<<<<< HEAD
 		sl_plot_scatter(plot, X, eval->n_games);
+=======
+		sl_plot_scatter(plot, X, I);
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		sl_plot_close(plot);
 	}
 
@@ -2549,7 +2799,11 @@ void eval_builder_plot(EvalBuilder* eval, Gamebase* base, const char* plot_file)
 	free(X);
 }
 
+<<<<<<< HEAD
 /* show weights of a feature */
+=======
+/* show weights of a feature*/
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 void eval_builder_show_feature_weights(EvalBuilder* eval, int type, const char* feature) {
 	int	i, k, n = eval->vector_squares[type], ply;
 	const int K = eval->n_data;
@@ -2602,14 +2856,21 @@ void eval_builder_show_feature_weights(EvalBuilder* eval, int type, const char* 
 /* print version */
 void print_version(void) {
 	printf(	"eval_builder %d.%d %s\n"
+<<<<<<< HEAD
 		"Copyright (c) 1998-2000 Richard A. Delorme, 2023 Toshihiko Okuhara\n"
+=======
+		"Copyright (c) 1998-2000 Richard A. Delorme.\n"
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		"All Rights Reserved.\n\n", EDAX_VERSION, EDAX_RELEASE, __DATE__);
 }
 
 /* print usage */
+<<<<<<< HEAD
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
+=======
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 void print_usage(void) {
 	fprintf(stderr,
 		"usage : eval_builder <command> <option> <parameters>\n"
@@ -2633,14 +2894,20 @@ void print_usage(void) {
 		"    ABFG CC BB AA D8 D7 D6 D5 D4 D3 angle+X corner+block\n"
 		"  -unbias <int>    unbias the evaluation function\n"
 		"  -equalize <int>  equalize the evaluation function weight\n"
+<<<<<<< HEAD
 		"  -zero <int>      zero out rare features frequency\n"
+=======
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		"  -restart <int>   restart frequency\n"
 		"  -round <int>     round frequency\n"
 		"  -filter <string> filter the evaluation function weight first\n"
 		"    spatial        filter from sub-configuration\n"
 		"    temporal       filter through all plies\n"
 		"  -split <int>[,<int>]  ply to split file before merging them\n"
+<<<<<<< HEAD
 		"  -minimax <int>   minimax game score up to n-th move\n"
+=======
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		"commands:\n"
 		"build <option> game_file [eval_file_in] eval_file_out\n"
 		"process <option> game_file [eval_file_in] eval_file_out\n"
@@ -2682,6 +2949,7 @@ int main(int argc, char** argv) {
 	Gamebase* base;
 	EvalBuilder* eval_data, * eval_data_1, * eval_data_2;
 	EvalOption option = {
+<<<<<<< HEAD
 		0,			// min_iter
 		1000,			// max_iter
 		0.0001,			// tol		accuracy
@@ -2695,6 +2963,20 @@ int main(int argc, char** argv) {
 		1.0,			// alpha
 		0.1,			// beta
 		0			// minimax	minimax_ply
+=======
+		0,
+		1000,
+		0.0001,
+		0,
+		0,
+		0,
+		0,
+		50,
+		EVAL_STEEPEST_DESCENT,
+		EVAL_SQUARED_ERROR,
+		1.0,
+		0.1
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	};
 
 	int filter, eval;
@@ -2761,6 +3043,7 @@ int main(int argc, char** argv) {
 			// else if (strcmp(argv[i],"edax3d")==0) eval = EVAL_EDAX_3d;
 			else if (strcmp(argv[i], "ajax") == 0) eval = EVAL_AJAX;
 			else if (strcmp(argv[i], "logistello") == 0) eval = EVAL_LOGISTELLO;
+<<<<<<< HEAD
 			else eval = get_eval_feature_option(argv[i]);
 		}
 		else if (strcmp(argv[i], "-feature") == 0) {
@@ -2778,6 +3061,60 @@ int main(int argc, char** argv) {
 		}
 		else if (strcmp(argv[i], "-minimax") == 0) {
 			option.minimax_ply = atoi(argv[++i]);
+=======
+			else if (strcmp(argv[i], "corner3x3") == 0) eval = EVAL_CORNER3x3;
+			else if (strcmp(argv[i], "corner5x2") == 0) eval = EVAL_CORNER5x2;
+			else if (strcmp(argv[i], "edge") == 0) eval = EVAL_EDGE;
+			else if (strcmp(argv[i], "edgeX") == 0) eval = EVAL_EDGE_X;
+			else if (strcmp(argv[i], "edgeC") == 0) eval = EVAL_EDGE_C;
+			else if (strcmp(argv[i], "edgeCX") == 0) eval = EVAL_EDGE_CX;
+			else if (strcmp(argv[i], "edgeFG") == 0) eval = EVAL_EDGE_FG;
+			else if (strcmp(argv[i], "ABFG") == 0) eval = EVAL_ABFG;
+			else if (strcmp(argv[i], "CC") == 0) eval = EVAL_CC;
+			else if (strcmp(argv[i], "BB") == 0) eval = EVAL_BB;
+			else if (strcmp(argv[i], "AA") == 0) eval = EVAL_AA;
+			else if (strcmp(argv[i], "D8") == 0) eval = EVAL_D8;
+			else if (strcmp(argv[i], "D7") == 0) eval = EVAL_D7;
+			else if (strcmp(argv[i], "D6") == 0) eval = EVAL_D6;
+			else if (strcmp(argv[i], "D5") == 0) eval = EVAL_D5;
+			else if (strcmp(argv[i], "D4") == 0) eval = EVAL_D4;
+			else if (strcmp(argv[i], "D3") == 0) eval = EVAL_D3;
+			else if (strcmp(argv[i], "angle+X") == 0) eval = EVAL_ANGLE_X;
+			else if (strcmp(argv[i], "corner+block") == 0) eval = EVAL_CORNER_BLOCK;
+			else print_usage();
+		}
+		else if (strcmp(argv[i], "-feature") == 0) {
+			if (strcmp(argv[++i], "corner3x3") == 0) feature = EVAL_CORNER3x3;
+			else if (strcmp(argv[i], "corner5x2") == 0) feature = EVAL_CORNER5x2;
+			else if (strcmp(argv[i], "edge") == 0) feature = EVAL_EDGE;
+			else if (strcmp(argv[i], "edgeX") == 0) feature = EVAL_EDGE_X;
+			else if (strcmp(argv[i], "edgeC") == 0) feature = EVAL_EDGE_C;
+			else if (strcmp(argv[i], "edgeCX") == 0) feature = EVAL_EDGE_CX;
+			else if (strcmp(argv[i], "edgeFG") == 0) feature = EVAL_EDGE_FG;
+			else if (strcmp(argv[i], "ABFG") == 0) feature = EVAL_ABFG;
+			else if (strcmp(argv[i], "CC") == 0) feature = EVAL_CC;
+			else if (strcmp(argv[i], "BB") == 0) feature = EVAL_BB;
+			else if (strcmp(argv[i], "AA") == 0) feature = EVAL_AA;
+			else if (strcmp(argv[i], "D8") == 0) feature = EVAL_D8;
+			else if (strcmp(argv[i], "D7") == 0) feature = EVAL_D7;
+			else if (strcmp(argv[i], "D6") == 0) feature = EVAL_D6;
+			else if (strcmp(argv[i], "D5") == 0) feature = EVAL_D5;
+			else if (strcmp(argv[i], "D4") == 0) feature = EVAL_D4;
+			else if (strcmp(argv[i], "D3") == 0) feature = EVAL_D3;
+			else if (strcmp(argv[i], "angle+X") == 0) feature = EVAL_ANGLE_X;
+			else if (strcmp(argv[i], "corner+block") == 0) feature = EVAL_CORNER_BLOCK;
+			else print_usage();
+		}
+		else if (strcmp(argv[i], "-split") == 0) {
+			split0 = split1 = atoi(argv[++i]);
+			if ((p = strchr(argv[i], ',')))
+				split1 = atoi(p + 1);
+		}
+		else if (strcmp(argv[i], "-filter") == 0) {
+			if (strcmp(argv[++i], "spatial") == 0) filter = FILTER_SPATIAL;
+			else if (strcmp(argv[i], "temporal") == 0) filter = FILTER_TEMPORAL;
+			else print_usage();
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		}
 		else if (file_1 == NULL) {
 			file_1 = argv[i];
@@ -2800,6 +3137,32 @@ int main(int argc, char** argv) {
 
 		eval_data = eval_builder_select_feature(base->n_games, eval);
 
+<<<<<<< HEAD
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data = eval_builder_create_edax(base->n_games);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data = eval_builder_create_edax3b(base->n_games);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data = eval_builder_create_edax3c(base->n_games);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data = eval_builder_create_edax3d(base->n_games);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data = eval_builder_create_logistello(base->n_games);
+				break;
+			default:
+				eval_data = eval_builder_create_feature(base->n_games, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		if (file_3 != NULL)
 			eval_builder_read(eval_data, file_2);
 
@@ -2818,8 +3181,34 @@ int main(int argc, char** argv) {
 		base = gamebase_create(0);
 		gamebase_import(base, file_1, option.minimax_ply);
 
+<<<<<<< HEAD
 		eval_data = eval_builder_select_feature(base->n_games, eval);
 
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data = eval_builder_create_edax(base->n_games);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data = eval_builder_create_edax3b(base->n_games);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data = eval_builder_create_edax3c(base->n_games);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data = eval_builder_create_edax3d(base->n_games);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data = eval_builder_create_logistello(base->n_games);
+				break;
+			default:
+				eval_data = eval_builder_create_feature(base->n_games, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		// if (file_3 != NULL)
 		eval_builder_read(eval_data, file_2);
 
@@ -2849,6 +3238,32 @@ int main(int argc, char** argv) {
 
 		eval_data = eval_builder_select_feature(base->n_games, eval);
 
+<<<<<<< HEAD
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data = eval_builder_create_edax(base->n_games);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data = eval_builder_create_edax3b(base->n_games);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data = eval_builder_create_edax3c(base->n_games);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data = eval_builder_create_edax3d(base->n_games);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data = eval_builder_create_logistello(base->n_games);
+				break;
+			default:
+				eval_data = eval_builder_create_feature(base->n_games, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		eval_builder_read(eval_data, file_2);
 		eval_builder_stat(eval_data, base);
 	}
@@ -2857,9 +3272,41 @@ int main(int argc, char** argv) {
 	else if (strcmp(argv[1], "merge") == 0) {
 		if (file_1 == NULL || file_2 == NULL || file_3 == NULL) print_usage();
 
+<<<<<<< HEAD
 		eval_data_1 = eval_builder_select_feature(1, eval);
 		eval_data_2 = eval_builder_select_feature(1, eval);
 
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data_1 = eval_builder_create_edax(1);
+				eval_data_2 = eval_builder_create_edax(1);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data_1 = eval_builder_create_edax3b(1);
+				eval_data_2 = eval_builder_create_edax3b(1);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data_1 = eval_builder_create_edax3c(1);
+				eval_data_2 = eval_builder_create_edax3c(1);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data_1 = eval_builder_create_edax3d(1);
+				eval_data_2 = eval_builder_create_edax3d(1);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data_1 = eval_builder_create_logistello(1);
+				eval_data_2 = eval_builder_create_logistello(1);
+				break;
+			default:
+				eval_data_1 = eval_builder_create_feature(1, eval);
+				eval_data_2 = eval_builder_create_feature(1, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		eval_builder_read(eval_data_1, file_1);
 		eval_builder_read(eval_data_2, file_2);
 
@@ -2871,9 +3318,41 @@ int main(int argc, char** argv) {
 	else if (strcmp(argv[1], "diff") == 0) {
 		if (file_1 == NULL || file_2 == NULL) print_usage();
 
+<<<<<<< HEAD
 		eval_data_1 = eval_builder_select_feature(1, eval);
 		eval_data_2 = eval_builder_select_feature(1, eval);
 
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data_1 = eval_builder_create_edax(1);
+				eval_data_2 = eval_builder_create_edax(1);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data_1 = eval_builder_create_edax3b(1);
+				eval_data_2 = eval_builder_create_edax3b(1);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data_1 = eval_builder_create_edax3c(1);
+				eval_data_2 = eval_builder_create_edax3c(1);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data_1 = eval_builder_create_edax3d(1);
+				eval_data_2 = eval_builder_create_edax3d(1);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data_1 = eval_builder_create_logistello(1);
+				eval_data_2 = eval_builder_create_logistello(1);
+				break;
+			default:
+				eval_data_1 = eval_builder_create_feature(1, eval);
+				eval_data_2 = eval_builder_create_feature(1, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		eval_builder_read(eval_data_1, file_1);
 		eval_builder_read(eval_data_2, file_2);
 
@@ -2889,6 +3368,32 @@ int main(int argc, char** argv) {
 
 		eval_data = eval_builder_select_feature(base->n_games, eval);
 
+<<<<<<< HEAD
+=======
+		switch (eval) {
+			/* case EVAL_EDAX:
+				eval_data = eval_builder_create_edax(base->n_games);
+				break;
+			case EVAL_EDAX_3b:
+				eval_data = eval_builder_create_edax3b(base->n_games);
+				break; */
+			case EVAL_EDAX_3c:
+				eval_data = eval_builder_create_edax3c(base->n_games);
+				break;
+			/* case EVAL_EDAX_3d:
+				eval_data = eval_builder_create_edax3d(base->n_games);
+				break; */
+			case EVAL_AJAX:
+				fprintf(stderr, "NOT IMPLEMENTED YET\n");
+				exit(EXIT_FAILURE);
+			case EVAL_LOGISTELLO:
+				eval_data = eval_builder_create_logistello(base->n_games);
+				break;
+			default:
+				eval_data = eval_builder_create_feature(base->n_games, eval);
+				break;
+		}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 		eval_builder_read(eval_data, file_2);
 		eval_builder_plot(eval_data, base, file_3);
 	}
@@ -3012,7 +3517,12 @@ int main(int argc, char** argv) {
 		eval_builder_evalgame(eval_data, base);
 	}
 
+<<<<<<< HEAD
 	/* print usage */
+=======
+		/* print usage */
+	}
+>>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 	else {
 		print_usage();
 	}
