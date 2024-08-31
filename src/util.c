@@ -7,10 +7,14 @@
  * dedicated code.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+ * @date 1998 - 2020
+>>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
  * @author Richard Delorme
  * @version 4.5
  */

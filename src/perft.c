@@ -874,6 +874,33 @@ unsigned long long shape_unique(unsigned long long shape)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * @brief Compute a hash code.
+ *
+ * @param shape Board shape.
+ * @return The hash code of the bitboard.
+ */
+unsigned long long shape_get_hash_code(const unsigned long long shape)
+{
+	unsigned long long h;
+	const unsigned char *p = (const unsigned char*)&shape;
+
+	h  = hash_rank[0][p[0]];
+	h ^= hash_rank[1][p[1]];
+	h ^= hash_rank[2][p[2]];
+	h ^= hash_rank[3][p[3]];
+	h ^= hash_rank[4][p[4]];
+	h ^= hash_rank[5][p[5]];
+	h ^= hash_rank[6][p[6]];
+	h ^= hash_rank[7][p[7]];
+	// h ^= hash_rank[8][p[8]];	// gcc9: outside array bounds
+
+	return h;
+}
+
+/**
+>>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
  * Array of shape.
  */
 typedef struct {
