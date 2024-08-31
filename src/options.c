@@ -1,11 +1,11 @@
 /**
- * @file options.h
+ * @file options.c
  *
  * Options reader.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2023
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #include "options.h"
@@ -20,7 +20,7 @@
 
 /** global options with default value */
 Options options = {
-	21, // hash table size
+	22, // hash table size (2^22 * 24 * 1.125 = 113MB)
 
 	{0,-2,-3}, // inc_sort_depth
 
@@ -89,39 +89,39 @@ Options options = {
  */
 void options_usage(void)
 {
-	fprintf(stderr, "\nCommon options:\n");
-	fprintf(stderr, "  -?|help                       show this message.\n");
-	fprintf(stderr, "  -o|option-file                read options from this file.\n");
-	fprintf(stderr, "  -v|version                    display the version number.\n");
-	fprintf(stderr, "  -name <string>                set Edax name to <string>.\n");
-	fprintf(stderr, "  -verbose <n>                  verbosity level.\n");
-	fprintf(stderr, "  -q                            silent mode (eq. -verbose 0).\n");
-	fprintf(stderr, "  -vv                           very verbose mode (eq. -verbose 2).\n");
-	fprintf(stderr, "  -noise <n>                    noise level (print search output from ply <n>).\n");
-	fprintf(stderr, "  -width <n>                    line width.\n");
-	fprintf(stderr, "  -h|hash-table-size <nbits>    hash table size.\n");
-	fprintf(stderr, "  -n|n-tasks <n>                search in parallel using n tasks.\n");
-	fprintf(stderr, "  -cpu                          search using 1 cpu/thread.\n");
+	fprintf(stderr, "\nCommon options:\n"
+		"  -?|help                       show this message.\n"
+		"  -o|option-file                read options from this file.\n"
+		"  -v|version                    display the version number.\n"
+		"  -name <string>                set Edax name to <string>.\n"
+		"  -verbose <n>                  verbosity level.\n"
+		"  -q                            silent mode (eq. -verbose 0).\n"
+		"  -vv                           very verbose mode (eq. -verbose 2).\n"
+		"  -noise <n>                    noise level (print search output from ply <n>).\n"
+		"  -width <n>                    line width.\n"
+		"  -h|hash-table-size <nbits>    hash table size.\n"
+		"  -n|n-tasks <n>                search in parallel using n tasks.\n"
+		"  -cpu                          search using 1 cpu/thread.\n"
 #ifdef __APPLE__
-	fprintf(stderr, "\nCassio protocol options:\n");
-	fprintf(stderr, "  -debug-cassio                 print extra-information in cassio.\n");
-	fprintf(stderr, "  -follow-cassio                follow more closely cassio requests.\n");
-	fprintf(stderr, "\nOptions unavailable to Cassio protocol\n:");
+		"\nCassio protocol options:\n"
+		"  -debug-cassio                 print extra-information in cassio.\n"
+		"  -follow-cassio                follow more closely cassio requests.\n"
+		"\nOptions unavailable to Cassio protocol\n:"
 #endif
-	fprintf(stderr, "  -l|level <n>                  search using limited depth.\n");
-	fprintf(stderr, "  -t|game-time <n>              search using limited time per game.\n");
-	fprintf(stderr, "  -move-time <n>                search using limited time per move.\n");
-	fprintf(stderr, "  -ponder <on/off>              search during opponent time.\n");
-	fprintf(stderr, "  -eval-file                    read eval weight from this file.\n");
-	fprintf(stderr, "  -book-file                    load opening book from this file.\n");
-	fprintf(stderr, "  -book-usage <on/off>          play from the opening book.\n");
-	fprintf(stderr, "  -book-randomness <n>          play various but worse moves from the opening book.\n");
-	fprintf(stderr, "  -auto-start <on/off>          automatically restart a new game.\n");
-	fprintf(stderr, "  -auto-swap <on/off>           automatically Edax's color between games\n");
-	fprintf(stderr, "  -auto-store <on/off>          automatically save played games\n");
-	fprintf(stderr, "  -game-file <file>             file to store all played game/s.\n");
-	fprintf(stderr, "  -search-log-file <file>       file to store search detailed output/s.\n");
-	fprintf(stderr, "  -ui-log-file <file>           file to store input/output to the (U)ser (I)nterface.\n");
+		"  -l|level <n>                  search using limited depth.\n"
+		"  -t|game-time <n>              search using limited time per game.\n"
+		"  -move-time <n>                search using limited time per move.\n"
+		"  -ponder <on/off>              search during opponent time.\n"
+		"  -eval-file                    read eval weight from this file.\n"
+		"  -book-file                    load opening book from this file.\n"
+		"  -book-usage <on/off>          play from the opening book.\n"
+		"  -book-randomness <n>          play various but worse moves from the opening book.\n"
+		"  -auto-start <on/off>          automatically restart a new game.\n"
+		"  -auto-swap <on/off>           automatically Edax's color between games\n"
+		"  -auto-store <on/off>          automatically save played games\n"
+		"  -game-file <file>             file to store all played game/s.\n"
+		"  -search-log-file <file>       file to store search detailed output/s.\n"
+		"  -ui-log-file <file>           file to store input/output to the (U)ser (I)nterface.\n");
 
 	exit(EXIT_SUCCESS);
 }
@@ -202,8 +202,8 @@ int options_read(const char *option, const char *value)
 
 		else if (strcmp(option, "game-file") == 0) options.game_file = string_duplicate(value);
 
-		else if (strcmp(option, "eval-file") == 0) options.eval_file = string_duplicate(value);
-		
+		else if (strcmp(option, "eval-file") == 0) options.eval_file = string_duplicate(value);	// 11/13/2015
+
 		else if (strcmp(option, "book-file") == 0) options.book_file = string_duplicate(value);
 		else if (strcmp(option, "book-usage") == 0) parse_boolean(value, &options.book_allowed);
 		else if (strcmp(option, "book-randomness") == 0) parse_int(value, &options.book_randomness);
@@ -213,7 +213,7 @@ int options_read(const char *option, const char *value)
 		else if (strcmp(option, "ggs-log-file") == 0) options.ggs_log_file = string_duplicate(value);
 
 		else if (strcmp(option, "name") == 0) options.name = string_duplicate(value);
-		else if (strcmp(option, "echo") == 0)parse_boolean(value, &options.echo);
+		else if (strcmp(option, "echo") == 0) parse_boolean(value, &options.echo);
 
 		else if (strcmp(option, "auto-start") == 0) parse_boolean(value, &options.auto_start);
 		else if (strcmp(option, "auto-store") == 0) parse_boolean(value, &options.auto_store);
@@ -271,7 +271,7 @@ void options_parse(const char *file)
 	if (f != NULL) {
 
 		while ((line = string_read_line(f)) != NULL) {
-			int n = strlen(line);
+			size_t n = strlen(line);
 			option = (char*) malloc(n + 1);
 			value = (char*) malloc(n + 1);
 			option_parse(line, option, value, n);
@@ -291,9 +291,9 @@ void options_bound(void)
 	int max_threads;
 
 	if (sizeof (void*) == 4) {
-		BOUND(options.hash_table_size, 10, 25, "hash-table-size");
+		BOUND(options.hash_table_size, 10, 25, "hash-table-size");	// 51KB to 1.7GB
 	} else {
-		BOUND(options.hash_table_size, 10, 30, "hash-table-size");
+		BOUND(options.hash_table_size, 10, 30, "hash-table-size");	// 51KB to 53GB
 	}
 
 	max_threads = MIN(get_cpu_number(), MAX_THREADS);
