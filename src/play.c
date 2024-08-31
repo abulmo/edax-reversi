@@ -4,10 +4,14 @@
  * Edax play control.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2020
 =======
  * @date 1998 - 2018
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+ * @date 1998 - 2020
+>>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.4
  */
@@ -302,7 +306,11 @@ void play_go(Play *play, const bool update)
 				
 		play->result = *search->result;
 		play->state = IS_WAITING;
+<<<<<<< HEAD
 		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+=======
+		if (!board_get_move(&play->board, search->result->move, &move) && move.x != PASS) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
@@ -323,7 +331,11 @@ void play_go(Play *play, const bool update)
 			if (search->options.separator) puts(search->options.separator);
 		}
 		search_set_board(search, &play->board, play->player);
+<<<<<<< HEAD
 		search_set_level(search, options.level, search->eval.n_empties);
+=======
+		search_set_level(search, options.level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 		else search_set_game_time(search, play->time[play->player].left);
 
@@ -339,7 +351,11 @@ void play_go(Play *play, const bool update)
 		search_run(search);
 		play->result = *search->result;
 		play->state = IS_WAITING;
+<<<<<<< HEAD
 		if (!board_get_move_flip(&play->board, search->result->move, &move) && move.x != PASS) {
+=======
+		if (!board_get_move(&play->board, search->result->move, &move) && move.x != PASS) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			fatal_error("bad move found: %s\n", move_to_string(move.x, play->player, s_move));
 		}
 		if (options.verbosity) {
@@ -388,7 +404,11 @@ void play_hint(Play *play, int n)
 		if (search->options.separator) puts(search->options.separator);
 	}
 	search_set_board(search, &play->board, play->player);
+<<<<<<< HEAD
 	search_set_level(search, options.level, search->eval.n_empties);
+=======
+	search_set_level(search, options.level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	if (n > search->movelist.n_moves) n = search->movelist.n_moves;
 	info("<hint %d moves>\n", n);
 
@@ -466,12 +486,20 @@ void* play_ponder_run(void *v)
 
 		// guess opponent move and start the search
 		if (play->state == IS_PONDERING && move.x != NOMOVE) {
+<<<<<<< HEAD
 			board_get_move_flip(&board, move.x, &move);
+=======
+			board_get_move(&board, move.x, &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 			board_update(&board, &move);
 				play->ponder.board = board;
 				search_set_board(search, &board, player ^ 1);
+<<<<<<< HEAD
 				search_set_level(search, options.level, search->eval.n_empties);
+=======
+				search_set_level(search, options.level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 				search_run(search);
 				if (options.info && play->state == IS_PONDERING) {
 					printf("[ponder after %s id.%d: ", move_to_string(move.x, player, m), search->id);
@@ -482,7 +510,11 @@ void* play_ponder_run(void *v)
 		} else {
 			play->ponder.board = board;
 			search_set_board(search, &board, player);
+<<<<<<< HEAD
 			search_set_ponder_level(search, options.level, search->eval.n_empties);
+=======
+			search_set_ponder_level(search, options.level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			log_print(xboard_log, "edax (ponder)> start search\n");
 			search_run(search);
 			log_print(xboard_log, "edax (ponder)> search ended\n");
@@ -652,7 +684,11 @@ bool play_move(Play *play, int x)
 	Move move;
 
 	move = MOVE_INIT;
+<<<<<<< HEAD
 	board_get_move_flip(&play->board, x, &move);
+=======
+	board_get_move(&play->board, x, &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	if (board_check_move(&play->board, &move)) {
 		play_update(play, &move);
 		return true;
@@ -730,7 +766,11 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 		}
 	}
 	if (search->movelist.n_moves >= 1 || played->x == NOMOVE) {
+<<<<<<< HEAD
 		search_set_level(search, options.level, search->eval.n_empties);
+=======
+		search_set_level(search, options.level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		search->options.verbosity = 0;
 		search_run(search);
 		search->options.verbosity = options.verbosity;
@@ -999,6 +1039,7 @@ void play_print(Play *play, FILE *f)
 
 	if (p == BLACK) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bk = play->board.player;
 		wh = play->board.opponent;
 	} else {
@@ -1023,19 +1064,23 @@ void play_print(Play *play, FILE *f)
 =======
 		bk = board->player;
 		wh = board->opponent;
+=======
+		bk = play->board.player;
+		wh = play->board.opponent;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	} else {
-		bk = board->opponent;
-		wh = board->player;
+		bk = play->board.opponent;
+		wh = play->board.player;
 	}
 	if ((p ^ (play->i_game & 1)) == BLACK) {
-		bk0 = play->initial_board->player;
-		wh0 = play->initial_board->opponent;
+		bk0 = play->initial_board.player;
+		wh0 = play->initial_board.opponent;
 	} else {
-		bk0 = play->initial_board->opponent;
-		wh0 = play->initial_board->player;
+		bk0 = play->initial_board.opponent;
+		wh0 = play->initial_board.player;
 	}
 
-	moves = get_moves(board->player, board->opponent);
+	moves = get_moves(play->board.player, play->board.opponent);
 	discs[BLACK] = bit_count(bk);
 	discs[WHITE] = bit_count(wh);
 	mobility[BLACK] = get_mobility(bk, wh);
@@ -1089,7 +1134,7 @@ void play_print(Play *play, FILE *f)
 			} else fprintf(f, "    %s's turn (%c)    ", player[p], color[p + 1]);
 =======
 			if (gameover) fprintf(f,"       Game over        ");
-			else fprintf(f,"  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(board));
+			else fprintf(f,"  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(&play->board));
 			break;
 		case 4:
 			if (gameover) {
@@ -1220,7 +1265,11 @@ bool play_force_go(Play *play, Move *move)
 				board_symetry(play->force.real + play->force.i_move, s, &sym);
 				if (board_equal(&play->board, &sym)) {
 					x = symetry(play->force.move[play->force.i_move].x, s);
+<<<<<<< HEAD
 					board_get_move_flip(&play->board, x, move);
+=======
+					board_get_move(&play->board, x, move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 					return true;
 				}
 			}
@@ -1247,7 +1296,11 @@ void play_symetry(Play *play, const int sym)
 	board = play->initial_board;
 	for (i = 0; i  < play->n_game; ++i) {
 		x = symetry(play->game[i].x, sym);
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
+=======
+		board_get_move(&board, x, &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		board_update(&board, &move);
 		play->game[i] = move;
 	}

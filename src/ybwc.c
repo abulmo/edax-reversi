@@ -238,7 +238,11 @@ void node_wait_slaves(Node* node)
 		condition_wait(node);
 
 		if (node->is_helping) {
+<<<<<<< HEAD
 			assert(node->help.run);
+=======
+			assert(node.help->run);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			task_search(&node->help);
 			task_free(&node->help);
 			node->is_helping = false;
@@ -277,7 +281,11 @@ void node_update(Node* node, Move *move)
 		node->bestscore = score;
 		node->bestmove = move->x;
 		if (node->height == 0) {
+<<<<<<< HEAD
 			record_best_move(search, move, node->alpha, node->beta, node->depth);
+=======
+			record_best_move(search, &search->board, move, node->alpha, node->beta, node->depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			search->result->n_moves_left--;
 		}
 		if (score > node->alpha) node->alpha = score;
@@ -418,7 +426,11 @@ void task_search(Task *task)
 			node->bestscore = move->score;
 			node->bestmove = move->x;
 			if (node->height == 0) {
+<<<<<<< HEAD
 				record_best_move(search, move, alpha, node->beta, node->depth);
+=======
+				record_best_move(search, &search->board, move, alpha, node->beta, node->depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 				search->result->n_moves_left--;
 				if (search->options.verbosity == 4) pv_debug(search, move, stdout);
 			}

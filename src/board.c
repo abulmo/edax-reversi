@@ -442,7 +442,11 @@ void board_rand(Board *board, int n_ply, Random *r)
 				break;
 			}
 		}
+<<<<<<< HEAD
 		board_get_move_flip(board, get_rand_bit(moves, r), &move);
+=======
+		board_get_move(board, get_rand_bit(moves, r), &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		board_update(board, &move);
 	}
 }
@@ -1483,10 +1487,14 @@ int get_corner_stability(const unsigned long long P)
 unsigned long long board_get_hash_code(const Board *board)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long crc = crc32c_u64(0, board->player);
 	return (crc << 32) | crc32c_u64(crc, board->opponent);
 =======
 	const unsigned char *p = (const unsigned char*)board;
+=======
+	const unsigned char *const p = (const unsigned char*)board;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned long long h1, h2;
 
 #if defined(USE_GAS_MMX) && defined(__3dNOW__)	// Faster on AMD but not suitable for CPU with slow emms

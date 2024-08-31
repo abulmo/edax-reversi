@@ -3,7 +3,11 @@
  *
  * Game management
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2020
+>>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -158,7 +162,11 @@ bool game_update_board(Board *board, int x)
 	if (!can_move(board->player, board->opponent)) {
 		board_pass(board);
 	}
+<<<<<<< HEAD
 	if (board_get_move_flip(board, x, &move) == 0) return false;
+=======
+	if (board_get_move(board, x, &move) == 0) return false;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	board_update(board, &move);
 
 	return true;
@@ -178,7 +186,11 @@ static bool game_update_player(Board *board, int x)
 			board_pass(board);
 			swap = !swap;
 		}
+<<<<<<< HEAD
 		if (board_get_move_flip(board, x, &move) == 0) swap = !swap;
+=======
+		if (board_get_move(board, x, &move) == 0) swap = !swap;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	}
 	
 	return swap;
@@ -278,7 +290,11 @@ void text_to_game(const char *line, Game *game)
 		s = parse_move(line, &board, &move);
 		if (s == line && move.x == NOMOVE) return;
 		if (move.x != PASS) {
+<<<<<<< HEAD
 			game->hash = crc32c_u8(game->hash, move.x);
+=======
+			game->hash ^= hash_move[move.x][i];
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			game->move[i++] = move.x;
 		}
 		board_update(&board, &move);
@@ -394,7 +410,11 @@ void game_append_line(Game *game, const Line *line, const int from)
 		for (i = 0, j = from; i < line->n_moves && j < 60; ++i) {
 			if (line->move[i] != PASS) {
 				if (game_update_board(&board, line->move[i])) {
+<<<<<<< HEAD
 					game->hash = crc32c_u8(game->hash, line->move[i]);
+=======
+					game->hash ^= hash_move[(int)line->move[i]][j];
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 					game->move[j++] = line->move[i];
 				} else {
 					break;
@@ -732,6 +752,7 @@ void game_export_ggf(const Game *game, FILE *f)
 
 	if (game->player == BLACK) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bk = game->initial_board.player;
 		wh = game->initial_board.opponent;
 	} else {
@@ -744,6 +765,13 @@ void game_export_ggf(const Game *game, FILE *f)
 		bk = game->initial_board->opponent;
 		wh = game->initial_board->player;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+		bk = game->initial_board.player;
+		wh = game->initial_board.opponent;
+	} else {
+		bk = game->initial_board.opponent;
+		wh = game->initial_board.player;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	}
 	for (x = 0; x < 64; ++x) {
 		square = 2 - (wh & 1) - 2 * (bk & 1);
@@ -1393,6 +1421,7 @@ void game_export_eps(const Game *game, FILE *f)
 		"}def\n"
 		"%%EndProlog\n\n"
 
+<<<<<<< HEAD
 		"% do the drawing\n"
 		"gsave\n"
 		"\n\t% draw an empty board\n"
@@ -1400,6 +1429,8 @@ void game_export_eps(const Game *game, FILE *f)
 		"\tboard_grid\n"
 		"\n\t% draw the discs\n", f);
 
+=======
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	board = game->initial_board;
 	for (i = A1; i <= H8; i++) {
 		color = board_get_square_color(&board, i);
@@ -1523,16 +1554,27 @@ void game_rand(Game *game, int n_ply, Random *r)
 	game_init(game);
 	board_init(&board);
 	for (ply = 0; ply < n_ply; ply++) {
+<<<<<<< HEAD
 		moves = board_get_moves(&board);
 		if (!moves) {
 			board_pass(&board);
 			moves = board_get_moves(&board);
+=======
+		moves = get_moves(board.player, board.opponent);
+		if (!moves) {
+			board_pass(&board);
+			moves = get_moves(board.player, board.opponent);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			if (!moves) {
 				break;
 			}
 		}
 		;
+<<<<<<< HEAD
 		board_get_move_flip(&board, get_rand_bit(moves, r), &move);
+=======
+		board_get_move(&board, get_rand_bit(moves, r), &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		game->move[ply] = move.x;
 		board_update(&board, &move);
 	}
@@ -1576,6 +1618,7 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 			board_pass(&board);
 			player = !player;
 		} 
+<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_move].played)) {
 			stack[n_move].best = MOVE_INIT;
 			line_init(&stack[n_move].pv, player);
@@ -1583,6 +1626,15 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 			search_set_level(search, 60, search->eval.n_empties);
 			stack[n_move].n_empties = search->eval.n_empties;
 			if (search->movelist.n_moves > 1 && search->eval.n_empties <= n_empties) {
+=======
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_move].played)) {
+			stack[n_move].best = MOVE_INIT;
+			line_init(&stack[n_move].pv, player);
+			search_set_board(search, &board, player);
+			search_set_level(search, 60, search->n_empties);
+			stack[n_move].n_empties = search->n_empties;
+			if (search->movelist.n_moves > 1 && search->n_empties <= n_empties) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 				movelist_exclude(&search->movelist, game->move[i]);
 				search_run(search);
 				stack[n_move].best = *(movelist_first(&search->movelist));
@@ -1602,8 +1654,13 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 	}
 
 	search_set_board(search, &board, player);
+<<<<<<< HEAD
 	if (search->eval.n_empties <= n_empties) {
 		search_set_level(search, 60, search->eval.n_empties);
+=======
+	if (search->n_empties <= n_empties) {
+		search_set_level(search, 60, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		search_run(search);
 		score = search->result->score;
 		
@@ -1669,7 +1726,11 @@ int game_complete(Game *game, Search *search)
 
 		search_set_board(search, &board, player);
 		search_run(search);
+<<<<<<< HEAD
 		if (search->result->depth == search->eval.n_empties && search->result->selectivity == NO_SELECTIVITY) {
+=======
+		if (search->result->depth == search->n_empties && search->result->selectivity == NO_SELECTIVITY) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			game_append_line(game, &search->result->pv, i);
 		} else {
 			game->move[i] = search->result->move;

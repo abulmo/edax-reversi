@@ -4,10 +4,14 @@
  * @brief Main file.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2018
 >>>>>>> 0451a79 (Fix AVX eval alignment in UI)
+=======
+ * @date 1998 - 2020
+>>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.5
  */

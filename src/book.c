@@ -197,7 +197,11 @@ static bool position_is_ok(const Position *position)
 		} else {
 			if (/*l->move < A1 ||*/ l->move > H8
 			 || board_is_occupied(&board, l->move)
+<<<<<<< HEAD
 			 || board_get_move_flip(&board, l->move, &move) == 0) {
+=======
+			 || board_get_move(&board, l->move, &move) == 0) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 				warn("link %s is wrong\n", move_to_string(l->move, WHITE, s));
 				position_print(position, &position->board, stdout);
 				return false;
@@ -222,7 +226,11 @@ static bool position_is_ok(const Position *position)
 		}
 	} else if (/*l->move < A1 ||*/ l->move > H8
 		 || board_is_occupied(&board, l->move)
+<<<<<<< HEAD
 		 || board_get_move_flip(&board, l->move, &move) == 0) {
+=======
+		 || board_get_move(&board, l->move, &move) == 0) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			warn("leaf %s is wrong\n", move_to_string(l->move, WHITE, s));
 			position_print(position, &position->board, stdout);
 			return false;
@@ -702,7 +710,11 @@ static void position_search(Position *position, Book *book)
 
 	if (position->n_link < n_moves || (position->n_link == 0 && n_moves == 0 && position->score.value == -SCORE_INF)) {
 		search_set_board(search, &position->board, BLACK);
+<<<<<<< HEAD
 		search_set_level(search, position->level, search->eval.n_empties);
+=======
+		search_set_level(search, position->level, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 		foreach_link (l, position) {
 			movelist_exclude(&search->movelist, l->move);
@@ -744,7 +756,11 @@ static void position_search(Position *position, Book *book)
 static void position_link(Position *position, Book *book)
 {
 	int x;
+<<<<<<< HEAD
 	unsigned long long moves = board_get_moves(&position->board);
+=======
+	unsigned long long moves = get_moves(position->board.player, position->board.opponent);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	Board next;
 	Link link;
 	Position *child;
@@ -1048,12 +1064,20 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 	position = book_probe(book, board);
 	if (position) {
 		const int n_empties = board_count_empties(&position->board);
+<<<<<<< HEAD
 		const int score = position->score.value;
 		int move = NOMOVE;
 
 		hash_data.data.wl.c.depth = LEVEL[position->level][n_empties].depth;
 		hash_data.data.wl.c.selectivity = LEVEL[position->level][n_empties].selectivity;
 
+=======
+		const int depth = LEVEL[position->level][n_empties].depth;
+		const int selectivity = LEVEL[position->level][n_empties].selectivity;
+		const int score = position->score.value;
+		int move = NOMOVE;
+
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		position_get_moves(position, board, &movelist);
 		foreach_move(m, movelist) {
 			if (move == NOMOVE) move = m->x;
@@ -1061,11 +1085,16 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
+<<<<<<< HEAD
 
 		hash_data.data.lower = hash_data.data.upper = score;
 		hash_data.data.move[0] = move;
 		hash_feed(&search->hash_table, board, hash_code, &hash_data);
 		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_data);
+=======
+		hash_feed(&search->hash_table, board, hash_code, depth, selectivity, score, score, move);
+		if (is_pv) hash_feed(&search->pv_table, board, hash_code, depth, selectivity, score, score, move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	}
 }
 
@@ -2297,7 +2326,11 @@ void book_add_game(Book *book, const Game *game)
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
+<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+=======
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {
@@ -2377,7 +2410,11 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
+<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+=======
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {

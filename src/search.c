@@ -380,8 +380,13 @@ void search_resize_hashtable(Search *search) {
 		const int pv_shallow_size = hash_size > 16 ? hash_size >> 4 : 1;
 
 		hash_init(&search->hash_table, hash_size);
+<<<<<<< HEAD
 		hash_init(&search->pv_table, pv_shallow_size);
 		hash_init(&search->shallow_table, pv_shallow_size);
+=======
+		hash_init(&search->pv_table, pv_size);
+		hash_init(&search->shallow_table, hash_size);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		search->options.hash_size = options.hash_table_size;
 	}
 }
@@ -415,7 +420,7 @@ void search_init(Search *search)
 	search->player = EMPTY;
 
 	/* evaluation function */
-	// eval_init(&search->eval);
+	// eval_init(search->eval);
 
 	// radom generator
 	random_seed(&search->random, real_clock());
@@ -486,6 +491,7 @@ void search_free(Search *search)
 {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	hash_free(&search->hash_table);
 	hash_free(&search->pv_table);
 	hash_free(&search->shallow_table);
@@ -499,6 +505,12 @@ void search_free(Search *search)
 =======
 	// eval_free(&search->eval);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	hash_free(&search->hash_table);
+	hash_free(&search->pv_table);
+	hash_free(&search->shallow_table);
+	// eval_free(search->eval);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	
 	task_stack_free(search->tasks);
 	free(search->tasks);
@@ -539,6 +551,7 @@ void search_setup(Search *search)
 	};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	const Board * const board = &search->board;
 	unsigned long long E;
 
@@ -547,6 +560,9 @@ void search_setup(Search *search)
 	search->eval.parity = 0;
 =======
 	Board *board = search->board;
+=======
+	const Board * const board = &search->board;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned long long E, B;
 
 	// init empties, parity
@@ -626,7 +642,11 @@ void search_clone(Search *search, Search *master)
 	search_setup(search);
 	search->hash_table = master->hash_table; // share the hashtable
 	search->pv_table = master->pv_table; // share the pvtable
+<<<<<<< HEAD
 	search->shallow_table = master->shallow_table; // share the shallowtable
+=======
+	search->shallow_table = master->shallow_table; // share the pvtable
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	search->tasks = master->tasks;
 	search->observer = master->observer;
 
@@ -957,9 +977,15 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 {
 	Move *previous = movelist->move;
 	Move *move = movelist->move + 1;
+<<<<<<< HEAD
 	V2DI vboard;
 	unsigned long long moves;
 	int x;
+=======
+	const Board * const board = &search->board;
+	unsigned long long moves = get_moves(board->player, board->opponent);
+	register int x;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	vboard.board = search->board;
 	moves = vboard_get_moves(vboard);
@@ -985,9 +1011,15 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 void search_update_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
+<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	--search->eval.n_empties;
+=======
+	empty_remove(search->x_to_empties[move->x]);
+	board_update(&search->board, move);
+	--search->n_empties;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 }
 
@@ -1000,9 +1032,15 @@ void search_update_endgame(Search *search, const Move *move)
 void search_restore_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
+<<<<<<< HEAD
 	empty_restore(search->empties, move->x);
 	board_restore(&search->board, move);
 	++search->eval.n_empties;
+=======
+	empty_restore(search->x_to_empties[move->x]);
+	board_restore(&search->board, move);
+	++search->n_empties;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 }
 
 /**
@@ -1037,7 +1075,7 @@ void search_update_midgame(Search *search, const Move *move)
 	--search->eval.n_empties;
 =======
 	empty_remove(search->x_to_empties[move->x]);
-	board_update(search->board, move);
+	board_update(&search->board, move);
 	eval_update(&search->eval, move);
 	assert(search->n_empties > 0);
 	--search->n_empties;
@@ -1074,9 +1112,9 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
 	empty_restore(search->empties, x);
 =======
 	empty_restore(search->x_to_empties[move->x]);
-	board_restore(search->board, move);
+	board_restore(&search->board, move);
 	// search_swap_parity(search, move->x);
-	// eval_restore(&search->eval, move);
+	// eval_restore(search->eval, move);
 	search->eval = *Ev;
 	++search->n_empties;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
@@ -1097,8 +1135,12 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 =======
 	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
 
+<<<<<<< HEAD
 	board_pass(search->board);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	board_pass(&search->board);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	eval_pass(&search->eval);
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
@@ -1112,11 +1154,15 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 void search_restore_pass_midgame(Search *search, const Eval *eval0)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_pass(search);
 	// eval_pass(&search->eval);
 	search->eval.feature = eval0->feature;
 =======
 	board_pass(search->board);
+=======
+	board_pass(&search->board);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	eval_pass(&search->eval);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	assert(search->height > 0);
@@ -1266,7 +1312,13 @@ void result_print(Result *result, FILE *f)
  */
 bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 {
+<<<<<<< HEAD
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+=======
+	const Board * const board = &search->board;
+
+	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->n_empties]) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= *alpha) {
@@ -1289,7 +1341,13 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  */
 bool search_SC_NWS(Search *search, const int alpha, int *score)
 {
+<<<<<<< HEAD
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+=======
+	const Board * const board = &search->board;
+
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= alpha) {
@@ -1402,7 +1460,10 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 		Move *move;
 		Board next;
 		HashData etc;
+<<<<<<< HEAD
 		HashStoreData hash_data;
+=======
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		unsigned long long etc_hash_code;
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
@@ -1411,12 +1472,13 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 =======
 	
 		CUTOFF_STATS(++statistics.n_etc_try;)
-		foreach_move (move, movelist) {
-			next->opponent = search->board->player ^ (move->flipped | x_to_bit(move->x));
-			next->player = search->board->opponent ^ move->flipped;
+		foreach_move (move, *movelist) {
+			next.opponent = search->board.player ^ (move->flipped | x_to_bit(move->x));
+			next.player = search->board.opponent ^ move->flipped;
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
+<<<<<<< HEAD
 		hash_data.data.wl.c.depth = depth;
 		hash_data.data.wl.c.selectivity = selectivity;
 		hash_data.data.wl.c.cost = 0;
@@ -1435,18 +1497,31 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
+=======
+			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
+				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
+				if (*score > alpha) {
+					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
 			}
 
 			etc_hash_code = board_get_hash_code(&next);
+<<<<<<< HEAD
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
 				*score = -etc.upper;
 				if (*score > alpha) {
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
+=======
+			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.selectivity >= selectivity && etc.depth >= etc_depth) {
+				*score = -etc.upper;
+				if (*score > alpha) {
+					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}

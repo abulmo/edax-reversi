@@ -1212,7 +1212,7 @@ int search_solve_4(Search *search, const int alpha)
 	// stability cutoff
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
-	OP = _mm_loadu_si128((__m128i *) search->board);
+	OP = _mm_loadu_si128((__m128i *) &search->board);
 	x1 = (empty = search->empties->next)->x;
 	x2 = (empty = empty->next)->x;
 	x3 = (empty = empty->next)->x;

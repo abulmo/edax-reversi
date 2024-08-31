@@ -82,12 +82,20 @@ bool movelist_is_single(const MoveList*);
 
 /** macro to iterate over the movelist */
 #define foreach_move(iter, movelist) \
+<<<<<<< HEAD
 	for ((iter) = (movelist).move[0].next; (iter); (iter) = (iter)->next)
 
 /** macro to iterate over the movelist from best to worst move */
 #define foreach_best_move(iter, movelist) \
 	(iter) = &(movelist).move[0];\
 	while (((iter) = move_next_best(iter)))
+=======
+	for ((iter) = (movelist).move->next; (iter); (iter) = (iter)->next)
+
+/** macro to iterate over the movelist from best to worst move */
+#define foreach_best_move(iter, movelist) \
+	for ((iter) = movelist_best(&movelist); (iter); (iter) = move_next_best(iter))
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 void line_init(Line*, const int);
 void line_push(Line*, const int);

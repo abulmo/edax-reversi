@@ -53,21 +53,37 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 
 	x = bestmove->x;
 	fprintf(f, "pv = %s ", move_to_string(x, player, s));
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
 	while (x != NOMOVE) {
 		board_get_move_flip(&board, x, &move);
+=======
+	hash_code = board_get_hash_code(&board);
+	if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
+		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.depth, selectivity_table[hash_data.selectivity].percent, hash_data.lower, hash_data.upper);
+	}
+	while (x != NOMOVE) {
+		board_get_move(&board, x, &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		board_update(&board, &move);
 		player ^= 1;
 
 		hash_code = board_get_hash_code(&board);
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
+<<<<<<< HEAD
 			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
+=======
+			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.depth, selectivity_table[hash_data.selectivity].percent, hash_data.lower, hash_data.upper);
+		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+			x = hash_data.move[0];
+			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.depth, selectivity_table[hash_data.selectivity].percent, hash_data.lower, hash_data.upper);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		} else x = NOMOVE;
 	}
 	fputc('\n', f);
@@ -96,6 +112,7 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 	x = bestmove;
 	while (search_depth > 0 && x != NOMOVE) {
 		if (x != PASS) --search_depth;
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 
@@ -105,6 +122,18 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 			x = hash_data.move[0];
 		} else break;
 		if (hash_data.wl.c.depth < search_depth || hash_data.wl.c.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
+=======
+		board_get_move(&board, x, &move);
+		board_update(&board, &move);
+
+		hash_code = board_get_hash_code(&board);
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
+			x = hash_data.move[0];
+		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+			x = hash_data.move[0];
+		} else break;
+		if (hash_data.depth < search_depth || hash_data.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		if (x == NOMOVE && !board_is_game_over(&board)) return false;
 	}
 	return true;
@@ -129,8 +158,13 @@ static int guess_move(Search *search, Board *board)
 
 	search->board = *board; search_setup(search);
 
+<<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
+=======
+	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->n_empties, 6));
+	hash_get(&search->shallow_table, board, board_get_hash_code(board), &hash_data);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	search->board = saved; search_setup(search);
 
@@ -163,7 +197,11 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 	int expected_depth, expected_selectivity, tmp;
 	Bound expected_bound;
 
+<<<<<<< HEAD
 	board = search->board;
+=======
+	board = *init_board;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	spin_lock(result);
 
@@ -192,7 +230,11 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 	fail_low = (bestmove->score <= alpha);
 
 	while (x != NOMOVE) {
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
+=======
+		board_get_move(&board, x, &move);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		if (board_check_move(&board, &move)) {
 			board_update(&board, &move);
 			--expected_depth; 
@@ -202,7 +244,11 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 
 			hash_code = board_get_hash_code(&board);
 			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
+<<<<<<< HEAD
 			 && (hash_data.wl.c.depth >= expected_depth && hash_data.wl.c.selectivity >= expected_selectivity)
+=======
+			 && (hash_data.depth >= expected_depth && hash_data.selectivity >= expected_selectivity)
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			 && (hash_data.upper <= expected_bound.upper && hash_data.lower >= expected_bound.lower)) {
 				x = hash_data.move[0];
 			} else x = NOMOVE;
@@ -331,15 +377,24 @@ int search_get_pv_cost(Search *search)
 int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	HashData hash_data[1];
 	MoveList *movelist = search->movelist;
 	Board *board = search->board;
+=======
+	HashData hash_data;
+	MoveList *const movelist = &search->movelist;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	Move *move;
-	Node node[1];
+	Node node;
 	Eval Ev0;
 	long long cost = -search_count_nodes(search);
+<<<<<<< HEAD
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	int cost_bits;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned long long hash_code;
 	HashStoreData hash_data;
 	MoveList *const movelist = &search->movelist;
@@ -361,6 +416,12 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	SEARCH_STATS(++statistics.n_PVS_root);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
+<<<<<<< HEAD
+=======
+	// transposition cutoff
+	hash_code = board_get_hash_code(&search->board);
+
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	node_init(&node, search, alpha, beta, depth, movelist->n_moves, NULL);
 	node.pv_node = true;
 	search->node_type[0] = PV_NODE;
@@ -371,9 +432,15 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		move = movelist->move->next = movelist->move + 1;
 		move->flipped = 0;
 		if (can_move(search->board.opponent, search->board.player)) {
+<<<<<<< HEAD
 			search_update_pass_midgame(search, &eval0);
 			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
 			search_restore_pass_midgame(search, &eval0);
+=======
+			search_update_pass_midgame(search);
+				node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
+			search_restore_pass_midgame(search);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			node.bestmove =  move->x = PASS;
 		} else  { // game over
 			node.bestscore =  move->score = search_solve(search);
@@ -389,9 +456,14 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			assert(board_check_move(&search->board, move));
 =======
 		Ev0 = search->eval;
+<<<<<<< HEAD
 		if ((move = node_first_move(node, movelist))) {
 			assert(board_check_move(board, move));
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+		if ((move = node_first_move(&node, movelist))) {
+			assert(board_check_move(&search->board, move));
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			search_update_midgame(search, move); search->node_type[search->height] = PV_NODE;
 				move->score = -search_route_PVS(search, -beta, -alpha, depth - 1, &node);
 				move->cost = search_get_pv_cost(search);
@@ -442,6 +514,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	}
 
 	if (!search->stop) {
+<<<<<<< HEAD
 		hash_code = board_get_hash_code(&search->board);
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
 		if (movelist->n_moves) {	// 4.5.1
@@ -463,6 +536,20 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
 			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
+=======
+		hash_get(&search->pv_table, &search->board, hash_code, &hash_data);
+		if (depth < search->options.multipv_depth) movelist_sort(movelist);
+		else movelist_sort_cost(movelist, &hash_data);
+		movelist_sort_bestmove(movelist, node.bestmove);
+		record_best_move(search, &search->board, movelist_first(movelist), alpha, beta, depth);
+
+		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
+			cost += search_count_nodes(search);
+			cost_bits = last_bit(cost);
+			hash_store(&search->hash_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
+			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
+			else hash_store(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -587,7 +674,11 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 		if (score == old_score) break;
 	}
 
+<<<<<<< HEAD
 	if (!search->stop) record_best_move(search, movelist_first(&search->movelist), alpha, beta, depth);
+=======
+	if (!search->stop) record_best_move(search, &search->board, movelist_first(&search->movelist), alpha, beta, depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	search->result->time = search_time(search);
 	search->result->n_nodes = search_count_nodes(search);
 	if (options.noise <= depth && search->options.verbosity >= 2) {
@@ -618,6 +709,7 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 
 	for (i = 0; i < 4; ++i) {
 		hash_code = board_get_hash_code(&board);
+<<<<<<< HEAD
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
 		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
@@ -625,13 +717,29 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 
 		d = hash_data.wl.c.depth + i;
 		s = hash_data.wl.c.selectivity;
+=======
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
+			x = hash_data.move[0];
+		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+			x = hash_data.move[0];
+		} else break;
+
+		d = hash_data.depth + i;
+		s = hash_data.selectivity;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 		if (d > *depth) *depth = d;
 		if (s > *selectivity) *selectivity = s;
 
+<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 
+=======
+		board_get_move(&board, x, &move);
+		board_update(&board, &move);
+		
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		if (x == PASS) --i;
 	}
 
@@ -709,22 +817,36 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	}
 
 	// reuse last search ?
+<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
+=======
+	if (hash_get(&search->pv_table, &search->board, board_get_hash_code(&search->board), &hash_data)) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",
 				hash_data.lower, hash_data.upper,
 				move_to_string(hash_data.move[0], search->player, s[0]),
 				move_to_string(hash_data.move[1], search->player, s[1]),
+<<<<<<< HEAD
 				hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent,
 				hash_data.wl.c.date, hash_data.wl.c.cost);
+=======
+				hash_data.depth, selectivity_table[hash_data.selectivity].percent,
+				hash_data.date, hash_data.cost);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		}
 		if (log_is_open(search_log)) {
 			log_print(search_log, "--- Next Search ---: ");
 			hash_print(&hash_data, search_log->f);
 		}
+<<<<<<< HEAD
 		old_depth = hash_data.wl.c.depth;
 		old_selectivity = hash_data.wl.c.selectivity;
+=======
+		old_depth = hash_data.depth;
+		old_selectivity = hash_data.selectivity;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 		if (USE_PREVIOUS_SEARCH) {
 			if (hash_data.lower == hash_data.upper) {
@@ -772,12 +894,20 @@ void iterative_deepening(Search *search, int alpha, int beta)
 		}
 		movelist_sort(movelist);
 		bestmove = movelist_first(movelist); bestmove->score = score;
+<<<<<<< HEAD
 		record_best_move(search, bestmove, alpha, beta, old_depth);
+=======
+		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
 	} else {
 		Move pass = MOVE_PASS;
 		bestmove = &pass; bestmove->score = score;
+<<<<<<< HEAD
 		record_best_move(search, bestmove, alpha, beta, old_depth);
+=======
+		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
 	}
 	search->selectivity = tmp_selectivity;
@@ -857,7 +987,11 @@ void* search_run(void *v)
 	}
 	search->height = 0;
 	search->node_type[search->height] = PV_NODE;
+<<<<<<< HEAD
 	search->depth_pv_extension = get_pv_extension(0, search->eval.n_empties);
+=======
+	search->depth_pv_extension = get_pv_extension(0, search->n_empties);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	search->stability_bound.upper = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 	search->stability_bound.lower = 2 * get_stability(search->board.player, search->board.opponent) - SCORE_MAX;
 	search->result->score = search_bound(search, search_eval_0(search));

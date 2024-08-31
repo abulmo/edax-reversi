@@ -14,10 +14,14 @@
  * searches with settings that make it better in tournament mode against Roxane, Cassio, etc.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+ * @date 1998 - 2020
+>>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -243,10 +247,14 @@ static Search* engine_create_search(void)
 {
 	Search *search;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 	
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	search = (Search*) mm_malloc(sizeof (Search));
 	if (search == NULL) {
 		engine_send("ERROR: Cannot allocate a new search engine.");
@@ -310,7 +318,11 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	if (player != search->player || !board_equal(&search->board, board)) {
 		search_set_board(search, board, player);
 
+<<<<<<< HEAD
 		if (hash_get_from_board(&search->pv_table, board, &hash_data)) {
+=======
+		if (hash_get(&search->pv_table, board, board_get_hash_code(board), &hash_data)) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			if (hash_data.lower == -SCORE_INF && hash_data.upper < SCORE_INF) score = hash_data.upper;
 			else if (hash_data.upper == +SCORE_INF && hash_data.lower > -SCORE_INF) score = hash_data.lower;
 			else score = (hash_data.upper + hash_data.lower) / 2;
@@ -425,6 +437,7 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 	HashStoreData hash_data;
 	const unsigned long long hash_code = board_get_hash_code(board);
 
+<<<<<<< HEAD
 	hash_data.data.wl.c.depth = depth;
 	hash_data.data.wl.c.selectivity = selectivity;
 	hash_data.data.move[0] = move;
@@ -432,6 +445,10 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 	hash_data.data.upper = upper;
 	hash_feed(&search->hash_table, board, hash_code, &hash_data);
 	hash_feed(&search->pv_table, board, hash_code, &hash_data);
+=======
+	hash_feed(&search->hash_table, board, hash_code, depth, selectivity, lower, upper, move);
+	hash_feed(&search->pv_table, board, hash_code, depth, selectivity, lower, upper, move);	
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 }
 
 /**
@@ -552,12 +569,20 @@ static bool skip_search(Engine *engine, int *old_score)
 		if (alpha < hash_data.lower) alpha = *old_score = hash_data.lower;
 		if (beta > hash_data.upper) beta = *old_score = hash_data.upper;
 		// skip search ?
+<<<<<<< HEAD
 		if (hash_data.wl.c.depth >= search->depth && hash_data.wl.c.selectivity >= search->selectivity && alpha >= beta) {
+=======
+		if (hash_data.depth >= search->depth && hash_data.selectivity >= search->selectivity && alpha >= beta) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			if (hash_data.move[0] != NOMOVE) movelist_sort_bestmove(movelist, hash_data.move[0]);
 			else if (hash_data.lower > SCORE_MIN) return false;
 			bestmove = movelist_first(movelist);
 			bestmove->score = *old_score;
+<<<<<<< HEAD
 			record_best_move(search, bestmove, options.alpha, options.beta, search->depth);
+=======
+			record_best_move(search, &search->board, bestmove, options.alpha, options.beta, search->depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			bound =  search->result->bound + bestmove->x;
 
 			if (bound->lower != bound->upper || is_pv_ok(search, bestmove->x, search->depth)) {
@@ -568,14 +593,23 @@ static bool skip_search(Engine *engine, int *old_score)
 				cassio_debug("Edax does not skip the search : BAD PV!\n");
 			}
 		} else {
+<<<<<<< HEAD
 			if (hash_data.wl.c.depth < search->depth || hash_data.wl.c.selectivity < search->selectivity) {
 				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
+=======
+			if (hash_data.depth < search->depth || hash_data.selectivity < search->selectivity) {
+				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.depth, selectivity_table[hash_data.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 			} else {
 				cassio_debug("Edax does not skip the search: unsolved score alpha %d < beta %d\n", alpha, beta); 
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		cassio_debug("Edax does not skip the search: Position %s (hash=%llx) not found\n", board_to_string(&search->board, search->player, b), hash_code);
+=======
+		cassio_debug("Edax does not skip the search: Position %s (hash=%llx) not found\n", board_to_string(&search->board, search->player, b), board_get_hash_code(&search->board));
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	}
 	
 	return false;

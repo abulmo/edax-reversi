@@ -1090,6 +1090,7 @@ void count_shapes(const Board *board, const int depth, const int size)
  * @param line line to reach the target position
  */
 bool seek_position(const Board *target, const Board *board, Line *line) {
+<<<<<<< HEAD
 	const unsigned long long mask = target->opponent | target->player;
 	unsigned long long moves;
 	int x;
@@ -1098,6 +1099,16 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
 	if (board_equal(board, target)) return true;
 
 	moves = board_get_moves(board);
+=======
+ 	const unsigned long long mask = target->opponent | target->player;
+ 	unsigned long long moves;
+ 	int x;
+ 	Board next;
+ 	
+ 	if (board_equal(board, target)) return true;
+ 		
+ 	moves = get_moves(board->player, board->opponent);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	if (moves) {
 		moves &= mask;
 		foreach_bit (x, moves) {

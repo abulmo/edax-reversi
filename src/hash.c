@@ -14,7 +14,11 @@
  * When doing parallel search with a shared hashtable, a locked implementation
  * avoid concurrency collisions.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2020
+>>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -86,8 +90,12 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
  */
 void hash_cleanup(HashTable *hash_table)
 {
+<<<<<<< HEAD
 	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
 	Hash *pHash = hash_table->hash;
+=======
+	unsigned int i;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	assert(hash_table != NULL && hash_table->hash != NULL);
 
@@ -394,7 +402,11 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
 {
 	bool ok = false;
 
+<<<<<<< HEAD
 	if (board_equal(&hash->board, board)) {
+=======
+	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		spin_lock(lock);
 		if (board_equal(&hash->board, board)) {
 			data_new(&hash->data, storedata);
@@ -561,8 +573,12 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date;
 	if (hash_replace(hash, lock, board, storedata)) return;
+=======
+	if (hash_replace(hash, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move)) return;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
@@ -572,8 +588,16 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 		}
 	}
 
+<<<<<<< HEAD
 	HASH_COLLISIONS(storedata->hash_code = hash_code;)
 	hash_new(worst, lock, board, storedata);
+=======
+#if (HASH_COLLISIONS(1)+0) 
+	hash_new(worst, lock, hash_code, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#else 
+	hash_new(worst, lock, board, hash_table->date, depth, selectivity, cost, alpha, beta, score, move);
+#endif
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 }
 
 /**
@@ -681,8 +705,12 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
  */
 void hash_copy(const HashTable *src, HashTable *dest)
 {
+<<<<<<< HEAD
 	unsigned int i, imax = src->hash_mask + HASH_N_WAY;
 	Hash *pSrc = src->hash, *pDest = dest->hash;
+=======
+	unsigned int i;
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	assert(src->hash_mask == dest->hash_mask);
 	info("<hash copy>\n");
@@ -705,5 +733,9 @@ void hash_print(const HashData *data, FILE *f)
 	fprintf(f, "moves = %s, ", move_to_string(data->move[0], WHITE, s_move));
 	fprintf(f, "%s ; ", move_to_string(data->move[1], WHITE, s_move));
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
+<<<<<<< HEAD
 	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->wl.c.date, data->wl.c.cost, data->wl.c.depth, selectivity_table[data->wl.c.selectivity].percent);
+=======
+	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->date, data->cost, data->depth, selectivity_table[data->selectivity].percent);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 }

@@ -107,7 +107,7 @@ unsigned long long vertical_mirror(unsigned long long);
 #if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctzll)
 	#define	first_bit(x)	__builtin_ctzll(x)
 	#define	last_bit(x)	(63 - __builtin_clzll(x))
-#elif defined(__AVX2__)
+#elif defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
 	#define	first_bit(x)	_tzcnt_u64(x)
 	#define	last_bit(x)	(63 - _lzcnt_u64(x))
 #else

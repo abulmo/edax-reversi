@@ -72,6 +72,7 @@ extern struct Level {
 /** search stare */
 typedef struct Search {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Board board;                                  /**< othello board (16) */
 
 	volatile unsigned long long n_nodes;          /**< node counter (8) */
@@ -80,6 +81,9 @@ typedef struct Search {
 =======
 	Board board[1];                               /**< othello board */
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	Board board;                                  /**< othello board */
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	Eval eval;                                    /**< eval */
 
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
@@ -87,16 +91,22 @@ typedef struct Search {
 	int id;                                       /**< search id */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 	HashTable hash_table;                         /**< hashtable */
 	HashTable pv_table;                           /**< hashtable for the pv */
 	HashTable shallow_table;                      /**< hashtable for short search */
 	Random random;                                /**< random generator */
+<<<<<<< HEAD
 =======
 	HashTable hash_table[1];                      /**< hashtable */
 	HashTable pv_table[1];                        /**< hashtable for the pv */
 	HashTable shallow_table[1];                   /**< hashtable for short search */
 	Random random[1];                             /**< random generator */
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	struct TaskStack *tasks;                      /**< available task queue */
 	struct Task *task;                            /**< search task */

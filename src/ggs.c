@@ -1222,7 +1222,11 @@ static void ui_ggs_play(UI *ui, int turn) {
 			ui->ggs->me, move, ui->ggs->board->id,
 			result->score
 		);
+<<<<<<< HEAD
 	} else if (play->search.eval.n_empties >= 15) { //avoid noisy display
+=======
+	} else if (play->search.n_empties >= 15) { //avoid noisy display
+>>>>>>> 0a166fd (Remove 1 element array coding style)
 		const char *bound;
 		char s_nodes[16], s_speed[16];
 
