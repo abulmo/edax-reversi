@@ -320,6 +320,7 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
  * @brief evaluate a midgame position with the evaluation function.
  *
  * @param search Position to evaluate.
+ * @return An evaluated score.
  */
 int search_eval_0(Search *search)
 {
@@ -364,6 +365,7 @@ int search_eval_0(Search *search)
  * @param moves Next turn legal moves.
  * @return An evaluated min score.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
@@ -453,6 +455,12 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 =======
 	int x, score, bestscore, betathres;
 	unsigned long long flipped, moves;
+=======
+int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
+{
+	int x, score, bestscore, alphathres;
+	unsigned long long flipped;
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 	Eval Ev;
 	V2DI board0;
 >>>>>>> fe6dce7 (consistent vboard usage for eval_1 and eval_2)
@@ -460,9 +468,8 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
-	board0.board = search->board;
-	moves = vboard_get_moves(board0);
 	if (moves) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -614,6 +621,13 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 			}
 		}
 =======
+=======
+		bestscore = SCORE_INF * 128;	// min stage
+		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
+		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
+
+		board0.board = search->board;
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 		x = NOMOVE;
 		do {
 			do {
@@ -623,26 +637,31 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 			moves &= ~x_to_bit(x);
 			flipped = vboard_flip(board0, x);
 			if (flipped == search->board.opponent)
-				return SCORE_MAX;	// wipeout
+				return SCORE_MIN;	// wipeout
 
 			eval_update_leaf(x, flipped, &Ev, &search->eval);
 			SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 
-			score = -accumlate_eval(60 - search->eval.n_empties + 1, &Ev);
+			score = accumlate_eval(60 - search->eval.n_empties + 1, &Ev);
 
-			if (score > bestscore)
+			if (score < bestscore)
 				bestscore = score;
+<<<<<<< HEAD
 			if (bestscore >= betathres) break;
 		} while (moves);
 >>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
+=======
+		} while (moves && (bestscore > alphathres));
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 
-		if (bestscore > 0) bestscore += 64;	else bestscore -= 64;
+		if (bestscore >= 0) bestscore += 64; else bestscore -= 64;
 		bestscore /= 128;
 
 		if (bestscore < SCORE_MIN + 1) bestscore = SCORE_MIN + 1;
 		if (bestscore > SCORE_MAX - 1) bestscore = SCORE_MAX - 1;
 
 	} else {
+<<<<<<< HEAD
 <<<<<<< HEAD
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
@@ -663,10 +682,19 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 		if (pass1) { // game over
 			bestscore = search_solve(search);
 		} else {
+=======
+		moves = get_moves(search->board.opponent, search->board.player);
+		if (moves) {
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 			search_update_pass_midgame(search, &Ev);
-			bestscore = -search_eval_1(search, -beta, -alpha, true);
+			bestscore = -search_eval_1(search, -beta, -alpha, moves);
 			search_restore_pass_midgame(search, &Ev);
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+		} else { // game over
+			bestscore = -search_solve(search);
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 		}
 	}
 
@@ -687,6 +715,7 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
  */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 int search_eval_2(Search *search, int alpha, int beta, unsigned long long moves)
 =======
 int search_eval_2(Search *search, int alpha, const int beta, unsigned long long moves)
@@ -694,6 +723,9 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 =======
 int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+int search_eval_2(Search *search, int alpha, int beta, unsigned long long moves)
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -702,6 +734,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 <<<<<<< HEAD
 	int x, bestscore, score;
 	unsigned long long flipped;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -757,6 +790,8 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 	int x, bestscore, score;
 >>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	unsigned long long flipped, moves;
+=======
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 	Eval eval0;
 	V2DI board0;
 >>>>>>> fe6dce7 (consistent vboard usage for eval_1 and eval_2)
@@ -768,8 +803,6 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 	assert(beta <= SCORE_MAX);
 	assert(alpha <= beta);
 
-	board0.board = search->board;
-	moves = vboard_get_moves(board0);
 	if (moves) {
 		bestscore = -SCORE_INF;
 <<<<<<< HEAD
@@ -779,6 +812,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 		eval0.feature = search->eval.feature;
 		eval0.n_empties = search->eval.n_empties--;
 		board0.board = search->board;
+<<<<<<< HEAD
 		x = NOMOVE;
 		do {
 			do {
@@ -883,6 +917,8 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 =======
 		}
 =======
+=======
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 		x = NOMOVE;
 		do {
 			do {
@@ -890,10 +926,10 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 			} while (!(moves & x_to_bit(x)));
 
 			moves &= ~x_to_bit(x);
-			// search->empties[prev].next = search->empties[x].next;
+			// search->empties[prev].next = search->empties[x].next;	// let search_eval_1 skip the last occupied
 			flipped = vboard_next(board0, x, &search->board);
 			eval_update_leaf(x, flipped, &search->eval, &eval0);
-			score = -search_eval_1(search, -beta, -alpha, false);
+			score = search_eval_1(search, alpha, beta, board_get_moves(&search->board));
 			// search->empties[prev].next = x;	// restore
 
 			if (score > bestscore) {
@@ -908,6 +944,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 		search->board = board0.board;
 
 	} else {
+<<<<<<< HEAD
 <<<<<<< HEAD
 		moves = get_moves(search->board.opponent, search->board.player);
 		if (moves) {
@@ -926,9 +963,15 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 			bestscore = search_solve(search);
 		} else {
+=======
+		moves = get_moves(search->board.opponent, search->board.player);
+		if (moves) {
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 			search_update_pass_midgame(search, &eval0);
-			bestscore = -search_eval_2(search, -beta, -alpha, true);
+			bestscore = -search_eval_2(search, -beta, -alpha, moves);
 			search_restore_pass_midgame(search, &eval0);
+		} else { // game over
+			bestscore = search_solve(search);
 		}
 	}
 
@@ -951,7 +994,6 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
  * @param depth Search depth.
  * @param parent Parent node.
  * @param value Returned value.
- *
  * @return true if probable cutoff has been found, false otherwise.
  */
 >>>>>>> af8242f (Imply NO_SELECTIVITY in shallow searches)
@@ -1121,6 +1163,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
 	if (depth == 2) return search_eval_2(search, alpha, alpha + 1, board_get_moves(&search->board));
+<<<<<<< HEAD
 =======
 =======
 	Search_Backup backup;
@@ -1142,6 +1185,8 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 =======
 	if (depth == 2) return search_eval_2(search, alpha, alpha + 1, false);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 
 	SEARCH_STATS(++statistics.n_NWS_midgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -1441,6 +1486,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (depth == 2) return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 =======
 	if (depth == 2) return search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
@@ -1448,6 +1494,9 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 =======
 	if (depth == 2) return search_eval_2(search, alpha, beta, false);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	if (depth == 2) return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 
 	SEARCH_STATS(++statistics.n_PVS_shallow);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -2082,7 +2131,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 =======
 		if (depth <= ((search->eval.n_empties <= depth) ? DEPTH_MIDGAME_TO_ENDGAME : 4))
 			hash_data.data.wl.c.selectivity = NO_SELECTIVITY; // hack
-		else	hash_data.data.wl.c.selectivity = search->selectivity;
+		else hash_data.data.wl.c.selectivity = search->selectivity;
 		hash_data.data.wl.c.depth = depth;
 		hash_data.data.wl.c.cost = last_bit(search->n_nodes + search->child_nodes - nodes_org);
 		hash_data.data.move[0] = node.bestmove;
@@ -2294,6 +2343,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 <<<<<<< HEAD
 	else if (depth == 2 && search->eval.n_empties > 2)
 		return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
+<<<<<<< HEAD
 =======
 	else if (search->n_empties == 0)
 =======
@@ -2311,6 +2361,8 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 		return search_eval_2(search, alpha, beta, false);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 
 <<<<<<< HEAD
 <<<<<<< HEAD

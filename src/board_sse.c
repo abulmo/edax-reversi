@@ -866,7 +866,7 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 		// vertical_mirror in PP[1], OO[1]
-	OP = _mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O));		mO = (unsigned int) O & 0x7e7e7e7eU;
+	OP  = _mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O));		mO = (unsigned int) O & 0x7e7e7e7eU;
 	rOP = _mm_shufflelo_epi16(OP, 0x1B);						flip1  = mO & ((unsigned int) P << 1);
 	rOP = _mm_shufflehi_epi16(rOP, 0x1B);						flip1 |= mO & (flip1 << 1);
 <<<<<<< HEAD

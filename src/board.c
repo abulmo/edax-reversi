@@ -1302,6 +1302,7 @@ void edge_stability_init(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
@@ -1323,6 +1324,9 @@ void edge_stability_init(void)
 =======
 #if !defined(__AVX2__) && !defined(__ARM_NEON) && !defined(hasSSE2)
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+#if !defined(hasSSE2) && !defined(__ARM_NEON)
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 /**
  * @brief Get stable edge.
  *

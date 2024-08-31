@@ -671,6 +671,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	};
 	Move *move;
 	int	sort_depth, min_depth, sort_alpha, score, empties, parity_weight;
+	unsigned long long moves;
 	HashData dummy;
 	Eval eval0;
 	Board board0;
@@ -840,15 +841,18 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				V2DI MM;
 				MM.v2 =  get_moves_and_potential(_mm256_broadcastq_epi64(*(__m128i *) &search->board.player), _mm256_broadcastq_epi64(*(__m128i *) &search->board.opponent));
 				score += (36 - bit_weighted_count(MM.ull[1])) * w_potential_mobility; // potential mobility
-				score += (36 - bit_weighted_count(MM.ull[0])) * w_mobility; // real mobility
-#elif defined(hasSSE2) && !defined(POPCOUNT)
-				__m128i MM = bit_weighted_count_sse(board_get_moves(&search->board), get_potential_moves(search->board.player, search->board.opponent));
+				score += (36 - bit_weighted_count(moves = MM.ull[0])) * w_mobility; // real mobility
+#else
+				moves = board_get_moves(&search->board);
+  #if defined(hasSSE2) && !defined(POPCOUNT)
+				__m128i MM = bit_weighted_count_sse(moves, get_potential_moves(search->board.player, search->board.opponent));
 				score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
 				score += (36 - _mm_cvtsi128_si32(MM)) * w_mobility; // real mobility
-#elif defined(__ARM_NEON)
-				uint64x2_t MM = bit_weighted_count_neon(board_get_moves(&search->board), get_potential_moves(search->board.player, search->board.opponent));
+  #elif defined(__ARM_NEON)
+				uint64x2_t MM = bit_weighted_count_neon(moves, get_potential_moves(search->board.player, search->board.opponent));
 				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 2)) * w_potential_mobility; // potential mobility
 				score += (36 - vgetq_lane_u32(vreinterpretq_u32_u64(MM), 0)) * w_mobility; // real mobility
+<<<<<<< HEAD
 #else
 <<<<<<< HEAD
 >>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
@@ -857,23 +861,29 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				score += (36 - bit_weighted_count(get_potential_moves(search->board.player, search->board.opponent))) * w_potential_mobility; // potential mobility
 >>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 				score += (36 - bit_weighted_count(board_get_moves(&search->board))) * w_mobility; // real mobility
+=======
+  #else
+				score += (36 - bit_weighted_count(get_potential_moves(search->board.player, search->board.opponent))) * w_potential_mobility; // potential mobility
+				score += (36 - bit_weighted_count(moves)) * w_mobility; // real mobility
+  #endif
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 #endif
 				score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
 				switch (sort_depth) {
 				case 0:
-					score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
+					score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval;	// 1 level score bonus
 					break;
 				case 1:
-					score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 2 level score bonus
+					score += ((SCORE_MAX + search_eval_1(search, sort_alpha, SCORE_MAX, moves)) >> 1) * w_eval;	// 2 level score bonus
 					break;
 				case 2:
-					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, false)) >> 1) * w_eval;  // 3 level score bonus
+					score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, moves)) >> 1) * w_eval;	// 3 level score bonus
 					break;
 				default:	// 3 to 6
-					if (hash_get_from_board(&search->hash_table, &search->board, &dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table
+					if (hash_get_from_board(&search->hash_table, &search->board, &dummy)) score += w_hash;	// bonus if the position leads to a position stored in the hash-table
 					// org_selectivity = search->selectivity;
-					// search->selectivity = NO_SELECTIVITY;
-					score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
+					// search->selectivity = NO_SELECTIVITY;	// No probcut in PVS_shallow
+					score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval;	// > 3 level bonus
 					// search->selectivity = org_selectivity;
 					break;
 				}

@@ -316,6 +316,7 @@ int NWS_endgame(Search*, const int);
 int search_eval_0(Search*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 int search_eval_1(Search*, int, int, unsigned long long);
 int search_eval_2(Search*, int, int, unsigned long long);
 =======
@@ -326,6 +327,10 @@ int search_eval_2(Search*, int, const int, unsigned long long);
 int search_eval_1(Search*, const int, int, bool);
 int search_eval_2(Search*, int, const int, bool);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+int search_eval_1(Search*, int, int, unsigned long long);
+int search_eval_2(Search*, int, int, unsigned long long);
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 int NWS_midgame(Search*, const int, int, struct Node*);
 int PVS_midgame(Search*, const int, const int, int, struct Node*);
 // static int NWS_shallow(Search*, const int, int, HashTable*);

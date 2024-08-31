@@ -409,6 +409,7 @@ static int search_route_PVS(Search *search, int alpha, int beta, const int depth
 		if (depth == 0) score = search_eval_0(search);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		else if (depth == 1) score = -search_eval_1(search, -beta, -alpha, board_get_moves(&search->board));
 		else if (depth == 2) score = search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 =======
@@ -419,6 +420,10 @@ static int search_route_PVS(Search *search, int alpha, int beta, const int depth
 		else if (depth == 1) score = search_eval_1(search, alpha, beta, false);
 		else if (depth == 2) score = search_eval_2(search, alpha, beta, false);
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+		else if (depth == 1) score = -search_eval_1(search, -beta, -alpha, board_get_moves(&search->board));
+		else if (depth == 2) score = search_eval_2(search, alpha, beta, board_get_moves(&search->board));
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 		else score = PVS_midgame(search, alpha, beta, depth, node);
 	}
 

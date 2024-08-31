@@ -214,9 +214,12 @@ ifeq ($(COMP),gcc)
 		ifeq ($(ARCH),arm)
 			CFLAGS += -march=armv8.3-a
 		endif
+<<<<<<< HEAD
 	endif
 	ifeq ($(OS),android)
 		CFLAGS += -DANDROID=1
+=======
+>>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 	endif
 	ifeq ($(OS),android)
 		CFLAGS += -DANDROID=1
@@ -659,7 +662,7 @@ macuniversal:
 macuniversal:
 	$(MAKE) build ARCH=x86 OS=osx COMP=clang
 	$(MAKE) build ARCH=x64 OS=osx COMP=clang
-	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -output ../bin/mEdax
+	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -arch arm64 ../bin/mEdax-arm -output ../bin/mEdax
 	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
 
 clean:
