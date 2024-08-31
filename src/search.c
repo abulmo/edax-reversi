@@ -1548,6 +1548,7 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // for 4 empties (min stage)
 bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 {
@@ -1575,6 +1576,8 @@ bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, cons
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
 #if 0	// unused
 =======
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)

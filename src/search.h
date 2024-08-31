@@ -271,7 +271,6 @@ bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 =======
 bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
-bool search_SC_NWS_fulls_given(Search *, const int, int *, const unsigned long long [5]);
 // bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
 bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 // bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, int*, int*, int*);

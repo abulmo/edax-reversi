@@ -520,6 +520,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 				score = -accumlate_eval(60 - search->eval.n_empties + 1, &Ev);
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
+<<<<<<< HEAD
 		board0.board = search->board;
 		x = NOMOVE;
 		do {
@@ -574,9 +575,11 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 >>>>>>> 8d39e74 (Loop out rounding score)
 				if (score > bestscore) {
+=======
+				if (score > bestscore)
+>>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
 					bestscore = score;
-					if (bestscore >= betathres) break;
-				}
+				if (bestscore >= betathres) break;
 			}
 		}
 

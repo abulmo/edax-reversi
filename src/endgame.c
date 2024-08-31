@@ -1203,30 +1203,33 @@ int NWS_endgame(Search *search, const int alpha)
 	// Hidekazu Matsuo, Shuji Narazaki
 	// http://id.nii.ac.jp/1001/00156359/
 	// (1-2% improvement)
+	hashboard = search->board;
+	ofssolid = 0;
 	if (search->eval.n_empties <= MASK_SOLID_DEPTH) {
-		get_all_full_lines(search->board.player | search->board.opponent, full);
-
-		// stability cutoff
-		if (search_SC_NWS_fulls_given(search, alpha, &score, full))
-			return score;
-
-		solid_opp = full[4] & search->board.opponent;	// full[4] = all full
-		hashboard.player = search->board.player ^ solid_opp;	// normalize solid to player
-		hashboard.opponent = search->board.opponent ^ solid_opp;
+		get_all_full_lines(hashboard.player | hashboard.opponent, full);
+		solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
+		hashboard.player ^= solid_opp;	// normalize solid to player
+		hashboard.opponent ^= solid_opp;
 		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+	}
+	hash_code = board_get_hash_code(&hashboard);
 
-	} else {
-		// stability cutoff
-		if (search_SC_NWS(search, alpha, &score))
+	// stability cutoff
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+		hash_prefetch(hash_table, hash_code);	// ease hash access latency
+
+		CUTOFF_STATS(++statistics.n_stability_try;)
+		if (search->eval.n_empties > MASK_SOLID_DEPTH)
+			get_all_full_lines(search->board.player | search->board.opponent, full);
+
+		score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, full);
+		if (score <= alpha) {
+			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return score;
-
-		hashboard = search->board;
-		ofssolid = 0;
+		}
 	}
 
 	// transposition cutoff
-
-	hash_code = board_get_hash_code(&hashboard);
 	if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {
 		hash_data.lower -= ofssolid;
 		hash_data.upper -= ofssolid;

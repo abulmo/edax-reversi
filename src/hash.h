@@ -148,4 +148,17 @@ inline void hash_prefetch(HashTable *hashtable, unsigned long long hashcode) {
   #endif
 }
 
+#ifdef hasSSE2
+	#define	hash_prefetch(hashtable, hashcode)	_mm_prefetch((char const*)((hashtable)->hash + ((hashcode) & (hashtable)->hash_mask)), _MM_HINT_T0)
+#elif defined(__ARM_ACLE)
+	#define	hash_prefetch(hashtable, hashcode)	__pld((hashtable)->hash + ((hashcode) & (hashtable)->hash_mask))
+#elif defined(__GNUC__)
+	#define	hash_prefetch(hashtable, hashcode)	__builtin_prefetch((hashtable)->hash + ((hashcode) & (hashtable)->hash_mask))
+#else
+	#define	hash_prefetch(hashtable, hashcode)
 #endif
+<<<<<<< HEAD
+=======
+
+#endif
+>>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
