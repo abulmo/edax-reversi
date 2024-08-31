@@ -417,10 +417,10 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 /**
  * @file board_mmx.c
  *
- * MMX translation of some board.c functions
+ * MMX translation of some board.c functions for X86-32
  *
  * If both hasMMX and hasSSE2 are undefined, dynamic dispatching code
- * will be generated.  (This setting requires GCC 4.4+)
+ * will be generated.  (This setting requires VC or GCC 4.4+)
  *
  * Parameters are passed as 4 ints instead of 2 longlongs to avoid
  * alignment ajust and to enable store to load forwarding.
@@ -897,29 +897,27 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		_m_from_int(edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24))));
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-	if (_m_to_int(_m_packsswb(stable, stable)) == 0) {
-		_mm_empty();
-		return 0;
-	}
-
-	do {
-		old_stable = stable;
-		stable_h = _m_por(_m_por(_m_psrlqi(stable, 1), _m_psllqi(stable, 1)), full_h);
-		stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), full_v);
-		stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full_d7);
-		stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), full_d9);
-		stable = _m_por(stable, _m_pand(_m_pand(_m_pand(_m_pand(stable_h, stable_v), stable_d7), stable_d9), P_central));
-		m = _m_pxor(stable, old_stable);
-	} while (_m_to_int(_m_packsswb(m, m)) != 0);
+	t = _m_to_int(_m_packsswb(stable, stable));
+	if (t) {
+		do {
+			old_stable = stable;
+			stable_h = _m_por(_m_por(_m_psrlqi(stable, 1), _m_psllqi(stable, 1)), full_h);
+			stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), full_v);
+			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full_d7);
+			stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), full_d9);
+			stable = _m_por(stable, _m_pand(_m_pand(_m_pand(_m_pand(stable_h, stable_v), stable_d7), stable_d9), P_central));
+			m = _m_pxor(stable, old_stable);
+		} while (_m_to_int(_m_packsswb(m, m)) != 0);
 
 #ifdef POPCOUNT
-	t = __popcnt(_m_to_int(stable)) + __popcnt(_m_to_int(_m_psrlqi(stable, 32)));
+		t = __popcnt(_m_to_int(stable)) + __popcnt(_m_to_int(_m_psrlqi(stable, 32)));
 #else
-	m = _m_psubd(stable, _m_pand(_m_psrlqi(stable, 1), *(__m64 *) &mask_55));
-	m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
-	m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
-	t = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
+		m = _m_psubd(stable, _m_pand(_m_psrlqi(stable, 1), *(__m64 *) &mask_55));
+		m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
+		m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
+		t = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
 #endif
+	}
 	_mm_empty();
 	return t;
 }
@@ -1036,80 +1034,75 @@ int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		"movd	%%mm0, %0\n\t"
 	: "=g" (t) : "y" (stable) : "mm0" );
 
-	if (t == 0) {
-		__asm__ ( "emms" );
-		return 0;
-	}
+	if (t) {
+		do {
+			__asm__ (
+				"movq	%1, %%mm3\n\t"
+				"movq	%6, %1\n\t"
+				"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"
+				"psrlq	$1, %%mm0\n\t"		"psllq	$1, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
+				"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$7, %%mm2\n\t"
+				"por	%2, %%mm0\n\t"		"psllq	$7, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
+				"pand	%%mm0, %1\n\t"						"por	%4, %%mm2\n\t"
+				"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"pand	%%mm2, %1\n\t"
+				"psrlq	$8, %%mm0\n\t"		"psllq	$8, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
+				"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$9, %%mm2\n\t"
+				"por	%3, %%mm0\n\t"		"psllq	$9, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
+				"pand	%%mm0, %1\n\t"						"por	%5, %%mm2\n\t"
+												"pand	%%mm2, %1\n\t"
+				"por	%%mm3, %1\n\t"
+				"pxor	%1, %%mm3\n\t"
+				"packsswb %%mm3, %%mm3\n\t"
+				"movd	%%mm3, %0"
+			: "=g" (t), "+y" (stable)
+			: "m" (full_h), "m" (full_v), "m" (full_d7), "m" (full_d9), "m" (P_central)
+			: "mm0", "mm1", "mm2", "mm3");
+		} while (t);
 
-	do {
-		__asm__ (
-			"movq	%1, %%mm3\n\t"
-			"movq	%6, %1\n\t"
-			"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"
-			"psrlq	$1, %%mm0\n\t"		"psllq	$1, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
-			"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$7, %%mm2\n\t"
-			"por	%2, %%mm0\n\t"		"psllq	$7, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
-			"pand	%%mm0, %1\n\t"						"por	%4, %%mm2\n\t"
-			"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"pand	%%mm2, %1\n\t"
-			"psrlq	$8, %%mm0\n\t"		"psllq	$8, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
-			"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$9, %%mm2\n\t"
-			"por	%3, %%mm0\n\t"		"psllq	$9, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
-			"pand	%%mm0, %1\n\t"						"por	%5, %%mm2\n\t"
-											"pand	%%mm2, %1\n\t"
-			"por	%%mm3, %1\n\t"
-			"pxor	%1, %%mm3\n\t"
-			"packsswb %%mm3, %%mm3\n\t"
-			"movd	%%mm3, %0"
-		: "=g" (t), "+y" (stable)
-		: "m" (full_h), "m" (full_v), "m" (full_d7), "m" (full_d9), "m" (P_central)
-		: "mm0", "mm1", "mm2", "mm3");
-	} while (t);
-
-	// bit_count(stable)
+		// bit_count(stable)
 #ifdef POPCOUNT
-	__asm__ (
-		"movd	%1, %0\n\t"
-		"psrlq	$32, %1\n\t"
-		"movd	%1, %%edx\n\t"
-		"popcntl %0, %0\n\t"
-		"popcntl %%edx, %%edx\n\t"
-		"addl	%%edx, %0\n\t"
-		"emms"
-	: "=&a" (t) : "y" (stable) : "edx");
+		__asm__ (
+			"movd	%1, %0\n\t"
+			"psrlq	$32, %1\n\t"
+			"movd	%1, %%edx\n\t"
+			"popcntl %0, %0\n\t"
+			"popcntl %%edx, %%edx\n\t"
+			"addl	%%edx, %0"
+		: "=&a" (t) : "y" (stable) : "edx");
 #else
-	__asm__ (
- 		"movq	%1, %%mm0\n\t"
-		"psrlq	$1, %1\n\t"
-		"pand	%2, %1\n\t"
-		"psubd	%1, %%mm0\n\t"
+		__asm__ (
+	 		"movq	%1, %%mm0\n\t"
+			"psrlq	$1, %1\n\t"
+			"pand	%2, %1\n\t"
+			"psubd	%1, %%mm0\n\t"
 
-		"movq	%%mm0, %%mm1\n\t"
-		"psrlq	$2, %%mm0\n\t"
-		"pand	%3, %%mm1\n\t"
-		"pand	%3, %%mm0\n\t"
-		"paddd	%%mm1, %%mm0\n\t"
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$2, %%mm0\n\t"
+			"pand	%3, %%mm1\n\t"
+			"pand	%3, %%mm0\n\t"
+			"paddd	%%mm1, %%mm0\n\t"
 
-		"movq	%%mm0, %%mm1\n\t"
-		"psrlq	$4, %%mm0\n\t"
-		"paddd	%%mm1, %%mm0\n\t"
-		"pand	%4, %%mm0\n\t"
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$4, %%mm0\n\t"
+			"paddd	%%mm1, %%mm0\n\t"
+			"pand	%4, %%mm0\n\t"
 	#ifdef hasSSE2
-		"pxor	%%mm1, %%mm1\n\t"
-		"psadbw	%%mm1, %%mm0\n\t"
-		"movd	%%mm0, %0\n\t"
+			"pxor	%%mm1, %%mm1\n\t"
+			"psadbw	%%mm1, %%mm0\n\t"
+			"movd	%%mm0, %0\n\t"
 	#else
-		"movq	%%mm0, %%mm1\n\t"
-		"psrlq	$32, %%mm0\n\t"
-		"paddb	%%mm1, %%mm0\n\t"
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$32, %%mm0\n\t"
+			"paddb	%%mm1, %%mm0\n\t"
 
-		"movd	%%mm0, %0\n\t"
-		"imull	$0x01010101, %0, %0\n\t"
-		"shrl	$24, %0\n\t"
+			"movd	%%mm0, %0\n\t"
+			"imull	$0x01010101, %0, %0\n\t"
+			"shrl	$24, %0"
 	#endif
-		"emms"
-	: "=a" (t) : "y" (stable), "m" (mask_55), "my" (mask_33), "m" (mask_0F) : "mm0", "mm1");
+		: "=a" (t) : "y" (stable), "m" (mask_55), "my" (mask_33), "m" (mask_0F) : "mm0", "mm1");
 #endif
-
+	}
+	__asm__ ( "emms" );
 	return t;
 }
 #endif // USE_MSVC_X86

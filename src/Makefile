@@ -42,7 +42,7 @@ endif
 
 # gcc 4.x (x >= 7)
 ifeq ($(COMP),gcc)
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
 
@@ -163,7 +163,7 @@ endif
 
 ifeq ($(COMP),gcc-old)
 	CC = gcc
-	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
+	CFLAGS = -std=c99 -pedantic -W -Wall -Wextra -pipe -DUNICODE
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O3 -fwhole-program -DNDEBUG
@@ -214,7 +214,7 @@ endif
 
 # g++
 ifeq ($(COMP),g++)
-	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1 -DUNICODE
+	CFLAGS = -x c++ -std=c++11 -pedantic -W -Wall -Wextra -pipe -DUNICODE
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
 
@@ -256,10 +256,14 @@ endif
 #icc
 ifeq ($(COMP),icc)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
 =======
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -DUNICODE
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	PGO_GEN = -prof_gen
 	PGO_USE = -prof_use -wd11505
 
@@ -288,7 +292,7 @@ endif
 
 #pcc
 ifeq ($(COMP),pcc)
-	CFLAGS = - -D_GNU_SOURCE=1 -DUNICODE
+	CFLAGS = - -DUNICODE
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O4 -DNDEBUG
@@ -310,21 +314,30 @@ endif
 #clang
 ifeq ($(COMP),clang)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
 =======
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+	CFLAGS = -std=c99 -pedantic -W -Wall -DUNICODE -Wno-invalid-source-encoding
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
 		LTOFLAG = -flto
 =======
 		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG
 >>>>>>> ea39994 (Improve clang compatibility)
+=======
+		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
+		LTOFLAG = -flto
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -453,12 +466,15 @@ help:
 build:
 	@echo "building edax..."
 	$(CC) $(CFLAGS) $(LTOFLAG) all.c -s -o $(BIN)/$(EXE) $(LIBS)
+<<<<<<< HEAD
 
 source:
 	$(CC) $(CFLAGS) -S all.c
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 source:
-	$(CC) $(CFLAGS) all.c -S
+	$(CC) $(CFLAGS) -S all.c
 
 pgo-build:
 	@echo "building edax with pgo..."

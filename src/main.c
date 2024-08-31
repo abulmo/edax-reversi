@@ -39,11 +39,15 @@ void version(void)
 		" for Apple"
 #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
 =======
 
 	fprintf(stderr, "copyright 1998 - 2018 Richard Delorme\n\n");
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+		"\ncopyright 1998 - 2018 Richard Delorme\n\n");
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 }
 
 

@@ -731,11 +731,19 @@ void game_export_ggf(const Game *game, FILE *f)
 	fputs("BO[8 ", f);
 
 	if (game->player == BLACK) {
+<<<<<<< HEAD
 		bk = game->initial_board.player;
 		wh = game->initial_board.opponent;
 	} else {
 		bk = game->initial_board.opponent;
 		wh = game->initial_board.player;
+=======
+		bk = game->initial_board->player;
+		wh = game->initial_board->opponent;
+	} else {
+		bk = game->initial_board->opponent;
+		wh = game->initial_board->player;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	}
 	for (x = 0; x < 64; ++x) {
 		square = 2 - (wh & 1) - 2 * (bk & 1);

@@ -142,7 +142,7 @@ enum { EVAL_N_FEATURE = 47 };
 typedef struct Eval {
 	union {
 		unsigned short us[EVAL_N_FEATURE];         /**!< discs' features */
-#ifdef hasSSE2
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 		__m128i	v8[6];
 #endif
 #ifdef __AVX2__

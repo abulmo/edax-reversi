@@ -120,6 +120,119 @@ void move_print(const int x, const int player, FILE *f)
 }
 
 
+<<<<<<< HEAD
+=======
+/**
+ * @brief Check if a move wins 64-0.
+ *
+ * Check if a move flipped all the opponent discs.
+ *
+ * @param move Move.
+ * @param board Board.
+ * @return true if a move wins 64-0, false otherwise.
+ */
+bool move_wipeout(const Move *move, const Board *board)
+{
+	return move->flipped == board->opponent;
+}
+
+#ifdef TUNE_EDAX
+static int w_hash = 1 << 15;
+static int w_eval = 1 << 15;
+static int w_mobility = 1 << 15;
+static int w_corner_stability = 1 << 11;
+static int w_edge_stability = 1 << 11;
+static int w_potential_mobility = 1 << 5;
+static int w_low_parity = 1 << 3;
+static int w_mid_parity = 1 << 2;
+static int w_high_parity = 1 << 1;
+#endif
+
+
+/**
+ * @brief Evaluate a list of move.
+ *
+ * Evaluate the moves to sort them. Evaluation is based on, in order of importance:
+ *   - wipeout move    : 1 << 30
+ *   - first hash move : 1 << 29
+ *   - second hash move: 1 << 28
+ *   - shallow search  : 1 << 22 to 1 << 14
+ *   - opponent mobility:                 1 << 15            32768...1048576
+ *   - player stability near the corner:  1 << 11             2048...24576
+ *   - opponent potential mobility:       1 << 5                32...1024
+ *   - square value                       1 << 1:               2 ...18
+ *   - parity:                            1 << 0:               0 ... 1
+ *
+ * @param move   Move to evaluate.
+ * @param search Position to evaluate.
+ * @param hash_data   Position (maybe) stored in the hashtable.
+ * @param sort_alpha   Alpha bound to evaluate moves.
+ * @param sort_depth   depth for the shallow search
+ */
+static void move_evaluate(Move *move, Search *search, const HashData *hash_data, const int sort_alpha, const int sort_depth)
+{
+#ifndef TUNE_EDAX
+	const int w_hash = 1 << 15;
+	const int w_eval = 1 << 15;
+	const int w_mobility = 1 << 15;
+	const int w_corner_stability = 1 << 11;
+	const int w_edge_stability = 1 << 11;
+	const int w_potential_mobility = 1 << 5;
+	const int w_low_parity = 1 << 3;
+	const int w_mid_parity = 1 << 2;
+	const int w_high_parity = 1 << 1;
+#endif	
+
+	Board *board = search->board;
+	HashData dummy[1];
+
+	if (move_wipeout(move, board)) move->score = (1 << 30);
+	else if (move->x == hash_data->move[0]) move->score = (1 << 29);
+	else if (move->x == hash_data->move[1]) move->score = (1 << 28);
+	else {
+
+		move->score = SQUARE_VALUE[move->x]; // square type
+		if (search->n_empties < 12 && search->parity & QUADRANT_ID[move->x]) move->score += w_low_parity; // parity
+		else if (search->n_empties < 21 && search->parity & QUADRANT_ID[move->x]) move->score += w_mid_parity; // parity
+		else if (search->n_empties < 30 && search->parity & QUADRANT_ID[move->x]) move->score += w_high_parity; // parity
+
+		if (sort_depth < 0) {
+			board_update(board, move);
+				SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+				move->score += (36 - get_potential_mobility(board->player, board->opponent)) * w_potential_mobility; // potential mobility
+				move->score += get_corner_stability(board->opponent) * w_corner_stability; // corner stability
+				move->score += (36 - get_weighted_mobility(board->player, board->opponent)) * w_mobility; // real mobility
+			board_restore(board, move);
+		} else {
+			int selectivity = search->selectivity;
+			search->selectivity = NO_SELECTIVITY;
+			search_update_midgame(search, move);
+				SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
+				move->score += (36 - get_potential_mobility(board->player, board->opponent)) * w_potential_mobility; // potential mobility
+				move->score += get_edge_stability(board->opponent, board->player) * w_edge_stability; // edge stability
+				move->score += (36 - get_weighted_mobility(board->player, board->opponent)) *  w_mobility; // real mobility
+				switch(sort_depth) {
+				case 0:
+					move->score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
+					break;
+				case 1:
+					move->score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha)) >> 1) * w_eval;  // 2 level score bonus
+					break;
+				case 2:
+					move->score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha)) >> 1) * w_eval;  // 3 level score bonus
+					break;
+				default:
+					if (hash_get(search->hash_table, search->board, board_get_hash_code(search->board), dummy)) move->score += w_hash; // bonus if the position leads to a position stored in the hash-table
+					move->score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
+					break;
+				}
+			search_restore_midgame(search, move);
+			search->selectivity = selectivity;
+		}
+	}
+}
+
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #ifdef TUNE_EDAX
 #include "solver.h"
 
@@ -500,12 +613,18 @@ void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
 {
 	Move *iter, *prev, *m, *hashmove0, *hashmove1;
 
+<<<<<<< HEAD
 	hashmove0 = hashmove1 = NULL;
 	for (prev = iter = &movelist->move[0]; (m = prev->next); prev = m) {
 		if (m->x == hash_data->move[0])
 			hashmove0 = prev;
 		if (m->x == hash_data->move[1])
 			hashmove1 = prev;
+=======
+	foreach_move(iter, movelist) {
+		if (iter->x == hash_data->move[0]) iter->cost = INT_MAX;
+		else if (iter->x == hash_data->move[1]) iter->cost = INT_MAX - 1;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	}
 	if (hashmove0) {
 		m = hashmove0->next;
@@ -531,6 +650,7 @@ void movelist_sort_cost(MoveList *movelist, const HashData *hash_data)
  */
 void movelist_sort(MoveList *movelist)
 {
+<<<<<<< HEAD
 	// foreach_best_move(move, *movelist) ;
 
 	Move *previous_best = &movelist->move[0];
@@ -550,6 +670,11 @@ void movelist_sort(MoveList *movelist)
 		// }
 		previous_best = previous_best->next;
 	}
+=======
+	Move *move;
+
+	foreach_best_move(move, movelist) ;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 }
 
 /**

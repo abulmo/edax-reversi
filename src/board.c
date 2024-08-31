@@ -342,6 +342,7 @@ void board_transpose(const Board *board, Board *sym)
 void board_symetry(const Board *board, const int s, Board *sym)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	*sym = *board;
 	if (s & 1)
 		board_horizontal_mirror(sym, sym);
@@ -351,6 +352,9 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		board_transpose(sym, sym);
 =======
 	register unsigned long long player, opponent;
+=======
+	unsigned long long player, opponent;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	player = board->player;
 	opponent = board->opponent;
@@ -580,7 +584,31 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 }
 #endif
 
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
+=======
+/**
+ * @brief Compute a board resulting of an opponent move played on a previous board.
+ *
+ * Compute the board after passing and playing a move.
+ *
+ * @param board board to play the move on.
+ * @param x opponent move to play.
+ * @param next resulting board.
+ * @return flipped discs.
+ */
+unsigned long long board_pass_next(const Board *board, const int x, Board *next)
+{
+	const unsigned long long flipped = Flip(x, board->opponent, board->player);
+
+	next->opponent = board->opponent ^ (flipped | x_to_bit(x));
+	next->player = board->player ^ flipped;
+
+	return flipped;
+}
+
+#if !defined(__x86_64__) && !defined(_M_X64) && !defined(__AVX2__)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 /**
  * @brief Get a part of the moves.
  *
@@ -661,9 +689,12 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
  * @return all legal moves in a 64-bit unsigned integer.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #if !defined(__x86_64__) && !defined(_M_X64)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long moves, OM;
@@ -717,10 +748,14 @@ unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long
 bool can_move(const unsigned long long P, const unsigned long long O)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasMMX) || defined(__ARM_NEON)
 =======
 #if defined(USE_GAS_MMX) || defined(__x86_64__) || defined(USE_MSVC_X86)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+#if defined(__x86_64__) || defined(_M_X64) || defined(hasMMX)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	return get_moves(P, O) != 0;
 
 #else
@@ -835,6 +870,9 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 			O = old_O;
 			P = old_P | X; // player plays on it
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 			if (X > 0x02) { // flip left discs (using parallel prefix)
 				F  = O & (X >> 1);
 				F |= O & (F >> 1);
@@ -842,6 +880,7 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 				F |= O2 & (F >> 2);
 				F |= O2 & (F >> 2);
 				F &= -(P & (F >> 1));
+<<<<<<< HEAD
 				O ^= F;
 				P ^= F;
 			}
@@ -869,6 +908,16 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 				P ^= F;
 			}
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+				O ^= F;
+				P ^= F;
+			}
+			// if (X < 0x40) { // flip right discs (using carry propagation)
+				F = (O + X + X) & P;
+				F -= (X + X) & -(int)(F != 0);
+				O ^= F;
+				P ^= F;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 			// }
 			stable = find_edge_stable(P, O, stable); // next move
 			if (!stable) return stable;
@@ -876,6 +925,9 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 			P = old_P;
 			O = old_O | X; // opponent plays on it
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 			if (X > 0x02) { // flip left discs (using parallel prefix)
 				F  = P & (X >> 1);
 				F |= P & (F >> 1);
@@ -883,6 +935,7 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 				F |= O2 & (F >> 2);
 				F |= O2 & (F >> 2);
 				F &= -(O & (F >> 1));
+<<<<<<< HEAD
 				O ^= F;
 				P ^= F;
 			}
@@ -910,6 +963,16 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 				P ^= F;
 			}
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+				O ^= F;
+				P ^= F;
+			}
+			// if (X < 0x40) { // flip right discs (using carry propagation)
+	 			F = (P + X + X) & O;
+				F -= (X + X) & -(int)(F != 0);
+				O ^= F;
+				P ^= F;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 			// }
 			stable = find_edge_stable(P, O, stable); // next move
 			if (!stable) return stable;
@@ -922,14 +985,6 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 /**
  * @brief Initialize the edge stability table.
  */
-static unsigned int horizontal_mirror_32(unsigned int b)
-{
-	b = ((b >> 1) & 0x55555555U) +  2 * (b & 0x55555555U);
-	b = ((b >> 2) & 0x33333333U) +  4 * (b & 0x33333333U);
-	b = ((b >> 4) & 0x0F0F0F0FU) + 16 * (b & 0x0F0F0F0FU);
-	return b;
-}
-
 void edge_stability_init(void)
 {
 	int P, O, PO, rPO;
@@ -988,7 +1043,7 @@ static inline unsigned long long get_full_lines(const unsigned long long line, c
 	// kogge-stone algorithm
  	// 5 << + 5 >> + 7 & + 10 |
 	// + better instruction independency
-	register unsigned long long full_l, full_r, edge_l, edge_r;
+	unsigned long long full_l, full_r, edge_l, edge_r;
 	const  unsigned long long edge = 0xff818181818181ffULL;
 	const int dir2 = dir << 1;
 	const int dir4 = dir << 2;
@@ -1005,8 +1060,8 @@ static inline unsigned long long get_full_lines(const unsigned long long line, c
 
 	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
 	// 5 << + 5 >> + 7 & + 10 |
-	register unsigned long long full_l, full_r;
-	register unsigned long long edge_l, edge_r;
+	unsigned long long full_l, full_r;
+	unsigned long long edge_l, edge_r;
 	const  unsigned long long edge = 0xff818181818181ffULL;
 	const int dir2 = dir + dir;
 
@@ -1022,7 +1077,7 @@ static inline unsigned long long get_full_lines(const unsigned long long line, c
 
 	// sequential algorithm
  	// 6 << + 6 >> + 12 & + 5 |
-	register unsigned long long full;
+	unsigned long long full;
 	const unsigned long long edge = line & 0xff818181818181ffULL;
 
 	full = (line & (((line >> dir) & (line << dir)) | edge));
@@ -1036,28 +1091,40 @@ static inline unsigned long long get_full_lines(const unsigned long long line, c
 #endif
 }
 
-static inline unsigned long long get_full_lines_h(const unsigned long long line)
+#ifdef HAS_CPU_64
+static unsigned long long get_full_lines_h(unsigned long long full)
 {
-	unsigned long long full;
-
-	full = line;
 	full &= full >> 1;
 	full &= full >> 2;
 	full &= full >> 4;
-	full = (full & 0x0101010101010101ULL) * 0xff;
-
-	return full;
+	return (full & 0x0101010101010101ULL) * 0xff;
+}
+#else
+static unsigned int get_full_lines_h_32(unsigned int full)
+{
+	full &= full >> 1;
+	full &= full >> 2;
+	full &= full >> 4;
+	return (full & 0x01010101) * 0xff;
 }
 
-static inline unsigned long long get_full_lines_v(const unsigned long long line)
+static unsigned long long get_full_lines_h(unsigned long long full)
 {
-	unsigned long long full;
+	return ((unsigned long long) get_full_lines_h_32(full >> 32) << 32) | get_full_lines_h_32(full);
+}
+#endif
 
-	full = line;
+static unsigned long long get_full_lines_v(unsigned long long full)
+{
+#ifdef _MSC_VER
+	full &= _rotr64(full, 8);
+	full &= _rotr64(full, 16);
+	full &= _rotr64(full, 32);
+#else
 	full &= (full >> 8) | (full << 56);	// ror 8
 	full &= (full >> 16) | (full << 48);	// ror 16
 	full &= (full >> 32) | (full << 32);	// ror 32
-
+#endif
 	return full;
 }
 
@@ -1072,7 +1139,11 @@ static inline unsigned long long get_full_lines_v(const unsigned long long line)
  * @return a bitboard with (some of) player's stable discs.
  *
  */
+<<<<<<< HEAD
 unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+=======
+static unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 {	// compute the exact stable edges (from precomputed tables)
 	return edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
 	    |  (unsigned long long) edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 56
@@ -1371,8 +1442,34 @@ int get_corner_stability(const unsigned long long P)
  */
 unsigned long long board_get_hash_code(const Board *board)
 {
+<<<<<<< HEAD
 	unsigned long long crc = crc32c_u64(0, board->player);
 	return (crc << 32) | crc32c_u64(crc, board->opponent);
+=======
+	const unsigned char *p = (const unsigned char*)board;
+	unsigned long long h1, h2;
+
+#if defined(USE_GAS_MMX) && defined(__3dNOW__)	// Faster on AMD but not suitable for CPU with slow emms
+	if (hasMMX)
+		return board_get_hash_code_mmx(p);
+#elif defined(USE_GAS_MMX) || defined(USE_MSVC_X86) // || defined(__x86_64__)
+	if (hasSSE2)
+		return board_get_hash_code_sse(p);
+#endif
+
+	h1  = hash_rank[0][p[0]];	h2  = hash_rank[1][p[1]];
+	h1 ^= hash_rank[2][p[2]];	h2 ^= hash_rank[3][p[3]];
+	h1 ^= hash_rank[4][p[4]];	h2 ^= hash_rank[5][p[5]];
+	h1 ^= hash_rank[6][p[6]];	h2 ^= hash_rank[7][p[7]];
+	h1 ^= hash_rank[8][p[8]];	h2 ^= hash_rank[9][p[9]];
+	h1 ^= hash_rank[10][p[10]];	h2 ^= hash_rank[11][p[11]];
+	h1 ^= hash_rank[12][p[12]];	h2 ^= hash_rank[13][p[13]];
+	h1 ^= hash_rank[14][p[14]];	h2 ^= hash_rank[15][p[15]];
+
+	// assert((h1 ^ h2) == board_get_hash_code_sse(p));
+
+	return h1 ^ h2;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 }
 
 /**

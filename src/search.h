@@ -132,11 +132,18 @@ typedef struct Search {
 struct Node;
 
 extern const unsigned char QUADRANT_ID[];
+<<<<<<< HEAD
 extern const unsigned long long quadrant_mask[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
 // extern const signed char NWS_STABILITY_THRESHOLD[];
 extern const signed char PVS_STABILITY_THRESHOLD[];
+=======
+extern const Selectivity selectivity_table[];
+extern const int NO_SELECTIVITY;
+extern const unsigned char NWS_STABILITY_THRESHOLD[];
+extern const unsigned char PVS_STABILITY_THRESHOLD[];
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 extern const unsigned char SQUARE_TYPE[];
 
 /* function definition */

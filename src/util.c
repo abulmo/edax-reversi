@@ -228,6 +228,7 @@ char* format_scientific(double v, const char *unit, char *f)
 {
 #ifdef UNICODE
 <<<<<<< HEAD
+<<<<<<< HEAD
 	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
 	static const char fmt[] = " %5.*f %lc%s";
 #else
@@ -237,11 +238,20 @@ char* format_scientific(double v, const char *unit, char *f)
 	int u, d;
 =======
 	static const wchar_t multiple[] = L"EPTGMK mµnpfa"; //
+=======
+	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; //
+	static const char fmt[] = " %5.*f %lc%s";
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #else
-	static const char multiple[] = "EPTGMK mµnpfa"; //
+	static const char multiple[] = "EPTGMK mμnpfa"; //
+	static const char fmt[] = " %5.*f %c%s";
 #endif
+<<<<<<< HEAD
 	int u;
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+	int u, d;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	if (fabs(v) < 1e-24) {
 		u = 0;
@@ -252,11 +262,15 @@ char* format_scientific(double v, const char *unit, char *f)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	if (fabs(v) - floor(fabs(v)) < 0.01) d = 1;
 	else if (fabs(v + 0.05) < 10.0) d = 3;
 	else if (fabs(v + 0.5) < 100.0) d = 2;
 	else d = 1;
 	sprintf(f, fmt, d, v, multiple[6 - u], unit);
+<<<<<<< HEAD
 =======
 #ifdef UNICODE
 	if (fabs(v) - floor(fabs(v)) < 0.01) sprintf(f, " %5.1f %lc%s", v, multiple[6 - u], unit);
@@ -270,6 +284,8 @@ char* format_scientific(double v, const char *unit, char *f)
 	else sprintf(f, " %5.1f %c%s", v, multiple[6 - u], unit);
 #endif
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	return f;
 }

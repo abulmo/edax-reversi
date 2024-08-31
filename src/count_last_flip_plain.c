@@ -337,7 +337,7 @@ static const unsigned long long mask_d[2][64] = {
 	}
 };
 
-#ifdef __x86_64__
+#ifdef HAS_CPU_64
 
 #define	packV(P, x)	(((((P) >> (x)) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56)
 #define packD(PM)	(((PM) * 0x0101010101010101ULL) >> 56)

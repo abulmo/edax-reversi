@@ -269,7 +269,7 @@
 	#ifdef __AVX2__
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
 	#elif defined(__x86_64__) || defined(_M_X64)
-		#define MOVE_MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
+		#define MOVE_MOVE_GENERATOR MOVE_GENERATOR_SSE
 	#else
 		#define MOVE_GENERATOR MOVE_GENERATOR_32
 	#endif

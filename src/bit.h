@@ -46,9 +46,13 @@ void bitboard_write(unsigned long long, FILE*);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 unsigned long long transpose(unsigned long long);
 <<<<<<< HEAD
+<<<<<<< HEAD
 unsigned int horizontal_mirror_32(unsigned int b);
 =======
 >>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
+=======
+unsigned int horizontal_mirror_32(unsigned int b);
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 unsigned long long horizontal_mirror(unsigned long long);
 int get_rand_bit(unsigned long long, struct Random*);
 
@@ -110,11 +114,9 @@ unsigned long long vertical_mirror(unsigned long long);
 /** Loop over each bit set. */
 #define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
 
-#if !defined(__x86_64__) && !defined(_M_X64)
+#ifndef HAS_CPU_64
 	#if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctz)
 		#define	first_bit_32(x)	__builtin_ctz(x)
-	#elif defined(__AVX2__)
-		#define	first_bit_32(x)	_tzcnt_u32(x)
 	#else
 		int first_bit_32(unsigned int);
 	#endif
@@ -401,31 +403,22 @@ typedef union {
 #endif
 
 // X64 compatibility sims for X86
-#if defined hasSSE2 && !defined(__x86_64__) && !defined(_M_X64)
+#if !defined(__x86_64__) && !defined(_M_X64)
+#ifdef hasSSE2
 static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
 	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
 }
 #endif
 
-#if !defined(__x86_64__) && !defined(_M_X64)
 #ifdef __AVX2__
-static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
+static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 	return ((unsigned long long) _mm_extract_epi32(x, 1) << 32)
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #elif defined(hasSSE2) || defined(USE_MSVC_X86)
-static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
+static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 	return ((unsigned long long) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32)
-		| ((unsigned int) _mm_cvtsi128_si32(x));
-}
-#elif defined(USE_GAS_MMX)
-static inline  unsigned long long _mm_cvtsi128_si64(__m128i x) {
-	unsigned long long y;
-	__asm__ ( "movd	%1,%%eax\n\t"
-		"psrlq	$32,%1\n\t"
-		"movd	%1,%%edx"
-		: "=A" (y) : "x" (x));
-	return y;
+		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #endif
 #endif

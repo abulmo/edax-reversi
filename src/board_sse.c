@@ -1307,7 +1307,7 @@ unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int 
  * @return a bitboard with (some of) player's stable discs.
  *
  */
-static inline unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+static unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
 {
 	// compute the exact stable edges (from precomputed tables)
 	unsigned int a1a8po, h1h8po;
@@ -1474,31 +1474,35 @@ int get_stability(const unsigned long long P, const unsigned long long O)
  * @param p pointer to 16 bytes to hash.
  * @return the hash code of the bitboard
  */
-#if (defined(USE_GAS_MMX) && !defined(__3dNOW__)) // || defined(__x86_64__)
+#if (defined(USE_GAS_MMX) && !defined(__3dNOW__)) || defined(USE_MSVC_X86) // || defined(__x86_64__)
 
 unsigned long long board_get_hash_code_sse(const unsigned char *p)
 {
 	unsigned long long h;
-#ifdef hasSSE2
-	__m128i	hh;
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
+	__m128	h0, h1, h2, h3;
 
-	hh  = _mm_set_epi64x(hash_rank[1][p[1]], hash_rank[0][p[0]]);
-	hh ^= _mm_set_epi64x(hash_rank[3][p[3]], hash_rank[2][p[2]]);
-	hh ^= _mm_set_epi64x(hash_rank[5][p[5]], hash_rank[4][p[4]]);
-	hh ^= _mm_set_epi64x(hash_rank[7][p[7]], hash_rank[6][p[6]]);
-	hh ^= _mm_set_epi64x(hash_rank[9][p[9]], hash_rank[8][p[8]]);
-	hh ^= _mm_set_epi64x(hash_rank[11][p[11]], hash_rank[10][p[10]]);
-	hh ^= _mm_set_epi64x(hash_rank[13][p[13]], hash_rank[12][p[12]]);
-	hh ^= _mm_set_epi64x(hash_rank[15][p[15]], hash_rank[14][p[14]]);
-	hh ^= _mm_shuffle_epi32(hh, 0x4e);
-	h = hh[0];
+	h0 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[0][p[0]])), (__m64 *) &hash_rank[4][p[4]]);
+	h1 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[1][p[1]])), (__m64 *) &hash_rank[5][p[5]]);
+	h2 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[2][p[2]])), (__m64 *) &hash_rank[6][p[6]]);
+	h3 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[3][p[3]])), (__m64 *) &hash_rank[7][p[7]]);
+	h0 = _mm_xor_ps(h0, h2);	h1 = _mm_xor_ps(h1, h3);
+	h2 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[8][p[8]])), (__m64 *) &hash_rank[10][p[10]]);
+	h3 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[9][p[9]])), (__m64 *) &hash_rank[11][p[11]]);
+	h0 = _mm_xor_ps(h0, h2);	h1 = _mm_xor_ps(h1, h3);
+	h2 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[12][p[12]])), (__m64 *) &hash_rank[14][p[14]]);
+	h3 = _mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) &hash_rank[13][p[13]])), (__m64 *) &hash_rank[15][p[15]]);
+	h0 = _mm_xor_ps(h0, h2);	h1 = _mm_xor_ps(h1, h3);
+	h0 = _mm_xor_ps(h0, h1);
+	h0 = _mm_xor_ps(h0, _mm_movehl_ps(h1, h0));
+	h = _mm_cvtsi128_si64(_mm_castps_si128(h0));
 
 #else
 	__asm__ volatile (
-		"movlps	%0, %%xmm0\n\t"		"movlps	%1, %%xmm1"
+		"movq	%0, %%xmm0\n\t"		"movq	%1, %%xmm1"
 	: : "m" (hash_rank[0][p[0]]), "m" (hash_rank[1][p[1]]));
 	__asm__ volatile (
-		"movlps	%0, %%xmm2\n\t"		"movlps	%1, %%xmm3"
+		"movq	%0, %%xmm2\n\t"		"movq	%1, %%xmm3"
 	: : "m" (hash_rank[2][p[2]]), "m" (hash_rank[3][p[3]]));
 	__asm__ volatile (
 		"movhps	%0, %%xmm0\n\t"		"movhps	%1, %%xmm1"
@@ -1508,14 +1512,14 @@ unsigned long long board_get_hash_code_sse(const unsigned char *p)
 	: : "m" (hash_rank[6][p[6]]), "m" (hash_rank[7][p[7]]));
 	__asm__ volatile (
 		"xorps	%%xmm2, %%xmm0\n\t"	"xorps	%%xmm3, %%xmm1\n\t"
-		"movsd	%0, %%xmm2\n\t"		"movsd	%1, %%xmm3"
+		"movq	%0, %%xmm2\n\t"		"movq	%1, %%xmm3"
 	: : "m" (hash_rank[8][p[8]]), "m" (hash_rank[9][p[9]]));
 	__asm__ volatile (
 		"movhps	%0, %%xmm2\n\t"		"movhps	%1, %%xmm3"
 	: : "m" (hash_rank[10][p[10]]), "m" (hash_rank[11][p[11]]));
 	__asm__ volatile (
 		"xorps	%%xmm2, %%xmm0\n\t"	"xorps	%%xmm3, %%xmm1\n\t"
-		"movsd	%0, %%xmm2\n\t"		"movsd	%1, %%xmm3"
+		"movq	%0, %%xmm2\n\t"		"movq	%1, %%xmm3"
 	: : "m" (hash_rank[12][p[12]]), "m" (hash_rank[13][p[13]]));
 	__asm__ volatile (
 		"movhps	%1, %%xmm2\n\t"		"movhps	%2, %%xmm3\n\t"

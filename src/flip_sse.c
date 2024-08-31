@@ -2275,21 +2275,20 @@ static const V2DI	minusone = {{ -1LL, -1LL }};
 #define	SWAP64	0x4e	// for _mm_shuffle_epi32
 #define	SWAP32	0xb1
 
-#if defined(_MSC_VER) && defined(_M_X64) && !defined(__AVX2__)
-static inline int lzcnt64(unsigned long long n) {
+#if 0 // defined(_MSC_VER) && defined(_M_X64) && !defined(__AVX2__)
+static inline int _lzcnt_u64(unsigned long long n) {
 	unsigned long i;
-	if (_BitScanReverse64(&i, n))
-		return i ^ 63;
-	else
-		return 64;
+	if (!_BitScanReverse64(&i, n))
+		i = -1;
+	return 63 - i;
 }
-#else
-#define	lzcnt64(x)	_lzcnt_u64(x)
 #endif
 
-#if (defined(__LZCNT__) && defined(__x86_64__)) || (defined(_MSC_VER) && defined(_M_X64))
-	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> lzcnt64(~(O) & (maskr)))
-#elif 1	// bswap to use carry propagation backwards
+#if (defined(__x86_64__) && defined(__LZCNT__)) || (defined(_M_X64) && defined(__AVX2__))
+	// Strictly, (long long) >> 64 is undefined in C, but either 0 bit (no change)
+	// or 64 bit (zero out) shift will lead valid result (i.e. flipped == 0).
+	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> _lzcnt_u64(~(O) & (maskr)))
+#elif defined(vertical_mirror)	// bswap to use carry propagation backwards
 	#define	outflank_right(O,maskr,masko)	(vertical_mirror(vertical_mirror((O) | ~(maskr)) + 1) & (maskr))
 #else	// with guardian bit to avoid __builtin_clz(0)
 	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> __builtin_clzll(((O) & (masko)) ^ (maskr)))

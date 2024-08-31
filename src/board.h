@@ -85,13 +85,40 @@ int board_count_empties(const Board *board);
 	unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
 	unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
 
+<<<<<<< HEAD
 #elif defined(ANDROID) && !defined(__ARM_NEON) && !defined(hasSSE2)
 	void init_neon (void);
 	unsigned long long get_moves_sse(unsigned long long, unsigned long long);
+=======
+unsigned long long get_moves(const unsigned long long, const unsigned long long);
+bool can_move(const unsigned long long, const unsigned long long);
+unsigned long long get_moves_6x6(const unsigned long long, const unsigned long long);
+bool can_move_6x6(const unsigned long long, const unsigned long long);
+int get_mobility(const unsigned long long, const unsigned long long);
+int get_weighted_mobility(const unsigned long long, const unsigned long long);
+int get_potential_mobility(const unsigned long long, const unsigned long long);
+void edge_stability_init(void);
+int get_stability(const unsigned long long, const unsigned long long);
+int get_edge_stability(const unsigned long long, const unsigned long long);
+int get_corner_stability(const unsigned long long);
+
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+void init_mmx (void);
+unsigned long long get_moves_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
+unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
+int get_stability_mmx(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH);
+int get_potential_mobility_mmx(unsigned long long P, unsigned long long O);
+#endif
+#if defined(USE_GAS_MMX) && defined(__3dNOW__)
+unsigned long long board_get_hash_code_mmx(const unsigned char *p);
+#elif defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+unsigned long long board_get_hash_code_sse(const unsigned char *p);
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #endif
 
 extern unsigned char edge_stability[256 * 256];
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // a1/a8/h1/h8 are already stable in horizontal line, so omit them in vertical line to ease kindergarten for CPU_64
 #if 0 // defined(__BMI2__) && defined(HAS_CPU_64) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__) // pdep is slow on AMD before Zen3
@@ -120,11 +147,18 @@ extern unsigned char edge_stability[256 * 256];
 		extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
 	#endif
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+#if ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2))
+	extern int last_flip(int pos, unsigned long long P);
+#else
+	extern int (*count_last_flip[BOARD_SIZE + 1])(const unsigned long long);
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	#define	last_flip(x,P)	count_last_flip[x](P)
 #else
 	extern int last_flip(int pos, unsigned long long P);
 #endif
 
+<<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
@@ -164,6 +198,16 @@ extern unsigned char edge_stability[256 * 256];
 	extern void init_flip_sse(void);
   #endif
 
+=======
+#if (MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX)
+	extern unsigned long long Flip(int, const unsigned long long, const unsigned long long);
+#elif MOVE_GENERATOR == MOVE_GENERATOR_32
+	extern unsigned long long (*flip[BOARD_SIZE + 2])(unsigned int, unsigned int, unsigned int, unsigned int);
+	#define Flip(x,P,O)	flip[x]((unsigned int)(P), (unsigned int)((P) >> 32), (unsigned int)(O), (unsigned int)((O) >> 32))
+	#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
+		extern void init_flip_sse(void);
+	#endif
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #else
   #if MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP
 	extern unsigned long long Flip(int, unsigned long long, unsigned long long);

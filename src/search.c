@@ -83,6 +83,7 @@ Log search_log[1];
 
 /** a quadrant id for each square */
 const unsigned char QUADRANT_ID[] = {
+<<<<<<< HEAD
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
@@ -101,6 +102,18 @@ const unsigned long long quadrant_mask[] = {
 	0xF0F0F0F000000000, 0xF0F0F0F00F0F0F0F, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0FFFFFFFF,
 	0xFFFFFFFF00000000, 0xFFFFFFFF0F0F0F0F, 0xFFFFFFFFF0F0F0F0, 0xFFFFFFFFFFFFFFFF
 };
+=======
+		1, 1, 1, 1, 2, 2, 2, 2,
+		1, 1, 1, 1, 2, 2, 2, 2,
+		1, 1, 1, 1, 2, 2, 2, 2,
+		1, 1, 1, 1, 2, 2, 2, 2,
+		4, 4, 4, 4, 8, 8, 8, 8,
+		4, 4, 4, 4, 8, 8, 8, 8,
+		4, 4, 4, 4, 8, 8, 8, 8,
+		4, 4, 4, 4, 8, 8, 8, 8,
+		0, 0
+	};
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 /** level with no selectivity */
 const int NO_SELECTIVITY = 5;
@@ -117,7 +130,11 @@ const Selectivity selectivity_table [] = {
 
 /** threshold values to try stability cutoff during NWS search */
 // TODO: better values may exist.
+<<<<<<< HEAD
 static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+=======
+const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	 99, 99, 99, 99,  6,  8, 10, 12,
 	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
 	 32, 34, 36, 38, 40, 42, 44, 46,
@@ -130,7 +147,11 @@ static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 
 /** threshold values to try stability cutoff during PVS search */
 // TODO: better values may exist.
+<<<<<<< HEAD
 const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+=======
+const unsigned char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	 99, 99, 99, 99, -2,  0,  2,  4,
 	  6,  8, 12, 14, 16, 18, 20, 22,
 	 24, 26, 28, 30, 32, 34, 36, 38,
@@ -490,7 +511,12 @@ void search_free(Search *search)
  */
 void search_setup(Search *search)
 {
+<<<<<<< HEAD
 	int i, x, prev;
+=======
+	int i, x;
+	SquareList *empty;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	static const unsigned char presorted_x[] = {
 		A1, A8, H1, H8,                    /* Corner */
 		C4, C5, D3, D6, E3, E6, F4, F5,    /* E */
@@ -504,30 +530,67 @@ void search_setup(Search *search)
 		D4, E4, D5, E5,                    /* center */
 	};
 
+<<<<<<< HEAD
 	const Board * const board = &search->board;
 	unsigned long long E;
 
 	// init empties, parity
 	search->eval.n_empties = 0;
 	search->eval.parity = 0;
+=======
+	Board *board = search->board;
+	unsigned long long E, B;
+
+	// init empties, parity
+	search->n_empties = 0;
+	search->parity = 0;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	prev = NOMOVE;
 	E = ~(board->player | board->opponent);
 	for (i = 0; i < BOARD_SIZE; ++i) {    /* add empty squares */
 		x = presorted_x[i];
+<<<<<<< HEAD
 		if (E & x_to_bit(x)) {
 			search->eval.parity ^= QUADRANT_ID[x];
 			search->empties[prev].next = x;
 			search->empties[x].previous = prev;
 			prev = x;
 			++search->eval.n_empties;
+=======
+		B = x_to_bit(x);
+		if (E & B) {
+			empty->x = x;
+			empty->b = B;
+			empty->quadrant = QUADRANT_ID[x];
+			search->parity ^= empty->quadrant;
+			empty->previous = empty - 1;
+			empty->next = empty + 1;
+			search->x_to_empties[x] = empty;
+			empty = empty->next;
+			++search->n_empties;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 		}
 	}
 	search->empties[prev].next = NOMOVE;	/* sentinel */
 	search->empties[NOMOVE].previous = prev;
 
+<<<<<<< HEAD
 	search->empties[PASS].next = NOMOVE;
 	search->empties[PASS].previous = NOMOVE;
+=======
+	empty = search->empties + PASS;
+	empty->x = PASS;
+	empty->b = 0;
+	empty->previous = empty->next = empty;
+	search->x_to_empties[PASS] = empty;
+
+	empty = search->empties + NOMOVE;
+	empty->x = NOMOVE;
+	empty->b = 0;
+	empty->previous = empty->next = empty;
+	search->x_to_empties[NOMOVE] = empty;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	// init the evaluation function
 	eval_set(&search->eval, &search->board);
@@ -1293,6 +1356,15 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
 		const int beta = alpha + 1;
+<<<<<<< HEAD
+=======
+	
+		CUTOFF_STATS(++statistics.n_etc_try;)
+		foreach_move (move, movelist) {
+			next->opponent = search->board->player ^ (move->flipped | x_to_bit(move->x));
+			next->player = search->board->opponent ^ move->flipped;
+			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 		hash_data.data.wl.c.depth = depth;
 		hash_data.data.wl.c.selectivity = selectivity;

@@ -38,11 +38,17 @@
 #if COUNT_NODES & 1
 	/** node counter for internal nodes */
 	#define SEARCH_UPDATE_INTERNAL_NODES(x) (++(x))
+<<<<<<< HEAD
 	#define SEARCH_UPDATE_2EMPTIES_NODES(x) x
 #else
 	/** no node counter for internal nodes */
 	#define SEARCH_UPDATE_INTERNAL_NODES(x)
 	#define SEARCH_UPDATE_2EMPTIES_NODES(x)
+=======
+#else
+	/** no node counter for internal nodes */
+	#define SEARCH_UPDATE_INTERNAL_NODES(x)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #endif
 #if COUNT_NODES & 2
 	/** node counter for pattern changes */

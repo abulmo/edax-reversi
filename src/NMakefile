@@ -117,22 +117,26 @@ VC_FLAGS = /I"..\include" /O2 /Oi /GL /fp:fast /source-charset:.1252 /execution-
 =======
 # VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
 VC_FLAGS = /D UNICODE /utf-8\
+<<<<<<< HEAD
            /I"..\include" /O2 /Oi /GL /GF /fp:fast /D NDEBUG /D inline=__inline /D __func__=__FUNCTION__\
 >>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
+=======
+           /I"..\include" /O2 /GL /fp:fast /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
            /MT
 
 vc-w64-modern:
-	cl $(VC_FLAGS) /arch:AVX2 /D "POPCOUNT" all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /machine:x64 /VERSION:4.4
+	cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /machine:x64 /VERSION:4.4
 
 vc-w64:
-	cl $(VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
+	cl $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
 
 vc-w32:
 	cl $(VC_FLAGS) /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
 
 vc-pgo-w64-modern:
 	set VCPROFILE_PATH=..\src
-	cl $(VC_FLAGS) /arch:AVX2 /D "POPCOUNT" all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cl $(VC_FLAGS) /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
 	cd ..\bin
 	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
 	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo

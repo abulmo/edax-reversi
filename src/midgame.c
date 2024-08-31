@@ -195,7 +195,7 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 				if (move_wipeout(move, board)) return SCORE_MAX;
 				eval_update(search->eval, move);
 				f = search->eval->feature.us;
-				SEARCH_UPDATE_EVAL_NODES();
+				SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 				score = -w[f[ 0] + 0] - w[f[ 1] + 0] - w[f[ 2] + 0] - w[f[ 3] + 0]
 				  - w[f[ 4] + 19683] - w[f[ 5] + 19683] - w[f[ 6] + 19683] - w[f[ 7] + 19683]
 				  - w[f[ 8] + 78732] - w[f[ 9] + 78732] - w[f[10] + 78732] - w[f[11] + 78732]
@@ -810,7 +810,11 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	else if (depth == 2 && search->eval.n_empties > 2)
 		return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 
+<<<<<<< HEAD
 	nodes_org = search_count_nodes(search);
+=======
+	cost = -search_count_nodes(search);
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 	search_get_movelist(search, &movelist);

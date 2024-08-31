@@ -73,6 +73,7 @@ int bit_count(unsigned long long b)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int	c;
 
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
@@ -92,14 +93,17 @@ int bit_count(unsigned long long b)
 =======
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+=======
+	int	c;
+	#if 0 // defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	static const unsigned long long M55 = 0x5555555555555555ULL;
 	static const unsigned long long M33 = 0x3333333333333333ULL;
 	static const unsigned long long M0F = 0x0F0F0F0F0F0F0F0FULL;
-	int count;
 	#endif
 
-// for X64, MMX does not help much here :-(
-	#ifdef USE_MSVC_X86
+// MMX does not help much here :-(
+	#if 0 // def USE_MSVC_X86
 	__m64	m;
 
 	if (hasSSE2) {
@@ -107,14 +111,18 @@ int bit_count(unsigned long long b)
 		m = _m_psubd(m, _m_pand(_m_psrlqi(m, 1), *(__m64 *) &M55));
 		m = _m_paddd(_m_pand(m, *(__m64 *) &M33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &M33));
 		m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &M0F);
-		count = _m_to_int(_m_psadbw(m, _mm_setzero_si64()));
+		c = _m_to_int(_m_psadbw(m, _mm_setzero_si64()));
 		_mm_empty();
 
-		return count;
+		return c;
 	}
 
+<<<<<<< HEAD
 	#elif defined(USE_GAS_MMX)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	#elif 0 // defined(USE_GAS_MMX)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
   #else
 // https://github.com/official-stockfish/Stockfish/pull/620/files
@@ -141,6 +149,7 @@ void bit_init(void)
 #ifndef crc32c_u64
 	unsigned int	k, crc;
 
+<<<<<<< HEAD
 	// http://stackoverflow.com/a/17646775/1821055
 	// https://github.com/baruch/crcbench
 	// Generate byte-wise table.
@@ -164,6 +173,16 @@ void bit_init(void)
 	for (n = 0; n < 66; ++n) {	// X_TO_BIT[64] = X_TO_BIT[65] = 0 for passing move & nomove
 		X_TO_BIT[n] = ll;
 		ll <<= 1;
+=======
+			"pxor  %%mm2, %%mm2\n\t"
+			"psadbw %%mm2, %%mm0\n\t"	// SSE2
+			"movd	%%mm0, %0\n\t"
+			"emms"
+		: "=a" (c)
+		: "rm" (b), "m" (M55), "m" (M33), "m" (M0F), "m" (((unsigned int *) &b)[1]));
+
+		return c;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	}
 
 <<<<<<< HEAD
@@ -173,12 +192,17 @@ void bit_init(void)
 =======
 	#endif
 
-	b = b - ((b >> 1) & 0x7777777777777777ULL)
-	      - ((b >> 2) & 0x3333333333333333ULL)
-	      - ((b >> 3) & 0x1111111111111111ULL);
-	b = ((b + (b >> 4)) & 0x0F0F0F0F0F0F0F0FULL) * 0x0101010101010101ULL;
-
-	return  (int)(b >> 56);
+	b  = b - ((b >> 1) & 0x5555555555555555ULL);
+	b  = ((b >> 2) & 0x3333333333333333ULL) + (b & 0x3333333333333333ULL);
+#ifdef HAS_CPU_64
+	b = (b + (b >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+	c = (b * 0x0101010101010101ULL) >> 56;
+#else
+	c = (b >> 32) + b;
+	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
+	c = (c * 0x01010101) >> 24;
+#endif
+	return c;
 }
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 #endif
@@ -243,6 +267,7 @@ int bit_weighted_count(unsigned long long v)
 
 #else
 <<<<<<< HEAD
+<<<<<<< HEAD
 int bit_weighted_count(unsigned long long v)
 {
   	unsigned int AH18 = ((v >> 56) | (v << 8)) & 0x8181;	// ror 56
@@ -252,19 +277,26 @@ int bit_weighted_count(unsigned long long v)
   	return bit_count(v) + PopCnt16[AH18];
   #endif
 =======
+=======
+	int	c;
+
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	v  = v - ((v >> 1) & 0x1555555555555515ULL) + (v & 0x0100000000000001ULL);
 	v  = ((v >> 2) & 0x3333333333333333ULL) + (v & 0x3333333333333333ULL);
-	v  = ((v >> 4) + v) & 0x0f0f0f0f0f0f0f0fULL;
-	v *= 0x0101010101010101ULL;
-
-	return  (int)(v >> 56);
-
+#ifdef HAS_CPU_64
+	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+	c = (v * 0x0101010101010101ULL) >> 56;
+#else
+	c = (v >> 32) + v;
+	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
+	c = (c * 0x01010101) >> 24;
+#endif
+	return c;
 #endif
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 }
 #endif
 
-#ifndef first_bit
 /**
  *
  * @brief Search the first bit set.
@@ -278,6 +310,7 @@ int bit_weighted_count(unsigned long long v)
  */
 #if !defined(first_bit_32) && !defined(HAS_CPU_64)
 int first_bit_32(unsigned int b)
+<<<<<<< HEAD
 {
   #if defined(_MSC_VER)
 	unsigned long index;
@@ -295,6 +328,48 @@ int first_bit_32(unsigned int b)
 
   #elif defined(USE_GCC_ARM)
 	return  __builtin_clz(b & -b) ^ 31;
+=======
+{
+#if defined(_MSC_VER)
+	unsigned long index;
+	_BitScanForward(&index, b);
+	return (int) index;
+
+#elif defined(USE_MSVC_X86)
+	__asm {
+		bsf	eax, word ptr b
+	}
+
+#elif defined(USE_GCC_ARM)
+	return  __builtin_clz(b & -b) ^ 31;
+
+#else
+	static const unsigned char magic[32] = {
+		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
+		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+	};
+
+	return magic[((b & (-b)) * 0x077CB531U) >> 27];
+#endif
+}
+#endif // first_bit_32
+
+#ifndef first_bit
+int first_bit(unsigned long long b)
+{
+#if defined(USE_GAS_X64)
+	__asm__("bsfq	%1, %0" : "=r" (b) : "rm" (b));
+	return (int) b;
+
+#elif defined(USE_GAS_X86)
+	int 	x;
+	__asm__ ("bsf	%2, %0\n\t"
+		"jnz	1f\n\t"
+		"bsf	%1, %0\n\t"
+		"addl	$32, %0\n"
+	"1:" : "=&q" (x) : "g" ((int) (b >> 32)), "g" ((int) b));
+	return x;
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 <<<<<<< HEAD
   #else
@@ -304,6 +379,7 @@ int first_bit_32(unsigned int b)
 	};
 =======
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM))
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
 
 	return magic[((b & (-b)) * 0x077CB531U) >> 27];
@@ -328,6 +404,8 @@ int first_bit(unsigned long long b)
 	return x;
 
   #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	unsigned long index;
 	_BitScanForward64(&index, b);
 	return (int) index;
@@ -349,7 +427,11 @@ int first_bit(unsigned long long b)
 	l1:
 	}
 
+<<<<<<< HEAD
   #elif defined(HAS_CPU_64)
+=======
+#elif defined(HAS_CPU_64)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	static const unsigned char magic[64] = {
 		63, 0, 58, 1, 59, 47, 53, 2,
 		60, 39, 48, 27, 54, 33, 42, 3,
@@ -363,14 +445,22 @@ int first_bit(unsigned long long b)
 
 	return magic[((b & (-b)) * 0x07EDD5E59A4E28C2ULL) >> 58];
 
+<<<<<<< HEAD
   #else
+=======
+#else
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	const unsigned int lb = (unsigned int) b;
 	if (lb) {
 		return first_bit_32(lb);
 	} else {
 		return 32 + first_bit_32(b >> 32);
 	}
+<<<<<<< HEAD
   #endif
+=======
+#endif
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -411,7 +501,11 @@ int next_bit(unsigned long long *b)
  */
 int last_bit(unsigned long long b)
 {
+<<<<<<< HEAD
   #if defined(USE_GAS_X64)
+=======
+#if defined(USE_GAS_X64)
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	__asm__("bsrq	%1, %0" :"=r" (b) :"rm" (b));
 	return b;
 
@@ -419,8 +513,11 @@ int last_bit(unsigned long long b)
   #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
 =======
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM))
+<<<<<<< HEAD
 
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
@@ -438,16 +535,14 @@ int last_bit(unsigned long long b)
   #elif 0 // defined(USE_GCC_ARM)
 =======
 #elif defined(USE_GAS_X86)
+	int	x;
+	__asm__ ("bsr	%1, %0\n\t"
+		"leal	32(%0), %0\n\t"
+		"jnz	1f\n\t"
+		"bsr	%2, %0\n\t"
+        "1:" : "=&q" (x) : "g" ((int) (b >> 32)), "g" ((int) b));
+	return x;
 
-  int x1, x2;
-	__asm__ ("bsr %1,%0\n\t"
-		"jnz 1f\n\t"
-		"bsr %0,%0\n\t"
-		"subl $32,%0\n"
-        "1:\taddl $32,%0" : "=&q" (x1), "=&q" (x2) : "1" ((int) (b >> 32)), "0" ((int) b));
-  return x1;
-
-	
 #elif defined(USE_GCC_ARM)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	const unsigned int hb = b >> 32;
@@ -458,9 +553,12 @@ int last_bit(unsigned long long b)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
 =======
 
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #elif defined(USE_MSVC_X86)
 >>>>>>> 1dc032e (Improve visual c compatibility)
 	__asm {
@@ -471,6 +569,7 @@ int last_bit(unsigned long long b)
 	l1:
 	}
 
+<<<<<<< HEAD
   #elif defined(HAS_CPU_64)
 	// https://www.chessprogramming.org/BitScan#De_Bruijn_Multiplication_2
 	static const unsigned char magic[64] = {
@@ -482,6 +581,18 @@ int last_bit(unsigned long long b)
 		34, 51, 20, 43, 31, 22, 10, 45,
 		25, 39, 14, 33, 19, 30,  9, 24,
 		13, 18,  8, 12,  7,  6,  5, 63
+=======
+#elif defined(HAS_CPU_64)
+	static const unsigned char magic[64] = {
+		63, 0, 58, 1, 59, 47, 53, 2,
+		60, 39, 48, 27, 54, 33, 42, 3,
+		61, 51, 37, 40, 49, 18, 28, 20,
+		55, 30, 34, 11, 43, 14, 22, 4,
+		62, 57, 46, 52, 38, 26, 32, 41,
+		50, 36, 17, 19, 29, 10, 13, 21,
+		56, 45, 25, 31, 35, 16, 9, 12,
+		44, 24, 15, 8, 23, 7, 6, 5
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	};
 
 	b |= b >> 1;
@@ -494,7 +605,11 @@ int last_bit(unsigned long long b)
 	return magic[(b * 0x03f79d71b4cb0a89) >> 58];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #else
+=======
+#else
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	static const unsigned char clz_table_4bit[16] = { 4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int	n = 63;
 	unsigned int	x;
@@ -506,40 +621,14 @@ int last_bit(unsigned long long b)
 	if ((x & 0xF0000000) == 0) { n -=  4; x <<=  4; }
 	n -= clz_table_4bit[x >> (32 - 4)];
 	return n;
+<<<<<<< HEAD
   #endif
 =======
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #endif
 }
 #endif // last_bit
-
-#if !defined(__x86_64__) && !defined(_M_X64) && !defined(first_bit_32)
-int first_bit_32(unsigned int b)
-{
-#if defined(_MSC_VER)
-
-	unsigned long index;
-	_BitScanForward(&index, b);
-	return (int) index;
-
-#elif defined(USE_MSVC_X86)
-	__asm {
-		bsf eax, word ptr b
-	}
-
-#elif defined(USE_GCC_ARM)
-	return  __builtin_clz(b & -b) ^ 31;
-
-#else
-
-	static const int magic[32] = {
-		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
-		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-	};
-
-	return magic[((b & (-b)) * 0x077CB531U) >> 27];
-#endif
-}
-#endif // first_bit_32
 
 #ifndef bswap_short
 /**
@@ -602,19 +691,29 @@ unsigned long long vertical_mirror(unsigned long long b)
  */
 unsigned int horizontal_mirror_32(unsigned int b)
 {
+<<<<<<< HEAD
 #ifdef __ARM_ACLE
 	return __rev(__rbit(b));
 #else
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	b = ((b >> 1) & 0x55555555U) +  2 * (b & 0x55555555U);
 	b = ((b >> 2) & 0x33333333U) +  4 * (b & 0x33333333U);
 	b = ((b >> 4) & 0x0F0F0F0FU) + 16 * (b & 0x0F0F0F0FU);
 	return b;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 }
 
 unsigned long long horizontal_mirror(unsigned long long b)
 {
+<<<<<<< HEAD
 #if defined(HAS_CPU_64) && !defined(__ARM_ACLE)
+=======
+#ifdef HAS_CPU_64
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	b = ((b >> 1) & 0x5555555555555555ULL) | ((b & 0x5555555555555555ULL) << 1);
 	b = ((b >> 2) & 0x3333333333333333ULL) | ((b & 0x3333333333333333ULL) << 2);
 	b = ((b >> 4) & 0x0F0F0F0F0F0F0F0FULL) | ((b & 0x0F0F0F0F0F0F0F0FULL) << 4);

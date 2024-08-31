@@ -281,7 +281,7 @@ void eval_set(Eval *eval, const Board *board)
 
 typedef union {
 	unsigned short us[48];
-#ifdef hasSSE2
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 	__m128i	v8[6];
 #endif
 #ifdef __AVX2__
@@ -557,97 +557,9 @@ static const EVAL_FEATURE_V EVAL_FEATURE[65] = {
 	}}
 };
 
-static const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
-	 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
-	 3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  1093,  1093,
-	 1093,  1093,   364,   364,   364,   364,   121,   121,   121,   121,    40,    40,    40,    40,     0,     0
-}};
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 
-#ifdef hasSSE2
-
-/**
- * @brief Set up evaluation features from a board.
- *
- * @param eval  Evaluation function.
- * @param board Board to setup features from.
- */
-void eval_set(Eval *eval, const Board *board)
-{
-	int x;
-	unsigned long long	b = board->player;
-#ifdef __AVX2__
-	__m256i	f0 = EVAL_FEATURE_all_opponent.v16[0];
-	__m256i	f1 = EVAL_FEATURE_all_opponent.v16[1];
-	__m256i	f2 = EVAL_FEATURE_all_opponent.v16[2];
-
-	foreach_bit(x, b) {
-		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
-		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
-		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
-	}
-	b = ~(board->opponent | board->player);
-	foreach_bit(x, b) {
-		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
-		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
-		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
-	}
-	eval->feature.v16[0] = f0;
-	eval->feature.v16[1] = f1;
-	eval->feature.v16[2] = f2;
-
-#else
-	__m128i	f0 = EVAL_FEATURE_all_opponent.v8[0];
-	__m128i	f1 = EVAL_FEATURE_all_opponent.v8[1];
-	__m128i	f2 = EVAL_FEATURE_all_opponent.v8[2];
-	__m128i	f3 = EVAL_FEATURE_all_opponent.v8[3];
-	__m128i	f4 = EVAL_FEATURE_all_opponent.v8[4];
-	__m128i	f5 = EVAL_FEATURE_all_opponent.v8[5];
-
-	foreach_bit(x, b) {
-		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
-		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
-		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
-		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
-		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
-		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
-	}
-	b = ~(board->opponent | board->player);
-	foreach_bit(x, b) {
-		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
-		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
-		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
-		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x].v8[3]);
-		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
-		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
-	}
-
-	eval->feature.v8[0] = f0;
-	eval->feature.v8[1] = f1;
-	eval->feature.v8[2] = f2;
-	eval->feature.v8[3] = f3;
-	eval->feature.v8[4] = f4;
-	eval->feature.v8[5] = f5;
-#endif
-	eval->player = 0;
-}
-
-/**
- * @brief Swap player's feature.
- *
- * @param eval  Evaluation function.
- */
-static void eval_swap(Eval *eval)
-{
-	eval->player ^= 1;
-}
-
-/**
- * @brief Update the features after a player's move.
- *
- * @param eval  Evaluation function.
- * @param move  Move.
- */
-static void eval_update_0(Eval *eval, const Move *move)
+static void eval_update_sse_0(Eval *eval, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;
@@ -673,6 +585,7 @@ static void eval_update_0(Eval *eval, const Move *move)
 	__m128i	f4 = _mm_sub_epi16(eval->feature.v8[4], _mm_slli_epi16(EVAL_FEATURE[x].v8[4], 1));
 	__m128i	f5 = _mm_sub_epi16(eval->feature.v8[5], _mm_slli_epi16(EVAL_FEATURE[x].v8[5], 1));
 
+#ifdef HAS_CPU_64
 	foreach_bit(x, f) {
 		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
@@ -682,6 +595,27 @@ static void eval_update_0(Eval *eval, const Move *move)
 		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
 
+#else
+	unsigned int	fl = (unsigned int) f;
+	unsigned int	fh = (unsigned int) (f >> 32);
+
+	foreach_bit_32(x, fl) {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+	foreach_bit_32(x, fh) {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x + 32].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x + 32].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x + 32].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x + 32].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x + 32].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x + 32].v8[5]);
+	}
+#endif
 	eval->feature.v8[0] = f0;
 	eval->feature.v8[1] = f1;
 	eval->feature.v8[2] = f2;
@@ -697,7 +631,7 @@ static void eval_update_0(Eval *eval, const Move *move)
  * @param eval  Evaluation function.
  * @param move  Move.
  */
-static void eval_update_1(Eval *eval, const Move *move)
+static void eval_update_sse_1(Eval *eval, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;
@@ -723,6 +657,7 @@ static void eval_update_1(Eval *eval, const Move *move)
 	__m128i	f4 = _mm_sub_epi16(eval->feature.v8[4], EVAL_FEATURE[x].v8[4]);
 	__m128i	f5 = _mm_sub_epi16(eval->feature.v8[5], EVAL_FEATURE[x].v8[5]);
 
+#ifdef HAS_CPU_64
 	foreach_bit(x, f) {
 		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
@@ -732,6 +667,28 @@ static void eval_update_1(Eval *eval, const Move *move)
 		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
 
+#else
+	unsigned int	fl = (unsigned int) f;
+	unsigned int	fh = (unsigned int) (f >> 32);
+
+	foreach_bit_32(x, fl) {
+		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+	foreach_bit_32(x, fh) {
+		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x + 32].v8[0]);
+		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x + 32].v8[1]);
+		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x + 32].v8[2]);
+		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x + 32].v8[3]);
+		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x + 32].v8[4]);
+		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x + 32].v8[5]);
+	}
+
+#endif
 	eval->feature.v8[0] = f0;
 	eval->feature.v8[1] = f1;
 	eval->feature.v8[2] = f2;
@@ -741,24 +698,7 @@ static void eval_update_1(Eval *eval, const Move *move)
 #endif
 }
 
-void eval_update(Eval *eval, const Move *move)
-{
-	assert(move->flipped);
-	assert(WHITE == eval->player || BLACK == eval->player);
-	if (eval->player)
-		eval_update_1(eval, move);
-	else
-		eval_update_0(eval, move);
-	eval_swap(eval);
-}
-
-/**
- * @brief Restore the features as before a player's move.
- *
- * @param eval  Evaluation function.
- * @param move  Move.
- */
-static void eval_restore_0(Eval *eval, const Move *move)
+static void eval_restore_sse_0(Eval *eval, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;
@@ -784,7 +724,7 @@ static void eval_restore_0(Eval *eval, const Move *move)
 	__m128i	f4 = _mm_add_epi16(eval->feature.v8[4], _mm_slli_epi16(EVAL_FEATURE[x].v8[4], 1));
 	__m128i	f5 = _mm_add_epi16(eval->feature.v8[5], _mm_slli_epi16(EVAL_FEATURE[x].v8[5], 1));
 
-
+#ifdef HAS_CPU_64
 	foreach_bit(x, f) {
 		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
@@ -793,6 +733,28 @@ static void eval_restore_0(Eval *eval, const Move *move)
 		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
 		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
+
+#else
+	unsigned int	fl = (unsigned int) f;
+	unsigned int	fh = (unsigned int) (f >> 32);
+
+	foreach_bit_32(x, fl) {
+		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+	foreach_bit_32(x, fh) {
+		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x + 32].v8[0]);
+		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x + 32].v8[1]);
+		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x + 32].v8[2]);
+		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x + 32].v8[3]);
+		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x + 32].v8[4]);
+		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x + 32].v8[5]);
+	}
+#endif
 
 	eval->feature.v8[0] = f0;
 	eval->feature.v8[1] = f1;
@@ -803,7 +765,7 @@ static void eval_restore_0(Eval *eval, const Move *move)
 #endif
 }
 
-static void eval_restore_1(Eval *eval, const Move *move)
+static void eval_restore_sse_1(Eval *eval, const Move *move)
 {
 	int	x = move->x;
 	unsigned long long f = move->flipped;
@@ -829,6 +791,7 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	__m128i	f4 = _mm_add_epi16(eval->feature.v8[4], EVAL_FEATURE[x].v8[4]);
 	__m128i	f5 = _mm_add_epi16(eval->feature.v8[5], EVAL_FEATURE[x].v8[5]);
 
+#ifdef HAS_CPU_64
 	foreach_bit(x, f) {
 		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
@@ -838,6 +801,27 @@ static void eval_restore_1(Eval *eval, const Move *move)
 		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
 	}
 
+#else
+	unsigned int	fl = (unsigned int) f;
+	unsigned int	fh = (unsigned int) (f >> 32);
+
+	foreach_bit_32(x, fl) {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+	foreach_bit_32(x, fh) {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x + 32].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x + 32].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x + 32].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x + 32].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x + 32].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x + 32].v8[5]);
+	}
+#endif
 	eval->feature.v8[0] = f0;
 	eval->feature.v8[1] = f1;
 	eval->feature.v8[2] = f2;
@@ -845,27 +829,6 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	eval->feature.v8[4] = f4;
 	eval->feature.v8[5] = f5;
 #endif
-}
-
-void eval_restore(Eval *eval, const Move *move)
-{
-	assert(move->flipped);
-	eval_swap(eval);
-	assert(WHITE == eval->player || BLACK == eval->player);
-	if (eval->player)
-		eval_restore_1(eval, move);
-	else
-		eval_restore_0(eval, move);
-}
-
-/**
- * @brief Update/Restore the features after a passing move.
- *
- * @param eval  Evaluation function.
- */
-void eval_pass(Eval *eval)
-{
-	eval_swap(eval);
 }
 
 #else	// SSE dispatch (Eval may not be aligned)
@@ -1099,4 +1062,136 @@ static void eval_restore_sse_1(Eval *eval, const Move *move)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 =======
 #endif // hasSSE2
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+
+#ifdef hasSSE2
+
+/**
+ * @brief Set up evaluation features from a board.
+ *
+ * @param eval  Evaluation function.
+ * @param board Board to setup features from.
+ */
+void eval_set(Eval *eval, const Board *board)
+{
+	int x;
+	unsigned long long	b = board->player;
+	static const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
+		 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
+		 3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  1093,  1093,
+		 1093,  1093,   364,   364,   364,   364,   121,   121,   121,   121,    40,    40,    40,    40,     0,     0
+	}};
+#ifdef __AVX2__
+	__m256i	f0 = EVAL_FEATURE_all_opponent.v16[0];
+	__m256i	f1 = EVAL_FEATURE_all_opponent.v16[1];
+	__m256i	f2 = EVAL_FEATURE_all_opponent.v16[2];
+
+	foreach_bit(x, b) {
+		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
+		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
+		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
+	}
+	b = ~(board->opponent | board->player);
+	foreach_bit(x, b) {
+		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
+		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
+		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
+	}
+	eval->feature.v16[0] = f0;
+	eval->feature.v16[1] = f1;
+	eval->feature.v16[2] = f2;
+
+#else
+	__m128i	f0 = EVAL_FEATURE_all_opponent.v8[0];
+	__m128i	f1 = EVAL_FEATURE_all_opponent.v8[1];
+	__m128i	f2 = EVAL_FEATURE_all_opponent.v8[2];
+	__m128i	f3 = EVAL_FEATURE_all_opponent.v8[3];
+	__m128i	f4 = EVAL_FEATURE_all_opponent.v8[4];
+	__m128i	f5 = EVAL_FEATURE_all_opponent.v8[5];
+
+	foreach_bit(x, b) {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+	b = ~(board->opponent | board->player);
+	foreach_bit(x, b) {
+		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_add_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
+	}
+
+	eval->feature.v8[0] = f0;
+	eval->feature.v8[1] = f1;
+	eval->feature.v8[2] = f2;
+	eval->feature.v8[3] = f3;
+	eval->feature.v8[4] = f4;
+	eval->feature.v8[5] = f5;
+#endif
+	eval->player = 0;
+}
+
+/**
+ * @brief Swap player's feature.
+ *
+ * @param eval  Evaluation function.
+ */
+static void eval_swap(Eval *eval)
+{
+	eval->player ^= 1;
+}
+
+/**
+ * @brief Update the features after a player's move.
+ *
+ * @param eval  Evaluation function.
+ * @param move  Move.
+ */
+void eval_update(Eval *eval, const Move *move)
+{
+	assert(move->flipped);
+	assert(WHITE == eval->player || BLACK == eval->player);
+	if (eval->player)
+		eval_update_sse_1(eval, move);
+	else
+		eval_update_sse_0(eval, move);
+	eval_swap(eval);
+}
+
+/**
+ * @brief Restore the features as before a player's move.
+ *
+ * @param eval  Evaluation function.
+ * @param move  Move.
+ */
+void eval_restore(Eval *eval, const Move *move)
+{
+	assert(move->flipped);
+	eval_swap(eval);
+	assert(WHITE == eval->player || BLACK == eval->player);
+	if (eval->player)
+		eval_restore_sse_1(eval, move);
+	else
+		eval_restore_sse_0(eval, move);
+}
+
+/**
+ * @brief Update/Restore the features after a passing move.
+ *
+ * @param eval  Evaluation function.
+ */
+void eval_pass(Eval *eval)
+{
+	eval_swap(eval);
+}
+
+#endif // hasSSE2
+>>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
