@@ -1057,6 +1057,7 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	Move *previous = movelist->move;
 	Move *move = movelist->move + 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	V2DI vboard;
 	unsigned long long moves;
 	int x;
@@ -1072,6 +1073,10 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	vboard.board = search->board;
 	moves = vboard_get_moves(vboard);
 =======
+=======
+	vBoard board = load_vboard(search->board);
+	unsigned long long moves = vboard_get_moves(board, search->board);
+>>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
 	int x;
 
 >>>>>>> 7204cd1 (Small fix on debug build, etc.)
@@ -1088,8 +1093,13 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 
 	movelist->n_moves = 0;
 	foreach_bit(x, moves) {
+<<<<<<< HEAD
 		board_get_move(board, x, move);
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
+=======
+		move->x = x;
+		move->flipped = vboard_flip(board, x);
+>>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
 		move->cost = 0;
 		previous = previous->next = move;
 		++move;

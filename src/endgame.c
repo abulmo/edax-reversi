@@ -1372,6 +1372,7 @@ int NWS_endgame(Search *search, const int alpha)
 <<<<<<< HEAD
 <<<<<<< HEAD
 	int score, ofssolid, bestscore;
+<<<<<<< HEAD
 	unsigned long long hash_code, solid_opp;
 	// const int beta = alpha + 1;
 	HashStoreData hash_data;
@@ -1394,6 +1395,8 @@ int NWS_endgame(Search *search, const int alpha)
 	int score, ofssolid, bestscore;
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	HashTable *const hash_table = &search->hash_table;
+=======
+>>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
 	unsigned long long hash_code, solid_opp;
 	// const int beta = alpha + 1;
 	HashData hash_data;
@@ -1411,6 +1414,7 @@ int NWS_endgame(Search *search, const int alpha)
 	long long nodes_org;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
 	Board board0;
@@ -1418,6 +1422,10 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 =======
 	Board board0, hashboard;
+=======
+	vBoard board0;
+	Board hashboard;
+>>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
 	unsigned int parity0;
 <<<<<<< HEAD
 	V4DI full;
@@ -1573,19 +1581,19 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
 		// transposition cutoff
-		if (hash_get(hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
+		if (hash_get(&search->hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
 			hash_data.lower -= ofssolid;
 			hash_data.upper -= ofssolid;
 			if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))
 				return score;
 		}
 		// else if (ofssolid)	// slows down
-		//	hash_get_from_board(hash_table, &search->board, &hash_data);
+		//	hash_get_from_board(&search->hash_table, &search->board, &hash_data);
 
 		movelist_evaluate_fast(&movelist, search, &hash_data);
 
 		nodes_org = search->n_nodes;
-		board0 = search->board;
+		board0 = load_vboard(search->board);
 		parity0 = search->eval.parity;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1609,7 +1617,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 			search->eval.parity = parity0;
 			empty_restore(search->empties, move->x);
-			search->board = board0;
+			store_vboard(search->board, board0);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1643,11 +1651,11 @@ int NWS_endgame(Search *search, const int alpha)
 		hash_store_data.alpha = alpha + ofssolid;
 		hash_store_data.beta = alpha + ofssolid + 1;
 		hash_store_data.score = bestscore + ofssolid;
-		hash_store(hash_table, &hashboard, hash_code, &hash_store_data);
+		hash_store(&search->hash_table, &hashboard, hash_code, &hash_store_data);
 
 	// special cases
 	} else if (movelist.n_moves == 1) {	// (3%)
-		board0 = search->board;
+		board0 = load_vboard(search->board);
 		parity0 = search->eval.parity;
 		move = movelist.move[0].next;
 		search_swap_parity(search, move->x);
@@ -1662,7 +1670,7 @@ int NWS_endgame(Search *search, const int alpha)
 
 		empty_restore(search->empties, move->x);
 		search->eval.parity = parity0;
-		search->board = board0;
+		store_vboard(search->board, board0);
 
 	} else {	// (1%)
 		if (can_move(search->board.opponent, search->board.player)) { // pass

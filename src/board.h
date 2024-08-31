@@ -278,12 +278,14 @@ extern unsigned long long A1_A8[256];
   #endif
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x))))
+	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip((board), (x))))
 
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
 	extern __m128i (vectorcall *mm_flip[BOARD_SIZE + 2])(const __m128i);
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O)))))
 	#define mm_Flip(OP,x)	mm_flip[x](OP)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_loadu_si128((__m128i *) (board)))))
+	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x]((board))))
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -300,6 +302,7 @@ extern unsigned long long A1_A8[256];
 	extern uint64x2_t mm_Flip(uint64x2_t OP, int pos);
 	#define	Flip(x,P,O)	vgetq_lane_u64(mm_Flip(vcombine_u64(vcreate_u64(P), vcreate_u64(O)), (x)), 0)
 	#define	board_flip(board,x)	vgetq_lane_u64(mm_Flip(vld1q_u64((uint64_t *) (board)), (x)), 0)
+	#define	vboard_flip(board,x)	vgetq_lane_u64(mm_Flip((board), (x)), 0)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
@@ -388,6 +391,7 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #endif
 
+// Keep Board backup in a vector register if available
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
 	#define	vBoard	__m128i
 	unsigned long long vectorcall vboard_next(__m128i OP, const int x, Board *next);
@@ -404,6 +408,7 @@ extern unsigned long long A1_A8[256];
 	#define	vBoard	Board
 	unsigned long long board_next(const Board *board, const int x, Board *next);
 	#define	vboard_next(board,x,next)	board_next(&(board), (x), (next))
+	#define	vboard_flip(board,x)	board_flip(&(board), (x))
 	#define	load_vboard(board)	(board)
 	#define	store_vboard(dst,board)	((dst) = (board))
 #endif

@@ -670,7 +670,8 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
  * @param pos    Last empty square to play.
  * @return       The final opponent score, as a disc difference.
  */
-#if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2	// slower on Zen1/2, par on intel
+#if LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2
+// PEXT count last flip (2.38s icc/icelake), very slow on Zen1/2
 extern const unsigned long long mask_x[64][4];
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
@@ -712,8 +713,8 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
-// AVX512 lastflip (speed not tested)
+#elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+// AVX512 lastflip (2.41s icc/icelake)
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
@@ -741,8 +742,9 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 	// p2 = _mm_or_si128(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)), _mm256_castsi256_si128(PP));	// SWAP64
-	p2 = _mm_ternarylogic_epi64(flip2, _mm_shuffle_epi32(flip2, 0x4e), _mm256_castsi256_si128(PP), 0xfe);
-	score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(p2));	// 2 * bit_count(O) - SCORE_MAX
+	// score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(p2));	// 2 * bit_count(O) - SCORE_MAX
+	p2 = _mm_ternarylogic_epi64(flip2, _mm_shuffle_epi32(flip2, 0x4e), _mm256_castsi256_si128(PP), 0x01);	// inverted
+	score = 2 * bit_count(_mm_cvtsi128_si64(p2)) - 2 - SCORE_MAX;	// 2 * bit_count(O) - SCORE_MAX
 
 	if (_mm_testz_si128(flip2, flip2)) {
 		score2 = score + 2;	// empty for player
@@ -775,14 +777,14 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 }
 
 #elif 0 // MOVE_GENERATOR == MOVE_GENERATOR_AVX512
-// branchless AVX512 lastflip (speed not tested)
+// branchless AVX512 lastflip (2.42s icc/icelake)
 
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	int	score;
 	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
 	__m256i	rmP, rmO, p_flip, o_flip, p_outflank, o_outflank, mask;
-	__m128i	p_flip2, o_flip2;
+	__m128i	p_flip2, o_flip2, p2;
 	__mmask8 p_pass;
 
 		// left: look for player LS1B
@@ -813,13 +815,15 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 
 	p_flip2 = _mm_or_si128(_mm256_castsi256_si128(p_flip), _mm256_extracti128_si256(p_flip, 1));
 	o_flip2 = _mm_or_si128(_mm256_castsi256_si128(o_flip), _mm256_extracti128_si256(o_flip, 1));
-	p_flip2 = _mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e));	// SWAP64
-	p_pass = _mm_testn_epi64_mask(p_flip2, p_flip2);
-	o_flip2 = _mm_mask_or_epi64(p_flip2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e));	// p_flip2 or else o_flip2
-
-	score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(_mm_xor_si128(_mm256_castsi256_si128(PP), o_flip2)));
+	// p2 = _mm_or_si128(_mm_or_si128(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e)), _mm256_castsi256_si128(PP));
+	p2 = _mm_ternarylogic_epi64(p_flip2, _mm_shuffle_epi32(p_flip2, 0x4e), _mm256_castsi256_si128(PP), 0xfe);
+	p_pass = _mm_cmpeq_epi64_mask(p2, _mm256_castsi256_si128(PP));
+	// o_flip2 = _mm_or_si128(o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e));
+	// p2 = _mm_mask_xor_epi64(p2, p_pass, p2, o_flip2);
+	p2 = _mm_mask_ternarylogic_epi64(p2, p_pass, o_flip2, _mm_shuffle_epi32(o_flip2, 0x4e), 0x1e);
+	score = SCORE_MAX - 2 - 2 * bit_count(_mm_cvtsi128_si64(p2));
 		// last square for O if P pass and not (both pass and score < 0)
-	score += (p_pass & !(_mm_testn_epi64_mask(o_flip2, o_flip2) & (score < 0))) * 2;
+	score += (_cvtmask8_u32(p_pass) & !(_mm_movemask_epi8(_mm_cmpeq_epi64(p2, _mm256_castsi256_si128(PP))) & (score < 0))) * 2;
 	(void) beta;	// no lazy cut-off
 	return score;
 }
@@ -927,7 +931,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
 }
 
-#else	// COUNT_LAST_FLIP_SSE - reasonably fast on all platforms
+#else	// COUNT_LAST_FLIP_SSE - reasonably fast on all platforms (2.36s icc/icelake)
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	unsigned int	n_flips, t;
@@ -945,7 +949,7 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
 	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
     #ifdef __AVX512VL__
-    	t = _mm256_test_epi8_mask(PP, M);
+    	t = _cvtmask32_u32(_mm256_test_epi8_mask(PP, M));
     #else
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
     #endif
@@ -960,7 +964,11 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	II = _mm_sad_epu8(_mm_and_si128(PP, M0), _mm_setzero_si128());
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
 	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
+    #ifdef __AVX512VL__
+    	t = _cvtmask16_u32(_mm_test_epi8_mask(PP, M1));
+    #else
 	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, M1)));
+    #endif
   #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
