@@ -743,9 +743,9 @@ int board_score_1(const unsigned long long player, const int beta, const int x)
  * Get the final score, when 2 empty squares remain.
  *
  * @param OP The board to evaluate.
- * @param empties Packed empty square coordinates.
  * @param alpha Alpha bound.
  * @param n_nodes Node counter.
+ * @param empties Packed empty square coordinates.
  * @return The final score, as a disc difference.
  */
 static int vectorcall board_solve_sse_2(__m128i OP, int alpha, volatile unsigned long long *n_nodes, __m128i empties)
@@ -873,10 +873,10 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, volatile unsigned lo
  * Get the final score, when 3 empty squares remain.
  *
  * @param OP The board to evaluate.
- * @param empties Packed empty square coordinates.
  * @param alpha Alpha bound.
  * @param sort3 Parity flags.
  * @param n_nodes Node counter.
+ * @param empties Packed empty square coordinates.
  * @return The final score, as a disc difference.
  */
 static int vectorcall search_solve_sse_3(__m128i OP, int alpha, int sort3, volatile unsigned long long *n_nodes, __m128i empties)

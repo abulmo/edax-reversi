@@ -77,17 +77,23 @@ extern struct Level {
 typedef struct Search {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7167fe4 (Fill struct Search AVX alignment hole)
 	Board board;                                  /**< othello board (16) */
 
 	volatile unsigned long long n_nodes;          /**< node counter (8) */
 	volatile unsigned long long child_nodes;      /**< node counter (8) */
 
+<<<<<<< HEAD
 =======
 	Board board[1];                               /**< othello board */
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
 	Board board;                                  /**< othello board */
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> 7167fe4 (Fill struct Search AVX alignment hole)
 	Eval eval;                                    /**< eval */
 
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
@@ -166,8 +172,8 @@ typedef struct Search {
 } Search;
 
 typedef struct Search_Backup {
-	Board board;
 	Eval eval;
+	Board board;
 } Search_Backup;
 
 struct Node;

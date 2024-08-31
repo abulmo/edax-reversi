@@ -420,9 +420,9 @@ static int board_solve_2(uint64x2_t OP, int alpha, volatile unsigned long long *
  * Get the final score, when 2 empty squares remain.
  *
  * @param OP The board to evaluate.
- * @param empties Packed empty square coordinates.
  * @param alpha Alpha bound.
  * @param n_nodes Node counter.
+ * @param empties Packed empty square coordinates.
  * @return The final score, as a disc difference.
  */
 static int board_solve_neon_2(uint64x2_t OP, int alpha, volatile unsigned long long *n_nodes, uint8x8_t empties)
@@ -542,10 +542,9 @@ static int search_solve_3(uint64x2_t OP, int alpha, volatile unsigned long long 
  * Get the final score, when 3 empty squares remain.
  *
  * @param OP The board to evaluate.
- * @param empties Packed empty square coordinates.
  * @param alpha Alpha bound.
- * @param sort3 Parity flags.
  * @param n_nodes Node counter.
+ * @param empties Packed empty square coordinates.
  * @return The final score, as a disc difference.
  */
 static int search_solve_sse_3(uint64x2_t OP, int alpha, volatile unsigned long long *n_nodes, uint8x8_t empties)

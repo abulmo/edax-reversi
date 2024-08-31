@@ -108,10 +108,16 @@ __attribute__ ((aligned (16)))
 EVAL_FEATURE_V;
 
 typedef struct Eval {
+<<<<<<< HEAD
 	EVAL_FEATURE_V feature;                       /**!< discs' features */
 	int n_empties;                                /**< number of empty squares */
 	unsigned int parity;                          /**< parity */
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	EVAL_FEATURE_V feature;                       /**!< discs' features (96) */
+	int n_empties;                                /**< number of empty squares (4) */
+	unsigned int parity;                          /**< parity (4) */
+>>>>>>> 7167fe4 (Fill struct Search AVX alignment hole)
 } Eval;
 
 struct Board;
