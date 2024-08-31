@@ -1611,6 +1611,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	switch (s->n_feature) {
 	default:
 <<<<<<< HEAD
+<<<<<<< HEAD
 		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
 	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
@@ -1619,6 +1620,11 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;
 	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
+	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
+	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 	case 4:	eval->feature.us[s->feature[3].i] -= 2 * s->feature[3].x;
 		eval->feature.us[s->feature[2].i] -= 2 * s->feature[2].x;
 		eval->feature.us[s->feature[1].i] -= 2 * s->feature[1].x;
@@ -1657,9 +1663,9 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 			s = EVAL_X2F + x + j;
 			switch (s->n_feature) {
 			default:
-				eval->feature.us[s->feature[6].i] -= s->feature[6].x;
-			case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
-			case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
+				eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
+			case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
+			case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
 			case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 				eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 				eval->feature.us[s->feature[1].i] -= s->feature[1].x;
@@ -1739,10 +1745,16 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 
 	switch (s->n_feature) {
 	default:
+<<<<<<< HEAD
 	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
 	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
 	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
+	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
+	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 	case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 	       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 	       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
@@ -1775,9 +1787,9 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 			s = EVAL_X2F + x + j;
 			switch (s->n_feature) {
 			default:
-			       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
-			case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
-			case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
+			       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
+			case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
+			case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
 			case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
 			       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
 			       	eval->feature.us[s->feature[1].i] += s->feature[1].x;

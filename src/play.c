@@ -1123,10 +1123,14 @@ void play_print(Play *play, FILE *f)
 			if ((square == EMPTY) && (moves & 1))
 				square = EMPTY + 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			fputc(color[square + 1], f);
 =======
 			fputc(color[square], f);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+			fputc(color[square + 1], f);
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 			fputc(' ', f);
 			bk >>= 1;
 			wh >>= 1;
@@ -1142,6 +1146,7 @@ void play_print(Play *play, FILE *f)
 			fprintf(f, "   %2d discs  %2d moves   ", discs[BLACK], mobility[BLACK]);
 			break;
 		case 3:
+<<<<<<< HEAD
 <<<<<<< HEAD
 			if (gameover) fprintf(f, "       Game over        ");
 			else fprintf(f, "  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(&play->board));
@@ -1163,6 +1168,17 @@ void play_print(Play *play, FILE *f)
 				else fprintf(f,"          draw          ");
 			} else fprintf(f,"    %s's turn (%c)    ",player[p], color[p]);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+			if (gameover) fprintf(f, "       Game over        ");
+			else fprintf(f, "  ply %2d (%2d empties)   ", play->i_game + 1, board_count_empties(&play->board));
+			break;
+		case 4:
+			if (gameover) {
+				if (discs[BLACK] > discs[WHITE]) fprintf(f, "       %s won        ", player[BLACK]);
+				else if (discs[BLACK] < discs[WHITE]) fprintf(f, "       %s won        ", player[WHITE]);
+				else fprintf(f, "          draw          ");
+			} else fprintf(f, "    %s's turn (%c)    ", player[p], color[p + 1]);
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 			break;
 		case 6:
 			fprintf(f, "   %2d discs  %2d moves   ", discs[WHITE], mobility[WHITE]);

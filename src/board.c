@@ -1635,6 +1635,7 @@ void board_print(const Board *board, const int player, FILE *f)
 	int i, j, square;
 	unsigned long long bk, wh;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	const char color[5] = "?*O-.";
 	unsigned long long moves = board_get_moves(board);
 
@@ -1647,6 +1648,9 @@ void board_print(const Board *board, const int player, FILE *f)
 	}
 =======
 	const char *color = "?*O-." + 1;
+=======
+	const char color[5] = "?*O-.";
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 	unsigned long long moves = get_moves(board->player, board->opponent);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 
@@ -1667,10 +1671,14 @@ void board_print(const Board *board, const int player, FILE *f)
 			if ((square == EMPTY) && (moves & 1))
 				square = EMPTY + 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			fputc(color[square + 1], f);
 =======
 			fputc(color[square], f);
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+			fputc(color[square + 1], f);
+>>>>>>> bc93772 (Avoid modern compliler warnings)
 			fputc(' ', f);
 			bk >>= 1;
 			wh >>= 1;
