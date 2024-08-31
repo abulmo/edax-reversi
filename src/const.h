@@ -113,6 +113,7 @@ typedef	unsigned char	NodeType;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
 =======
@@ -159,6 +160,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.5.2"
 #define EDAX_NAME "Edax 4.5.2"
 >>>>>>> a09308f (Renew version string and copyright year)
+=======
+#define VERSION_STRING "4.5.3"
+#define EDAX_NAME "Edax 4.5.3"
+>>>>>>> d8589d2 (Init 4.5.3: abandon size_reduced_movelist which confuses gcc warn)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

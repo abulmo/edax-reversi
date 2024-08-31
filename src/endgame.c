@@ -7,6 +7,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -17,6 +18,9 @@
 =======
  * @date 1998 - 2023
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+=======
+ * @date 1998 - 2024
+>>>>>>> d8589d2 (Init 4.5.3: abandon size_reduced_movelist which confuses gcc warn)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
 =======
@@ -1619,6 +1623,7 @@ int NWS_endgame(Search *search, const int alpha)
 	unsigned int parity0;
 	unsigned long long full[5];
 	MoveList movelist;
+<<<<<<< HEAD
 
 	assert(bit_count(~(search->board.player|search->board.opponent)) < DEPTH_MIDGAME_TO_ENDGAME);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -1700,6 +1705,8 @@ int NWS_endgame(Search *search, const int alpha)
 		int n_moves;
 		Move move[DEPTH_MIDGAME_TO_ENDGAME];
 	} movelist;
+=======
+>>>>>>> d8589d2 (Init 4.5.3: abandon size_reduced_movelist which confuses gcc warn)
 
 	assert(bit_count(~(search->board.player|search->board.opponent)) < DEPTH_MIDGAME_TO_ENDGAME);
 >>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
@@ -1794,7 +1801,7 @@ int NWS_endgame(Search *search, const int alpha)
 	hash_code = board_get_hash_code(&hashboard);
 	hash_prefetch(&search->hash_table, hash_code);
 
-	search_get_movelist(search, (MoveList *) &movelist);
+	search_get_movelist(search, &movelist);
 
 <<<<<<< HEAD
 	nodes_org = search->n_nodes;
@@ -1872,7 +1879,7 @@ int NWS_endgame(Search *search, const int alpha)
 		// else if (ofssolid)	// slows down
 		//	hash_get_from_board(&search->hash_table, HBOARD_V(board0), &hash_data.data);
 
-		movelist_evaluate_fast((MoveList *) &movelist, search, &hash_data.data);
+		movelist_evaluate_fast(&movelist, search, &hash_data.data);
 
 		nodes_org = search->n_nodes;
 		parity0 = search->eval.parity;
