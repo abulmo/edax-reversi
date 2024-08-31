@@ -1,9 +1,9 @@
 /**
  * @file bench.c
  *
- * @date 1998 - 2017
+ * @date 1998 - 2023
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #include "bit.h"
@@ -20,7 +20,7 @@
  *
  * @return a CPU clock tick.
  */
-static unsigned long long click()
+static unsigned long long click(void)
 {
 #if defined(USE_GAS_X64)
 
@@ -34,7 +34,7 @@ static unsigned long long click()
 	__asm__ volatile (
 		"rdtsc" : "=A" (a));
 	return a;
-#elif defined(_WIN32)
+#elif defined(_WIN32) && (defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64))
 	return __rdtsc();
 #else
 	return cpu_clock();
@@ -44,25 +44,29 @@ static unsigned long long click()
 /*
  * @brief Move generator performance test.
  */
-static void bench_move_generator()
+static void bench_move_generator(void)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
 	Board board;
 	Move move;
 	int i, x;
+	volatile int v;
 	const int N_WARMUP = 1000;
 	const int N_REPEAT = 1000000;
 	unsigned long long c, overhead;
 	double t, t_mean, t_var, t_min, t_max;
 
+	v = 0;
 	c = -click();
 	for (i = 0; i < N_WARMUP; ++i) {
+		v += i;
 	}
 	c += click();
 
 	c = -click();
 	for (i = 0; i < N_REPEAT; ++i) {
+		v += i;
 	}
 	c += click();
 	overhead = c;
@@ -78,13 +82,13 @@ static void bench_move_generator()
 		
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
-			board_get_move(&board, x, &move);
+			v += board_get_move_flip(&board, x, &move);
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
-			board_get_move(&board, x, &move);
+			v += board_get_move_flip(&board, x, &move);
 		}
 		c += click();
 
@@ -94,37 +98,42 @@ static void bench_move_generator()
 		if (t < t_min) t_min = t;
 		if (t > t_max) t_max = t;
 
-		if (options.verbosity >= 2) printf("board_get_move: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
+		if (options.verbosity >= 2) printf("board_get_move_flip: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
 
 	}
 
 	t_mean /= x;
 	t_var = t_var / x - (t_mean * t_mean);
-	
-	printf("board_get_move:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
+
+	printf("board_get_move_flip:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 }
 
 /*
  * @brief Last Move performance test.
  */
-static void bench_count_last_flip()
+static void bench_count_last_flip(void)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
 	Board board;
 	int i, x;
+	volatile int v;
 	const int N_WARMUP = 1000;
 	const int N_REPEAT = 1000000;
 	unsigned long long c, overhead;
 	double t, t_mean, t_var, t_min, t_max;
 
+	v = 0;
+
 	c = -click();
 	for (i = 0; i < N_WARMUP; ++i) {
+		v += i;
 	}
 	c += click();
 
 	c = -click();
 	for (i = 0; i < N_REPEAT; ++i) {
+		v += i;
 	}
 	c += click();
 	overhead = c;
@@ -136,17 +145,17 @@ static void bench_count_last_flip()
 	for (x = A1; x < PASS; ++x) {
 		board_set(&board, b);
 		board.player &= ~x_to_bit(x);
-		board.opponent &= ~x_to_bit(x);
-		
+		// board.opponent &= ~x_to_bit(x);
+
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
-			count_last_flip(x, board.player);
+			v += last_flip(x, board.player & ~i);
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
-			count_last_flip(x, board.player);
+			v += last_flip(x, board.player& ~i);
 		}
 		c += click();
 
@@ -162,32 +171,37 @@ static void bench_count_last_flip()
 
 	t_mean /= x;
 	t_var = t_var / x - (t_mean * t_mean);
-	
+
 	printf("count_last_flip:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 }
 
 /*
  * @brief Scoring performance test.
  */
-static void bench_board_score_1()
+static void bench_board_score_1(void)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
 	Board board;
 	int i, x;
+	volatile int v;
 	const int N_WARMUP = 1000;
 	const int N_REPEAT = 1000000;
 	unsigned long long c, overhead;
 	double t, t_mean, t_var, t_min, t_max;
 
+	board_set(&board, b);
+	v = 0;
 
 	c = -click();
 	for (i = 0; i < N_WARMUP; ++i) {
+		v += i;
 	}
 	c += click();
 
 	c = -click();
 	for (i = 0; i < N_REPEAT; ++i) {
+		v += i;
 	}
 	c += click();
 	overhead = c;
@@ -200,16 +214,16 @@ static void bench_board_score_1()
 		board_set(&board, b);
 		board.player &= ~x_to_bit(x);
 		board.opponent &= ~x_to_bit(x);
-		
+
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
-			board_score_1(&board, SCORE_MAX, x);
+			v += board_score_1(board.player, SCORE_MAX - 1, x);
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
-			board_score_1(&board, SCORE_MAX, x);
+			v += board_score_1(board.player, SCORE_MAX - 1, x);
 		}
 		c += click();
 
@@ -225,38 +239,41 @@ static void bench_board_score_1()
 
 	t_mean /= x;
 	t_var = t_var / x - (t_mean * t_mean);
-	
+
 	printf("board_score_1:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 }
 
 /*
  * @brief Mobility performance test.
  */
-static void bench_mobility()
+static void bench_mobility(void)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
 	Board board;
-	int i, x, v;
+	int i, x;
+	volatile int v;
 	const int N_WARMUP = 1000;
 	const int N_REPEAT = 1000000;
 	unsigned long long c, overhead;
 	double t, t_mean, t_var, t_min, t_max;
 
 	board_set(&board, b);
-
-	x = A1;
+	v = 0;
 	c = -click();
 	for (i = 0; i < N_WARMUP; ++i) {
-		board.player &= ~x_to_bit(x);
-		board.opponent &= ~x_to_bit(x);
+		board.player &= ~i;
+		board.opponent &= ~i;
+		v += i;
 	}
 	c += click();
 
+	board_set(&board, b);
 	c = -click();
 	for (i = 0; i < N_REPEAT; ++i) {
-		board.player &= ~x_to_bit(x);
-		board.opponent &= ~x_to_bit(x);
+		board.player &= ~i;
+		board.opponent &= ~i;
+		v += i;
 	}
 	c += click();
 	overhead = 0;
@@ -267,21 +284,22 @@ static void bench_mobility()
 
 	for (x = A1; x < PASS; ++x) {
 		board_set(&board, b);
-		
+
 		v = 0;
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
-			board.player &= ~x_to_bit(x);
-			board.opponent &= ~x_to_bit(x);
+			board.player &= ~i;
+			board.opponent &= ~i;
 			v += get_mobility(board.player, board.opponent);
 			v -= get_mobility(board.opponent, board.player);
 		}
 		c += click();
 
+		board_set(&board, b);
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
-			board.player &= ~x_to_bit(x);
-			board.opponent &= ~x_to_bit(x);
+			board.player &= ~i;
+			board.opponent &= ~i;
 			v += get_mobility(board.player, board.opponent);
 			v -= get_mobility(board.opponent, board.player);
 		}
@@ -299,26 +317,28 @@ static void bench_mobility()
 
 	t_mean /= x;
 	t_var = t_var / x - (t_mean * t_mean);
-	
+
 	printf("mobility:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
 }
 
 /*
  * @brief Stability performance test.
  */
-static void bench_stability()
+static void bench_stability(void)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
 	Board board;
-	int i, x, v;
+	int i, x;
+	volatile int v;
 	const int N_WARMUP = 1000;
 	const int N_REPEAT = 1000000;
 	unsigned long long c, overhead;
 	double t, t_mean, t_var, t_min, t_max;
 
 	board_init(&board);
-	
+
+	v = 0;
 	x = A1;
 	c = -click();
 	for (i = 0; i < N_WARMUP; ++i) {
@@ -327,6 +347,7 @@ static void bench_stability()
 	}
 	c += click();
 
+	board_set(&board, b);
 	c = -click();
 	for (i = 0; i < N_REPEAT; ++i) {
 		board.player &= ~x_to_bit(x);
@@ -341,7 +362,7 @@ static void bench_stability()
 
 	for (x = A1; x < PASS; ++x) {
 		board_set(&board, b);
-		
+
 		v = 0;
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
@@ -351,6 +372,7 @@ static void bench_stability()
 		}
 		c += click();
 
+		board_set(&board, b);
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
 			board.player &= ~x_to_bit(x);
