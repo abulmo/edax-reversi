@@ -101,6 +101,7 @@ static inline uint64x2_t board_next_neon(uint64x2_t OP, int x, uint64x2_t flippe
  * Get the final score, when no move can be made.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param P Board.player
  * @param n_empties Number of empty squares remaining on the board.
  * @return The final score, as a disc difference.
@@ -110,13 +111,20 @@ static int board_solve_neon(uint64x1_t P, int n_empties)
 	int score = vaddv_u8(vcnt_u8(vreinterpret_u8_u64(P))) * 2 - SCORE_MAX;	// in case of opponents win
 =======
  * @param OP Board.
+=======
+ * @param P Board.player
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
  * @param n_empties Number of empty squares remaining on the board.
  * @return The final score, as a disc difference.
  */
-static int board_solve_neon(uint64x2_t OP, int n_empties)
+static int board_solve_neon(uint64x1_t P, int n_empties)
 {
+<<<<<<< HEAD
 	int score = vaddv_u8(vcnt_u8(vreinterpret_u8_u64(vget_low_u64(OP)))) * 2 - SCORE_MAX;	// in case of opponents win
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+	int score = vaddv_u8(vcnt_u8(vreinterpret_u8_u64(P))) * 2 - SCORE_MAX;	// in case of opponents win
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	int diff = score + n_empties;		// = n_discs_p - (64 - n_empties - n_discs_p)
 
 	SEARCH_STATS(++statistics.n_search_solve);
@@ -220,18 +228,19 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
  * Get the final score, when 1 empty squares remain.
  * The following code has been adapted from Zebra by Gunnar Anderson.
  *
- * @param OP  Board to evaluate.
+ * @param P      Board.player to evaluate.
  * @param beta   Beta bound.
  * @param pos    Last empty square to play.
  * @return       The final opponent score, as a disc difference.
  */
-static int board_score_neon_1(uint64x2_t OP, const int beta, const int pos)
+static int board_score_neon_1(uint64x1_t P, int beta, int pos)
 {
-	int	score = SCORE_MAX - 2 - 2 * vaddv_u8(vcnt_u8(vreinterpret_u8_u64(vget_low_u64(OP))));	// 2 * bit_count(O) - SCORE_MAX
+	int	score = SCORE_MAX - 2 - 2 * vaddv_u8(vcnt_u8(vreinterpret_u8_u64(P)));	// 2 * bit_count(O) - SCORE_MAX
 	int	score2;
 	unsigned int	n_flips, m;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+<<<<<<< HEAD
 <<<<<<< HEAD
 	uint8x16_t	PP = vzipq_u8(vreinterpretq_u8_u64(OP), vreinterpretq_u8_u64(OP)).val[0];
 	uint16x8_t	II;	// 2 dirs interleaved
@@ -240,6 +249,10 @@ static int board_score_neon_1(uint64x2_t OP, const int beta, const int pos)
 =======
 	uint64x2_t	PP, I0, I1;
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+	uint64x2_t	PP = vdupq_lane_u64(P, 0);
+	uint64x2_t	I0, I1;
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	static const unsigned short o_mask[64] = {
 		0xff01, 0x7f03, 0x3f07, 0x1f0f, 0x0f1f, 0x073f, 0x037f, 0x01ff,
 		0xfe03, 0xff07, 0x7f0f, 0x3f1f, 0x1f3f, 0x0f7f, 0x07ff, 0x03fe,
@@ -312,7 +325,7 @@ static int board_score_neon_1(uint64x2_t OP, const int beta, const int pos)
 	unsigned int t0, t1;
 	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
 
-	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(OP), vreinterpretq_u8_u64(OP)));
+	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(PP)));
 	I0 = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
 	t0 = vaddvq_u16(vreinterpretq_u16_u64(I0));
 	n_flips  = COUNT_FLIP_X[t0 >> 8];
@@ -325,7 +338,6 @@ static int board_score_neon_1(uint64x2_t OP, const int beta, const int pos)
 #else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
 
-	PP = vdupq_lane_u64(vget_low_u64(OP), 0);
 	I0 = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
 	n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2)];
 	n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0)];
@@ -375,9 +387,9 @@ int board_score_1(const unsigned long long player, const int beta, const int x)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 
 // from bench.c
-int board_score_1(const Board *board, const int beta, const int x)
+int board_score_1(const unsigned long long player, const int beta, const int x)
 {
-	return board_score_neon_1(vld1q_u64((uint64_t *) board), beta, x);
+	return board_score_neon_1(vcreate_u64(player), beta, x);
 }
 
 /**
@@ -410,7 +422,7 @@ static int board_solve_2(uint64x2_t OP, int alpha, volatile unsigned long long *
  */
 static int board_solve_neon_2(uint64x2_t OP, int alpha, volatile unsigned long long *n_nodes, uint8x8_t empties)
 {
-	uint64x2_t flipped, PO;
+	uint64x2_t flipped;
 	int score, bestscore, nodes;
 	int x1 = vget_lane_u8(empties, 1);
 	int x2 = vget_lane_u8(empties, 0);
@@ -461,38 +473,38 @@ static int board_solve_neon_2(uint64x2_t OP, int alpha, volatile unsigned long l
 =======
 	bb = vgetq_lane_u64(OP, 1);	// opponent
 	if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
-		bestscore = board_score_neon_1(board_next_neon(OP, x1, flipped), alpha + 1, x2);
-		nodes = 2;
+		bestscore = board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), alpha + 1, x2);
 
 		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-			score = board_score_neon_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
-			if (score > bestscore) bestscore = score;
+			score = board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), alpha + 1, x1);
+			if (score > bestscore)
+				bestscore = score;
 			nodes = 3;
-		}
+		} else	nodes = 2;
 
 	} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-		bestscore = board_score_neon_1(board_next_neon(OP, x2, flipped), alpha + 1, x1);
+		bestscore = board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), alpha + 1, x1);
 		nodes = 2;
 
 	} else {	// pass
 		bb = vgetq_lane_u64(OP, 0);	// player
-		PO = vextq_u64(OP, OP, 1);
-		if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x1))) {
-			bestscore = -board_score_neon_1(board_next_neon(PO, x1, flipped), -alpha, x2);
-			nodes = 2;
+		OP = vextq_u64(OP, OP, 1);
+		if ((NEIGHBOUR[x1] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
+			bestscore = -board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), -alpha, x2);
 
-			if ((bestscore > alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-				score = -board_score_neon_1(board_next_neon(PO, x2, flipped), -alpha, x1);
-				if (score < bestscore) bestscore = score;
+			if ((bestscore > alpha) && (NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
+				score = -board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), -alpha, x1);
+				if (score < bestscore)
+					bestscore = score;
 				nodes = 3;
-			}
+			} else	nodes = 2;
 
-		} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-			bestscore = -board_score_neon_1(board_next_neon(PO, x2, flipped), -alpha, x1);
+		} else if ((NEIGHBOUR[x2] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
+			bestscore = -board_score_neon_1(vget_high_u64(veorq_u64(OP, flipped)), -alpha, x1);
 			nodes = 2;
 
 		} else {	// gameover
-			bestscore = board_solve_neon(OP, 2);
+			bestscore = board_solve_neon(vget_high_u64(OP), 2);
 			nodes = 1;
 		}
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
@@ -533,7 +545,7 @@ static int search_solve_3(uint64x2_t OP, int alpha, volatile unsigned long long 
  */
 static int search_solve_sse_3(uint64x2_t OP, int alpha, volatile unsigned long long *n_nodes, uint8x8_t empties)
 {
-	uint64x2_t flipped, PO;
+	uint64x2_t flipped;
 	int score, bestscore, x;
 	unsigned long long bb;
 	// const int beta = alpha + 1;
@@ -603,28 +615,28 @@ static int search_solve_sse_3(uint64x2_t OP, int alpha, volatile unsigned long l
 		// best move alphabeta search
 		bestscore = SCORE_INF;
 		bb = vgetq_lane_u64(OP, 0);	// player
-		PO = vextq_u64(OP, OP, 1);
+		OP = vextq_u64(OP, OP, 1);
 		x = vget_lane_u8(empties, 2);
-		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			bestscore = board_solve_neon_2(board_next_neon(PO, x, flipped), alpha, n_nodes, empties);
+		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
+			bestscore = board_solve_neon_2(board_next_neon(OP, x, flipped), alpha, n_nodes, empties);
 			if (bestscore <= alpha) return bestscore;
 		}
 
 		x = vget_lane_u8(empties, 1);
-		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			score = board_solve_neon_2(board_next_neon(PO, x, flipped), alpha, n_nodes, vuzp_u8(empties, empties).val[0]);
+		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
+			score = board_solve_neon_2(board_next_neon(OP, x, flipped), alpha, n_nodes, vuzp_u8(empties, empties).val[0]);
 			if (score <= alpha) return score;
 			else if (score < bestscore) bestscore = score;
 		}
 
 		x = vget_lane_u8(empties, 0);
-		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(PO, x))) {
-			score = board_solve_neon_2(board_next_neon(PO, x, flipped), alpha, n_nodes, vext_u8(empties, empties, 1));
+		if ((NEIGHBOUR[x] & bb) && !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
+			score = board_solve_neon_2(board_next_neon(OP, x, flipped), alpha, n_nodes, vext_u8(empties, empties, 1));
 			if (score < bestscore) bestscore = score;
 		}
 
 		else if (bestscore == SCORE_INF)	// gameover
-			bestscore = board_solve_neon(OP, 3);
+			bestscore = board_solve_neon(vget_high_u64(OP), 3);
 	}
 
 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
@@ -692,6 +704,7 @@ int search_solve_4(Search *search, const int alpha)
 		{ 0x0002030102000301, 0x0103020003020100 },	//  7: 1(x2) 1(x4) 2(x1 x3)	x3x1x2x4-x1x2x3x4-x4x2x1x3-x2x4x1x3
 		{ 0x0001030201000302, 0x0203010003020100 },	//  8: 1(x3) 1(x4) 2(x1 x2)	x2x1x3x4-x1x2x3x4-x4x3x1x2-x3x4x1x2
 <<<<<<< HEAD
+<<<<<<< HEAD
 		{ 0x0203010003020100, 0x0001030201000302 },	//  9: 2(x1 x2) 2(x3 x4)	x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
 		{ 0x0200030103010200, 0x0002030101030200 },	// 10: 2(x1 x3) 2(x2 x4)	x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
 		{ 0x0201030003000201, 0x0003020101020300 }	// 11: 2(x1 x4) 2(x2 x3)	x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
@@ -715,6 +728,11 @@ int search_solve_4(Search *search, const int alpha)
 		{ 0x0200030103010200, 0x0002030101030200 },	// 10: 2(x1 x3) 2(x2 x4)		x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
 		{ 0x0201030003000201, 0x0003020101020300 }	// 11: 2(x1 x4) 2(x2 x3)		x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+		{ 0x0203010003020100, 0x0001030201000302 },	//  9: 2(x1 x2) 2(x3 x4)	x4x3x1x2-x3x4x1x2-x2x1x3x4-x1x2x3x4
+		{ 0x0200030103010200, 0x0002030101030200 },	// 10: 2(x1 x3) 2(x2 x4)	x4x2x1x3-x3x1x2x4-x2x4x1x3-x1x3x2x4
+		{ 0x0201030003000201, 0x0003020101020300 }	// 11: 2(x1 x4) 2(x2 x3)	x4x1x2x3-x3x2x1x4-x2x3x1x4-x1x4x2x3
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	};
 
 	SEARCH_STATS(++statistics.n_search_solve_4);
@@ -844,7 +862,7 @@ int search_solve_4(Search *search, const int alpha)
 			bestscore = -search_solve_4(search, -(alpha + 1));
 			search_pass_endgame(search);
 		} else { // gameover
-			bestscore = board_solve_neon(OP, 4);
+			bestscore = board_solve_neon(vget_low_u64(OP), 4);
 		}
 	}
 

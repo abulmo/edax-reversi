@@ -1433,6 +1433,7 @@ void result_print(Result *result, FILE *f)
 bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 =======
 	const Board * const board = &search->board;
@@ -1441,6 +1442,8 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->n_empties]) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
+=======
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		CUTOFF_STATS(++statistics.n_stability_try;)
@@ -1466,6 +1469,7 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 bool search_SC_NWS(Search *search, const int alpha, int *score)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 =======
 	const Board * const board = &search->board;
@@ -1474,6 +1478,8 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
+=======
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		CUTOFF_STATS(++statistics.n_stability_try;)

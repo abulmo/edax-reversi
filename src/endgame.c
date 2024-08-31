@@ -64,6 +64,7 @@
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
 	#include "endgame_sse.c"	// vectorcall version
@@ -72,6 +73,8 @@
 #endif
 
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 /**
  * @brief Get the final score.
  *
@@ -82,6 +85,7 @@
  * @return The final score, as a disc difference.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 static int board_solve(const unsigned long long player, const int n_empties)
 {
 	int score = bit_count(player) * 2 - SCORE_MAX;	// in case of opponents win
@@ -90,6 +94,11 @@ static int board_solve(const Board *board, const int n_empties)
 {
 	int score = bit_count(board->player) * 2 - SCORE_MAX;	// in case of opponents win
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+static int board_solve(const unsigned long long player, const int n_empties)
+{
+	int score = bit_count(player) * 2 - SCORE_MAX;	// in case of opponents win
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	int diff = score + n_empties;		// = n_discs_p - (64 - n_empties - n_discs_p)
 
 	SEARCH_STATS(++statistics.n_search_solve);
@@ -121,6 +130,7 @@ int search_solve(const Search *search)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return board_solve(search->board.player, search->eval.n_empties);
 =======
 	return board_solve(search->board, search->n_empties);
@@ -131,6 +141,9 @@ int search_solve(const Search *search)
 =======
 	return board_solve(&search->board, search->eval.n_empties);
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+	return board_solve(search->board.player, search->eval.n_empties);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 }
 
 /**
@@ -157,6 +170,7 @@ int search_solve_0(const Search *search)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
 	#include "endgame_sse.c"	// vectorcall version
 #elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON) || ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE) && defined(SIMULLASTFLIP)))
@@ -165,6 +179,13 @@ int search_solve_0(const Search *search)
 =======
 #if ((MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)) || (LAST_FLIP_COUNTER != COUNT_LAST_FLIP_SSE)
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+#if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+	#include "endgame_sse.c"	// vectorcall version
+#elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+	#include "endgame_neon.c"
+#else
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 /**
  * @brief Get the final score.
  *
@@ -172,10 +193,15 @@ int search_solve_0(const Search *search)
  * The following code has been adapted from Zebra by Gunnar Anderson.
  *
  * @param player Board.player to evaluate.
+<<<<<<< HEAD
  * @param alpha  Alpha bound. (beta - 1)
+=======
+ * @param beta   Beta bound.
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
  * @param x      Last empty square to play.
  * @return       The final score, as a disc difference.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 int board_score_1(const unsigned long long player, const int alpha, const int x)
 =======
@@ -204,6 +230,15 @@ int board_score_1(const Board *board, const int beta, const int x)
 	} else {
 =======
 	n_flips = last_flip(x, board->player);
+=======
+int board_score_1(const unsigned long long player, const int beta, const int x)
+{
+	int score, score2, n_flips;
+
+	score = SCORE_MAX - 2 - 2 * bit_count(player);	// = 2 * bit_count(opponent) - SCORE_MAX
+
+	n_flips = last_flip(x, player);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 	score -= n_flips;
 
 	if (n_flips == 0) {
@@ -212,7 +247,7 @@ int board_score_1(const Board *board, const int beta, const int x)
 		if (score >= 0)
 			score = score2;
 		if (score < beta) {	// lazy cut-off
-			if ((n_flips = last_flip(x, board->opponent)) != 0)
+			if ((n_flips = last_flip(x, ~player)) != 0)
 				score = score2 + n_flips;
 <<<<<<< HEAD
 			}
@@ -283,37 +318,38 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
 =======
 static int board_solve_2(Board *board, int alpha, const int x1, const int x2, volatile unsigned long long *n_nodes)
 {
-	Board next;
+	unsigned long long flipped;
 	int score, bestscore, nodes;
 	// const int beta = alpha + 1;
 
 	SEARCH_STATS(++statistics.n_board_solve_2);
 
-	if ((NEIGHBOUR[x1] & board->opponent) && board_next(board, x1, &next)) {
-		bestscore = board_score_1(&next, alpha + 1, x2);
+	if ((NEIGHBOUR[x1] & board->opponent) && (flipped = board_flip(board, x1))) {
+		bestscore = board_score_1(board->opponent ^ flipped, alpha + 1, x2);
 		nodes = 2;
 
-		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & board->opponent) && board_next(board, x2, &next)) {
-			score = board_score_1(&next, alpha + 1, x1);
+		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & board->opponent) && (flipped = board_flip(board, x2))) {
+			score = board_score_1(board->opponent ^ flipped, alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
 			nodes = 3;
 		}
 
-	} else if ((NEIGHBOUR[x2] & board->opponent) && board_next(board, x2, &next)) {
-		bestscore = board_score_1(&next, alpha + 1, x1);
+	} else if ((NEIGHBOUR[x2] & board->opponent) && (flipped = board_flip(board, x2))) {
+		bestscore = board_score_1(board->opponent ^ flipped, alpha + 1, x1);
 		nodes = 2;
 
 	} else {	// pass
-		if ((NEIGHBOUR[x1] & board->player) && board_pass_next(board, x1, &next)) {
-			bestscore = -board_score_1(&next, -alpha, x2);
+		if ((NEIGHBOUR[x1] & board->player) && (flipped = Flip(x1, board->opponent, board->player))) {
+			bestscore = -board_score_1(board->player ^ flipped, -alpha, x2);
 			nodes = 2;
 
-			if ((bestscore > alpha) && (NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
-				score = -board_score_1(&next, -alpha, x1);
+			if ((bestscore > alpha) && (NEIGHBOUR[x2] & board->player) && (flipped = Flip(x2, board->opponent, board->player))) {
+				score = -board_score_1(board->player ^ flipped, -alpha, x1);
 				if (score < bestscore) bestscore = score;
 				nodes = 3;
 			}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 			if (bestscore > alpha) {
 				if ((NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
@@ -328,10 +364,14 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 =======
 		} else if ((NEIGHBOUR[x2] & board->player) && board_pass_next(board, x2, &next)) {
 			bestscore = -board_score_1(&next, -alpha, x1);
+=======
+		} else if ((NEIGHBOUR[x2] & board->player) && (flipped = Flip(x2, board->opponent, board->player))) {
+			bestscore = -board_score_1(board->player ^ flipped, -alpha, x1);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 			nodes = 2;
 
 		} else {	// gameover
-			bestscore = board_solve(board, 2);
+			bestscore = board_solve(board->player, 2);
 			nodes = 1;
 >>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 		}
@@ -499,7 +539,7 @@ static int search_solve_3(Search *search, const int alpha, Board *board, unsigne
 		}
 =======
 		else if (bestscore == SCORE_INF)	// gameover
-			bestscore = board_solve(board, 3);
+			bestscore = board_solve(board->player, 3);
 	}
 >>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
 
@@ -706,6 +746,7 @@ static int search_solve_4(Search *search, int alpha)
 		} else { // gameover
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			bestscore = search_solve(search);
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
@@ -714,6 +755,9 @@ static int search_solve_4(Search *search, int alpha)
 =======
 			bestscore = board_solve(&search->board, 4);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			bestscore = board_solve(search->board.player, 4);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 		}
 
 		if ((NEIGHBOUR[x4] & opponent) && (flipped = Flip(x4, player, opponent))) {	// (79%/88%)
@@ -1043,7 +1087,7 @@ int NWS_endgame(Search *search, const int alpha)
 	// (1-2% improvement)
 	hashboard = search->board;
 	ofssolid = 0;
-	if (search->eval.n_empties < 9) {
+	if (search->eval.n_empties <= MASK_SOLID_DEPTH) {
 #if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)	// no GAS_MMX dispatch
 		if (hasSSE2)
 			solid_opp = get_all_full_lines_sse(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
@@ -1054,7 +1098,7 @@ int NWS_endgame(Search *search, const int alpha)
 			solid_opp = get_all_full_lines_mmx(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
 		else
 #endif
-		solid_opp = get_all_full_lines(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
+			solid_opp = get_all_full_lines(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
 		hashboard.player ^= solid_opp;	// normalize solid to player
 		hashboard.opponent ^= solid_opp;
 		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real

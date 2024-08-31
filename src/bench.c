@@ -272,20 +272,28 @@ static void bench_board_score_1()
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
 =======
 			v += board_score_1(&board, SCORE_MAX, x);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+			v += board_score_1(board.player, SCORE_MAX, x);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
 =======
 			v += board_score_1(&board, SCORE_MAX, x);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+			v += board_score_1(board.player, SCORE_MAX, x);
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 		}
 		c += click();
 

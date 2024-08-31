@@ -241,13 +241,13 @@ int last_flip(int pos, unsigned long long P)
 	unsigned char	n_flips;
 	unsigned int	t;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[(unsigned int) pos >> 3];	// cast to reduce movslq
 #ifdef AVXLASTFLIP
 	__m256i	MP = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), mask_dvhd[pos].v4);
 
-	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
+	n_flips  = COUNT_FLIP_X[(P >> (pos & 0x38)) & 0xff];
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), MP));
-	n_flips += COUNT_FLIP_Y[(unsigned char) t];
+	n_flips += COUNT_FLIP_Y[t & 0xff];
 	t >>= 16;
 #else
 	__m128i	PP, II;
@@ -255,13 +255,17 @@ int last_flip(int pos, unsigned long long P)
 	PP = _mm_cvtsi64_si128(P);
 	PP = _mm_unpacklo_epi64(PP, PP);
 	II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
-	n_flips  = COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-	n_flips += COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+	n_flips += COUNT_FLIP_X[(unsigned int) _mm_cvtsi128_si32(II)];
 	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
 #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
+<<<<<<< HEAD
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	n_flips += COUNT_FLIP_Y[t & 0xff];
+>>>>>>> 26dad03 (Use player bits only in board_score_1)
 
 	return n_flips;
 }
