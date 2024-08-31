@@ -1025,7 +1025,9 @@ void board_symetry_sse(const Board *board, const int s, Board *sym)
 		bb = bb ^ tt ^ _mm_slli_epi64(tt, 28);
 	}
 
-	_mm_storeu_si128((__v2di *) sym, bb);
+	// _mm_storeu_si128((__v2di *) sym, bb);	// error on clang 3.8
+	sym->player = bb[0];
+	sym->opponent = bb[1];
 
 	board_check(sym);
 }

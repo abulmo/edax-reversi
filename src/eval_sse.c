@@ -282,10 +282,10 @@ void eval_set(Eval *eval, const Board *board)
 typedef union {
 	unsigned short us[48];
 #ifdef __SSE2__
-	__v8hu	v8[6];
+	__v8hi	v8[6];
 #endif
 #ifdef __AVX2__
-	__v16hu	v16[3];
+	__v16hi	v16[3];
 #endif
 }
 #if defined(__GNUC__) && !defined(__SSE2__)
@@ -576,9 +576,9 @@ void eval_set(Eval *eval, const Board *board)
 	int x;
 	unsigned long long	b = board->player;
 #ifdef __AVX2__
-	__v16hu	f0 = EVAL_FEATURE_all_opponent.v16[0];
-	__v16hu	f1 = EVAL_FEATURE_all_opponent.v16[1];
-	__v16hu	f2 = EVAL_FEATURE_all_opponent.v16[2];
+	__v16hi	f0 = EVAL_FEATURE_all_opponent.v16[0];
+	__v16hi	f1 = EVAL_FEATURE_all_opponent.v16[1];
+	__v16hi	f2 = EVAL_FEATURE_all_opponent.v16[2];
 
 	foreach_bit(x, b) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -596,12 +596,12 @@ void eval_set(Eval *eval, const Board *board)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = EVAL_FEATURE_all_opponent.v8[0];
-	__v8hu	f1 = EVAL_FEATURE_all_opponent.v8[1];
-	__v8hu	f2 = EVAL_FEATURE_all_opponent.v8[2];
-	__v8hu	f3 = EVAL_FEATURE_all_opponent.v8[3];
-	__v8hu	f4 = EVAL_FEATURE_all_opponent.v8[4];
-	__v8hu	f5 = EVAL_FEATURE_all_opponent.v8[5];
+	__v8hi	f0 = EVAL_FEATURE_all_opponent.v8[0];
+	__v8hi	f1 = EVAL_FEATURE_all_opponent.v8[1];
+	__v8hi	f2 = EVAL_FEATURE_all_opponent.v8[2];
+	__v8hi	f3 = EVAL_FEATURE_all_opponent.v8[3];
+	__v8hi	f4 = EVAL_FEATURE_all_opponent.v8[4];
+	__v8hi	f5 = EVAL_FEATURE_all_opponent.v8[5];
 
 	foreach_bit(x, b) {
 		f0 -= EVAL_FEATURE[x].v8[0];
@@ -652,9 +652,9 @@ static void eval_update_0(Eval *eval, const Move *move)
 	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[x].v16[0] * 2;
-	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[x].v16[1] * 2;
-	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[x].v16[2] * 2;
+	__v16hi	f0 = eval->feature.v16[0] - (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[0], 1);
+	__v16hi	f1 = eval->feature.v16[1] - (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[1], 1);
+	__v16hi	f2 = eval->feature.v16[2] - (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[2], 1);
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -666,12 +666,12 @@ static void eval_update_0(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[x].v8[0] * 2;
-	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[x].v8[1] * 2;
-	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[x].v8[2] * 2;
-	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[x].v8[3] * 2;
-	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[x].v8[4] * 2;
-	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[x].v8[5] * 2;
+	__v8hi	f0 = eval->feature.v8[0] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[0], 1);
+	__v8hi	f1 = eval->feature.v8[1] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[1], 1);
+	__v8hi	f2 = eval->feature.v8[2] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[2], 1);
+	__v8hi	f3 = eval->feature.v8[3] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[3], 1);
+	__v8hi	f4 = eval->feature.v8[4] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[4], 1);
+	__v8hi	f5 = eval->feature.v8[5] - (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[5], 1);
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v8[0];
@@ -702,9 +702,9 @@ static void eval_update_1(Eval *eval, const Move *move)
 	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[x].v16[0];
-	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[x].v16[1];
-	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[x].v16[2];
+	__v16hi	f0 = eval->feature.v16[0] - EVAL_FEATURE[x].v16[0];
+	__v16hi	f1 = eval->feature.v16[1] - EVAL_FEATURE[x].v16[1];
+	__v16hi	f2 = eval->feature.v16[2] - EVAL_FEATURE[x].v16[2];
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v16[0];
@@ -716,12 +716,12 @@ static void eval_update_1(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[x].v8[0];
-	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[x].v8[1];
-	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[x].v8[2];
-	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[x].v8[3];
-	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[x].v8[4];
-	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[x].v8[5];
+	__v8hi	f0 = eval->feature.v8[0] - EVAL_FEATURE[x].v8[0];
+	__v8hi	f1 = eval->feature.v8[1] - EVAL_FEATURE[x].v8[1];
+	__v8hi	f2 = eval->feature.v8[2] - EVAL_FEATURE[x].v8[2];
+	__v8hi	f3 = eval->feature.v8[3] - EVAL_FEATURE[x].v8[3];
+	__v8hi	f4 = eval->feature.v8[4] - EVAL_FEATURE[x].v8[4];
+	__v8hi	f5 = eval->feature.v8[5] - EVAL_FEATURE[x].v8[5];
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v8[0];
@@ -763,9 +763,9 @@ static void eval_restore_0(Eval *eval, const Move *move)
 	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[x].v16[0] * 2;
-	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[x].v16[1] * 2;
-	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[x].v16[2] * 2;
+	__v16hi	f0 = eval->feature.v16[0] + (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[0], 1);
+	__v16hi	f1 = eval->feature.v16[1] + (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[1], 1);
+	__v16hi	f2 = eval->feature.v16[2] + (__v16hi) _mm256_slli_epi16((__m256i) EVAL_FEATURE[x].v16[2], 1);
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v16[0];
@@ -777,12 +777,12 @@ static void eval_restore_0(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[x].v8[0] * 2;
-	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[x].v8[1] * 2;
-	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[x].v8[2] * 2;
-	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[x].v8[3] * 2;
-	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[x].v8[4] * 2;
-	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[x].v8[5] * 2;
+	__v8hi	f0 = eval->feature.v8[0] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[0], 1);
+	__v8hi	f1 = eval->feature.v8[1] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[1], 1);
+	__v8hi	f2 = eval->feature.v8[2] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[2], 1);
+	__v8hi	f3 = eval->feature.v8[3] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[3], 1);
+	__v8hi	f4 = eval->feature.v8[4] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[4], 1);
+	__v8hi	f5 = eval->feature.v8[5] + (__v8hi) _mm_slli_epi16((__m128i) EVAL_FEATURE[x].v8[5], 1);
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v8[0];
@@ -807,9 +807,9 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[x].v16[0];
-	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[x].v16[1];
-	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[x].v16[2];
+	__v16hi	f0 = eval->feature.v16[0] + EVAL_FEATURE[x].v16[0];
+	__v16hi	f1 = eval->feature.v16[1] + EVAL_FEATURE[x].v16[1];
+	__v16hi	f2 = eval->feature.v16[2] + EVAL_FEATURE[x].v16[2];
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -821,12 +821,12 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[x].v8[0];
-	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[x].v8[1];
-	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[x].v8[2];
-	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[x].v8[3];
-	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[x].v8[4];
-	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[x].v8[5];
+	__v8hi	f0 = eval->feature.v8[0] + EVAL_FEATURE[x].v8[0];
+	__v8hi	f1 = eval->feature.v8[1] + EVAL_FEATURE[x].v8[1];
+	__v8hi	f2 = eval->feature.v8[2] + EVAL_FEATURE[x].v8[2];
+	__v8hi	f3 = eval->feature.v8[3] + EVAL_FEATURE[x].v8[3];
+	__v8hi	f4 = eval->feature.v8[4] + EVAL_FEATURE[x].v8[4];
+	__v8hi	f5 = eval->feature.v8[5] + EVAL_FEATURE[x].v8[5];
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v8[0];

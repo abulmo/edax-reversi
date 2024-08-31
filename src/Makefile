@@ -311,8 +311,12 @@ ifeq ($(COMP),clang)
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
+<<<<<<< HEAD
 		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
 		LTOFLAG = -flto
+=======
+		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG
+>>>>>>> ea39994 (Improve clang compatibility)
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif

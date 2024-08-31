@@ -47,6 +47,7 @@ unsigned long long horizontal_mirror(unsigned long long);
 int get_rand_bit(unsigned long long, struct Random*);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (__ARM_NEON)
@@ -64,26 +65,49 @@ int get_rand_bit(unsigned long long, struct Random*);
 unsigned short bswap_short(unsigned short);
 unsigned int bswap_int(unsigned int);
 unsigned long long vertical_mirror(unsigned long long);
+=======
+#ifndef __has_builtin
+	#define __has_builtin(x) 0  // Compatibility with non-clang compilers.
+>>>>>>> ea39994 (Improve clang compatibility)
 #endif
 
-#ifdef __GNUC__
-#define	first_bit(x)	__builtin_ctzll(x)
-#define	last_bit(x)	(63 - __builtin_clzll(x))
+#ifdef _MSC_VER
+	#define	bswap_short(x)	_byteswap_ushort(x)
+	#define	bswap_int(x)	_byteswap_ulong(x)
+	#define	vertical_mirror(x)	_byteswap_uint64(x)
 #else
-int first_bit(unsigned long long);
-int last_bit(unsigned long long);
+	#if (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) || __has_builtin(__builtin_bswap16)
+		#define	bswap_short(x)	__builtin_bswap16(x)
+	#else
+		#define bswap_short(x)	(((unsigned short) (x) >> 8) | ((unsigned short) (x) << 8))
+	#endif
+	#if (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))) || __has_builtin(__builtin_bswap64)
+		#define	bswap_int(x)	__builtin_bswap32(x)
+		#define	vertical_mirror(x)	__builtin_bswap64(x)
+	#else
+		unsigned int bswap_int(unsigned int);
+		unsigned long long vertical_mirror(unsigned long long);
+	#endif
+#endif
+
+#if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctzll)
+	#define	first_bit(x)	__builtin_ctzll(x)
+	#define	last_bit(x)	(63 - __builtin_clzll(x))
+#else
+	int first_bit(unsigned long long);
+	int last_bit(unsigned long long);
 #endif
 
 /** Loop over each bit set. */
 #define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
 
 #ifndef __x86_64__
-#ifdef __GNUC__
-#define	first_bit_32(x)	__builtin_ctz(x)
-#else
-int first_bit_32(unsigned int);
-#endif
-#define foreach_bit_32(i, b)	for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
+	#if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctz)
+		#define	first_bit_32(x)	__builtin_ctz(x)
+	#else
+		int first_bit_32(unsigned int);
+	#endif
+	#define foreach_bit_32(i, b)	for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
 #endif
 
 extern const unsigned long long X_TO_BIT[];
