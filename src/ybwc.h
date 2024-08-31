@@ -63,7 +63,7 @@ typedef struct Node {
 	volatile int n_moves_done;   /**< search done */
 	volatile int n_moves_todo;   /**< search todo */
 	volatile bool is_helping;	 /**< waiting flag */
-	Task help[1];                /**< helper task */
+	Task help;                   /**< helper task */
 	Lock lock;                   /**< mutex */
 	Condition cond;              /**< condition variable */
 } Node;
