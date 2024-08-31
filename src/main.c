@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2018
@@ -16,6 +17,9 @@
 =======
  * @date 1998 - 2021
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+ * @date 1998 - 2022
+>>>>>>> 3030e39 (Fix android build; revise copyright in title)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -48,6 +52,7 @@ void version(void)
 #endif
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
 =======
 
@@ -56,6 +61,9 @@ void version(void)
 =======
 		"\ncopyright 1998 - 2018 Richard Delorme\n\n");
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 22 Toshihiko Okuhara\n\n");
+>>>>>>> 3030e39 (Fix android build; revise copyright in title)
 }
 
 

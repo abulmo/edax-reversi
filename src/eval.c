@@ -1520,8 +1520,7 @@ void eval_swap(Eval *eval)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 =======
 #ifdef ANDROID
-extern void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
-extern void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
+extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #include "eval_sse.c"
