@@ -105,11 +105,7 @@ typedef union {
 #ifdef __AVX2__
 	__m256i	v16[3];
 #endif
-}
-#if defined(__GNUC__)
-__attribute__ ((aligned (16)))
-#endif
-EVAL_FEATURE_V;
+} EVAL_FEATURE_V;
 
 typedef struct Eval {
 <<<<<<< HEAD

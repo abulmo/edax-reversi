@@ -89,6 +89,9 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	endif
+	ifeq ($(ARCH),x64-avx512)
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
+	endif
 	ifeq ($(ARCH),x64-popcnt)
 		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
 	endif
@@ -292,6 +295,7 @@ ifeq ($(COMP),icc)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
 =======
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
@@ -302,6 +306,9 @@ ifeq ($(COMP),icc)
 =======
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
+>>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
 	PGO_GEN = -prof_gen
 	PGO_USE = -prof_use -wd11505
 
@@ -315,7 +322,11 @@ ifeq ($(COMP),icc)
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64-avx512)
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+=======
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64
@@ -354,6 +365,7 @@ ifeq ($(COMP),clang)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
 =======
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
@@ -364,6 +376,9 @@ ifeq ($(COMP),clang)
 =======
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
+>>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
@@ -405,6 +420,9 @@ ifeq ($(COMP),clang)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
+	endif
+	ifeq ($(ARCH),x64-avx512)
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 
