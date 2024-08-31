@@ -693,6 +693,7 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 					fprintf(stderr, "gamebase_import : illegal move in line %d\n", i);
 					exit(EXIT_FAILURE);
 				}
+<<<<<<< HEAD
 				m |= 0x80;	// opponent pass
 			}
 			g->move[j++] = m;
@@ -719,6 +720,8 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 				b.player ^= (PBLACK ^ PWHITE);
 				if (!MPerform(&b, m))
 					break;
+=======
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 				m |= 0x80;	// opponent pass
 			}
 			g->move[j++] = m;
@@ -780,6 +783,7 @@ bool game_get_board(Game* g, int ply, Board* b)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int	i, m, t;
 
 	InitBoard(b);
@@ -798,14 +802,18 @@ bool game_get_board(Game* g, int ply, Board* b)
 =======
 	int	i, m;
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
+=======
+	int	i, m, t;
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 
 	InitBoard(b);
 	for (i = 0; i < ply; ++i) {
 		m = g->move[i];
 		if (m == NOMOVE)
 			return false;
-		if (m & 0x80)	// same player
+		if (m & 0x80) {	// same player
 			b->player ^= (PBLACK ^ PWHITE);
+<<<<<<< HEAD
 <<<<<<< HEAD
 			if (!MPerform(b, g->move[i]))
 				return false;
@@ -815,6 +823,12 @@ bool game_get_board(Game* g, int ply, Board* b)
 		if (!MPerform(b, m & 0x7f))
 			return false;
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
+=======
+			b->ScoreDiff = -b->ScoreDiff;
+		}
+		t = MPerform(b, m & 0x7f);
+		assert(t);
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 	}
 	return true;
 }
@@ -833,12 +847,17 @@ double sl_min(double* x, int n)
 {
 	int	i;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	double	y = x[0];
 	for (i = 1; i < n; ++i)
 =======
 	double	y = INFINITY;
 	for (i = 0; i < n; ++i)
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	double	y = x[0];
+	for (i = 1; i < n; ++i)
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 		if (x[i] < y)
 			y = x[i];
 	return y;
@@ -848,12 +867,17 @@ double sl_max(double* x, int n)
 {
 	int	i;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	double	y = x[0];
 	for (i = 1; i < n; ++i)
 =======
 	double	y = -INFINITY;
 	for (i = 0; i < n; ++i)
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	double	y = x[0];
+	for (i = 1; i < n; ++i)
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 		if (x[i] > y)
 			y = x[i];
 	return y;
@@ -863,12 +887,17 @@ double sl_mean(double* x, int n)
 {
 	int	i;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	double	s = x[0];
 	for (i = 1; i < n; ++i)
 =======
 	double	s = 0.0;
 	for (i = 0; i < n; ++i)
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	double	s = x[0];
+	for (i = 1; i < n; ++i)
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 		s += x[i];
 	return s / n;
 }
@@ -1856,6 +1885,7 @@ void eval_builder_eval(EvalBuilder* eval, int ply, double* x, double* y) {
 int eval_builder_count_features(EvalBuilder* eval, int ply) {
 	int i, j, k, n;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int* h = (int*)calloc(eval->n_data, sizeof(int));
 
 	for (i = 0; i < eval->n_games; i++)
@@ -1872,6 +1902,15 @@ int eval_builder_count_features(EvalBuilder* eval, int ply) {
 		for (j = 0; j < J; j++) h[x[i][j]]++;
 	for (k = n = 0; k < K; k++) if (h[k] > 0) n++;
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	int* h = (int*)calloc(eval->n_data, sizeof(int));
+
+	for (i = 0; i < eval->n_games; i++)
+		for (j = 0; j < eval->n_features; j++)
+			h[eval->feature[i][j]]++;
+	for (k = n = 0; k < eval->n_data; k++)
+		if (h[k] > 0) n++;
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 
 	free(h);
 
@@ -2463,10 +2502,14 @@ void eval_builder_build(EvalBuilder* eval, Gamebase* base, EvalOption* option) {
 	printf("algo     = %d\n", option->minimization_algorithm);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	printf("ply iter lambda gamma  error     r2         max_delta mean_delta err_delta\n");
 =======
 	printf("ply iter  lambda gamma  error     r2         max_delta mean_delta err_delta\n");
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+	printf("ply iter lambda gamma  error     r2         max_delta mean_delta err_delta\n");
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
 		eval_builder_conjugate_gradient(eval, ply, option);
@@ -2803,6 +2846,7 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	printf("  feat coeffs evmean evsdev  evmin  evmax scmean scsdev smin smax    a       b       r    erbias ersdev ermin  ermax\n");
 =======
 	printf("feature\tcoeffs\tev mean\tev sdev\tev min\tev max\tsc mean\tsc sdev\tsc min\tsc max\ta\tb\tr\terrbias\terrsdev\terrmin\terrmax\n");
@@ -2813,6 +2857,9 @@ void eval_builder_stat(EvalBuilder* eval, Gamebase* base) {
 =======
 	printf("  feat coeffs evmean evsdev  evmin  evmax scmean  scsdev smin smax     a       b       r    erbias ersdev ermin  ermax\n");
 >>>>>>> 265487b (Add evalgame command to eval_builder)
+=======
+	printf("  feat coeffs evmean evsdev  evmin  evmax scmean scsdev smin smax    a       b       r    erbias ersdev ermin  ermax\n");
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 
 	for (ply = 0; ply <= 60; ply++) {
 		eval_builder_build_features(eval, base, ply);
@@ -3085,10 +3132,14 @@ void eval_builder_show_feature_weights(EvalBuilder* eval, int type, const char* 
 void print_version(void) {
 	printf(	"eval_builder %d.%d %s\n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"Copyright (c) 1998-2000 Richard A. Delorme, 2023 Toshihiko Okuhara\n"
 =======
 		"Copyright (c) 1998-2000 Richard A. Delorme.\n"
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+		"Copyright (c) 1998-2000 Richard A. Delorme, 2023 Toshihiko Okuhara\n"
+>>>>>>> c193ebf (Fix score after pass bug in eval_builder)
 		"All Rights Reserved.\n\n", EDAX_VERSION, EDAX_RELEASE, __DATE__);
 }
 
