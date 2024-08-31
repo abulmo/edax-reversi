@@ -523,6 +523,9 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 		if (board_equal(&hash->board, board)) {
 			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth)
 				data_update(&hash->data, storedata);
@@ -582,6 +585,7 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
 	bool ok = false;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (board_equal(&hash->board, board)) {
 =======
 	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
@@ -592,6 +596,11 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
 =======
 		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	if (board_equal(&hash->board, board)) {
+		spin_lock(lock);
+		if (board_equal(&hash->board, board)) {
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 			data_new(&hash->data, storedata);
 			ok = true;
 		}
@@ -883,7 +892,11 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 		HASH_COLLISIONS(if (hash->key == hash_code) {)
 		HASH_COLLISIONS(	lock = hash_table->lock + (hash_code & hash_table->lock_mask);)
 		HASH_COLLISIONS(	spin_lock(lock);)
+<<<<<<< HEAD
 		HASH_COLLISIONS(	if (hash->key == hash_code && !vboard_equal(board, &hash->board)) {)
+=======
+		HASH_COLLISIONS(	if (hash->key == hash_code && !board_equal(&hash->board, board)) {)
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 		HASH_COLLISIONS(		++statistics.n_hash_collision;)
 		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
 		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)

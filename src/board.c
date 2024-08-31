@@ -333,6 +333,7 @@ bool board_lesser(const Board *b1, const Board *b2)
 =======
 }
 
+<<<<<<< HEAD
 /**
  * @brief Compare two board for equality
  *
@@ -346,6 +347,8 @@ bool board_equal(const Board *b1, const Board *b2)
 >>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
 }
 
+=======
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 #if !defined(hasSSE2) && !defined(hasNeon)	// SSE version in board_sse.c
 /**
  * @brief symetric board

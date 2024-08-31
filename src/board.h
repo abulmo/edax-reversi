@@ -41,19 +41,34 @@ int board_set(Board*, const char*);
 int board_from_FEN(Board*, const char*);
 bool board_lesser(const Board*, const Board*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 void board_horizontal_mirror(const Board *, Board *);
 void board_vertical_mirror(const Board *, Board *);
 void board_transpose(const Board *, Board *);
 =======
 bool board_equal(const Board*, const Board*);
 >>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
+=======
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 void board_symetry(const Board*, const int, Board*);
 int board_unique(const Board*, Board*);
 void board_check(const Board*);
 void board_rand(Board*, int, struct Random*);
 
 // Compare two board for equality
+<<<<<<< HEAD
 #define	board_equal(b1,b2)	((b1)->player == (b2)->player && (b1)->opponent == (b2)->opponent)
+=======
+#ifdef __AVX2__
+inline bool board_equal(const Board *b1, const Board *b2)
+{
+	__m128i b = _mm_xor_si128(*(__m128i *) b1, *(__m128i *) b2);
+	return _mm_testz_si128(b, b);
+}
+#else
+#define	board_equal(b1,b2)	((b1)->player == (b2)->player && (b1)->opponent == (b2)->opponent)
+#endif
+>>>>>>> de58f52 (AVX2 board_equal; delayed hash lock code)
 
 int board_count_last_flips(const Board*, const int);
 unsigned long long board_get_move_flip(const Board*, const int, struct Move*);
