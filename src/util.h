@@ -3,7 +3,7 @@
  *
  * @brief Miscellaneous utilities header.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -252,17 +252,19 @@ typedef CRITICAL_SECTION Lock;
 typedef CRITICAL_SECTION SpinLock;
 
 /** Some buggy compilers need the following declarations */
-#if defined(_WIN64)
+#if defined __MINGW32__ && (_WIN32_WINNT < 0x0600)
 
-#ifndef _MSC_VER
-
-//typedef DWORD CONDITION_VARIABLE;
+#if (__MINGW64_VERSION_MAJOR < 3)
+typedef DWORD CONDITION_VARIABLE;
+#endif
 void InitializeConditionVariable(CONDITION_VARIABLE*);
 void WakeConditionVariable(CONDITION_VARIABLE*);
 void WakeAllConditionVariable(CONDITION_VARIABLE*);
 BOOL SleepConditionVariableCS(CONDITION_VARIABLE*, CRITICAL_SECTION*, DWORD);
 
 #endif
+
+#if defined(_WIN64) || defined(_WIN32)
 
 /** Typedef to a personalized Condition type for portability */
 typedef CONDITION_VARIABLE Condition;
