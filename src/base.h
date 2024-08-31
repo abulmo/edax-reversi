@@ -36,7 +36,7 @@ typedef struct WthorHeader {
 } WthorHeader;
 
 typedef struct WthorBase {
-	WthorHeader header[1];     /** Header */
+	WthorHeader header;        /** Header */
 	char (*tournament)[26];    /** tournaments */
 	int n_tournaments;         /** tournament number */
 	char (*player)[20];        /** players */
@@ -60,7 +60,7 @@ void wthor_eval(const char*, struct Search*, unsigned long long histogram[129][6
 void wthor_edaxify(const char*);
 
 #define foreach_wthorgame(wgame, wbase) \
-	for ((wgame) = (wbase)->game ; (wgame) < (wbase)->game + (wbase)->header->n_games; ++(wgame))
+	for ((wgame) = (wbase).game ; (wgame) < (wbase).game + (wbase).header.n_games; ++(wgame))
 
 void base_init(Base*);
 void base_free(Base*);
