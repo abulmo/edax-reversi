@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file count_last_flip_32.c
  *
@@ -32,6 +35,11 @@
  * 
  */
 
+<<<<<<< HEAD
+=======
+#include "board.h"
+
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 #define LODWORD(l) ((unsigned int)(l))
 #define HIDWORD(l) ((unsigned int)((l)>>32))
 
@@ -108,7 +116,11 @@ static int count_last_flip_A1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x01010101u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x01010100u) + ((HIDWORD(P) & 0x01010101u) << 4)) * 0x01020408u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_R[(LODWORD(P) >> 1) & 0x7f];
 	n_flipped += COUNT_FLIP_R[(((LODWORD(P) & 0x08040200u) + (HIDWORD(P) & 0x80402010u)) * 0x01010101u) >> 25];
 
@@ -125,7 +137,11 @@ static int count_last_flip_B1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x02020202u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x02020200u) + ((HIDWORD(P) & 0x02020202u) << 4)) * 0x00810204u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_R[(LODWORD(P) >> 2) & 0x3f];
 	n_flipped += COUNT_FLIP_R[(((LODWORD(P) & 0x10080400u) + (HIDWORD(P) & 0x00804020u)) * 0x01010101u) >> 26];
 
@@ -142,7 +158,11 @@ static int count_last_flip_C1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x04040404u) + ((HIDWORD(P) & 0x04040404u) << 4)) * 0x00408102u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x04040400u) + ((HIDWORD(P) & 0x04040404u) << 4)) * 0x00408102u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_2[LODWORD(P) & 0xff];
 	n_flipped += COUNT_FLIP_2[(((LODWORD(P) & 0x20110A04u) + (HIDWORD(P) & 0x00008040u)) * 0x01010101u) >> 24];	// A3C1H6
 
@@ -159,7 +179,11 @@ static int count_last_flip_D1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x08080808u) + ((HIDWORD(P) & 0x08080808u) << 4)) * 0x00204081u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[(((LODWORD(P) & 0x08080800u) + ((HIDWORD(P) & 0x08080808u) << 4)) * 0x00204081u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_3[LODWORD(P) & 0xff];
 	n_flipped += COUNT_FLIP_3[(((LODWORD(P) & 0x41221408u) + (HIDWORD(P) & 0x00000080u)) * 0x01010101u) >> 24];	// A4D1H5
 
@@ -176,7 +200,11 @@ static int count_last_flip_E1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x10101010u) >> 4) + (HIDWORD(P) & 0x10101010u)) * 0x01020408u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x10101000u) >> 4) + (HIDWORD(P) & 0x10101010u)) * 0x01020408u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_4[LODWORD(P) & 0xff];
 	n_flipped += COUNT_FLIP_4[(((LODWORD(P) & 0x82442810u) + (HIDWORD(P) & 0x00000001u)) * 0x01010101u) >> 24];	// A5E1H4
 
@@ -193,7 +221,11 @@ static int count_last_flip_F1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x20202020u) >> 4) + (HIDWORD(P) & 0x20202020u)) * 0x00810204u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[(((HIDWORD(P) & 0x20202020u) + ((LODWORD(P) >> 4) & 0x02020200u)) * 0x00810204u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_5[LODWORD(P) & 0xff];
 	n_flipped += COUNT_FLIP_5[(((LODWORD(P) & 0x04885020u) + (HIDWORD(P) & 0x00000102u)) * 0x01010101u) >> 24];	// A6F1H3
 
@@ -210,7 +242,11 @@ static int count_last_flip_G1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x40404040u) >> 4) + (HIDWORD(P) & 0x40404040u)) * 0x00408102u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x40404000u) >> 4) + (HIDWORD(P) & 0x40404040u)) * 0x00408102u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_L[(LODWORD(P) << 1) & 0x7e];
 	n_flipped += COUNT_FLIP_L[(((LODWORD(P) & 0x08102000u) + (HIDWORD(P) & 0x00010204u)) * 0x02020202u) >> 24];
 
@@ -227,7 +263,11 @@ static int count_last_flip_H1(const unsigned long long P)
 {
 	int n_flipped;
 
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x80808080u) >> 4) + (HIDWORD(P) & 0x80808080u)) * 0x00204081u) >> 25];
+=======
+	n_flipped  = COUNT_FLIP_R[((((LODWORD(P) & 0x80808000u) >> 4) + (HIDWORD(P) & 0x80808080u)) * 0x00204081u) >> 25];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	n_flipped += COUNT_FLIP_L[LODWORD(P) & 0x7f];
 	n_flipped += COUNT_FLIP_L[(((LODWORD(P) & 0x10204000u) + (HIDWORD(P) & 0x01020408u)) * 0x01010101u) >> 24];
 
@@ -1234,6 +1274,7 @@ int (*count_last_flip[])(const unsigned long long) = {
 	count_last_flip_E8, count_last_flip_F8, count_last_flip_G8, count_last_flip_H8,
 	count_last_flip_pass,
 };
+<<<<<<< HEAD
 =======
 /**
  * @file count_last_flip_32.c
@@ -2473,3 +2514,5 @@ int (*count_last_flip[])(const unsigned long long) = {
 	count_last_flip_pass,
 };
 >>>>>>> e558fdb (Some cleanups for clang / android build)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

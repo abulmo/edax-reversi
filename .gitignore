@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 bin/
 data/
 doc/
@@ -25,3 +26,19 @@ doc/
 =======
 problem/
 >>>>>>> 48873fa (calc opponent_feature once in eval_open)
+=======
+*.o
+*.s
+*.exe
+*~
+pgopti*
+*.dyn
+all.gc*
+generate_flip.*
+generate_count_flip.*
+bcnttest.*
+*.utf8.c
+bin/
+doc/
+problem/
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

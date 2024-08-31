@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file flip_sse_bitscan.c
  *
@@ -305,6 +308,7 @@ unsigned long long flip(const unsigned long long P, const unsigned long long O, 
 
 	return flipped | _mm_cvtsi128_si64(outflank17);
 }
+<<<<<<< HEAD
 =======
 /**
  * @file flip_sse_bitscan.c
@@ -613,3 +617,5 @@ unsigned long long flip(const unsigned long long P, const unsigned long long O, 
 	return flipped | _mm_cvtsi128_si64(outflank17);
 }
 >>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

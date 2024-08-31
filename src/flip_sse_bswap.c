@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file flip_sse_bswap.c
  *
@@ -378,7 +381,11 @@ static inline __m128i flipmask (__m128i outflank) {
  * @return flipped disc pattern.
  */
 
+<<<<<<< HEAD
 unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
+=======
+unsigned long long Flip(int pos, const unsigned long long P, const unsigned long long O)
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	__m128i	outflank7, outflank8, outflank9, PP, OO;
 	int	x, y8, index_h;
@@ -434,6 +441,7 @@ unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
 
 	return flipped;
 }
+<<<<<<< HEAD
 =======
 /**
  * @file flip_sse_bswap.c
@@ -871,3 +879,5 @@ unsigned long long Flip(int pos, const unsigned long long P, const unsigned long
 	return flipped;
 }
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

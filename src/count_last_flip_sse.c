@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file count_last_flip_sse.c
  *
@@ -18,18 +21,31 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
+=======
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.4
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
  * 
  */
 
 #include "bit.h"
+<<<<<<< HEAD
 #include <stdint.h>
 
 /** precomputed count flip array */
 const uint8_t COUNT_FLIP[8][256] = {
+=======
+
+/** precomputed count flip array */
+const unsigned char COUNT_FLIP[8][256] = {
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -190,6 +206,7 @@ const V4DI mask_dvhd[64] = {
 
 int last_flip(int pos, unsigned long long P)
 {
+<<<<<<< HEAD
 	uint_fast8_t	n_flips;
 	unsigned int	t;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
@@ -220,10 +237,36 @@ int last_flip(int pos, unsigned long long P)
   #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[t & 0xFF];
+=======
+	unsigned char	n_flips;
+	unsigned int	t;
+	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+#ifdef AVXLASTFLIP
+	__m256i	MP = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), mask_dvhd[pos].v4);
+
+	n_flips  = COUNT_FLIP_X[(unsigned char) (P >> (pos & 0x38))];
+	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), MP));
+	n_flips += COUNT_FLIP_Y[(unsigned char) t];
+	t >>= 16;
+#else
+	__m128i	PP, II;
+
+	PP = _mm_cvtsi64_si128(P);
+	PP = _mm_unpacklo_epi64(PP, PP);
+	II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
+	n_flips  = COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
+	n_flips += COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
+	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
+#endif
+	n_flips += COUNT_FLIP_Y[t >> 8];
+	n_flips += COUNT_FLIP_Y[(unsigned char) t];
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 	return n_flips;
 }
 
+<<<<<<< HEAD
 =======
 /**
  * @file count_last_flip_sse.c
@@ -446,3 +489,5 @@ int last_flip(int pos, unsigned long long P)
 =======
 
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

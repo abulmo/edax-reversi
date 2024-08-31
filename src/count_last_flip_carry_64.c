@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file count_last_flip_carry_64.c
  *
@@ -1275,6 +1278,7 @@ int (*count_last_flip[])(const unsigned long long) = {
 	count_last_flip_pass,
 };
 
+<<<<<<< HEAD
 =======
 /**
  * @file count_last_flip_carry_64.c
@@ -2553,3 +2557,5 @@ int (*count_last_flip[])(const unsigned long long) = {
 };
 
 >>>>>>> b3f048d (copyright changes)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

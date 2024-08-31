@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file flip_bmi2.c
  *
@@ -278,6 +281,7 @@ unsigned long long flip(int pos, unsigned long long P, unsigned long long O)
 
 	return flipped;
 }
+<<<<<<< HEAD
 =======
 /**
  * @file flip_bmi2.c
@@ -559,3 +563,5 @@ unsigned long long flip(int pos, unsigned long long P, unsigned long long O)
 	return flipped;
 }
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

@@ -1,9 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file settings.h
  *
  * Various macro / constants to control algorithm usage.
  *
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @date 1998 - 2024
@@ -15,6 +19,11 @@
 >>>>>>> 1dc032e (Improve visual c compatibility)
  * @author Richard Delorme
  * @version 4.5
+=======
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @version 4.4
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
  */
 
 
@@ -26,24 +35,35 @@
 #define MOVE_GENERATOR_CARRY 1		// 32.6Mnps
 #define MOVE_GENERATOR_KINDERGARTEN 2	// 31.1Mnps
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define MOVE_GENERATOR_SSE 3		// 34.4Mnps	// best for generic X64
 #define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX	// 7.21Mnps (neon_bitscan)
+=======
+#define MOVE_GENERATOR_SSE 3		// 34.4Mnps	// best for generic X64
+#define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 #define MOVE_GENERATOR_ROXANE 5		// 29.0Mnps
 #define MOVE_GENERATOR_32 6		// 31.3Mnps	// best for 32bit X86
 #define MOVE_GENERATOR_SSE_BSWAP 7	// 30.6Mnps
 #define MOVE_GENERATOR_AVX 8		// 34.7Mnps	// best for modern X64
+<<<<<<< HEAD
 #define MOVE_GENERATOR_AVX512 9
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 #define MOVE_GENERATOR_SVE 11
 
 <<<<<<< HEAD
 #define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
+=======
+
+#define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 #define COUNT_LAST_FLIP_KINDERGARTEN 2	// 33.5Mnps
 #define COUNT_LAST_FLIP_SSE 3		// 34.7Mnps
 #define COUNT_LAST_FLIP_BITSCAN 4	// 33.9Mnps
 #define COUNT_LAST_FLIP_PLAIN 5		// 33.3Mnps
 #define COUNT_LAST_FLIP_32 6		// 33.1Mnps
 #define COUNT_LAST_FLIP_BMI2 7		// 34.7Mnps	// slow on AMD
+<<<<<<< HEAD
 #define COUNT_LAST_FLIP_AVX_PPFILL 8
 #define COUNT_LAST_FLIP_AVX512 9
 #define COUNT_LAST_FLIP_NEON 10
@@ -97,11 +117,21 @@
 			#define MOVE_MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
 		#endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+
+/**move generation. */
+#ifndef MOVE_GENERATOR
+	#ifdef __AVX2__
+		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
+	#elif defined(hasSSE2)
+		#define MOVE_GENERATOR MOVE_GENERATOR_SSE
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	#else
 		#define MOVE_GENERATOR MOVE_GENERATOR_32
 	#endif
 #endif
 #ifndef LAST_FLIP_COUNTER
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	#if (defined(__AVX512VL__) || defined(__AVX10_1__)) && (defined(SIMULLASTFLIP512) || defined(SIMULLASTFLIP) || defined(LASTFLIP_HIGHCUT))
@@ -124,6 +154,11 @@
 			#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BITSCAN
 		#endif
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+	#ifdef hasSSE2
+		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
+		// #define AVXLASTFLIP	1	// slower on slow vzeroupper CPU
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	#else
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_32
 	#endif
@@ -198,9 +233,12 @@
 /** Try ETC down to this depth. */
 #define ETC_MIN_DEPTH 5
 
+<<<<<<< HEAD
 /** Dogaishi hash reduction Depth (before DEPTH_TO_SHALLOW_SEARCH) */
 #define MASK_SOLID_DEPTH 9
 
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /** bound for usefull move sorting */
 #define SORT_ALPHA_DELTA 8
 
@@ -230,6 +268,7 @@
 
 #endif /* EDAX_SETTINGS_H */
 
+<<<<<<< HEAD
 =======
 /**
  * @file settings.h
@@ -382,3 +421,5 @@
 #endif /* EDAX_SETTINGS_H */
 
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

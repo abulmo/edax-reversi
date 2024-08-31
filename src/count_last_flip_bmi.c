@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file count_last_flip_bmi.c
  *
@@ -171,6 +174,7 @@ int last_flip(int pos, unsigned long long P)
 
 	return n_flipped;
 }
+<<<<<<< HEAD
 =======
 /**
  * @file count_last_flip_bmi.c
@@ -345,3 +349,5 @@ int last_flip(int pos, unsigned long long P)
 	return n_flipped;
 }
 >>>>>>> f24cc06 (avoid BMI2 for AMD; more lzcnt/tzcnt in count_last_flip_bitscan)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

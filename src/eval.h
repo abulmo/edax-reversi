@@ -1,9 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file eval.h
  *
  * Evaluation function's header.
  *
+<<<<<<< HEAD
 <<<<<<< HEAD
  * @date 1998 - 2023
 =======
@@ -11,11 +15,17 @@
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
  * @author Richard Delorme
  * @version 4.5
+=======
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @version 4.4
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
  */
 
 #ifndef EDAX_EVAL_H
 #define EDAX_EVAL_H
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #include "bit.h"
 =======
@@ -23,6 +33,9 @@
 	#include <x86intrin.h>
 #endif
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+#include "bit.h"
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 /** number of features */
 enum { EVAL_N_FEATURE = 47 };
@@ -31,6 +44,7 @@ enum { EVAL_N_FEATURE = 47 };
  * struct Eval
  * @brief evaluation function
  */
+<<<<<<< HEAD
 typedef union {
 	unsigned short us[48];
 	unsigned long long ull[12];	// SWAR
@@ -61,11 +75,26 @@ typedef struct Eval {
 	} feature;
 	int player;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+typedef struct Eval {
+	union {
+		unsigned short us[EVAL_N_FEATURE];         /**!< discs' features */
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
+		__m128i	v8[6];
+#endif
+#ifdef __AVX2__
+		__m256i	v16[3];
+#endif
+	} feature;
+	int n_empties;                                /**< number of empty squares */
+	unsigned int parity;                          /**< parity */
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 } Eval;
 
 struct Board;
 struct Move;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 /** unpacked weights */
 // enum { EVAL_N_WEIGHT = 226315 };
@@ -79,6 +108,8 @@ typedef struct Eval_weight {
 	short	S7654[2187+729+243+81];
 } Eval_weight;
 =======
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /** number of (unpacked) weights */
 enum { EVAL_N_WEIGHT = 226315 };
 
@@ -86,12 +117,16 @@ enum { EVAL_N_WEIGHT = 226315 };
 enum { EVAL_N_PLY = 61 };
 
 extern short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
+<<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 /** number of plies */
 enum { EVAL_N_PLY = 54 };	// decreased from 60 in 4.5.1
 
 extern Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
+=======
+
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 /* function declaration */
 void eval_open(const char*);
@@ -99,10 +134,16 @@ void eval_close(void);
 // void eval_init(Eval*);
 // void eval_free(Eval*);
 void eval_set(Eval*, const struct Board*);
+<<<<<<< HEAD
+=======
+void eval_update(Eval*, const struct Move*);
+void eval_update_leaf(Eval*, const Eval*, const struct Move*);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 void eval_restore(Eval*, const struct Move*);
 void eval_pass(Eval*);
 double eval_sigma(const int, const int, const int);
 
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_MSVC_X86) || defined(ANDROID)
 void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
 #endif
@@ -180,3 +221,7 @@ double eval_sigma(const int, const int, const int);
 #endif
 
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+#endif
+
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

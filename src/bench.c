@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /**
  * @file bench.c
  *
@@ -9,6 +10,14 @@
 >>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @version 4.5
+=======
+/**
+ * @file bench.c
+ *
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @version 4.4
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
  */
 
 #include "bit.h"
@@ -25,7 +34,11 @@
  *
  * @return a CPU clock tick.
  */
+<<<<<<< HEAD
 static unsigned long long click(void)
+=======
+static unsigned long long click()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 #if defined(USE_GAS_X64)
 
@@ -39,7 +52,11 @@ static unsigned long long click(void)
 	__asm__ volatile (
 		"rdtsc" : "=A" (a));
 	return a;
+<<<<<<< HEAD
 #elif defined(_WIN32) && (defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64))
+=======
+#elif defined(_WIN32)
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	return __rdtsc();
 #else
 	return cpu_clock();
@@ -49,7 +66,11 @@ static unsigned long long click(void)
 /*
  * @brief Move generator performance test.
  */
+<<<<<<< HEAD
 static void bench_move_generator(void)
+=======
+static void bench_move_generator()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -87,13 +108,21 @@ static void bench_move_generator(void)
 		
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
+<<<<<<< HEAD
 			v += board_get_move_flip(&board, x, &move);
+=======
+			v += board_get_move(&board, x, &move);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
+<<<<<<< HEAD
 			v += board_get_move_flip(&board, x, &move);
+=======
+			v += board_get_move(&board, x, &move);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		}
 		c += click();
 
@@ -103,20 +132,32 @@ static void bench_move_generator(void)
 		if (t < t_min) t_min = t;
 		if (t > t_max) t_max = t;
 
+<<<<<<< HEAD
 		if (options.verbosity >= 2) printf("board_get_move_flip: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
+=======
+		if (options.verbosity >= 2) printf("board_get_move: %s %.1f clicks;\n", move_to_string(x, WHITE, m), t);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 	}
 
 	t_mean /= x;
 	t_var = t_var / x - (t_mean * t_mean);
 
+<<<<<<< HEAD
 	printf("board_get_move_flip:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
+=======
+	printf("board_get_move:  %.2f < %.2f +/- %.2f < %.2f\n", t_min, t_mean, sqrt(t_var), t_max);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 }
 
 /*
  * @brief Last Move performance test.
  */
+<<<<<<< HEAD
 static void bench_count_last_flip(void)
+=======
+static void bench_count_last_flip()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -183,7 +224,11 @@ static void bench_count_last_flip(void)
 /*
  * @brief Scoring performance test.
  */
+<<<<<<< HEAD
 static void bench_board_score_1(void)
+=======
+static void bench_board_score_1()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -222,13 +267,21 @@ static void bench_board_score_1(void)
 
 		c = -click();
 		for (i = 0; i < N_WARMUP; ++i) {
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
+=======
+			v += board_score_1(&board, SCORE_MAX, x);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		}
 		c += click();
 
 		c = -click();
 		for (i = 0; i < N_REPEAT; ++i) {
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
+=======
+			v += board_score_1(&board, SCORE_MAX, x);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		}
 		c += click();
 
@@ -251,7 +304,11 @@ static void bench_board_score_1(void)
 /*
  * @brief Mobility performance test.
  */
+<<<<<<< HEAD
 static void bench_mobility(void)
+=======
+static void bench_mobility()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -329,7 +386,11 @@ static void bench_mobility(void)
 /*
  * @brief Stability performance test.
  */
+<<<<<<< HEAD
 static void bench_stability(void)
+=======
+static void bench_stability()
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	const char *b = "OOOOOOOOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOXXXXXXOOOOOOOOO O";
 	char m[4];
@@ -417,6 +478,7 @@ void bench(void)
 
 
 
+<<<<<<< HEAD
 =======
 /**
  * @file bench.c
@@ -833,3 +895,5 @@ void bench(void)
 
 
 >>>>>>> c04475d (Fix microbench not to be optimized out)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)

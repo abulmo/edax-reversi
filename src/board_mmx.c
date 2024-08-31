@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 /**
  * @file board_mmx.c
  *
@@ -7,9 +10,15 @@
  * If both hasMMX and hasSSE2 are undefined, dynamic dispatching code
  * will be generated.  (This setting requires VC or GCC 4.4+)
  *
+<<<<<<< HEAD
  * @date 2014 - 2023
  * @author Toshihiko Okuhara
  * @version 4.5
+=======
+ * @date 2014 - 2020
+ * @author Toshihiko Okuhara
+ * @version 4.4
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
  */
 
 #include "bit.h"
@@ -17,11 +26,19 @@
 #include "board.h"
 #include "move.h"
 
+<<<<<<< HEAD
 #ifdef USE_GAS_MMX
   #ifndef hasMMX
 	#pragma GCC push_options
 	#pragma GCC target ("mmx")
   #endif
+=======
+#if !defined(hasSSE2) && defined(USE_GAS_MMX)
+#ifndef hasMMX
+	#pragma GCC push_options
+	#pragma GCC target ("mmx")
+#endif
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	#include <mmintrin.h>
 #endif
 
@@ -32,6 +49,11 @@ static const unsigned long long mask_33 = 0x3333333333333333ULL;
 static const unsigned long long mask_0F = 0x0f0f0f0f0f0f0f0fULL;
 #endif
 
+<<<<<<< HEAD
+=======
+#ifndef hasSSE2
+
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 #ifndef hasMMX
 bool	hasMMX = false;
 #endif
@@ -94,6 +116,121 @@ void init_mmx (void)
 		init_flip_sse();
 #endif
 }
+<<<<<<< HEAD
+=======
+#endif	// hasSSE2
+
+#ifdef hasMMX
+/**
+ * @brief Update a board.
+ *
+ * Update a board by flipping its discs and updating every other data,
+ * according to the 'move' description.
+ *
+ * @param board the board to modify
+ * @param move  A Move structure describing the modification.
+ */
+#if defined(hasSSE2) && !defined(__3dNOW__)	// Faster on CPU with slow emms
+
+void board_update(Board *board, const Move *move)
+{
+	__m128i	F = _mm_loadl_epi64((__m128i *) &move->flipped);
+	__m128i	OP = _mm_loadu_si128((__m128i *) board);
+	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_unpacklo_epi64(F, F), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
+	_mm_storel_pi((__m64 *) &board->opponent, _mm_castsi128_ps(OP));
+	_mm_storeh_pi((__m64 *) &board->player, _mm_castsi128_ps(OP));
+	board_check(board);
+}
+
+#elif defined(USE_MSVC_X86)
+
+void board_update(Board *board, const Move *move)
+{
+	__m64	F = *(__m64 *) &move->flipped;
+	__m64	P = _m_pxor(*(__m64 *) &board->player, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
+	__m64	O = _m_pxor(*(__m64 *) &board->opponent, F);
+	*(__m64 *) &board->player = O;
+	*(__m64 *) &board->opponent = P;
+	_mm_empty();
+	board_check(board);
+}
+
+#else
+
+void board_update(Board *board, const Move *move)
+{
+	__asm__ (
+		"movq	%2, %%mm1\n\t"
+		"movq	%3, %%mm0\n\t"
+		"por	%%mm1, %%mm0\n\t"
+		"pxor	%0, %%mm0\n\t"
+		"pxor	%1, %%mm1\n\t"
+		"movq	%%mm0, %1\n\t"
+		"movq	%%mm1, %0\n\t"
+		"emms"
+	: "=m" (board->player), "=m" (board->opponent)
+	: "m" (move->flipped), "m" (x_to_bit(move->x))
+	: "mm0", "mm1");
+	board_check(board);
+}
+
+#endif
+
+/**
+ * @brief Restore a board.
+ *
+ * Restore a board by un-flipping its discs and restoring every other data,
+ * according to the 'move' description, in order to cancel a board_update_move.
+ *
+ * @param board board to restore.
+ * @param move  a Move structure describing the modification.
+ */
+#if defined(hasSSE2) && !defined(__3dNOW__)
+
+void board_restore(Board *board, const Move *move)
+{
+	__m128i	F = _mm_loadl_epi64((__m128i *) &move->flipped);
+	__m128i	OP = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i *) &board->opponent), _mm_loadl_epi64((__m128i *) &board->player));
+	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_unpacklo_epi64(F, F), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
+	_mm_storeu_si128((__m128i *) board, OP);
+	board_check(board);
+}
+
+#elif defined(USE_MSVC_X86)
+
+void board_restore(Board *board, const Move *move)
+{
+	__m64	F = *(__m64 *) &move->flipped;
+	__m64	P = *(__m64 *) &board->opponent;
+	__m64	O = *(__m64 *) &board->player;
+	*(__m64 *) &board->player = _m_pxor(P, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
+	*(__m64 *) &board->opponent = _m_pxor(O, F);
+	_mm_empty();
+	board_check(board);
+}
+
+#else
+
+void board_restore(Board *board, const Move *move)
+{
+	__asm__ (
+		"movq	%2, %%mm1\n\t"
+		"movq	%3, %%mm0\n\t"
+		"por	%%mm1, %%mm0\n\t"
+		"pxor	%1, %%mm0\n\t"
+		"pxor	%0, %%mm1\n\t"
+		"movq	%%mm0, %0\n\t"
+		"movq	%%mm1, %1\n\t"
+		"emms"
+	: "=m" (board->player), "=m" (board->opponent)
+	: "m" (move->flipped), "m" (x_to_bit(move->x))
+	: "mm0", "mm1");
+	board_check(board);
+}
+
+#endif
+#endif // hasMMX
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 /**
  * @brief MMX translation of get_moves
@@ -103,13 +240,22 @@ void init_mmx (void)
  */
 #ifdef USE_MSVC_X86
 
+<<<<<<< HEAD
 unsigned long long get_moves_mmx(const unsigned long long P_, const unsigned long long O_)
+=======
+unsigned long long get_moves_mmx(unsigned long long P_, unsigned long long O_)
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	unsigned int movesL, movesH, mO1, flip1, pre1;
 	__m64	P, O, M, mO, flip, pre;
 
+<<<<<<< HEAD
 	P = _m_punpckldq(_m_from_int(P_), _m_from_int(P_ >> 32));
 	O = _m_punpckldq(_m_from_int(O_), _m_from_int(O_ >> 32));	mO1 = (unsigned int) O_ & 0x7e7e7e7e;
+=======
+	P = *(__m64 *) &P_;
+	O = *(__m64 *) &O_;						mO1 = (unsigned int) O_ & 0x7e7e7e7e;
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		/* shift = +8 */						/* shift = +1 */
 	flip = _m_pand(O, _m_psllqi(P, 8));				flip1  = mO1 & ((unsigned int) P_ << 1);
 	flip = _m_por(flip, _m_pand(O, _m_psllqi(flip, 8)));		flip1 |= mO1 & (flip1 << 1);
@@ -162,7 +308,11 @@ unsigned long long get_moves_mmx(const unsigned long long P_, const unsigned lon
 
 #else
 
+<<<<<<< HEAD
 unsigned long long get_moves_mmx(const unsigned long long P, const unsigned long long O)
+=======
+unsigned long long get_moves_mmx(unsigned long long P, unsigned long long O)
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 {
 	unsigned long long moves;
 	__asm__ (
@@ -307,6 +457,7 @@ unsigned long long get_moves_mmx(const unsigned long long P, const unsigned long
  * x 1.5 faster bench stability on 32-bit x86.
  *
  */
+<<<<<<< HEAD
 #ifdef hasMMX
 static void get_full_lines(const unsigned long long disc_, unsigned long long full[4])
 {
@@ -384,23 +535,104 @@ int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned lon
 			stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), ((__m64 *) full)[1]);
 			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), ((__m64 *) full)[3]);
 			stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), ((__m64 *) full)[2]);
+=======
+#ifdef USE_MSVC_X86
+
+int get_stability_mmx(unsigned long long P_, unsigned long long O_)
+{
+	__m64	P, O, P_central, disc, full_h, full_v, full_d7, full_d9, full_l, full_r, stable;
+	__m64	stable_h, stable_v, stable_d7, stable_d9, old_stable, m;
+	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
+	static const unsigned long long MFF = 0xffffffffffffffff;
+	static const unsigned long long edge = 0xff818181818181ffULL;
+	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
+
+	P = *(__m64 *) &P_;
+	O = *(__m64 *) &O_;
+	disc = _m_por(P, O);
+	P_central = _m_pandn(*(__m64 *) &edge, P);
+
+	// get full lines and set intersection of them to stable
+	// get_full_lines_mmx(full_h, disc, 1, e1);
+	full_h = _m_pcmpeqb(*(__m64 *) &MFF, disc);
+	stable = _m_pand(P_central, full_h);
+
+	// get_full_lines_mmx(full_v, disc, 8, e8);
+	full_v = _m_pand(_m_punpcklbw(disc, disc), _m_punpckhbw(disc, disc));	//  (d,d,c,c,b,b,a,a) & (h,h,g,g,f,f,e,e)
+	full_v = _m_pand(_m_punpcklwd(full_v, full_v), _m_punpckhwd(full_v, full_v));	// (dh,dh,dh,dh,cg,cg,cg,cg) & (bf,bf,bf,bf,ae,ae,ae,ae)
+	full_v = _m_pand(_m_punpckldq(full_v, full_v), _m_punpckhdq(full_v, full_v));	// (bdfh*4, bdfh*4) & (aceg*4, aceg*4)
+	stable = _m_pand(stable, full_v);
+
+	// get_full_lines_mmx(full_d7, disc, 7, e7);
+	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 7)));
+	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 7)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[0], _m_psrlqi(full_l, 14)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[1], _m_psllqi(full_r, 14)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[2], _m_psrlqi(full_l, 28)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[3], _m_psllqi(full_r, 28)));
+	full_d7 = _m_pand(full_l, full_r);
+	stable = _m_pand(stable, full_d7);
+
+	// get_full_lines_mmx(full_d9, disc, 9, e9);
+
+	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 9)));
+	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 9)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e9[0], _m_psrlqi(full_l, 18)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e9[1], _m_psllqi(full_r, 18)));
+	full_d9 = _m_pand(_m_pand(full_l, full_r), _m_por(*(__m64 *) &e9[2], _m_por(_m_psrlqi(full_l, 36), _m_psllqi(full_r, 36))));
+	stable = _m_pand(stable, full_d9);
+
+	// compute the exact stable edges (from precomputed tables)
+	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
+	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
+	a1a8po = ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
+		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
+	h1h8po = ((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
+		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24);
+	stable = _m_por(stable, _m_por(_m_por(*(__m64 *) &A1_A8[edge_stability[a1a8po]],
+		_m_psllqi(*(__m64 *) &A1_A8[edge_stability[h1h8po]], 7)),
+		_m_punpckldq(_m_from_int(edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]),
+		_m_from_int(edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24))));
+
+	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+	t = _m_to_int(_m_packsswb(stable, stable));
+	if (t) {
+		do {
+			old_stable = stable;
+			stable_h = _m_por(_m_por(_m_psrlqi(stable, 1), _m_psllqi(stable, 1)), full_h);
+			stable_v = _m_por(_m_por(_m_psrlqi(stable, 8), _m_psllqi(stable, 8)), full_v);
+			stable_d7 = _m_por(_m_por(_m_psrlqi(stable, 7), _m_psllqi(stable, 7)), full_d7);
+			stable_d9 = _m_por(_m_por(_m_psrlqi(stable, 9), _m_psllqi(stable, 9)), full_d9);
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 			stable = _m_por(stable, _m_pand(_m_pand(_m_pand(_m_pand(stable_h, stable_v), stable_d7), stable_d9), P_central));
 			m = _m_pxor(stable, old_stable);
 		} while (_m_to_int(_m_packsswb(m, m)) != 0);
 
+<<<<<<< HEAD
   #ifdef POPCOUNT
 		t = bit_count_32(_m_to_int(stable)) + bit_count_32(_m_to_int(_m_psrlqi(stable, 32)));
   #else
+=======
+#ifdef POPCOUNT
+		t = __popcnt(_m_to_int(stable)) + __popcnt(_m_to_int(_m_psrlqi(stable, 32)));
+#else
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 		m = _m_psubd(stable, _m_pand(_m_psrlqi(stable, 1), *(__m64 *) &mask_55));
 		m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
 		m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
 		t = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
+<<<<<<< HEAD
   #endif
+=======
+#endif
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	}
 	_mm_empty();
 	return t;
 }
 
+<<<<<<< HEAD
 // returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
@@ -409,10 +641,373 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	return get_stability_fulls(P, O, full);
 }
 #endif // hasMMX
+=======
+#elif defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))
+// LLVM ERROR: Unsupported asm: input constraint with a matching output constraint of incompatible type!
+
+#define	get_full_lines_mmx(result,disc,dir,edge)	__asm__ (\
+		"movq	%2, %%mm0\n\t"		"movq	%2, %%mm1\n\t"\
+		"psrlq	%3, %%mm0\n\t"		"psllq	%3, %%mm1\n\t"\
+		"por	%6, %%mm0\n\t"		"por	%6, %%mm1\n\t"\
+		"pand	%2, %%mm0\n\t"		"pand	%2, %%mm1\n\t"\
+		"movq	%%mm0, %%mm2\n\t"	"movq	%%mm1, %%mm3\n\t"\
+		"psrlq	%4, %%mm0\n\t"		"psllq	%4, %%mm1\n\t"\
+		"por	%7, %%mm0\n\t"		"por	%8, %%mm1\n\t"\
+		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm3, %%mm1\n\t"\
+		"movq	%%mm0, %%mm2\n\t"	"pand	%%mm1, %%mm0\n\t"\
+		"psrlq	%5, %%mm2\n\t"		"psllq	%5, %%mm1\n\t"\
+		"por	%9, %%mm2\n\t"		"por	%10, %%mm1\n\t"\
+		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm1, %%mm0\n\t"\
+		"movq	%%mm0, %0\n\t"\
+		"pand	%%mm0, %1"\
+	: "=m" (result), "+y" (stable)\
+	: "y" (disc), "i" (dir), "i" (dir * 2), "i" (dir * 4),\
+	  "my" (e0), "m" (edge[0]), "m" (edge[1]), "m" (edge[2]), "m" (edge[3])\
+	: "mm0", "mm1", "mm2", "mm3");
+
+int get_stability_mmx(unsigned long long P_, unsigned long long O_)
+{
+	__m64	P, O, P_central, disc, full_h, full_v, full_d7, full_d9, stable;
+#ifdef hasSSE2
+	__v2di	PO;
+#endif
+	unsigned int	OL, OH, PL, PH, t, a1a8po, h1h8po;
+	static const unsigned long long e0 = 0xff818181818181ffULL;
+	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0xfffffffff0f0f0f0, 0x0f0f0f0fffffffff };
+
+	__asm__ (
+		"movd	%2, %0\n\t"		"movd	%4, %1\n\t"		// (movd for store-forwarding)
+		"punpckldq %3, %0\n\t"		"punpckldq %5, %1"
+	: "=&y" (P), "=&y" (O) : "m" (P_), "m" (((unsigned int *)&P_)[1]), "m" (O_), "m" (((unsigned int *)&O_)[1]));
+#ifdef hasSSE2
+	PO = _mm_unpacklo_epi64(_mm_movpi64_epi64(O), _mm_movpi64_epi64(P));
+#endif
+	__asm__ (
+		"por	%3, %0\n\t"
+		"pandn	%3, %1\n\t"
+		"movq	%1, %2"
+	: "=y" (disc), "=y" (stable), "=m" (P_central)
+	: "y" (P), "0" (O), "1" (e0));
+
+	// get full lines and set intersection of them to stable
+	// get_full_lines_mmx(full_h, disc, 1, e1);
+	__asm__ (
+		"pcmpeqb %%mm0, %%mm0\n\t"
+		"pcmpeqb %2, %%mm0\n\t"
+		"movq	%%mm0, %0\n\t"
+		"pand	%%mm0, %1"
+	: "=m" (full_h), "+y" (stable) : "y" (disc) : "mm0");
+	// get_full_lines_mmx(full_v, disc, 8, e8);
+	__asm__ (
+		"movq	%2, %%mm0\n\t"		"movq	%2, %%mm1\n\t"
+		"punpcklbw %%mm0, %%mm0\n\t"	"punpckhbw %%mm1, %%mm1\n\t"
+		"pand	%%mm1, %%mm0\n\t"	// (d,d,c,c,b,b,a,a) & (h,h,g,g,f,f,e,e)
+#ifdef hasSSE2
+		"pshufw	$177, %%mm0, %%mm1\n\t"
+		"pand	%%mm1, %%mm0\n\t"	// (cg,cg,dh,dh,ae,ae,bf,bf) & (dh,dh,cg,cg,bf,bf,ae,ae)
+		"pshufw	$78, %%mm0, %%mm1\n\t"
+		"pand	%%mm1, %%mm0\n\t"	// (abef*4, cdgh*4) & (cdgh*4, abef*4)
+#else
+		"movq	%%mm0, %%mm1\n\t"
+		"punpcklwd %%mm0, %%mm0\n\t"	"punpckhwd %%mm1, %%mm1\n\t"
+		"pand	%%mm1, %%mm0\n\t"	// (dh,dh,dh,dh,cg,cg,cg,cg) & (bf,bf,bf,bf,ae,ae,ae,ae)
+		"movq	%%mm0, %%mm1\n\t"
+		"punpckldq %%mm0, %%mm0\n\t"	"punpckhdq %%mm1, %%mm1\n\t"
+		"pand	%%mm1, %%mm0\n\t"	// (bdfh*4, bdfh*4) & (aceg*4, aceg*4)
+#endif
+		"movq	%%mm0, %0\n\t"
+		"pand	%%mm0, %1"
+	: "=m" (full_v), "+y" (stable) : "y" (disc) : "mm0", "mm1");
+	get_full_lines_mmx(full_d7, disc, 7, e7);
+	get_full_lines_mmx(full_d9, disc, 9, e9);
+
+	// compute the exact stable edges (from precomputed tables)
+	OL = (unsigned int) O_;	OH = (unsigned int)(O_ >> 32);
+	PL = (unsigned int) P_;	PH = (unsigned int)(P_ >> 32);
+#ifdef hasSSE2
+	a1a8po = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
+	h1h8po = _mm_movemask_epi8(PO);
+#else
+	a1a8po = ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24) * 256
+		+ ((((OL & 0x01010101u) + ((OH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
+	h1h8po = ((((PH & 0x80808080u) + ((PL & 0x80808080u) >> 4)) * 0x00204081u) >> 24) * 256
+		+ ((((OH & 0x80808080u) + ((OL & 0x80808080u) >> 4)) * 0x00204081u) >> 24);
+#endif
+	__asm__(
+		"movd	%1, %%mm0\n\t"		"por	%3, %0\n\t"
+		"movd	%2, %%mm1\n\t"
+		"punpckldq %%mm1, %%mm0\n\t"	"movq	%4, %%mm1\n\t"
+		"por	%%mm0, %0\n\t"		"psllq	$7, %%mm1\n\t"
+						"por	%%mm1, %0"
+	: "+y" (stable)
+	: "g" ((int) edge_stability[(PL & 0xff) * 256 + (OL & 0xff)]),
+	  "g" (edge_stability[((PH >> 16) & 0xff00) + (OH >> 24)] << 24),
+	  "m" (A1_A8[edge_stability[a1a8po]]),
+	  "m" (A1_A8[edge_stability[h1h8po]])
+	: "mm0", "mm1");
+
+	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+	__asm__ (
+		"movq	%1, %%mm0\n\t"
+		"packsswb %%mm0, %%mm0\n\t"
+		"movd	%%mm0, %0\n\t"
+	: "=g" (t) : "y" (stable) : "mm0" );
+
+	if (t) {
+		do {
+			__asm__ (
+				"movq	%1, %%mm3\n\t"
+				"movq	%6, %1\n\t"
+				"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"
+				"psrlq	$1, %%mm0\n\t"		"psllq	$1, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
+				"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$7, %%mm2\n\t"
+				"por	%2, %%mm0\n\t"		"psllq	$7, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
+				"pand	%%mm0, %1\n\t"						"por	%4, %%mm2\n\t"
+				"movq	%%mm3, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"pand	%%mm2, %1\n\t"
+				"psrlq	$8, %%mm0\n\t"		"psllq	$8, %%mm1\n\t"		"movq	%%mm3, %%mm2\n\t"
+				"por	%%mm1, %%mm0\n\t"	"movq	%%mm3, %%mm1\n\t"	"psrlq	$9, %%mm2\n\t"
+				"por	%3, %%mm0\n\t"		"psllq	$9, %%mm1\n\t"		"por	%%mm1, %%mm2\n\t"
+				"pand	%%mm0, %1\n\t"						"por	%5, %%mm2\n\t"
+												"pand	%%mm2, %1\n\t"
+				"por	%%mm3, %1\n\t"
+				"pxor	%1, %%mm3\n\t"
+				"packsswb %%mm3, %%mm3\n\t"
+				"movd	%%mm3, %0"
+			: "=g" (t), "+y" (stable)
+			: "m" (full_h), "m" (full_v), "m" (full_d7), "m" (full_d9), "m" (P_central)
+			: "mm0", "mm1", "mm2", "mm3");
+		} while (t);
+
+		// bit_count(stable)
+#ifdef POPCOUNT
+		__asm__ (
+			"movd	%1, %0\n\t"
+			"psrlq	$32, %1\n\t"
+			"movd	%1, %%edx\n\t"
+			"popcntl %0, %0\n\t"
+			"popcntl %%edx, %%edx\n\t"
+			"addl	%%edx, %0"
+		: "=&a" (t) : "y" (stable) : "edx");
+#else
+		__asm__ (
+	 		"movq	%1, %%mm0\n\t"
+			"psrlq	$1, %1\n\t"
+			"pand	%2, %1\n\t"
+			"psubd	%1, %%mm0\n\t"
+
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$2, %%mm0\n\t"
+			"pand	%3, %%mm1\n\t"
+			"pand	%3, %%mm0\n\t"
+			"paddd	%%mm1, %%mm0\n\t"
+
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$4, %%mm0\n\t"
+			"paddd	%%mm1, %%mm0\n\t"
+			"pand	%4, %%mm0\n\t"
+	#ifdef hasSSE2
+			"pxor	%%mm1, %%mm1\n\t"
+			"psadbw	%%mm1, %%mm0\n\t"
+			"movd	%%mm0, %0\n\t"
+	#else
+			"movq	%%mm0, %%mm1\n\t"
+			"psrlq	$32, %%mm0\n\t"
+			"paddb	%%mm1, %%mm0\n\t"
+
+			"movd	%%mm0, %0\n\t"
+			"imull	$0x01010101, %0, %0\n\t"
+			"shrl	$24, %0"
+	#endif
+		: "=a" (t) : "y" (stable), "m" (mask_55), "my" (mask_33), "m" (mask_0F) : "mm0", "mm1");
+#endif
+	}
+	__asm__ ( "emms" );
+	return t;
+}
+#endif // USE_MSVC_X86
+
+/**
+ * @brief MMX translation of get_potential_mobility
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return a count of potential moves.
+ */
+#ifdef USE_MSVC_X86
+
+int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
+{
+	__m64	m, mO;
+	int	count;
+	static const unsigned long long mask_v = 0x00ffffffffffff00ULL;
+	// static const unsigned long long mask_d = 0x007e7e7e7e7e7e00ULL;	// = mask_7e & mask_v
+#ifdef POPCOUNT
+	int	mh, ml;
+#else
+	static const unsigned long long mask_15 = 0x1555555555555515ULL;
+	static const unsigned long long mask_01 = 0x0100000000000001ULL;
+#endif
+
+	mO = _m_pand(*(__m64 *) &O, *(__m64 *) &mask_7e);
+	m = _m_por(_m_psllqi(mO, 1), _m_psrlqi(mO, 1));
+	mO = _m_pand(*(__m64 *) &O, *(__m64 *) &mask_v);
+	m = _m_por(m, _m_por(_m_psllqi(mO, 8), _m_psrlqi(mO, 8)));
+	mO = _m_pand(mO, *(__m64 *) &mask_7e);
+	m = _m_por(m, _m_por(_m_psllqi(mO, 7), _m_psrlqi(mO, 7)));
+	m = _m_por(m, _m_por(_m_psllqi(mO, 9), _m_psrlqi(mO, 9)));
+	m = _m_pandn(_m_por(*(__m64 *) &O, *(__m64 *) &P), m);
+
+#ifdef POPCOUNT
+	ml = _m_to_int(m);
+	mh = _m_to_int(_m_psrlqi(m, 32));
+	count = __popcnt(ml) + __popcnt(mh) + __popcnt((ml & 0x00000081) + (mh & 0x81000000));
+#else
+	m = _m_paddd(_m_psubd(m, _m_pand(_m_psrlqi(m, 1), *(__m64 *) &mask_15)), _m_pand(m, *(__m64 *) &mask_01));
+	m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
+	m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
+	count = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
+#endif
+	_mm_empty();
+	return count;
+}
+
+#elif defined(USE_GAS_MMX)
+
+int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
+{
+	int	count;
+	static const unsigned long long mask_v = 0x00ffffffffffff00ULL;
+	// static const unsigned long long mask_d = 0x007e7e7e7e7e7e00ULL;	// = mask_7e & mask_v
+#ifndef POPCOUNT
+	static const unsigned long long mask_15 = 0x1555555555555515ULL;
+	static const unsigned long long mask_01 = 0x0100000000000001ULL;
+#endif
+
+	__asm__ (
+		"movq	%3, %%mm2\n\t"		"movq	%4, %%mm5\n\t"
+		"pand	%2, %%mm2\n\t"		"pand	%2, %%mm5\n\t"		"movq	%%mm2, %%mm3\n\t"
+		"movq	%%mm2, %%mm4\n\t"	"movq	%%mm5, %%mm6\n\t"	"pand	%%mm5, %%mm3\n\t"
+		"psllq	$1, %%mm2\n\t"		"psllq	$8, %%mm5\n\t"
+		"psrlq	$1, %%mm4\n\t"		"psrlq	$8, %%mm6\n\t"
+		"por	%%mm4, %%mm2\n\t"	"por	%%mm6, %%mm5\n\t"
+		"por	%%mm5, %%mm2\n\t"
+		"movq	%%mm3, %%mm5\n\t"
+		"movq	%%mm3, %%mm4\n\t"	"movq	%%mm5, %%mm6\n\t"
+		"psllq	$7, %%mm3\n\t"		"psllq	$9, %%mm5\n\t"
+		"psrlq	$7, %%mm4\n\t"		"psrlq	$9, %%mm6\n\t"
+		"por	%%mm4, %%mm3\n\t"	"por	%%mm6, %%mm5\n\t"
+		"por	%%mm3, %%mm2\n\t"	"por	%%mm5, %%mm2\n\t"
+		"por	%1, %2\n\t"
+		"pandn	%%mm2, %2\n\t"
+
+#ifdef POPCOUNT
+		"movd	%2, %%ecx\n\t"
+		"popcntl %%ecx, %0\n\t"		"andl	$0x00000081, %%ecx\n\t"
+		"psrlq	$32, %2\n\t"		"popcntl %%ecx, %%ecx\n\t"
+		"movd	%2, %%edx\n\t"		"addl	%%ecx, %0\n\t"
+		"popcntl %%edx, %%ecx\n\t"	"andl	$0x81000000, %%edx\n\t"
+		"addl	%%ecx, %0\n\t"		"popcntl %%edx, %%edx\n\t"
+						"addl	%%edx, %0\n\t"
+		"emms"
+	: "=g" (count) : "y" (P), "y" (O), "m" (mask_7e), "m" (mask_v)
+	: "ecx", "edx", "mm2", "mm3", "mm4", "mm5", "mm6");
+
+#else
+		"movq	%2, %1\n\t"		"movq	%2, %%mm2\n\t"
+		"psrlq	$1, %2\n\t"
+		"pand	%5, %2\n\t"		"pand	%6, %%mm2\n\t"
+		"psubd	%2, %1\n\t"		"paddd	%%mm2, %1\n\t"
+
+		"movq	%1, %2\n\t"
+		"psrlq	$2, %1\n\t"
+		"pand	%7, %2\n\t"
+		"pand	%7, %1\n\t"
+		"paddd	%2, %1\n\t"
+
+		"movq	%1, %2\n\t"
+		"psrlq	$4, %1\n\t"
+		"paddd	%2, %1\n\t"
+		"pand	%8, %1\n\t"
+	#ifdef hasSSE2
+		"pxor	%2, %2\n\t"
+		"psadbw	%2, %1\n\t"
+		"movd	%1, %0\n\t"
+	#else
+		"movq	%1, %2\n\t"
+		"psrlq	$32, %1\n\t"
+		"paddb	%2, %1\n\t"
+
+		"movd	%1, %0\n\t"
+		"imull	$0x01010101, %0, %0\n\t"
+		"shrl	$24, %0\n\t"
+	#endif
+		"emms"
+	: "=g" (count)
+	: "y" (P), "y" (O), "m" (mask_7e), "m" (mask_v),
+	  "m" (mask_15), "m" (mask_01), "m" (mask_33), "m" (mask_0F)
+	: "mm2", "mm3", "mm4", "mm5", "mm6");
+#endif
+
+	return count;
+}
+#endif
+
+/**
+ * @brief MMX translation of board_get_hash_code.
+ *
+ * @param p pointer to 16 bytes to hash.
+ * @return the hash code of the bitboard
+ */
+
+#if defined(USE_GAS_MMX) && defined(__3dNOW__)
+
+unsigned long long board_get_hash_code_mmx(const unsigned char *p)
+{
+	unsigned long long h;
+
+	__asm__ volatile (
+		"movq	%0, %%mm0\n\t"		"movq	%1, %%mm1"
+	: : "m" (hash_rank[0][p[0]]), "m" (hash_rank[1][p[1]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[2][p[2]]), "m" (hash_rank[3][p[3]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[4][p[4]]), "m" (hash_rank[5][p[5]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[6][p[6]]), "m" (hash_rank[7][p[7]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[8][p[8]]), "m" (hash_rank[9][p[9]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[10][p[10]]), "m" (hash_rank[11][p[11]]));
+	__asm__ volatile (
+		"pxor	%0, %%mm0\n\t"		"pxor	%1, %%mm1"
+	: : "m" (hash_rank[12][p[12]]), "m" (hash_rank[13][p[13]]));
+	__asm__ volatile (
+		"pxor	%1, %%mm0\n\t"		"pxor	%2, %%mm1\n\t"
+		"pxor	%%mm1, %%mm0\n\t"
+		"movd	%%mm0, %%eax\n\t"
+		"punpckhdq %%mm0, %%mm0\n\t"
+		"movd	%%mm0, %%edx\n\t"
+		"emms"
+	: "=A" (h)
+	: "m" (hash_rank[14][p[14]]), "m" (hash_rank[15][p[15]])
+	: "mm0", "mm1");
+
+	return h;
+}
+
+#endif // __3dNOW
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
 #if !defined(hasMMX) && defined(USE_GAS_MMX)
 	#pragma GCC pop_options
 #endif
+<<<<<<< HEAD
 =======
 /**
  * @file board_mmx.c
@@ -1286,3 +1881,5 @@ unsigned long long board_get_hash_code_mmx(const unsigned char *p)
 	#pragma GCC pop_options
 #endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+>>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
