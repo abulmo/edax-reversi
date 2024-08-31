@@ -3,7 +3,7 @@
  *
  * @brief User interface.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -74,8 +74,8 @@ static void ui_read_input(UI *ui)
 {
 	char *buffer;
 	char cmd[8];
-	Event *event = ui->event;
-	Play *play = ui->play;
+	Event *const event = &ui->event;
+	Play *const play = ui->play;
 
 	buffer = string_read_line(stdin);
 
@@ -125,9 +125,9 @@ static void ui_read_input(UI *ui)
  */
 static void* ui_read_input_loop(void *v)
 {
-	UI *ui = (UI*) v;
+	UI *const ui = (UI*) v;
 
-	while (ui->event->loop && !feof(stdin) && !ferror(stdin)) {
+	while (ui->event.loop && !feof(stdin) && !ferror(stdin)) {
 		ui_read_input(ui);
 	}
 
@@ -146,7 +146,7 @@ static void* ui_read_input_loop(void *v)
  */
 void ui_event_wait(UI *ui, char **cmd, char **param)
 {
-	event_wait(ui->event, cmd, param);
+	event_wait(&ui->event, cmd, param);
 	if (options.echo && *cmd) printf(" %s %s\n", *cmd, *param ? *param : "");
 }
 
@@ -162,7 +162,7 @@ bool ui_event_peek(UI *ui, char **cmd, char **param)
 	int n;
 	char *message;
 
-	if ((message = event_peek_message(ui->event)) != NULL) {
+	if ((message = event_peek_message(&ui->event)) != NULL) {
 
 		free(*cmd); *cmd = NULL;
 		free(*param); *param = NULL;
@@ -190,9 +190,9 @@ bool ui_event_exist(UI *ui)
 {
 	bool ok;
 
-	spin_lock(ui->event);
-	ok = event_exist(ui->event);
-	spin_unlock(ui->event);	
+	spin_lock(&ui->event);
+	ok = event_exist(&ui->event);
+	spin_unlock(&ui->event);	
 
 	return ok;
 }
@@ -205,10 +205,10 @@ bool ui_event_exist(UI *ui)
  */
 void ui_event_init(UI *ui)
 {
-	event_init(ui->event);
+	event_init(&ui->event);
 	
-	thread_create(&ui->event->thread, ui_read_input_loop, ui);
-	thread_detach(ui->event->thread);
+	thread_create(&ui->event.thread, ui_read_input_loop, ui);
+	thread_detach(ui->event.thread);
 }
 
 /**
@@ -219,5 +219,5 @@ void ui_event_init(UI *ui)
  */
 void ui_event_free(UI *ui)
 {
-	event_free(ui->event);
+	event_free(&ui->event);
 }
