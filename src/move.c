@@ -4,10 +4,14 @@
  * @brief Move & list of moves management.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2022
+>>>>>>> 5de3726 (inline board_update and omit restore)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -186,56 +190,62 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 	const int w_mid_parity = 1 << 2;
 	const int w_high_parity = 1 << 1;
 #endif	
-	int	empties, parity_weight;
+	int	score, empties, parity_weight;
 	HashData dummy[1];
+	unsigned long long P, O;
 	Eval Ev0;
 
 	if (move_wipeout(move, &search->board)) move->score = (1 << 30);
 	else if (move->x == hash_data->move[0]) move->score = (1 << 29);
 	else if (move->x == hash_data->move[1]) move->score = (1 << 28);
 	else {
-
-		move->score = SQUARE_VALUE[move->x]; // square type
+		score = SQUARE_VALUE[move->x]; // square type
 		empties = search->eval.n_empties;
 		if (empties < 30) {	// https://eukaryote.hateblo.jp/entry/2020/05/16/082757
 			parity_weight = (empties < 12) ? w_low_parity : ((empties < 21) ? w_mid_parity : w_high_parity);
-			move->score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0;
+			score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0;
 		}
 
 		if (sort_depth < 0) {
-			board_update(&search->board, move);
-				SEARCH_UPDATE_ALL_NODES(search->n_nodes);
-				move->score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
-				move->score += get_corner_stability(search->board.opponent) * w_corner_stability; // corner stability
-				move->score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) * w_mobility; // real mobility
-			board_restore(&search->board, move);
+			// board_update(&search->board, move);
+			O = search->board.player ^ (move->flipped | X_TO_BIT[move->x]);
+			P = search->board.opponent ^ move->flipped;
+			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+			score += (36 - get_potential_mobility(P, O)) * w_potential_mobility; // potential mobility
+			score += get_corner_stability(O) * w_corner_stability; // corner stability
+			score += (36 - get_weighted_mobility(P, O)) * w_mobility; // real mobility
+			// board_restore(&search->board, move);
+
 		} else {
 			int selectivity = search->selectivity;
 			search->selectivity = NO_SELECTIVITY;
 			Ev0.feature = search->eval.feature;
 			search_update_midgame(search, move);
-				SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
-				move->score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
-				move->score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
-				move->score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) *  w_mobility; // real mobility
-				switch(sort_depth) {
-				case 0:
-					move->score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
-					break;
-				case 1:
-					move->score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 2 level score bonus
-					break;
-				case 2:
-					move->score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 3 level score bonus
-					break;
-				default:
-					if (hash_get(&search->hash_table, &search->board, board_get_hash_code(&search->board), dummy)) move->score += w_hash; // bonus if the position leads to a position stored in the hash-table
-					move->score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
-					break;
-				}
+
+			SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
+			score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
+			score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
+			score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) *  w_mobility; // real mobility
+			switch(sort_depth) {
+			case 0:
+				score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
+				break;
+			case 1:
+				score += ((SCORE_MAX - search_eval_1(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 2 level score bonus
+				break;
+			case 2:
+				score += ((SCORE_MAX - search_eval_2(search, SCORE_MIN, -sort_alpha, get_moves(search->board.player, search->board.opponent))) >> 1) * w_eval;  // 3 level score bonus
+				break;
+			default:
+				if (hash_get(&search->hash_table, &search->board, board_get_hash_code(&search->board), dummy)) score += w_hash; // bonus if the position leads to a position stored in the hash-table
+				score += ((SCORE_MAX - PVS_shallow(search, SCORE_MIN, -sort_alpha, sort_depth))) * w_eval; // > 3 level bonus
+				break;
+			}
+
 			search_restore_midgame(search, move, &Ev0);
 			search->selectivity = selectivity;
 		}
+		move->score = score;
 	}
 }
 
