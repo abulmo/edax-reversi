@@ -53,10 +53,14 @@ static unsigned long long click()
 		"rdtsc" : "=A" (a));
 	return a;
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(_WIN32) && (defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64))
 =======
 #elif defined(_WIN32)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#elif defined(_WIN32) && (defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64))
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	return __rdtsc();
 #else
 	return cpu_clock();

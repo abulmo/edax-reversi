@@ -94,23 +94,40 @@ extern const unsigned long long X_TO_BIT[];
 
 //#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
 
+<<<<<<< HEAD
 >>>>>>> b1eae0d (Reduce flip table by rotated outflank; revise lzcnt & rol8 defs)
+=======
+#ifndef __has_builtin
+	#define __has_builtin(x) 0  // Compatibility with non-clang compilers.
+#endif
+
+// mirror byte
+#if defined(_M_ARM) // || defined(_M_ARM64) // https://developercommunity.visualstudio.com/content/problem/498995/arm64-missing-rbit-intrinsics.html
+#define mirror_byte(b)	(_arm_rbit(b) >> 24)
+#elif defined(__ARM_ACLE)
+#include <arm_acle.h>
+#define mirror_byte(b)	(__rbit(b) >> 24)
+#elif defined(HAS_CPU_64)
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 // http://graphics.stanford.edu/~seander/bithacks.html
-#ifdef HAS_CPU_64
 #define mirror_byte(b)	(unsigned char)((((b) * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32)
 #else
 static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x200802) & 0x4422110) + ((b << 7) & 0x880)) * 0x01010101 >> 24); }
 #endif
 
+<<<<<<< HEAD
 >>>>>>> 0ee9c1c (mirror_byte added for 1 byte bit reverse)
 #ifndef __has_builtin
 	#define __has_builtin(x) 0  // Compatibility with non-clang compilers.
 >>>>>>> ea39994 (Improve clang compatibility)
 #endif
 
+=======
+// rotl8
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #if __has_builtin(__builtin_rotateleft8)
 	#define rotl8(x,y)	__builtin_rotateleft8((x),(y))
-#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
+#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)) && (defined(__x86_64__) || defined(__i386__))
 	#define rotl8(x,y)	__builtin_ia32_rolqi((x),(y))
 #elif defined(_MSC_VER)
 	#define	rotl8(x,y)	_rotl8((x),(y))
@@ -118,6 +135,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	#define	rotl8(x,y)	((unsigned char)(((x)<<(y))|((unsigned)(x)>>(8-(y)))))
 #endif
 
+// bswap
 #ifdef _MSC_VER
 	#define	bswap_short(x)	_byteswap_ushort(x)
 	#define	bswap_int(x)	_byteswap_ulong(x)
@@ -137,6 +155,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	#endif
 #endif
 
+// ctz / clz
 #if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctzll)
 	#define	first_bit(x)	__builtin_ctzll(x)
 	#define	last_bit(x)	(63 - __builtin_clzll(x))
@@ -151,15 +170,25 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 /** Loop over each bit set. */
 #define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
 
-#ifndef HAS_CPU_64
+#ifdef HAS_CPU_64
+	typedef unsigned long long	widest_register;
+	#define foreach_bit_r(i, f, b)	b = (widest_register) f;\
+		foreach_bit(i, b)
+#else
+	typedef unsigned int	widest_register;
 	#if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctz)
 		#define	first_bit_32(x)	__builtin_ctz(x)
+	#elif defined(_M_ARM) || defined(_M_ARM64)
+		#define first_bit_32(x) _arm_clz(_arm_rbit(x))
 	#else
 		int first_bit_32(unsigned int);
 	#endif
-	#define foreach_bit_32(i, b)	for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
+	#define foreach_bit_r(i, f, b)	b = (widest_register) f;\
+		f >>= sizeof(widest_register) * CHAR_BIT;\
+		for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
 #endif
 
+// popcount
 #ifdef POPCOUNT
 	/*
 	#if defined (USE_GAS_X64)
@@ -179,17 +208,15 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 		}
 	*/
 	#ifdef _MSC_VER
-		#ifdef _M_X64
+		#ifdef _M_ARM
+			#define bit_count(x)	_CountOneBits64(x)
+		#elif defined(_M_X64)
 			#define	bit_count(x)	((int) __popcnt64(x))
 		#else
 			#define bit_count(x)	(__popcnt((unsigned int) (x)) + __popcnt((unsigned int) ((x) >> 32)))
 		#endif
 	#else
-		#ifdef __x86_64__
-			#define bit_count(x)	__builtin_popcountll(x)
-		#else
-			#define bit_count(x)	(__builtin_popcount((unsigned int) (x)) + __builtin_popcount((unsigned int) ((x) >> 32)))
-		#endif
+		#define bit_count(x)	__builtin_popcountll(x)
 	#endif
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #else
@@ -197,7 +224,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	int bit_weighted_count(unsigned long long);
 =======
 	extern unsigned char PopCnt16[1 << 16];
-	inline int bit_count(unsigned long long b) {
+	static inline int bit_count(unsigned long long b) {
 		union { unsigned long long bb; unsigned short u[4]; } v = { b };
 		return PopCnt16[v.u[0]] + PopCnt16[v.u[1]] + PopCnt16[v.u[2]] + PopCnt16[v.u[3]];
 	}
@@ -451,7 +478,7 @@ typedef union {
 
 /* Define function attributes directive when available */
 
-#if defined(_MSC_VER) || defined(__clang__)
+#if defined(_MSC_VER)	// including clang-win
 #define	vectorcall	__vectorcall
 #elif defined(__GNUC__) && defined(__i386__)
 #define	vectorcall	__attribute__((sseregparm))
@@ -483,6 +510,7 @@ static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 #endif
 #endif
 
+// lzcnt / tzcnt (0 allowed)
 #ifdef USE_GAS_X86
 #ifdef __LZCNT__
 static inline int _lzcnt_u64(unsigned long long x) {
@@ -532,14 +560,11 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	#define	lzcnt_u32(x)	_lzcnt_u32(x)
 	#define	lzcnt_u64(x)	_lzcnt_u64(x)
 
-#elif defined(_MSC_VER)
-	static inline int lzcnt_u32(unsigned long n) {
-		unsigned long i;
-		if (!_BitScanReverse(&i, n))
-			i = 32 ^ 31;
-		return i ^ 31;
-	}
+#elif defined(_M_ARM) || defined(_M_ARM64)
+	#define lzcnt_u32(x)	_CountLeadingZeros(x)
+	#define lzcnt_u64(x)	_CountLeadingZeros64(x)
 
+#elif defined(_MSC_VER)
 	#ifdef _M_X64
 		static inline int lzcnt_u64(unsigned long long n) {
 			unsigned long i;
@@ -557,6 +582,10 @@ static inline int _tzcnt_u64(unsigned long long x) {
 			return i ^ 63;
 		}
 	#endif
+
+#elif defined(__ARM_FEATURE_CLZ)
+	#define	lzcnt_u32(x)	__clz(x)
+	#define	lzcnt_u64(x)	__clzll(x)
 
 #else
 	static inline int lzcnt_u32(unsigned long x) { return (x ? __builtin_clz(x) : 32); }

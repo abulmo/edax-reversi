@@ -249,10 +249,14 @@ static const unsigned long long  FLIPPED_5_V[137] = {
  * Set all bits below the sole outflank bit if outfrank != 0
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (_MSC_VER >= 1800) && (defined(_M_IX86) || defined (_M_X64))
 =======
 #if _MSC_VER >= 1800
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#if (_MSC_VER >= 1800) && (defined(_M_IX86) || defined (_M_X64))
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #include <intrin.h>
 static inline unsigned long long OutflankToFlipmask(unsigned long long outflank) {
 	unsigned int flipmaskL, flipmaskH;

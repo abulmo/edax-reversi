@@ -231,7 +231,13 @@ extern unsigned char edge_stability[256 * 256];
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+	extern unsigned long long Flip(int , unsigned long long, unsigned long long);
+
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #else
   #if MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP
 	extern unsigned long long Flip(int, unsigned long long, unsigned long long);

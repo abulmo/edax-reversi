@@ -281,6 +281,7 @@ int search_bound(const Search*, int);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
   #ifdef __AVX2__
 	#define	mm_malloc(s)	_mm_malloc((s), 32)
@@ -306,13 +307,33 @@ int search_bound(const Search*, int);
 =======
 #ifdef hasSSE2
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+#if defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	#ifdef __AVX2__
 		#define	mm_malloc(s)	_mm_malloc((s), 32)
-	#else
+		#define	mm_free(p)	_mm_free(p)
+	#elif defined(hasSSE2) && !defined(__ANDROID__)
 		#define	mm_malloc(s)	_mm_malloc((s), 16)
+		#define	mm_free(p)	_mm_free(p)
+	#elif defined(_MSC_VER)
+		#define	mm_malloc(s)	_aligned_malloc((s), 16)
+		#define	mm_free(p)	free(p)
+	#else
+		static inline void *mm_malloc(size_t s) {
+			void *p = malloc(s + 16 + sizeof(void *));
+			if (!p) return p;
+			void **q = (void **)(((size_t) p + 15 + sizeof(void *)) & -16);
+			*(q - 1) = p;
+			return (void *) q;
+		}
+		#define mm_free(p)	free(*((void **)(p) - 1));
 	#endif
+<<<<<<< HEAD
 	#define	mm_free(p)	_mm_free(p)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #else
 	#define	mm_malloc(s)	malloc(s)
 	#define	mm_free(p)	free(p)

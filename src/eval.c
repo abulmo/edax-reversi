@@ -37,6 +37,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #ifndef __SSE2__
@@ -44,6 +45,9 @@
 =======
 #ifndef hasSSE2
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+#if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(hasNeon)
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -470,6 +474,279 @@ const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 }};
 
 #endif
+#if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+
+const EVAL_FEATURE_V EVAL_FEATURE[65] = {
+	{{ // a1
+		 6561,     0,     0,     0,   243,     0,     0,     0,  6561,     0,  6561,     0, 19683,     0, 19683,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b1
+		 2187,     0,     0,     0,    27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c1
+		   81,     0,     0,     0,     9,     0,     0,     0,   729,     0,     0,     0,  6561,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d1
+		    0,     0,     0,     0,     3,     1,     0,     0,   243,     0,     0,     0,  2187,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,    81,     0,     0,     0,    27,     0,     0,     0,     0,     0
+	}}, {{ // e1
+		    0,     0,     0,     0,     1,     3,     0,     0,    81,     0,     0,     0,     9,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     0,    27,     0,     0,     0
+	}}, {{ // f1
+		    0,    81,     0,     0,     0,     9,     0,     0,    27,     0,     0,     0,     3,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // g1
+		    0,  2187,     0,     0,     0,    27,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // h1
+		    0,  6561,     0,     0,     0,   243,     0,     0,     3,     0,     0,  6561,     1,     0,     0, 19683,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // a2
+		  729,     0,     0,     0,   729,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,
+		 2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		  729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b2
+		  243,     0,     0,     0,    81,     0,     0,     0, 19683,     0, 19683,     0,     0,     0,     0,     0,
+		  729,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c2
+		    9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,
+		  243,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,   243,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0
+	}}, {{ // d2
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,     0,     0,
+		   81,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,
+		    0,     0,    81,     0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e2
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     0,
+		   27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,
+		    0,     0,     0,     0,    81,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // f2
+		    0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,     0,
+		    9,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0
+	}}, {{ // g2
+		    0,   243,     0,     0,     0,    81,     0,     0,     1,     0,     0, 19683,     0,     0,     0,     0,
+		    3,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // h2
+		    0,   729,     0,     0,     0,   729,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,
+		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // a3
+		   27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,   729,     0,     0,     0,  6561,     0,
+		    0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b3
+		    3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,
+		    0,     0,   243,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		  243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0
+	}}, {{ // c3
+		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,   243,     0,   243,     0,     0,     0,     0,     0,   243,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d3
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,    81,     0,     0,     0,     0,     0,   243,     0,     0,     0,    81,     0,
+		    0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e3
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,   243,     0,     0,     0,     0,
+		    0,    81,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // f3
+		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     9,     0,     0,   243,     0,     0,     0,     0,     0,     9,     0,     0,
+		    0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // g3
+		    0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,
+		    0,     0,     0,   243,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0
+	}}, {{ // h3
+		    0,    27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,   729,     0,     0,     0,  6561,
+		    0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // a4
+		    0,     0,     0,     0,  6561,     0, 19683,     0,     0,     0,   243,     0,     0,     0,  2187,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     1,     0,     0,     0,     0,     0
+	}}, {{ // b4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,
+		    0,     0,    81,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,    81,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,    81,     0,   243,     0,     0,     0,     0,     0,     0,     0,
+		   81,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,    81,     0,    81,     0,    81,     0,     0,     0,
+		    0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,    81,     0,    27,    27,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // f4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,    81,     9,     0,     0,     0,     0,     0,     0,    81,
+		    0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // g4
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,
+		    0,     0,     0,    81,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,    81,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // h4
+		    0,     0,     0,     0,     0,  6561,     0, 19683,     0,     0,     0,   243,     0,     0,     0,  2187,
+		    0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     1,     0,     0,     0
+	}}, {{ // a5
+		    0,     0,     0,     0, 19683,     0,  6561,     0,     0,     0,    81,     0,     0,     0,     9,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,    27,     0,     0,     0,     0
+	}}, {{ // b5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,
+		    0,     0,    27,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     3,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,    27,     0,     0,   243,     0,     0,     0,     0,     0,     0,
+		    0,     9,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,    81,    27,     0,     0,    81,     0,     0,
+		   27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,    27,    27,     0,     0,    27,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // f5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,    27,     0,     9,     0,     0,     0,     0,     9,     0,
+		    0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // g5
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,
+		    0,     0,     0,    27,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,
+		    0,     0,     3,     0,     0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0
+	}}, {{ // h5
+		    0,     0,     0,     0,     0, 19683,     0,  6561,     0,     0,     0,    81,     0,     0,     0,     9,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,    27,     0,     0
+	}}, {{ // a6
+		    0,     0,    81,     0,     0,     0,  2187,     0,     0,     0,    27,     0,     0,     0,     3,     0,
+		    0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b6
+		    0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,
+		    0,     0,     9,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0
+	}}, {{ // c6
+		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,   243,     9,     0,     0,     0,     0,     0,     0,   243,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d6
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,    81,     0,     0,     0,     0,     9,     0,     0,     0,     0,     9,
+		    0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e6
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,
+		    9,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // f6
+		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     9,     0,     9,     0,     0,     0,     0,     9,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0
+	}}, {{ // g6
+		    0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,
+		    0,     0,     0,     9,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0
+	}}, {{ // h6
+		    0,     0,     0,    81,     0,     0,     0,  2187,     0,     0,     0,    27,     0,     0,     0,     3,
+		    0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // a7
+		    0,     0,  2187,     0,     0,     0,   729,     0,     0,     0,     9,     0,     0,     0,     0,     0,
+		    0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b7
+		    0,     0,   243,     0,     0,     0,    81,     0,     0, 19683,     1,     0,     0,     0,     0,     0,
+		    0,   729,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c7
+		    0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,
+		    0,   243,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0
+	}}, {{ // d7
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,     0,
+		    0,    81,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     3,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // e7
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,
+		    0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,
+		    0,     0,     0,     3,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0
+	}}, {{ // f7
+		    0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,
+		    0,     9,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,
+		    3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0
+	}}, {{ // g7
+		    0,     0,     0,   243,     0,     0,     0,    81,     0,     1,     0,     1,     0,     0,     0,     0,
+		    0,     3,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // h7
+		    0,     0,     0,  2187,     0,     0,     0,   729,     0,     0,     0,     9,     0,     0,     0,     0,
+		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // a8
+		    0,     0,  6561,     0,     0,     0,   243,     0,     0,  6561,     3,     0,     0, 19683,     1,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // b8
+		    0,     0,   729,     0,     0,     0,    27,     0,     0,  2187,     0,     0,     0,     0,     0,     0,
+		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // c8
+		    0,     0,    27,     0,     0,     0,     9,     0,     0,   729,     0,     0,     0,  6561,     0,     0,
+		    0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // d8
+		    0,     0,     0,     0,     0,     0,     3,     1,     0,   243,     0,     0,     0,  2187,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     1,     0,     0,     0,     0
+	}}, {{ // e8
+		    0,     0,     0,     0,     0,     0,     1,     3,     0,    81,     0,     0,     0,     9,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     1,     0,     0
+	}}, {{ // f8
+		    0,     0,     0,    27,     0,     0,     0,     9,     0,    27,     0,     0,     0,     3,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // g8
+		    0,     0,     0,   729,     0,     0,     0,    27,     0,     9,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // h8
+		    0,     0,     0,  6561,     0,     0,     0,   243,     0,     3,     0,     3,     0,     1,     0,     1,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}, {{ // PASS
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
+	}}
+};
+
+const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
+	 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
+	 3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  1093,  1093,
+	 1093,  1093,   364,   364,   364,   364,   121,   121,   121,   121,    40,    40,    40,    40,     0,     0
+}};
+
+#endif
 
 /** feature offset/size */
 // static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
@@ -784,6 +1061,7 @@ void eval_open(const char* file)
 	// create unpacking tables
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));	// 3^10
 	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
 	T = (int *) malloc(2 * 59049 * sizeof(*T));
@@ -825,6 +1103,9 @@ void eval_open(const char* file)
 	P = (SymetryPacking *) malloc(sizeof(*P));
 =======
 	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(*OPPONENT_FEATURE));
+=======
+	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	T = (int *) malloc(2 * 59049 * sizeof(*T));
@@ -1125,6 +1406,7 @@ void eval_close(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -1157,10 +1439,13 @@ void eval_swap(Eval *eval)
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#if defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #include "eval_sse.c"
 #endif
 
-#ifndef hasSSE2
+#if !defined(hasSSE2) && !defined(hasNeon)
 
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /**
@@ -1171,6 +1456,7 @@ void eval_swap(Eval *eval)
  */
 void eval_set(Eval *eval, const Board *board)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	int	i, x;
   #ifdef VECTOR_EVAL_UPDATE
@@ -1189,6 +1475,23 @@ void eval_set(Eval *eval, const Board *board)
   #else
 	int	j;
 =======
+=======
+#ifdef VECTOR_EVAL_UPDATE
+	int i, x;
+	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
+
+	eval->feature = EVAL_FEATURE_all_opponent;
+	foreach_bit(x, b)
+		for (i = 0; i < 48; ++i)
+			eval->feature.us[i] -= EVAL_FEATURE[x].us[i];
+
+	b = ~(board->opponent | board->player);
+	foreach_bit(x, b)
+		for (i = 0; i < 48; ++i)
+			eval->feature.us[i] += EVAL_FEATURE[x].us[i];
+
+#else
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	int i, j, x;
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 	Board	b;
@@ -1229,7 +1532,11 @@ void eval_set(Eval *eval, const Board *board)
 =======
 		eval->feature.us[i] = x;
 	}
+<<<<<<< HEAD
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
+=======
+#endif
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 }
 
 /**
@@ -1242,6 +1549,7 @@ void eval_set(Eval *eval, const Board *board)
  */
 static void eval_swap(Eval *eval)
 {
+<<<<<<< HEAD
 	eval->player ^= 1;
 }
 
@@ -1270,25 +1578,21 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 =======
 	const CoordinateToFeature *s = EVAL_X2F + move->x;
 	int x;
+=======
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	unsigned long long f = move->flipped;
-#ifdef DEBUG
-	int i, j;
+	int	j, x;
+	widest_register	b;
+#ifdef VECTOR_EVAL_UPDATE
+	int	i;
 
-	for (i = 0; i < s->n_feature; ++i) {
-		j = s->feature[i].i;
-		assert(0 <= j && j < EVAL_N_FEATURE);
-		eval->feature.us[j] -= 2 * s->feature[i].x;
-		assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-	}
+	for (i = 0; i < 48; ++i)
+		eval->feature.us[i] -= EVAL_FEATURE[move->x].us[i] << 1;
 
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		for (i = 0; i < s->n_feature; ++i) {
-			j = s->feature[i].i;
-			assert(0 <= j && j < EVAL_N_FEATURE);
-			eval->feature.us[j] -= s->feature[i].x;
-			assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-		}
+	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
+		foreach_bit_r (x, f, b)
+			for (i = 0; i < 48; ++i)
+				eval->feature.us[i] -= EVAL_FEATURE[x + j].us[i];
 	}
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
@@ -1298,7 +1602,12 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 
 =======
 #else
+<<<<<<< HEAD
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	switch (s->n_feature) {
 	default:
 <<<<<<< HEAD
@@ -1317,6 +1626,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		break;
 	}
 
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1341,6 +1651,24 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
   #endif
 =======
 
+=======
+	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
+		foreach_bit_r (x, f, b) {
+			s = EVAL_X2F + x + j;
+			switch (s->n_feature) {
+			default:
+				eval->feature.us[s->feature[6].i] -= s->feature[6].x;
+			case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
+			case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
+			case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
+				eval->feature.us[s->feature[2].i] -= s->feature[2].x;
+				eval->feature.us[s->feature[1].i] -= s->feature[1].x;
+				eval->feature.us[s->feature[0].i] -= s->feature[0].x;
+				break;
+			}
+		}
+	}
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 }
@@ -1354,6 +1682,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
  */
 static void eval_update_1(int x, unsigned long long f, Eval *eval)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
@@ -1388,25 +1717,26 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 #ifdef DEBUG
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	int i, j;
+=======
+	unsigned long long f = move->flipped;
+	int	j, x;
+	widest_register	b;
+#ifdef VECTOR_EVAL_UPDATE
+	int	i;
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 
-	for (i = 0; i < s->n_feature; ++i) {
-		j = s->feature[i].i;
-		assert(0 <= j && j < EVAL_N_FEATURE);
-		eval->feature.us[j] -= s->feature[i].x;
-		assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-	}
+	for (i = 0; i < 48; ++i)
+		eval->feature.us[i] -= EVAL_FEATURE[move->x].us[i];
 
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		for (i = 0; i < s->n_feature; ++i) {
-			j = s->feature[i].i;
-			assert(0 <= j && j < EVAL_N_FEATURE);
-			eval->feature.us[j] += s->feature[i].x;
-			assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-		}
+	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
+		foreach_bit_r (x, f, b)
+			for (i = 0; i < 48; ++i)
+				eval->feature.us[i] += EVAL_FEATURE[x + j].us[i];
 	}
 
 #else
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+
 	switch (s->n_feature) {
 	default:
 	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
@@ -1420,6 +1750,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	       	break;
 	}
 
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1438,6 +1769,22 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
 		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
 		       	break;
+=======
+	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
+		foreach_bit_r (x, f, b) {
+			s = EVAL_X2F + x + j;
+			switch (s->n_feature) {
+			default:
+			       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
+			case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
+			case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
+			case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
+			       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
+			       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
+			       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
+			       	break;
+			}
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 		}
 	}
 <<<<<<< HEAD
@@ -1464,7 +1811,6 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 		eval_update_0(x, f, eval);
 =======
 	assert(move->flipped);
-	assert(WHITE == eval->player || BLACK == eval->player);
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasSSE2) {
@@ -1513,6 +1859,7 @@ void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 		eval_update_0(eval_out, move);
 }
 
+<<<<<<< HEAD
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 #if 0 // replaced with simple save-restore
 
@@ -1663,6 +2010,8 @@ void eval_restore(Eval *eval, const Move *move)
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 #endif // if 0
+=======
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif // hasSSE2
 
 /**

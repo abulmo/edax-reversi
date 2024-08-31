@@ -378,7 +378,7 @@ int first_bit_32(unsigned int b)
 		bsf	eax, word ptr b
 	}
 
-#elif defined(USE_GCC_ARM)
+#elif 0 // defined(USE_GCC_ARM)
 	return  __builtin_clz(b & -b) ^ 31;
 
 #else
@@ -409,6 +409,7 @@ int first_bit(unsigned long long b)
 	return x;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   #else
 	static const unsigned char magic[32] = {
@@ -444,6 +445,9 @@ int first_bit(unsigned long long b)
   #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
 =======
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	unsigned long index;
 	_BitScanForward64(&index, b);
 	return (int) index;
@@ -548,6 +552,7 @@ int last_bit(unsigned long long b)
 	return b;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
 =======
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM))
@@ -556,6 +561,9 @@ int last_bit(unsigned long long b)
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
@@ -581,8 +589,12 @@ int last_bit(unsigned long long b)
         "1:" : "=&q" (x) : "g" ((int) (b >> 32)), "g" ((int) b));
 	return x;
 
+<<<<<<< HEAD
 #elif defined(USE_GCC_ARM)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+#elif 0 // defined(USE_GCC_ARM)
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	const unsigned int hb = b >> 32;
 	if (hb) {
 		return 63 - __builtin_clz(hb);

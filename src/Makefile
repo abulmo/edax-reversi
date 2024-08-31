@@ -69,6 +69,9 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
+	ifeq ($(ARCH),x64-popcnt)
+		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
+	endif
 	ifeq ($(ARCH),x64-k10)
 		CFLAGS += -m64 -march=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT -DMOVE_GENERATOR=MOVE_GENERATOR_BITSCAN
 	endif
@@ -113,6 +116,7 @@ ifeq ($(COMP),gcc)
 	ifeq ($(ARCH),armv7)
 		CFLAGS += -march=armv7-a
 		ifeq ($(BUILD),optimize)
+<<<<<<< HEAD
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
@@ -126,6 +130,9 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -march=armv8.2-a+sve
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
+=======
+			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 		endif
 	endif
 
@@ -514,21 +521,28 @@ release:
 	$(MAKE) build ARCH=x64 OS=windows COMP=gcc CC='x86_64-w64-mingw32-gcc'
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
 <<<<<<< HEAD
+<<<<<<< HEAD
 	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
 =======
 	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
 >>>>>>> e558fdb (Some cleanups for clang / android build)
+=======
+	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 
 android:
 	ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=./Application.mk # NDK_DEBUG=1
+<<<<<<< HEAD
 
 macuniversal:
 	$(MAKE) build ARCH=x86 OS=osx COMP=clang
 	$(MAKE) build ARCH=x64 OS=osx COMP=clang
 	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -arch arm64 ../bin/mEdax-arm -output ../bin/mEdax
 	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
+=======
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 macuniversal:
 	$(MAKE) build ARCH=x86 OS=osx COMP=clang

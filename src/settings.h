@@ -47,6 +47,7 @@
 #define MOVE_GENERATOR_SSE_BSWAP 7	// 30.6Mnps
 #define MOVE_GENERATOR_AVX 8		// 34.7Mnps	// best for modern X64
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define MOVE_GENERATOR_AVX512 9
 #define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
 #define MOVE_GENERATOR_SVE 11
@@ -54,6 +55,9 @@
 <<<<<<< HEAD
 #define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 =======
+=======
+#define MOVE_GENERATOR_NEON 10
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 #define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -121,11 +125,18 @@
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
-	#ifdef __AVX2__
+	#if defined(__AVX512CD__) && defined(__AVX512VL__)
+		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512
+	#elif defined(__AVX2__)
 		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
 	#elif defined(hasSSE2)
 		#define MOVE_GENERATOR MOVE_GENERATOR_SSE
+<<<<<<< HEAD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	#elif defined(HAS_CPU_64) // aarch64
+		#define MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	#else
 		#define MOVE_GENERATOR MOVE_GENERATOR_32
 	#endif
@@ -157,8 +168,13 @@
 =======
 	#ifdef hasSSE2
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
+<<<<<<< HEAD
 		// #define AVXLASTFLIP	1	// slower on slow vzeroupper CPU
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	#elif defined(HAS_CPU_64) // aarch64
+		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_CARRY
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 	#else
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_32
 	#endif

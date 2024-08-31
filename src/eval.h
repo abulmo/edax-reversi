@@ -37,6 +37,11 @@
 #include "bit.h"
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
+#if defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64)
+#define hasNeon
+#include "arm_neon.h"
+#endif
+
 /** number of features */
 enum { EVAL_N_FEATURE = 47 };
 
@@ -44,6 +49,7 @@ enum { EVAL_N_FEATURE = 47 };
  * struct Eval
  * @brief evaluation function
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 typedef union {
 	unsigned short us[48];
@@ -81,11 +87,26 @@ typedef struct Eval {
 		unsigned short us[EVAL_N_FEATURE];         /**!< discs' features */
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 		__m128i	v8[6];
+=======
+typedef union {
+	unsigned short us[48];
+#ifdef hasNeon
+	int16x8_t v8[6];
+#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+	__m128i	v8[6];
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif
 #ifdef __AVX2__
-		__m256i	v16[3];
+	__m256i	v16[3];
 #endif
-	} feature;
+}
+#if defined(__GNUC__) && !defined(hasSSE2)
+__attribute__ ((aligned (16)))
+#endif
+EVAL_FEATURE_V;
+
+typedef struct Eval {
+	EVAL_FEATURE_V feature;                       /**!< discs' features */
 	int n_empties;                                /**< number of empty squares */
 	unsigned int parity;                          /**< parity */
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -120,6 +141,7 @@ extern short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
 <<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
+<<<<<<< HEAD
 /** number of plies */
 enum { EVAL_N_PLY = 54 };	// decreased from 60 in 4.5.1
 
@@ -127,6 +149,14 @@ extern Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
 =======
 
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#ifndef SELECTIVE_EVAL_UPDATE
+
+extern const EVAL_FEATURE_V EVAL_FEATURE[65];
+extern const EVAL_FEATURE_V EVAL_FEATURE_all_opponent;
+
+#endif
+>>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 /* function declaration */
 void eval_open(const char*);
