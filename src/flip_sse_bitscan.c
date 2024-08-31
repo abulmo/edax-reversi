@@ -557,7 +557,7 @@ static const unsigned long long maskr[64][4] = {
 	0x7f00000000000000, 0x0000000000000000, 0x0080808080808080, 0x0040201008040201
 };
 
-#if defined(_MSC_VER) && defined(_M_X64) && !defined(__AVX2__)
+#if defined(_MSC_VER) && defined(_M_X64) && !(defined(__AVX2__) || defined(__LZCNT__))
 static inline int lzcnt64(unsigned long long n) {
 	unsigned long i;
 	if (_BitScanReverse64(&i, n))

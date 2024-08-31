@@ -124,16 +124,21 @@ VC_FLAGS = /D UNICODE /utf-8\
 =======
 =======
 VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE\
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
            /I"..\include" /O2 /GL /fp:fast /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
            /MT
+=======
+           /I"..\include" /O2 /fp:fast /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\
+           /MT /GL
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 vc-w64-modern:
 	cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /machine:x64 /VERSION:4.4
 
-vc-w64-popcnt:
-	cl $(VC_FLAGS) /D HAS_CPU_64 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /machine:x64 /VERSION:4.4
+vc-w64-k10:
+	cl $(VC_FLAGS) /D HAS_CPU_64 /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN all.c ws2_32.lib /Fe..\bin\wEdax-w64-k10.exe /link /machine:x64 /VERSION:4.4
 
 vc-w64:
 	cl $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
@@ -159,17 +164,21 @@ vc-pgo-w64-modern:
 	cd ..\bin
 	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
 	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
 	cd ..\src
 	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-modern.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+	del *.pgc ..\bin\*.pgd
 
-vc-pgo-w64-popcnt:
+vc-pgo-w64-k10:
 	set VCPROFILE_PATH=..\src
-	cl $(VC_FLAGS) /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cl $(VC_FLAGS) /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN all.c ws2_32.lib /Fe..\bin\wEdax-w64-k10.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
 	cd ..\bin
-	wEdax-w64-popcnt -l 60 -solve ..\problem\fforum-20-39.obf
-	wEdax-w64-popcnt -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	wEdax-w64-k10 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-k10 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
 	cd ..\src
-	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-popcnt.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-k10.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+	del *.pgc ..\bin\*.pgd
 
 vc-pgo-w64:
 	set VCPROFILE_PATH=..\src
@@ -177,9 +186,14 @@ vc-pgo-w64:
 	cd ..\bin
 	wEdax-w64 -l 60 -solve ..\problem\fforum-20-39.obf
 	wEdax-w64 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
 	cd ..\src
 	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	del *.pgc ..\bin\*.pgd
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 clean:
 	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj

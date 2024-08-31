@@ -40,6 +40,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2020
 =======
  * @date 1998 - 2017
@@ -47,6 +48,9 @@
 =======
  * @date 1998 - 2018
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+ * @date 1998 - 2020
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.4
@@ -98,6 +102,7 @@ static const unsigned char OUTFLANK_5[64] = {	// ...dcbah
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+<<<<<<< HEAD
 /** flip array (indexed with rotated outflank) */
 static const unsigned long long FLIPPED_2_H[25] = {	// ...ahgfe
 	0x0000000000000000, 0x0808080808080808, 0x1818181818181818, 0x0000000000000000,
@@ -108,6 +113,21 @@ static const unsigned long long FLIPPED_2_H[25] = {	// ...ahgfe
 	0x3a3a3a3a3a3a3a3a, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x7a7a7a7a7a7a7a7a
 };
+=======
+/* static const unsigned char OUTFLANK_6[64] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x08, 0x08, 0x08, 0x08, 0x04, 0x04, 0x02, 0x01,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+static const unsigned char OUTFLANK_7[64] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+	0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x08, 0x08, 0x08, 0x08, 0x04, 0x04, 0x02, 0x01
+}; */
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 <<<<<<< HEAD
 static const unsigned long long FLIPPED_2_V[25] = {
@@ -380,34 +400,80 @@ static inline int __builtin_clzll(unsigned long long n) {	// n != 0
 	#define OutflankToFlipmask(x)	((x) - (unsigned int) ((x) != 0))
 #endif
 
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
 #if 0 // defined(_MSC_VER) && defined(_M_X64) && !defined(__AVX2__)
 static inline int _lzcnt_u64(unsigned long long n) {
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+#if defined(_MSC_VER) && !(defined(__AVX2__) || defined(__LZCNT__))
+static inline int lzcnt_u32(unsigned long n) {
+	unsigned long i;
+	if (!_BitScanReverse(&i, n))
+		i = -1;
+	return 31 - i;
+}
+
+#ifdef _M_X64
+static inline int lzcnt_u64(unsigned long long n) {
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 	unsigned long i;
 	if (!_BitScanReverse64(&i, n))
 		i = -1;
 	return 63 - i;
 }
+#else
+static inline int lzcnt_u64(unsigned long long n) {
+	unsigned long i;
+	if (_BitScanReverse(&i, n >> 32))
+		return 31 - i;
+	if (_BitScanReverse(&i, (unsigned int) n))
+		return 63 - i;
+	return -1;
+}
+#endif
+#else
+#define	lzcnt_u32(x)	_lzcnt_u32(x)
+#define	lzcnt_u64(x)	_lzcnt_u64(x)
 #endif
 
-#if (defined(__x86_64__) && defined(__LZCNT__)) || (defined(_M_X64) && defined(__AVX2__))
+#if (defined(__x86_64__) && (defined(__AVX2__) || defined(__LZCNT__))) || defined(_MSC_VER)
 	// Strictly, (long long) >> 64 is undefined in C, but either 0 bit (no change)
 	// or 64 bit (zero out) shift will lead valid result (i.e. flipped == 0).
+<<<<<<< HEAD
 	#define	outflank_right(O,maskr)	(0x8000000000000000ULL >> _lzcnt_u64(~(O) & (maskr)))
 #elif defined(vertical_mirror)	// bswap to use carry propagation backwards
 <<<<<<< HEAD
 	#define	outflank_right(O,maskr,masko)	(vertical_mirror(vertical_mirror((O) | ~(maskr)) + 1) & (maskr))
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
+=======
+	#define	outflank_right_H(O,maskr)	(0x8000000000000000ULL >> lzcnt_u64(~(O) & (maskr)))
+#else	// with guardian bit to avoid __builtin_clz(0)
+	#define	outflank_right_H(O,maskr)	(0x8000000000000000ULL >> __builtin_clzll(((O) & (((maskr) & ((maskr) - 1)))) ^ (maskr)))
+#endif
+
+#if ((defined(__x86_64__) || defined(_M_X64)) && (defined(__AVX2__) || defined(__LZCNT__))) || !defined(vertical_mirror)
+	#define outflank_right(O,maskr)	outflank_right_H((O),(maskr))
+#else	// bswap to use carry propagation backwards - cannot be used for horizontal right
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 	// static inline unsigned long long outflank_right(unsigned long long O, unsigned long long maskr) {
 	//	unsigned long long rOM = vertical_mirror(~(O) & maskr);
 	//	return vertical_mirror(rOM & (-rOM));
 	// }
 	#define	outflank_right(O,maskr)	(vertical_mirror(vertical_mirror((O) | ~(maskr)) + 1) & (maskr))
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
 #else	// with guardian bit to avoid __builtin_clz(0)
 	#define	outflank_right(O,maskr)	(0x8000000000000000ULL >> __builtin_clzll(((O) & (((maskr) & ((maskr) - 1)))) ^ (maskr)))
+=======
+#endif
+
+#if defined(__AVX2__) || defined(__LZCNT__) || defined(_MSC_VER)
+	#define	outflank_right_32(O,maskr)	(0x80000000u >> lzcnt_u32(~(O) & (maskr)))
+#else
+	#define	outflank_right_32(O,maskr)	(0x80000000u >> __builtin_clz(((O) & (((maskr) & ((maskr) - 1)))) ^ (maskr)))
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 #endif
 
 <<<<<<< HEAD
@@ -632,8 +698,13 @@ static unsigned long long flip_G1(const unsigned long long P, const unsigned lon
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0001020408102000;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) O << 26) & ((unsigned int) P << 26);
 	flipped |= (outflank_h * (unsigned int) -2) >> 26;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x0000003f) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x0000003f;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -665,8 +736,13 @@ static unsigned long long flip_H1(const unsigned long long P, const unsigned lon
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0102040810204000;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) O << 25) & ((unsigned int) P << 25);
 	flipped |= (outflank_h * (unsigned int) -2) >> 25;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x0000007f) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x0000007f;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -896,8 +972,13 @@ static unsigned long long flip_G2(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0102040810200000;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 9) << 27) & ((unsigned int) P << 18);
 	flipped |= (outflank_h * (unsigned int) -2) >> 18;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x00003f00) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x00003f00;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -929,8 +1010,13 @@ static unsigned long long flip_H2(const unsigned long long P, const unsigned lon
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0204081020400000;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 9) << 26) & ((unsigned int) P << 17);
 	flipped |= (outflank_h * (unsigned int) -2) >> 17;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x00007f00) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x00007f00;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -1225,8 +1311,13 @@ static unsigned long long flip_G3(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_5_V[outflank_b8g3g1]) & 0x0004081020404000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 17) << 27) & (unsigned int) (P << 10);
 	flipped |= (outflank_h * (unsigned int) -2) >> 10;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x003f0000) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x003f0000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -1267,8 +1358,13 @@ static unsigned long long flip_H3(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_5_V[outflank_c8h3h1]) & 0x0008102040808000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 17) << 26) & (unsigned int) (P << 9);
 	flipped |= (outflank_h * (unsigned int) -2) >> 9;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x007f0000) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x007f0000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -1585,8 +1681,13 @@ static unsigned long long flip_G4(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_4_V[outflank_c8g4g1]) & 0x0008102040404000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 25) << 27) & (unsigned int) (P << 2);
 	flipped |= (outflank_h * (unsigned int) -2) >> 2;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x3f000000) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x3f000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -1627,8 +1728,13 @@ static unsigned long long flip_H4(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_4_V[outflank_d8h4h1]) & 0x0010204080808000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H(((unsigned int) O >> 25) << 26) & (unsigned int) (P << 1);
 	flipped |= (outflank_h * (unsigned int) -2) >> 1;
+=======
+	outflank_h = outflank_right_32((unsigned int) O, 0x7f000000) & (unsigned int) P;
+	flipped |= (outflank_h * -2) & 0x7f000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -1918,8 +2024,8 @@ static unsigned long long flip_F5(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_G5(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h, outflank_c1g5g8, outflank_d8g5g1;
-	unsigned long long flipped;
+	unsigned int outflank_c1g5g8, outflank_d8g5g1;
+	unsigned long long flipped, outflank_h;
 
 <<<<<<< HEAD
 	outflank_c1g5g8 = OUTFLANK_4[((O & 0x0040404020100800) * 0x0040404040408102) >> 57];
@@ -1945,8 +2051,13 @@ static unsigned long long flip_G5(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_3_V[outflank_d8g5g1]) & 0x0010204040404000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 33) << 27) & (unsigned int) (P >> 6);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 6;
+=======
+	outflank_h = outflank_right_H(O, 0x0000003f00000000) & P;
+	flipped |= (outflank_h * -2) & 0x0000003f00000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -1960,8 +2071,8 @@ static unsigned long long flip_G5(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_H5(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h, outflank_d1h5h8, outflank_e8h5h1;
-	unsigned long long flipped;
+	unsigned int outflank_d1h5h8, outflank_e8h5h1;
+	unsigned long long flipped, outflank_h;
 
 <<<<<<< HEAD
 	outflank_d1h5h8 = OUTFLANK_4[((O & 0x0080808040201000) * 0x0020202020204081) >> 57];
@@ -1987,8 +2098,13 @@ static unsigned long long flip_H5(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_3_V[outflank_e8h5h1]) & 0x0020408080808000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 33) << 26) & (unsigned int) (P >> 7);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 7;
+=======
+	outflank_h = outflank_right_H(O, 0x0000007f00000000) & P;
+	flipped |= (outflank_h * -2) & 0x0000007f00000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -2254,8 +2370,8 @@ static unsigned long long flip_F6(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_G6(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h, outflank_b1g6g8, outflank_e8g6g1;
-	unsigned long long flipped;
+	unsigned int outflank_b1g6g8, outflank_e8g6g1;
+	unsigned long long flipped, outflank_h;
 
 <<<<<<< HEAD
 	outflank_b1g6g8 = OUTFLANK_5[((O & 0x0040402010080400) * 0x0080808080808102) >> 57];
@@ -2281,8 +2397,13 @@ static unsigned long long flip_G6(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_2_V[outflank_e8g6g1]) & 0x0020404040404000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 41) << 27) & (unsigned int) (P >> 14);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 14;
+=======
+	outflank_h = outflank_right_H(O, 0x00003f0000000000) & P;
+	flipped |= (outflank_h * -2) & 0x00003f0000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -2296,8 +2417,8 @@ static unsigned long long flip_G6(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_H6(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h, outflank_c1h6h8, outflank_f8h6h1;
-	unsigned long long flipped;
+	unsigned int outflank_c1h6h8, outflank_f8h6h1;
+	unsigned long long flipped, outflank_h;
 
 <<<<<<< HEAD
 	outflank_c1h6h8 = OUTFLANK_5[((O & 0x0080804020100800) * 0x0040404040404081) >> 57];
@@ -2323,8 +2444,13 @@ static unsigned long long flip_H6(const unsigned long long P, const unsigned lon
 	flipped |= vertical_mirror(FLIPPED_2_V[outflank_f8h6h1]) & 0x0040808080808000;
 >>>>>>> 6506166 (More SSE optimizations)
 
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 41) << 26) & (unsigned int) (P >> 15);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 15;
+=======
+	outflank_h = outflank_right_H(O, 0x00007f0000000000) & P;
+	flipped |= (outflank_h * -2) & 0x00007f0000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 	return flipped;
 }
@@ -2536,8 +2662,7 @@ static unsigned long long flip_F7(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_G7(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h;
-	unsigned long long flipped, outflank_v, outflank_d9;
+	unsigned long long flipped, outflank_v, outflank_d9, outflank_h;
 
 	outflank_v = outflank_right(O, 0x0000404040404040) & P;
 	flipped  = (outflank_v * -2) & 0x0000404040404040;
@@ -2552,8 +2677,13 @@ static unsigned long long flip_G7(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 * -2) & 0x0000201008040201;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 49) << 27) & (unsigned int) (P >> 22);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 22;
+=======
+	outflank_h = outflank_right_H(O, 0x003f000000000000) & P;
+	flipped |= (outflank_h * -2) & 0x003f000000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -2569,8 +2699,7 @@ static unsigned long long flip_G7(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_H7(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h;
-	unsigned long long flipped, outflank_v, outflank_d9;
+	unsigned long long flipped, outflank_v, outflank_d9, outflank_h;
 
 	outflank_v = outflank_right(O, 0x0000808080808080) & P;
 	flipped  = (outflank_v * -2) & 0x0000808080808080;
@@ -2585,8 +2714,13 @@ static unsigned long long flip_H7(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 * -2) & 0x0000402010080402;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 49) << 26) & (unsigned int) (P >> 23);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 23;
+=======
+	outflank_h = outflank_right_H(O, 0x007f000000000000) & P;
+	flipped |= (outflank_h * -2) & 0x007f000000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -2788,8 +2922,7 @@ static unsigned long long flip_F8(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_G8(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h;
-	unsigned long long flipped, outflank_v, outflank_d9;
+	unsigned long long flipped, outflank_v, outflank_d9, outflank_h;
 
 	outflank_v = outflank_right(O, 0x0040404040404040) & P;
 	flipped  = (outflank_v * -2) & 0x0040404040404040;
@@ -2804,8 +2937,13 @@ static unsigned long long flip_G8(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 * -2) & 0x0020100804020100;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 57) << 27) & (unsigned int) (P >> 30);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 30;
+=======
+	outflank_h = outflank_right_H(O, 0x3f00000000000000) & P;
+	flipped |= (outflank_h * -2) & 0x3f00000000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
@@ -2821,8 +2959,7 @@ static unsigned long long flip_G8(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_H8(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int outflank_h;
-	unsigned long long flipped, outflank_v, outflank_d9;
+	unsigned long long flipped, outflank_v, outflank_d9, outflank_h;
 
 	outflank_v = outflank_right(O, 0x0080808080808080) & P;
 	flipped  = (outflank_v * -2) & 0x0080808080808080;
@@ -2837,8 +2974,13 @@ static unsigned long long flip_H8(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 * -2) & 0x0040201008040201;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	outflank_h = outflank_right_H((unsigned int) (O >> 57) << 26) & (unsigned int) (P >> 31);
 	flipped |= (unsigned long long) (outflank_h * (unsigned int) -2) << 31;
+=======
+	outflank_h = outflank_right_H(O, 0x7f00000000000000) & P;
+	flipped |= (outflank_h * -2) & 0x7f00000000000000;
+>>>>>>> a9ee768 (Change popcnt build to k10 build using flip_bitscan)
 
 =======
 >>>>>>> 6506166 (More SSE optimizations)
