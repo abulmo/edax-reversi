@@ -3,7 +3,11 @@
  *
  * @brief Move & list of moves management - header file.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2022
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -61,6 +65,10 @@ void movelist_print(const MoveList*, const int, FILE*);
 Move* movelist_sort_bestmove(MoveList*, const int);
 void movelist_evaluate_fast(MoveList*, struct Search*, const struct HashData*);
 void movelist_evaluate(MoveList*, struct Search*, const struct HashData*, const int, const int);
+<<<<<<< HEAD
+=======
+// void movelist_evaluate_fast(MoveList*, struct Search*);
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 
 // bool move_wipeout(const Move*, const struct Board*);	// Check if a move wins 64-0.
 #define	move_wipeout(move,board)	((move)->flipped == (board)->opponent)
@@ -83,6 +91,7 @@ bool movelist_is_single(const MoveList*);
 /** macro to iterate over the movelist */
 #define foreach_move(iter, movelist) \
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for ((iter) = (movelist).move[0].next; (iter); (iter) = (iter)->next)
 
 /** macro to iterate over the movelist from best to worst move */
@@ -96,6 +105,14 @@ bool movelist_is_single(const MoveList*);
 #define foreach_best_move(iter, movelist) \
 	for ((iter) = movelist_best(&movelist); (iter); (iter) = move_next_best(iter))
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	for ((iter) = (movelist).move[0].next; (iter); (iter) = (iter)->next)
+
+/** macro to iterate over the movelist from best to worst move */
+#define foreach_best_move(iter, movelist) \
+	(iter) = &(movelist).move[0];\
+	while (((iter) = move_next_best(iter)))
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 
 void line_init(Line*, const int);
 void line_push(Line*, const int);

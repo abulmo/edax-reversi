@@ -125,9 +125,13 @@ VC_FLAGS = /D UNICODE /utf-8\
 =======
 VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE\
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
            /I"..\include" /O2 /GL /fp:fast /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+           /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
            /MT
 =======
            /I"..\include" /O2 /fp:fast /D NDEBUG /D inline=__forceinline /D __func__=__FUNCTION__\

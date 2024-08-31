@@ -999,6 +999,7 @@ int NWS_endgame(Search *search, const int alpha)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int score, ofssolid, bestscore;
 	unsigned long long hash_code, solid_opp;
 	// const int beta = alpha + 1;
@@ -1018,17 +1019,24 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 	int score, ofssolid;
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
+=======
+	int score, ofssolid, bestscore;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	HashTable *const hash_table = &search->hash_table;
 	unsigned long long hash_code, allfull, solid_opp;
 	// const int beta = alpha + 1;
 	HashData hash_data;
 	HashStoreData hash_store_data;
 	MoveList movelist;
+<<<<<<< HEAD
 	Move *move, *bestmove;
 <<<<<<< HEAD
 	long long cost;
 >>>>>>> 6506166 (More SSE optimizations)
 =======
+=======
+	Move *move;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	long long nodes_org;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1128,17 +1136,20 @@ int NWS_endgame(Search *search, const int alpha)
 
 	// special cases
 	if (movelist_is_empty(&movelist)) {
-		bestmove = movelist.move->next = movelist.move + 1;
-		bestmove->next = 0;
 		if (can_move(search->board.opponent, search->board.player)) { // pass
 			search_pass_endgame(search);
-			bestmove->score = -NWS_endgame(search, -(alpha + 1));
+			bestscore = -NWS_endgame(search, -(alpha + 1));
 			search_pass_endgame(search);
-			bestmove->x = PASS;
+			hash_store_data.data.move[0] = PASS;
 		} else  { // game over
+<<<<<<< HEAD
 			bestmove->score = search_solve(search);
 			bestmove->x = NOMOVE;
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+			bestscore = search_solve(search);
+			hash_store_data.data.move[0] = NOMOVE;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		}
 <<<<<<< HEAD
 
@@ -1159,12 +1170,17 @@ int NWS_endgame(Search *search, const int alpha)
 		bestmove = movelist->move; bestmove->score = -SCORE_INF;
 =======
 	} else {
-		movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
+		if (movelist.n_moves > 1)
+			movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
 
 		board0 = search->board;
 		parity0 = search->eval.parity;
+<<<<<<< HEAD
 		bestmove = movelist.move; bestmove->score = -SCORE_INF;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		bestscore = -SCORE_INF;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		// loop over all moves
 		foreach_best_move(move, movelist) {
 			search_swap_parity(search, move->x);
@@ -1172,17 +1188,24 @@ int NWS_endgame(Search *search, const int alpha)
 			board_update(&search->board, move);
 			--search->eval.n_empties;
 
-			move->score = -NWS_endgame(search, -(alpha + 1));
+			score = -NWS_endgame(search, -(alpha + 1));
 
 			search->eval.parity = parity0;
 			empty_restore(search->empties, move->x);
 			search->board = board0;
 			++search->eval.n_empties;
 
+<<<<<<< HEAD
 			if (move->score > bestmove->score) {
 				bestmove = move;
 				if (bestmove->score > alpha) break;
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+			if (score > bestscore) {
+				bestscore = score;
+				hash_store_data.data.move[0] = move->x;
+				if (bestscore > alpha) break;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 			}
 		}
 	}
@@ -1283,10 +1306,10 @@ int NWS_endgame(Search *search, const int alpha)
 		hash_store_data.data.wl.c.depth = search->eval.n_empties;
 		hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
 		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes - nodes_org);
-		hash_store_data.data.move[0] = bestmove->x;
+		// hash_store_data.data.move[0] = bestmove;
 		hash_store_data.alpha = alpha + ofssolid;
 		hash_store_data.beta = alpha + ofssolid + 1;
-		hash_store_data.score = bestmove->score + ofssolid;
+		hash_store_data.score = bestscore + ofssolid;
 		hash_store(hash_table, &hashboard, hash_code, &hash_store_data);
 
 		if (SQUARE_STATS(1) + 0) {
@@ -1298,6 +1321,7 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 				++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (bestmove->score > alpha) ++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[bestmove->score]];
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 =======
@@ -1305,6 +1329,14 @@ int NWS_endgame(Search *search, const int alpha)
 				++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[bestmove->score]];
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 		}
+=======
+			if (bestscore > alpha)
+				++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[bestscore]];
+		}
+	 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
+	 	assert((bestscore & 1) == 0);
+		return bestscore;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	}
 
 	if (SQUARE_STATS(1) + 0) {

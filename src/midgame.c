@@ -807,6 +807,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		}
 	} else {
 		// sort the list of moves
+<<<<<<< HEAD
 		movelist_evaluate(&movelist, search, &hash_data, alpha, depth);
 <<<<<<< HEAD
 		movelist_sort(&movelist) ;
@@ -845,9 +846,19 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 			search_restore_midgame(search, move, &Ev0);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
+=======
+		if (movelist.n_moves > 1) {
+			movelist_evaluate(&movelist, search, &hash_data, alpha, depth);
+			movelist_sort(&movelist);
+		}
+
+		// loop over all moves
+		bestscore = -SCORE_INF;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		backup.board = search->board;
 		backup.eval = search->eval;
-		foreach_move(move, movelist) {
+		move = movelist.move[0].next;
+		do {
 			search_update_midgame(search, move);
 			score = -NWS_shallow(search, -(alpha + 1), depth - 1, hash_table);
 			search_restore_midgame(search, move->x, &backup);
@@ -865,6 +876,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 >>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 				if (score > alpha) break;
 			}
+<<<<<<< HEAD
 		}
 
 		// save the best result in hash tables
@@ -892,6 +904,9 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		} else { // game-over !
 			bestscore = search_solve(search);
 		}
+=======
+		} while ((move = move->next));
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	}
 
 <<<<<<< HEAD
@@ -1031,6 +1046,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 		// sort the list of moves
 <<<<<<< HEAD
+<<<<<<< HEAD
 		nodes_org = search->n_nodes;
 		movelist_evaluate(&movelist, search, &HASH_DATA_INIT, alpha, depth);
 =======
@@ -1065,10 +1081,20 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 =======
 		bestscore = -SCORE_INF; hash_store_data.data.move[0] = NOMOVE;
 >>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
+=======
+		if (movelist.n_moves > 1) {
+			movelist_evaluate(&movelist, search, &hash_data, alpha, depth);
+			movelist_sort(&movelist);
+		}
+
+		// loop over all moves
+		bestscore = -SCORE_INF;
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		lower = alpha;
 		backup.board = search->board;
 		backup.eval = search->eval;
-		foreach_move(move, movelist) {
+		move = movelist.move[0].next;
+		do {
 			search_update_midgame(search, move);
 				if (bestscore == -SCORE_INF) {
 					score = -PVS_shallow(search, -beta, -lower, depth - 1);
@@ -1098,6 +1124,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 				else if (score > lower) lower = score;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 			}
+<<<<<<< HEAD
 		}
 
 		// save the best result in shallow hash
@@ -1125,6 +1152,9 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		} else { // game-over !
 			bestscore = search_solve(search);
 		}
+=======
+		} while ((move = move->next));
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	}
 
 <<<<<<< HEAD
@@ -1291,8 +1321,12 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 =======
 			if (hash_data.move[0] == NOMOVE) hash_get(hash_table, &search->board, hash_code, &hash_data);
 			movelist_evaluate(&movelist, search, &hash_data, alpha, depth + options.inc_sort_depth[search->node_type[search->height]]);
+<<<<<<< HEAD
 			movelist_sort(&movelist) ;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			movelist_sort(&movelist);
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		}
 
 		// ETC
@@ -1594,8 +1628,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			movelist_sort(&movelist);
 =======
 			movelist_evaluate(&movelist, search, &hash_data, node.alpha, depth + options.inc_sort_depth[PV_NODE]);
+<<<<<<< HEAD
 			movelist_sort(&movelist) ;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			movelist_sort(&movelist);
+>>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		}
 
 		// first move
