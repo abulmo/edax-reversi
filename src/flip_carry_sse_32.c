@@ -41,7 +41,11 @@
  * @version 4.4
  */
 
+<<<<<<< HEAD
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+=======
+#ifdef USE_GAS_MMX
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 #include <string.h>	// memcpy
 #endif
 
@@ -50,6 +54,7 @@
 #pragma warn -ngu
 #define	UINT64	unsigned __int64
 #else
+<<<<<<< HEAD
 #include "bit.h"
 #define	UINT64	unsigned long long
 #endif
@@ -65,6 +70,11 @@
 #define	STATIC	static
 #endif
 
+=======
+#define	UINT64	unsigned long long
+#endif
+
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 #define	ULL(H,L)	(((UINT64) (H) << 32) | (L))
 
 /** outflank array (indexed with inner 6 bits) */
@@ -126,7 +136,11 @@ STATIC const unsigned char OUTFLANK_7[64] = {
 
 
 /** flip array (indexed with outflank, returns inner 6 bits) */
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_2_H[130] = {
+=======
+static const UINT64 FLIPPED_2_H[130] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x0202020202020202, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0808080808080808, 0x0a0a0a0a0a0a0a0a, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -146,7 +160,11 @@ STATIC const UINT64 FLIPPED_2_H[130] = {
 	0x7878787878787878, 0x7a7a7a7a7a7a7a7a
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_3_H[131] = {
+=======
+static const UINT64 FLIPPED_3_H[131] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x0606060606060606, 0x0404040404040404, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -166,7 +184,11 @@ STATIC const UINT64 FLIPPED_3_H[131] = {
 	0x7070707070707070, 0x7676767676767676, 0x7474747474747474
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_4_H[133] = {
+=======
+static const UINT64 FLIPPED_4_H[133] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x0e0e0e0e0e0e0e0e, 0x0c0c0c0c0c0c0c0c, 0x0000000000000000, 0x0808080808080808, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -186,7 +208,11 @@ STATIC const UINT64 FLIPPED_4_H[133] = {
 	0x6060606060606060, 0x6e6e6e6e6e6e6e6e, 0x6c6c6c6c6c6c6c6c, 0x0000000000000000, 0x6868686868686868
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_5_H[137] = {
+=======
+static const UINT64 FLIPPED_5_H[137] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x1e1e1e1e1e1e1e1e, 0x1c1c1c1c1c1c1c1c, 0x0000000000000000, 0x1818181818181818, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x1010101010101010, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -207,7 +233,11 @@ STATIC const UINT64 FLIPPED_5_H[137] = {
 	0x5050505050505050
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_3_V[131] = {
+=======
+static const UINT64 FLIPPED_3_V[131] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x0000000000ffff00, 0x0000000000ff0000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -227,7 +257,11 @@ STATIC const UINT64 FLIPPED_3_V[131] = {
 	0x00ffffff00000000, 0x00ffffff00ffff00, 0x00ffffff00ff0000
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_4_V[133] = {
+=======
+static const UINT64 FLIPPED_4_V[133] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x00000000ffffff00, 0x00000000ffff0000, 0x0000000000000000, 0x00000000ff000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -247,7 +281,11 @@ STATIC const UINT64 FLIPPED_4_V[133] = {
 	0x00ffff0000000000, 0x00ffff00ffffff00, 0x00ffff00ffff0000, 0x0000000000000000, 0x00ffff00ff000000
 };
 
+<<<<<<< HEAD
 STATIC const UINT64 FLIPPED_5_V[137] = {
+=======
+static const UINT64 FLIPPED_5_V[137] = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	0x0000000000000000, 0x000000ffffffff00, 0x000000ffffff0000, 0x0000000000000000, 0x000000ffff000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x000000ff00000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -288,6 +326,7 @@ static inline unsigned long long OutflankToFlipmask(unsigned long long outflank)
 
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 
+<<<<<<< HEAD
 #define minusone	_mm_set1_epi32(-1)
 static const V2DI	k1e52 = {{ (1023ULL + 52) << 52, (1023ULL + 52) << 52 }};
 static const V2DI	expmask = {{ 0xfff0000000000000, 0xfff0000000000000 }};
@@ -320,6 +359,29 @@ STATIC const UINT64 FLIPPED_7_V[33] = {
 };
 
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
+=======
+#if 0 // hasMMX, hasSSE2
+static const UINT64 mask_c1c8 = 0x0404040404040404;
+static const UINT64 mask_d1d8 = 0x0808080808080808;
+static const UINT64 mask_e1e8 = 0x1010101010101010;
+static const UINT64 mask_f1f8 = 0x2020202020202020;
+
+static const UINT64 mask_a4h4 = 0x00000000ff000000;
+static const UINT64 mask_a5h5 = 0x000000ff00000000;
+
+static const UINT64 mask_f1a6 = 0x0000010204081020;
+static const UINT64 mask_g1a7 = 0x0001020408102040;
+static const UINT64 mask_h1a8 = 0x0102040810204080;
+static const UINT64 mask_h2b8 = 0x0204081020408000;
+static const UINT64 mask_h3c8 = 0x0408102040800000;
+
+static const UINT64 mask_a3f8 = 0x2010080402010000;
+static const UINT64 mask_a2g8 = 0x4020100804020100;
+static const UINT64 mask_a1h8 = 0x8040201008040201;
+static const UINT64 mask_b1h7 = 0x0080402010080402;
+static const UINT64 mask_c1h6 = 0x0000804020100804;
+#endif
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 #define	SWAP64	0x4e	// for _mm_shuffle_epi32
 #define	SWAP32	0xb1
@@ -377,11 +439,33 @@ static inline __m128i set1_by_movd (unsigned int L, unsigned int H) {
 	return _mm_unpacklo_epi64(Y, Y);
 }
 
+<<<<<<< HEAD
 #define FLIP_CARRY_2_VEC(flip_l)	__m128i	outflank_vd;\
 	outflank_vd = _mm_andnot_si128(set1_by_movd(OL, OH), mask.v2);\
 	outflank_vd = _mm_and_si128(_mm_and_si128(outflank_vd, _mm_sub_epi64(_mm_setzero_si128(), outflank_vd)), set1_by_movd(PL, PH));\
 	outflank_vd = _mm_and_si128(mask.v2, _mm_sub_epi64(outflank_vd, _mm_sub_epi64(flipmask(outflank_vd), minusone)));\
 	flipped = _mm_cvtsi128_si64(_mm_or_si128(outflank_vd, _mm_shuffle_epi32(outflank_vd, SWAP64))) | (flip_l)
+=======
+/**
+ * _mm_movepi64_pi64 equivalent to avoid large-to-small mismatch
+ *
+ * AMD 47414 pp.96
+ */
+static inline UINT64 SSE2 movepi64_by_movd(__v2di x)
+{
+#ifdef __SSE2__
+	return ((unsigned int) _mm_cvtsi128_si32(x))
+		| ((UINT64) _mm_cvtsi128_si32(_mm_srli_epi64(x, 32)) << 32);
+#else
+	UINT64 y;
+	__asm__ ( "movd	%1,%%eax\n\t"
+		"psrlq	$32,%1\n\t"
+		"movd	%1,%%edx"
+		: "=A" (y) : "x" (x));
+	return y;
+#endif
+}
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 #define FLIP_CARRY_AB12(next)	__m128i outflank_vd, outflank_h, flipped_v2, PP, OO;\
 	const __m128i next_h = _mm_loadl_epi64((__m128i *) &X_TO_BIT[next]);\
@@ -587,25 +671,45 @@ static inline __m128i set1_by_movd (unsigned int L, unsigned int H) {
 #ifndef hasSSE2
 static UINT64 flip_A1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
+<<<<<<< HEAD
 	unsigned char outflank_h;
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0101010101010100) + 1) & ULL(PH, PL) & 0x0101010101010000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010100;
+=======
+	unsigned int outflank_h;
+	UINT64 flipped, outflank_v, outflank_d9;
+
+	outflank_v = ((ULL(OH, OL) | ~0x0101010101010100) + 1) & ULL(PH, PL) & 0x0101010101010000;
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0001010101010100;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = (OL + 0x02) & PL;
 	flipped |= ((outflank_h * 0xff) >> 8) & 0x7e;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x8040201008040200) + 1) & ULL(PH, PL) & 0x8040201008040000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x8040201008040200;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0040201008040200;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_A1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0101010101010100, 0x8040201008040200 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_A1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0101010101010100, ~0x8040201008040200 };
+	unsigned int outflank_h = ((OL & 0x7e) + 0x02) & PL;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_AB12(1);
@@ -624,25 +728,45 @@ static UINT64 flip_sse_A1(unsigned int PL, unsigned int PH, unsigned int OL, uns
 #ifndef hasSSE2
 static UINT64 flip_B1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
+<<<<<<< HEAD
 	unsigned char outflank_h;
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0202020202020200) + 1) & ULL(PH, PL) & 0x0202020202020000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020200;
+=======
+	unsigned int outflank_h;
+	UINT64 flipped, outflank_v, outflank_d9;
+
+	outflank_v = ((ULL(OH, OL) | ~0x0202020202020200) + 1) & ULL(PH, PL) & 0x0202020202020000;
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0002020202020200;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = (OL + 0x04) & PL;
 	flipped |= ((outflank_h * 0xff) >> 8) & 0x7c;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x0080402010080400) + 1) & ULL(PH, PL) & 0x0080402010080000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0080402010080400;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0000402010080400;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_B1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0202020202020200, 0x0080402010080400 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_B1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0202020202020200, ~0x0080402010080400 };
+	unsigned int outflank_h = ((OL & 0x7c) + 0x04) & PL;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_AB12(2);
@@ -665,7 +789,11 @@ static UINT64 flip_C1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0404040404040400) + 1) & ULL(PH, PL) & 0x0404040404040400;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0404040404040400;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0404040404040400;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_2[(OL >> 1) & 0x3f] & PL;
 	flipped |= (unsigned char) FLIPPED_2_H[outflank_h];
@@ -673,15 +801,26 @@ static UINT64 flip_C1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flipped |= ((PL >> 7) & 0x00000200u & OL);
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x0000804020100800) + 1) & ULL(PH, PL) & 0x0000804020100800;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0000804020100800;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0000804020100800;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_C1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0404040404040400, 0x0000804020100800 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_C1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0404040404040400, ~0x0000804020100800 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_2[(OL >> 1) & 0x3f] & PL;
 	UINT64 flipped;
 
@@ -705,7 +844,11 @@ static UINT64 flip_D1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0808080808080800) + 1) & ULL(PH, PL) & 0x0808080808080800;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0808080808080800;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0808080808080800;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_3[(OL >> 1) & 0x3f] & PL;
 	flipped |= (unsigned char) FLIPPED_3_H[outflank_h];
@@ -717,10 +860,17 @@ static UINT64 flip_D1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_D1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0808080808080800, 0x0000008040201000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_D1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0808080808080800, ~0x0000008040201000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_3[(OL >> 1) & 0x3f] & PL;
 	unsigned int outflank_d7 = ((OL | ~0x01020400u) + 1) & PL & 0x01020400u;
 	UINT64 flipped;
@@ -746,7 +896,11 @@ static UINT64 flip_E1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x1010101010101000) + 1) & ULL(PH, PL) & 0x1010101010101000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x1010101010101000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x1010101010101000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_4[(OL >> 1) & 0x3f] & PL;
 	flipped |= (unsigned char) FLIPPED_4_H[outflank_h];
@@ -758,10 +912,17 @@ static UINT64 flip_E1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_E1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x1010101010101000, 0x0000000102040800 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_E1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x1010101010101000, ~0x0000000102040800 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_4[(OL >> 1) & 0x3f] & PL;
 	unsigned int outflank_d9 = ((OL | ~0x80402000u) + 1) & PL & 0x80402000u;
 	UINT64 flipped;
@@ -787,23 +948,38 @@ static UINT64 flip_F1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x2020202020202000) + 1) & ULL(PH, PL) & 0x2020202020202000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x2020202020202000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x2020202020202000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_5[(OL >> 1) & 0x3f] & PL;
 	flipped |= (unsigned char) FLIPPED_5_H[outflank_h];
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0000010204081000) + 1) & ULL(PH, PL) & 0x0000010204080000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0000000204081000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0000000204081000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= ((PL >> 9) & 0x00004000u & OL);
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_F1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x2020202020202000, 0x0000010204081000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_F1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x2020202020202000, ~0x0000010204081000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_5[(OL >> 1) & 0x3f] & PL;
 	UINT64 flipped;
 
@@ -827,22 +1003,38 @@ static UINT64 flip_G1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x4040404040404000) + 1) & ULL(PH, PL) & 0x4040404040400000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x4040404040404000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0040404040404000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[OL & 0x3e] & (PL << 1);
 	flipped |= ((-outflank_h) & 0x3e) << 0;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0001020408102000) + 1) & ULL(PH, PL) & 0x0001020408100000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0001020408102000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0000020408102000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_G1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask1 = {{ 0x4040404040404000, 0x0001020408102000 }};
 	static const V2DI mask2 = {{ 0x000000000000003f, 0 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_G1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x4040404040404000, ~0x0001020408102000 };
+	unsigned int outflank_h = OUTFLANK_7[OL & 0x3e] & (PL << 1);
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_GH12;
@@ -865,22 +1057,38 @@ static UINT64 flip_H1(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x8080808080808000) + 1) & ULL(PH, PL) & 0x8080808080800000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x8080808080808000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0080808080808000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[(OL >> 1) & 0x3f] & PL;
 	flipped |= ((-outflank_h) & 0x3f) << 1;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0102040810204000) + 1) & ULL(PH, PL) & 0x0102040810200000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0102040810204000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0002040810204000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_H1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask1 = {{ 0x8080808080808000, 0x0102040810204000 }};
 	static const V2DI mask2 = {{ 0x000000000000007f, 0 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_H1(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x8080808080808000, ~0x0102040810204000 };
+	unsigned int outflank_h = OUTFLANK_7[(OL >> 1) & 0x3f] & PL;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_GH12;
@@ -899,25 +1107,45 @@ static UINT64 flip_sse_H1(unsigned int PL, unsigned int PH, unsigned int OL, uns
 #ifndef hasSSE2
 static UINT64 flip_A2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
+<<<<<<< HEAD
 	unsigned short outflank_h;
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0101010101010000) + 1) & ULL(PH, PL) & 0x0101010101000000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010000;
+=======
+	unsigned int outflank_h;
+	UINT64 flipped, outflank_v, outflank_d9;
+
+	outflank_v = ((ULL(OH, OL) | ~0x0101010101010000) + 1) & ULL(PH, PL) & 0x0101010101000000;
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0001010101010000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = (OL + 0x0200) & PL;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x00007e00;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x4020100804020000) + 1) & ULL(PH, PL) & 0x4020100804000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x4020100804020000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0020100804020000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_A2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0101010101010000, 0x4020100804020000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_A2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0101010101010000, ~0x4020100804020000 };
+	unsigned int outflank_h = ((OL & 0x00007e00u) + 0x00000200u) & PL;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_AB12(9);
@@ -936,25 +1164,45 @@ static UINT64 flip_sse_A2(unsigned int PL, unsigned int PH, unsigned int OL, uns
 #ifndef hasSSE2
 static UINT64 flip_B2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
+<<<<<<< HEAD
 	unsigned short outflank_h;
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0202020202020000) + 1) & ULL(PH, PL) & 0x0202020202000000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020000;
+=======
+	unsigned int outflank_h;
+	UINT64 flipped, outflank_v, outflank_d9;
+
+	outflank_v = ((ULL(OH, OL) | ~0x0202020202020000) + 1) & ULL(PH, PL) & 0x0202020202000000;
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0002020202020000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = (OL + 0x0400) & PL;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x00007c00;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x8040201008040000) + 1) & ULL(PH, PL) & 0x8040201008000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x8040201008040000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0040201008040000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_B2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0202020202020000, 0x8040201008040000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_B2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0202020202020000, ~0x8040201008040000 };
+	unsigned int outflank_h = ((OL & 0x00007c00u) + 0x00000400u) & PL;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_AB12(10);
@@ -977,7 +1225,11 @@ static UINT64 flip_C2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0404040404040000) + 1) & ULL(PH, PL) & 0x0404040404000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0404040404040000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0004040404040000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_2[(OL >> 9) & 0x3f] & (PL >> 8);
 	flipped |= (unsigned int) FLIPPED_2_H[outflank_h] & 0x0000ff00u;
@@ -985,15 +1237,26 @@ static UINT64 flip_C2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flipped |= ((PL >> 7) & 0x00020000u & OL);
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x0080402010080000) + 1) & ULL(PH, PL) & 0x0080402010080000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0000402010080000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0000402010080000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_C2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0404040404040000, 0x0080402010080000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_C2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0404040404040000, ~0x0080402010080000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_2[(OL >> 9) & 0x3f] & (PL >> 8);
 	UINT64 flipped;
 
@@ -1017,7 +1280,11 @@ static UINT64 flip_D2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0808080808080000) + 1) & ULL(PH, PL) & 0x0808080808000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0808080808080000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0008080808080000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_3[(OL >> 9) & 0x3f] & (PL >> 8);
 	flipped |= (unsigned int) FLIPPED_3_H[outflank_h] & 0x0000ff00u;
@@ -1029,10 +1296,17 @@ static UINT64 flip_D2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_D2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask01 = {{ ~0x0808080808080000, ~0x0000804020100000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_D2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask01 = { ~0x0808080808080000, ~0x0000804020100000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	static const UINT64 mask2 = ~0x0000000102040000;
 	unsigned int outflank_h = OUTFLANK_3[(OL >> 9) & 0x3f] & (PL >> 8);
 	UINT64 flipped;
@@ -1057,7 +1331,11 @@ static UINT64 flip_E2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x1010101010100000) + 1) & ULL(PH, PL) & 0x1010101010000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x1010101010100000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0010101010100000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_4[(OL >> 9) & 0x3f] & (PL >> 8);
 	flipped |= (unsigned int) FLIPPED_4_H[outflank_h] & 0x0000ff00u;
@@ -1069,10 +1347,17 @@ static UINT64 flip_E2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_E2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask01 = {{ ~0x1010101010100000, ~0x0000010204080000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_E2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask01 = { ~0x1010101010100000, ~0x0000010204080000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	static const UINT64 mask2 = ~0x0000008040200000;
 	unsigned int outflank_h = OUTFLANK_4[(OL >> 9) & 0x3f] & (PL >> 8);
 	UINT64 flipped;
@@ -1097,23 +1382,38 @@ static UINT64 flip_F2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x2020202020200000) + 1) & ULL(PH, PL) & 0x2020202020000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x2020202020200000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0020202020200000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_5[(OL >> 9) & 0x3f] & (PL >> 8);
 	flipped |= (unsigned int) FLIPPED_5_H[outflank_h] & 0x0000ff00u;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0001020408100000) + 1) & ULL(PH, PL) & 0x0001020408000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0000020408100000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0000020408100000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= ((PL >> 9) & 0x00400000u & OL);
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_F2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x2020202020200000, 0x0001020408100000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_F2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x2020202020200000, ~0x0001020408100000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_5[(OL >> 9) & 0x3f] & (PL >> 8);
 	UINT64 flipped;
 
@@ -1137,22 +1437,38 @@ static UINT64 flip_G2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x4040404040400000) + 1) & ULL(PH, PL) & 0x4040404040000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x4040404040400000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0040404040400000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[(OL >> 8) & 0x3e] & (PL >> 7);
 	flipped |= ((-outflank_h) & 0x3e) << 8;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0102040810200000) + 1) & ULL(PH, PL) & 0x0102040810000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0102040810200000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0002040810200000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_G2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask1 = {{ 0x4040404040400000, 0x0102040810200000 }};
 	static const V2DI mask2 = {{ 0x0000000000003f00, 0 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_G2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x4040404040400000, ~0x0102040810200000 };
+	unsigned int outflank_h = OUTFLANK_7[(OL >> 8) & 0x3e] & (PL >> 7);
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_GH12;
@@ -1175,22 +1491,38 @@ static UINT64 flip_H2(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x8080808080800000) + 1) & ULL(PH, PL) & 0x8080808080000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x8080808080800000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0080808080800000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[(OL >> 9) & 0x3f] & (PL >> 8);
 	flipped |= ((-outflank_h) & 0x3f) << 9;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0204081020400000) + 1) & ULL(PH, PL) & 0x0204081020000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0204081020400000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0004081020400000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_H2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask1 = {{ 0x8080808080800000, 0x0204081020400000 }};
 	static const V2DI mask2 = {{ 0x0000000000007f00, 0 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_H2(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x8080808080800000, ~0x0204081020400000 };
+	unsigned int outflank_h = OUTFLANK_7[(OL >> 9) & 0x3f] & (PL >> 8);
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	FLIP_CARRY_GH12;
@@ -1213,23 +1545,38 @@ static UINT64 flip_A3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0101010101000000) + 1) & ULL(PH, PL) & 0x0101010101000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0101010101000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = ((OL & 0x007e0000u) + 0x00020000u) & PL;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x007e0000u;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x2010080402000000) + 1) & ULL(PH, PL) & 0x2010080400000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0010080402000000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0010080402000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00000100u) | ((PL << 7) & 0x00000200u));
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_A3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0101010101000000, 0x2010080402000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_A3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0101010101000000, ~0x2010080402000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = ((OL & 0x007e0000u) + 0x00020000u) & PL;
 	UINT64 flipped;
 
@@ -1254,23 +1601,38 @@ static UINT64 flip_B3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0202020202000000) + 1) & ULL(PH, PL) & 0x0202020202000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0202020202000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = ((OL & 0x007c0000u) + 0x00040000u) & PL;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x007c0000u;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x4020100804000000) + 1) & ULL(PH, PL) & 0x4020100800000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0020100804000000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0020100804000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00000200u) | ((PL << 7) & 0x00000400u));
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_B3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0202020202000000, 0x4020100804000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_B3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0202020202000000, ~0x4020100804000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = ((OL & 0x007c0000u) + 0x00040000u) & PL;
 	UINT64 flipped;
 
@@ -1295,13 +1657,21 @@ static UINT64 flip_C3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d9;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0404040404000000) + 1) & ULL(PH, PL) & 0x0404040404000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0404040404000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0404040404000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_2[(OL >> 17) & 0x3f] & (PL >> 16);
 	flipped |= (unsigned int) FLIPPED_2_H[outflank_h] & 0x00ff0000u;
 
 	outflank_d9 = ((ULL(OH, OL) | ~0x8040201008000000) + 1) & ULL(PH, PL) & 0x8040201008000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x8040201008000000;
+=======
+	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x8040201008000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00000400u)
 			| ((PL << 9) & 0x00000200u)
@@ -1310,10 +1680,17 @@ static UINT64 flip_C3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_C3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x0404040404000000, 0x8040201008000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_C3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x0404040404000000, ~0x8040201008000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_2[(OL >> 17) & 0x3f] & (PL >> 16);
 	UINT64 flipped;
 
@@ -1340,7 +1717,11 @@ static UINT64 flip_D3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x0808080808000000) + 1) & ULL(PH, PL) & 0x0808080808000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x0808080808000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x0808080808000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_3[(OL >> 17) & 0x3f] & (PL >> 16);
 	flipped |= (unsigned int) FLIPPED_3_H[outflank_h] & 0x00ff0000u;
@@ -1356,10 +1737,17 @@ static UINT64 flip_D3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_D3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask01 = {{ ~0x0808080808000000, ~0x0080402010000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_D3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask01 = { ~0x0808080808000000, ~0x0080402010000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	static const UINT64 mask2 = ~0x0000010204000000;
 	unsigned int outflank_h = OUTFLANK_3[(OL >> 17) & 0x3f] & (PL >> 16);
 	UINT64 flipped;
@@ -1387,7 +1775,11 @@ static UINT64 flip_E3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v;
 
 	outflank_v = ((ULL(OH, OL) | ~0x1010101010000000) + 1) & ULL(PH, PL) & 0x1010101010000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x1010101010000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x1010101010000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_4[(OL >> 17) & 0x3f] & (PL >> 16);
 	flipped |= (unsigned int) FLIPPED_4_H[outflank_h] & 0x00ff0000u;
@@ -1403,10 +1795,17 @@ static UINT64 flip_E3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_E3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask01 = {{ ~0x1010101010000000, ~0x0001020408000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_E3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask01 = { ~0x1010101010000000, ~0x0001020408000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	static const UINT64 mask2 = ~0x0000804020000000;
 	unsigned int outflank_h = OUTFLANK_4[(OL >> 17) & 0x3f] & (PL >> 16);
 	UINT64 flipped;
@@ -1434,13 +1833,21 @@ static UINT64 flip_F3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x2020202020000000) + 1) & ULL(PH, PL) & 0x2020202020000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x2020202020000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x2020202020000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_5[(OL >> 17) & 0x3f] & (PL >> 16);
 	flipped |= (unsigned int) FLIPPED_5_H[outflank_h] & 0x00ff0000u;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0102040810000000) + 1) & ULL(PH, PL) & 0x0102040810000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0102040810000000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0102040810000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00002000u)
 			| ((PL << 7) & 0x00004000u)
@@ -1449,10 +1856,17 @@ static UINT64 flip_F3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_F3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	static const V2DI mask = {{ 0x2020202020000000, 0x0102040810000000 }};
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_F3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x2020202020000000, ~0x0102040810000000 };
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	unsigned int outflank_h = OUTFLANK_5[(OL >> 17) & 0x3f] & (PL >> 16);
 	UINT64 flipped;
 
@@ -1479,19 +1893,28 @@ static UINT64 flip_G3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x4040404040000000) + 1) & ULL(PH, PL) & 0x4040404040000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x4040404040000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x4040404040000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[(OL >> 16) & 0x3e] & (PL >> 15);
 	flipped |= ((-outflank_h) & 0x3e) << 16;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0204081020000000) + 1) & ULL(PH, PL) & 0x0204081000000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0004081020000000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0004081020000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00004000u) | ((PL << 9) & 0x00002000u));
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_G3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
@@ -1503,6 +1926,14 @@ static UINT64 flip_sse_G3(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	__m128i OO = set1_by_movd(OL, OH);
 	__m128i PP = set1_by_movd(PL, PH);
 	__m128i	outflank_vd, outflank_h, flipped_v2, flipped_h2g2;
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_G3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x4040404040000000, ~0x0204081020000000 };
+	unsigned int outflank_h = OUTFLANK_7[(OL >> 16) & 0x3e] & (PL >> 15);
+	UINT64 flipped;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_vd = _mm_andnot_si128(OO, mask1.v2);
 	outflank_vd = _mm_and_si128(_mm_and_si128(outflank_vd, _mm_sub_epi64(_mm_setzero_si128(), outflank_vd)), PP);
@@ -1561,19 +1992,28 @@ static UINT64 flip_H3(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	UINT64 flipped, outflank_v, outflank_d7;
 
 	outflank_v = ((ULL(OH, OL) | ~0x8080808080000000) + 1) & ULL(PH, PL) & 0x8080808080000000;
+<<<<<<< HEAD
 	flipped = OutflankToFlipmask(outflank_v) & 0x8080808080000000;
+=======
+	flipped = (outflank_v - (unsigned int) (outflank_v != 0)) & 0x8080808080000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_h = OUTFLANK_7[(OL >> 17) & 0x3f] & (PL >> 16);
 	flipped |= ((-outflank_h) & 0x3f) << 17;
 
 	outflank_d7 = ((ULL(OH, OL) | ~0x0408102040000000) + 1) & ULL(PH, PL) & 0x0408102000000000;
+<<<<<<< HEAD
 	flipped |= OutflankToFlipmask(outflank_d7) & 0x0008102040000000;
+=======
+	flipped |= (outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0008102040000000;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flipped |= OL & (((PL << 8) & 0x00008000u) | ((PL << 9) & 0x00004000u));
 
 	return flipped;
 }
 #endif
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 static UINT64 flip_sse_H3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
@@ -1585,6 +2025,14 @@ static UINT64 flip_sse_H3(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	__m128i OO = set1_by_movd(OL, OH);
 	__m128i PP = set1_by_movd(PL, PH);
 	__m128i	outflank_vd, outflank_h, flipped_v2, flipped_h2g2;
+=======
+#ifdef USE_GAS_MMX
+static UINT64 SSE2 flip_sse_H3(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	static const __v2di mask = { ~0x8080808080000000, ~0x0408102040000000 };
+	unsigned int outflank_h = OUTFLANK_7[(OL >> 17) & 0x3f] & (PL >> 16);
+	UINT64 flipped;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	outflank_vd = _mm_andnot_si128(OO, mask1.v2);
 	outflank_vd = _mm_and_si128(_mm_and_si128(outflank_vd, _mm_sub_epi64(_mm_setzero_si128(), outflank_vd)), PP);
@@ -1636,7 +2084,10 @@ static UINT64 flip_sse_H3(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_A4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, flip_d7, outflank_d9;
@@ -1653,7 +2104,11 @@ static UINT64 flip_A4(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flip_d7 |= (flip_d7 >> 7) & OL;
 	flipped |= flip_d7 & -(flip_d7 & (PL << 7));
 
+<<<<<<< HEAD
 	outflank_d9 = ((OH | ~0x10080402u) + 1) & PH & 0x10080400u;
+=======
+	outflank_d9 = ((OH | ~0x10080402u) + 0x00000002u) & PH & 0x10080400u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00080402u) << 32;
 
 	return flipped;
@@ -1718,7 +2173,10 @@ static UINT64 flip_sse_A4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_B4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, flip_d7, outflank_d9;
@@ -1735,7 +2193,11 @@ static UINT64 flip_B4(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flip_d7 |= (flip_d7 >> 7) & OL;
 	flipped |= flip_d7 & -(flip_d7 & (PL << 7));
 
+<<<<<<< HEAD
 	outflank_d9 = ((OH | ~0x20100804u) + 1) & PH & 0x20100800u;
+=======
+	outflank_d9 = ((OH | ~0x20100804u) + 0x00000004u) & PH & 0x20100800u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00100804u) << 32;
 
 	return flipped;
@@ -1800,7 +2262,13 @@ static UINT64 flip_sse_B4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+
+#if 0 // MMX - slower
+
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_C4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -1808,6 +2276,77 @@ static UINT64 flip_C4(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 
 	outflank_v = OUTFLANK_3[(((OL & 0x04040400u) + ((OH & 0x00040404u) << 4)) * 0x00408102u) >> 25]
 		& ((((PL & 0x04040404u) + ((PH & 0x04040404u) << 4)) * 0x00408102u) >> 24);
+<<<<<<< HEAD
+=======
+	__asm__ volatile (
+		"movq	%0, %%mm0\n\t"
+		"pand	%1, %%mm0"
+	:: "m" (FLIPPED_3_V[outflank_v]), "m" (mask_c1c8));
+
+	outflank_h = OUTFLANK_2[(OL >> 25) & 0x3f] & (PL >> 24);
+	__asm__ volatile (
+		"movq	%0, %%mm1\n\t"
+		"pand	%1, %%mm1\n\t"
+		"por	%%mm1, %%mm0"
+	:: "m" (FLIPPED_2_H[outflank_h]), "m" (mask_a4h4));
+
+	outflank_d7 = OUTFLANK_2[(((OL & 0x04081000u) + (OH & 0x00000002u)) * 0x01010101u) >> 25]
+		& ((((PL & 0x04081020u) + (PH & 0x00000102u)) * 0x01010101u) >> 24);
+	__asm__ volatile (
+		"movq	%0, %%mm1\n\t"
+		"pand	%1, %%mm1\n\t"
+		"por	%%mm1, %%mm0"
+	:: "m" (FLIPPED_2_H[outflank_d7]), "m" (mask_f1a6));
+
+	outflank_d9 = OUTFLANK_2[(((OL & 0x04020000u) + (OH & 0x00201008u)) * 0x01010101u) >> 25]
+		& ((((PL & 0x04020100u) + (PH & 0x40201008u)) * 0x01010101u) >> 24);
+	__asm__ volatile (
+		"movq	%1, %%mm1\n\t"
+		"pand	%2, %%mm1\n\t"
+		"por	%%mm1, %%mm0\n\t"
+		"movd	%%mm0, %%eax\n\t"
+		"psrlq	$32, %%mm0\n\t"
+		"movd	%%mm0, %%edx\n\t"
+		"emms"
+	: "=A" (flipped) : "m" (FLIPPED_2_H[outflank_d9]), "m" (mask_a2g8));
+
+	return flipped;
+}
+
+#elif 0 // SSE2 - even slow
+
+static UINT64 flip_C4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
+	__v2di flipped;
+
+	outflank_v = OUTFLANK_3[(((OL & 0x04040400u) + ((OH & 0x00040404u) << 4)) * 0x00408102u) >> 25]
+		& ((((PL & 0x04040404u) + ((PH & 0x04040404u) << 4)) * 0x00408102u) >> 24);
+	outflank_h = OUTFLANK_2[(OL >> 25) & 0x3f] & (PL >> 24);
+	flipped = _mm_set_epi64x(FLIPPED_2_H[outflank_h], FLIPPED_3_V[outflank_v])
+		& _mm_set_epi64x(mask_a4h4, mask_c1c8);
+
+	outflank_d7 = OUTFLANK_2[(((OL & 0x04081000u) + (OH & 0x00000002u)) * 0x01010101u) >> 25]
+		& ((((PL & 0x04081020u) + (PH & 0x00000102u)) * 0x01010101u) >> 24);
+	outflank_d9 = OUTFLANK_2[(((OL & 0x04020000u) + (OH & 0x00201008u)) * 0x01010101u) >> 25]
+		& ((((PL & 0x04020100u) + (PH & 0x40201008u)) * 0x01010101u) >> 24);
+	flipped |= _mm_set_epi64x(FLIPPED_2_H[outflank_d9], FLIPPED_2_H[outflank_d7])
+		& _mm_set_epi64x(mask_a2g8, mask_f1a6);
+
+	flipped |= _mm_shuffle_epi32(flipped, 0x4e);
+	return (UINT64) _mm_movepi64_pi64(flipped);	// flipped[0]
+}
+
+#else
+
+static UINT64 flip_C4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
+	UINT64 flipped;
+
+	outflank_v = OUTFLANK_3[(((OL & 0x04040400u) + ((OH & 0x00040404u) << 4)) * 0x00408102u) >> 25]
+		& ((((PL & 0x04040404u) + ((PH & 0x04040404u) << 4)) * 0x00408102u) >> 24);
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped = FLIPPED_3_V[outflank_v] & 0x0004040404040400;
 
 	outflank_h = OUTFLANK_2[(OL >> 25) & 0x3f] & (PL >> 24);
@@ -1885,7 +2424,10 @@ static UINT64 flip_sse_C4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_D4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -1987,7 +2529,10 @@ static UINT64 flip_sse_D4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_E4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2089,7 +2634,10 @@ static UINT64 flip_sse_E4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_F4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2174,7 +2722,10 @@ static UINT64 flip_sse_F4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_G4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, flip_d9;
@@ -2187,7 +2738,11 @@ static UINT64 flip_G4(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	outflank_h = OUTFLANK_7[(OL >> 24) & 0x3e] & (PL >> 23);
 	flipped |= ((-outflank_h) & 0x3e) << 24;
 
+<<<<<<< HEAD
 	outflank_d7 = ((OH | ~0x04081020u) + 1) & PH & 0x04081000u;
+=======
+	outflank_d7 = ((OH | ~0x04081020u) + 0x00000020u) & PH & 0x04081000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00081020u) << 32;
 
 	flip_d9 = OL & 0x00200000u;
@@ -2261,7 +2816,10 @@ static UINT64 flip_sse_G4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_H4(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, flip_d9;
@@ -2274,7 +2832,11 @@ static UINT64 flip_H4(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	outflank_h = OUTFLANK_7[(OL >> 25) & 0x3f] & (PL >> 24);
 	flipped |= ((-outflank_h) & 0x3f) << 25;
 
+<<<<<<< HEAD
 	outflank_d7 = ((OH | ~0x08102040u) + 1) & PH & 0x08102000u;
+=======
+	outflank_d7 = ((OH | ~0x08102040u) + 0x00000040u) & PH & 0x08102000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00102040u) << 32;
 
 	flip_d9 = OL & 0x00400000u;
@@ -2348,25 +2910,40 @@ static UINT64 flip_sse_H4(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
 static UINT64 flip_A5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, flip_d7, outflank_d9;
 	unsigned char outflank_h;
+=======
+static UINT64 flip_A5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, flip_d7, outflank_d9;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	outflank_v = OUTFLANK_4[(((OL & 0x01010100u) + ((OH & 0x00010101u) << 4)) * 0x01020408u) >> 25]
 		& ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
 	flipped = FLIPPED_4_V[outflank_v] & 0x0001010101010100;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x02) & PH;
 	flipped |= (UINT64) (((outflank_h * 0xff) >> 8) & 0x0000007eu) << 32;
+=======
+	outflank_h = ((OH & 0x0000007eu) + 0x00000002u) & PH;
+	flipped |= (UINT64) ((((outflank_h << 8) - outflank_h) >> 8) & 0x0000007eu) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flip_d7 = OL & ((OL >> 7) | 0x02000000u);
 	flip_d7 &= ((flip_d7 & 0x02040000u) >> 14) | 0x02040000u;
 	flipped |= flip_d7 & -(flip_d7 & (PL << 7));
 
+<<<<<<< HEAD
 	outflank_d9 = ((OH | ~0x08040200u) + 1) & PH & 0x08040000u;
+=======
+	outflank_d9 = ((OH | ~0x08040200u) + 0x00000200u) & PH & 0x08040000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00040200u) << 32;
 
 	return flipped;
@@ -2431,25 +3008,40 @@ static UINT64 flip_sse_A5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
 static UINT64 flip_B5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, flip_d7, outflank_d9;
 	unsigned char outflank_h;
+=======
+static UINT64 flip_B5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, flip_d7, outflank_d9;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	outflank_v = OUTFLANK_4[(((OL & 0x02020200u) + ((OH & 0x00020202u) << 4)) * 0x00810204u) >> 25]
 		& ((((PL & 0x02020202u) + ((PH & 0x02020202u) << 4)) * 0x00810204u) >> 24);
 	flipped = FLIPPED_4_V[outflank_v] & 0x0002020202020200;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x04) & PH;
 	flipped |= (UINT64) (((outflank_h * 0xff) >> 8) & 0x0000007cu) << 32;
+=======
+	outflank_h = ((OH & 0x0000007cu) + 0x00000004u) & (PH >> 0);
+	flipped |= (UINT64) ((((outflank_h << 8) - outflank_h) >> 8) & 0x0000007cu) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flip_d7 = OL & ((OL >> 7) | 0x04000000u);
 	flip_d7 &= ((flip_d7 & 0x04080000u) >> 14) | 0x04080000u;
 	flipped |= flip_d7 & -(flip_d7 & (PL << 7));
 
+<<<<<<< HEAD
 	outflank_d9 = ((OH | ~0x10080400u) + 1) & PH & 0x10080000u;
+=======
+	outflank_d9 = ((OH | ~0x10080400u) + 0x00000400u) & PH & 0x10080000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00080400u) << 32;
 
 	return flipped;
@@ -2514,7 +3106,10 @@ static UINT64 flip_sse_B5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_C5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2598,7 +3193,10 @@ static UINT64 flip_sse_C5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_D5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2700,7 +3298,10 @@ static UINT64 flip_sse_D5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_E5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2802,7 +3403,10 @@ static UINT64 flip_sse_E5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_F5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, outflank_d9;
@@ -2886,7 +3490,10 @@ static UINT64 flip_sse_F5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_G5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, flip_d9;
@@ -2899,7 +3506,11 @@ static UINT64 flip_G5(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	outflank_h = OUTFLANK_7[(OH >> 0) & 0x3e] & (PH << 1);
 	flipped |= (UINT64) ((-outflank_h) & 0x3e) << 32;
 
+<<<<<<< HEAD
 	outflank_d7 = ((OH | ~0x08102000u) + 1) & PH & 0x08100000u;
+=======
+	outflank_d7 = ((OH | ~0x08102000u) + 0x00002000u) & PH & 0x08100000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00102000u) << 32;
 
 	flip_d9 = OL & ((OL >> 9) | 0x20000000u);
@@ -2973,7 +3584,10 @@ static UINT64 flip_sse_G5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_H5(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7, flip_d9;
@@ -2986,7 +3600,11 @@ static UINT64 flip_H5(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	outflank_h = OUTFLANK_7[(OH >> 1) & 0x3f] & (PH >> 0);
 	flipped |= (UINT64) (((-outflank_h) & 0x3f) << 1) << 32;
 
+<<<<<<< HEAD
 	outflank_d7 = ((OH | ~0x10204000u) + 1) & PH & 0x10200000u;
+=======
+	outflank_d7 = ((OH | ~0x10204000u) + 0x00004000u) & PH & 0x10200000u;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00204000u) << 32;
 
 	flip_d9 = OL & ((OL >> 9) | 0x40000000u);
@@ -3060,18 +3678,28 @@ static UINT64 flip_sse_H5(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
 static UINT64 flip_A6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, flip_d7;
 	unsigned short outflank_h;
+=======
+static UINT64 flip_A6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, flip_d7;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	outflank_v = OUTFLANK_5[(((OL & 0x01010100u) + ((OH & 0x00010101u) << 4)) * 0x01020408u) >> 25]
 		& ((((PL & 0x01010101u) + ((PH & 0x01010101u) << 4)) * 0x01020408u) >> 24);
 	flipped = FLIPPED_5_V[outflank_v] & 0x0001010101010100;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x0200) & PH;
+=======
+	outflank_h = ((OH & 0x00007e00u) + 0x00000200u) & PH;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_h - (outflank_h >> 8)) & 0x00007e00u) << 32;
 
 	flip_d7 = (OL >> 8) | (OH << 24);
@@ -3108,18 +3736,28 @@ static UINT64 flip_sse_A6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
 static UINT64 flip_B6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, flip_d7;
 	unsigned short outflank_h;
+=======
+static UINT64 flip_B6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
+{
+	unsigned int outflank_h, outflank_v, flip_d7;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	UINT64 flipped;
 
 	outflank_v = OUTFLANK_5[(((OL & 0x02020200u) + ((OH & 0x00020202u) << 4)) * 0x00810204u) >> 25]
 		& ((((PL & 0x02020202u) + ((PH & 0x02020202u) << 4)) * 0x00810204u) >> 24);
 	flipped = FLIPPED_5_V[outflank_v] & 0x0002020202020200;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x0400) & PH;
+=======
+	outflank_h = ((OH & 0x00007c00u) + 0x00000400u) & PH;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flipped |= (UINT64) ((outflank_h - (outflank_h >> 8)) & 0x00007c00u) << 32;
 
 	flip_d7 = (OL >> 8) | (OH << 24);
@@ -3156,7 +3794,10 @@ static UINT64 flip_sse_B6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_C6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d7;
@@ -3203,7 +3844,10 @@ static UINT64 flip_sse_C6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_D6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3220,7 +3864,12 @@ static UINT64 flip_D6(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		& ((((PL & 0x22418000u) + (PH & 0x00000814u)) * 0x01010101u) >> 24);
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0000081422400000;	// A3D6H2
 
+<<<<<<< HEAD
 	flipped |= (UINT64) (OH & (((PH >> 9) & 0x00100000u) | ((PH >> 7) & 0x00040000u))) << 32;
+=======
+	flipped |= (UINT64) (OH &
+		(((PH >> 9) & 0x00100000u) | ((PH >> 7) & 0x00040000u))) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
@@ -3287,7 +3936,10 @@ static UINT64 flip_sse_D6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_E6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3304,7 +3956,12 @@ static UINT64 flip_E6(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		& ((((PL & 0x44820100u) + (PH & 0x00001028u)) * 0x01010101u) >> 24);
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0000102844020000;	// A2E6H3
 
+<<<<<<< HEAD
 	flipped |= (UINT64) (OH & (((PH >> 9) & 0x00200000u) | ((PH >> 7) & 0x00080000u))) << 32;
+=======
+	flipped |= (UINT64) (OH &
+		(((PH >> 9) & 0x00200000u) | ((PH >> 7) & 0x00080000u))) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	return flipped;
 }
@@ -3371,7 +4028,10 @@ static UINT64 flip_sse_E6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_F6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d9;
@@ -3418,7 +4078,10 @@ static UINT64 flip_sse_F6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_G6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, flip_d9;
@@ -3429,7 +4092,13 @@ static UINT64 flip_G6(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flipped = FLIPPED_5_V[outflank_v] & 0x0040404040404000;
 
 	outflank_h = OUTFLANK_7[(OH >> 8) & 0x3e] & (PH >> 7);
+<<<<<<< HEAD
 	flipped |= (UINT64) ((((-outflank_h) & 0x3e) << 8) | ((PH >> 7) & 0x00200000u & OH)) << 32;
+=======
+	flipped |= (UINT64) (((-outflank_h) & 0x3e) << 8) << 32;
+
+	flipped |= (UINT64) ((PH >> 7) & 0x00200000u & OH) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flip_d9 = (OL >> 8) | (OH << 24);
 	flip_d9 &= (flip_d9 >> 9) | 0x20000000u;
@@ -3504,7 +4173,10 @@ static UINT64 flip_sse_G6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_H6(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, flip_d9;
@@ -3515,7 +4187,13 @@ static UINT64 flip_H6(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flipped = FLIPPED_5_V[outflank_v] & 0x0080808080808000;
 
 	outflank_h = OUTFLANK_7[(OH >> 9) & 0x3f] & (PH >> 8);
+<<<<<<< HEAD
 	flipped |= (UINT64) ((((-outflank_h) & 0x3f) << 9) | ((PH >> 7) & 0x00400000u & OH)) << 32;
+=======
+	flipped |= (UINT64) (((-outflank_h) & 0x3f) << 9) << 32;
+
+	flipped |= (UINT64) ((PH >> 7) & 0x00400000u & OH) << 32;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
 	flip_d9 = (OL >> 8) | (OH << 24);
 	flip_d9 &= (flip_d9 >> 9) | 0x40000000u;
@@ -3590,7 +4268,10 @@ static UINT64 flip_sse_H6(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_A7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, outflank_h, outflank_d7, flippedH, flippedL;
@@ -3607,6 +4288,7 @@ static UINT64 flip_A7(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		& ((((PL & 0x08102040u) + (PH & 0x00000004u)) * 0x01010101u) >> 24);
 	flippedH |= ((outflank_d7 * 0x0000f8f0u) >> 8) & 0x00000204u;
 	flippedL |= (outflank_d7 * 0x00e0c080u) & 0x08102000u;
+<<<<<<< HEAD
 
 	return ULL(flippedH, flippedL);
 }
@@ -3618,8 +4300,10 @@ static UINT64 flip_sse_A7(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	UINT64 flipped;
 
 	FLIP_MS1B_AB78(49);
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
-	return flipped;
+	return ULL(flippedH, flippedL);
 }
 #endif
 
@@ -3630,7 +4314,10 @@ static UINT64 flip_sse_A7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_B7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, outflank_h, outflank_d7, flippedH, flippedL;
@@ -3647,6 +4334,7 @@ static UINT64 flip_B7(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 		& ((PL & 0x10204080u) + (PH & 0x00000008u)) * 0x01010101u) >> 25;
 	flippedH |= ((outflank_d7 * 0x0000f8f0u) >> 7) & 0x00000408u;
 	flippedL |= (outflank_d7 * 0x01c18100u) & 0x10204000u;
+<<<<<<< HEAD
 
 	return ULL(flippedH, flippedL);
 }
@@ -3658,8 +4346,10 @@ static UINT64 flip_sse_B7(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	UINT64 flipped;
 
 	FLIP_MS1B_AB78(50);
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
-	return flipped;
+	return ULL(flippedH, flippedL);
 }
 #endif
 
@@ -3670,7 +4360,10 @@ static UINT64 flip_sse_B7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_C7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3713,7 +4406,10 @@ static UINT64 flip_sse_C7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_D7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3792,7 +4488,10 @@ static UINT64 flip_sse_D7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_E7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3871,7 +4570,10 @@ static UINT64 flip_sse_E7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_F7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -3914,7 +4616,10 @@ static UINT64 flip_sse_F7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_G7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d9, flippedH, flippedL;
@@ -3933,6 +4638,7 @@ static UINT64 flip_G7(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flippedL |= (outflank_d9 * 0x07030100u) & 0x08040200u;
 
 	return ULL(flippedH, flippedL);
+<<<<<<< HEAD
 }
 #endif
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -3982,6 +4688,8 @@ static UINT64 flip_sse_G7(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	: "m" (PL), "m" (PH), "m" (OL), "m" (OH), "m" (mask1), "m" (mask2), "m" (expmask), "m" (minus0800), "m" (k1e52));
 #endif
 	return flipped;
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 }
 #endif
 
@@ -3992,7 +4700,10 @@ static UINT64 flip_sse_G7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_H7(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d9, flippedH, flippedL;
@@ -4070,7 +4781,10 @@ static UINT64 flip_sse_H7(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_A8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, outflank_h, outflank_d7, flippedH, flippedL;
@@ -4080,13 +4794,18 @@ static UINT64 flip_A8(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flippedH = ((outflank_v * 0x003f1f0fu) >> 7) & 0x00010101u;
 	flippedL = (outflank_v * 0x000e0602u) & 0x01010100u;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x02000000u) & PH;
+=======
+	outflank_h = ((OH & 0x7e000000u) + 0x02000000u) & PH;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flippedH |= (outflank_h - (outflank_h >> 8)) & 0x7e000000u;
 
 	outflank_d7 = ((((OL & 0x10204000u) + (OH & 0x00020408u)) * 0x01010101u + 0x02000000u)
 		& ((PL & 0x10204080u) + (PH & 0x00000408u)) * 0x01010101u) >> 24;
 	flippedH |= ((outflank_d7 * 0x00fcf8f0u) >> 8) & 0x00020408u;
 	flippedL |= (outflank_d7 * 0x00e0c080u) & 0x10204000u;
+<<<<<<< HEAD
 
 	return ULL(flippedH, flippedL);
 }
@@ -4098,8 +4817,10 @@ static UINT64 flip_sse_A8(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	UINT64 flipped;
 
 	FLIP_MS1B_AB78(57);
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
-	return flipped;
+	return ULL(flippedH, flippedL);
 }
 #endif
 
@@ -4110,7 +4831,10 @@ static UINT64 flip_sse_A8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_B8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_v, outflank_h, outflank_d7, flippedH, flippedL;
@@ -4120,13 +4844,18 @@ static UINT64 flip_B8(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flippedH = ((outflank_v * 0x003f1f0fu) >> 6) & 0x00020202u;
 	flippedL = (outflank_v * 0x001c0c04u) & 0x02020200u;
 
+<<<<<<< HEAD
 	outflank_h = (OH + 0x04000000u) & PH;
+=======
+	outflank_h = ((OH & 0x7c000000u) + 0x04000000u) & PH;
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flippedH |= (outflank_h - (outflank_h >> 8)) & 0x7c000000u;
 
 	outflank_d7 = ((((OL & 0x20400000u) + (OH & 0x00040810u)) * 0x01010101u + 0x04000000u)
 		& ((PL & 0x20408000u) + (PH & 0x00000810u)) * 0x01010101u) >> 25;
 	flippedH |= ((outflank_d7 * 0x00fcf8f0u) >> 7) & 0x00040810u;
 	flippedL |= (outflank_d7 * 0x01c18000u) & 0x20400000u;
+<<<<<<< HEAD
 
 	return ULL(flippedH, flippedL);
 }
@@ -4138,8 +4867,10 @@ static UINT64 flip_sse_B8(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	UINT64 flipped;
 
 	FLIP_MS1B_AB78(58);
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 
-	return flipped;
+	return ULL(flippedH, flippedL);
 }
 #endif
 
@@ -4150,7 +4881,10 @@ static UINT64 flip_sse_B8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_C8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -4193,7 +4927,10 @@ static UINT64 flip_sse_C8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_D8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -4272,7 +5009,10 @@ static UINT64 flip_sse_D8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_E8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -4351,7 +5091,10 @@ static UINT64 flip_sse_E8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_F8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d;
@@ -4428,7 +5171,10 @@ static UINT64 flip_sse_F8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_G8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d9, flippedH, flippedL;
@@ -4447,6 +5193,7 @@ static UINT64 flip_G8(unsigned int PL, unsigned int PH, unsigned int OL, unsigne
 	flippedL |= (outflank_d9 * 0x03010000u) & 0x04020000u;
 
 	return ULL(flippedH, flippedL);
+<<<<<<< HEAD
 }
 #endif
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -4497,6 +5244,8 @@ static UINT64 flip_sse_G8(unsigned int PL, unsigned int PH, unsigned int OL, uns
 	: "m" (PL), "m" (PH), "m" (OL), "m" (OH), "m" (mask1), "m" (mask2), "m" (expmask), "m" (minuseight), "m" (k1e52));
 #endif
 	return flipped;
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 }
 #endif
 
@@ -4507,7 +5256,10 @@ static UINT64 flip_sse_G8(unsigned int PL, unsigned int PH, unsigned int OL, uns
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
+<<<<<<< HEAD
 #ifndef hasSSE2
+=======
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 static UINT64 flip_H8(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int outflank_h, outflank_v, outflank_d9, flippedH, flippedL;
@@ -4630,10 +5382,17 @@ UINT64 flip32(unsigned int pos, unsigned int bb[]) {
 	return (*flip[pos])(bb[0], bb[1], bb[2], bb[3]);
 }
 #endif
+<<<<<<< HEAD
 
 #if !defined(hasSSE2) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86))
 
 static UINT64 (*flip_sse[])(unsigned int, unsigned int, unsigned int, unsigned int) = {
+=======
+
+#if defined(USE_GAS_MMX) && !defined(hasSSE2)
+
+static UINT64 (*flip_sse_123[])(unsigned int, unsigned int, unsigned int, unsigned int) = {
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
 	flip_sse_A1, flip_sse_B1, flip_sse_C1, flip_sse_D1, flip_sse_E1, flip_sse_F1, flip_sse_G1, flip_sse_H1,
 	flip_sse_A2, flip_sse_B2, flip_sse_C2, flip_sse_D2, flip_sse_E2, flip_sse_F2, flip_sse_G2, flip_sse_H2,
 	flip_sse_A3, flip_sse_B3, flip_sse_C3, flip_sse_D3, flip_sse_E3, flip_sse_F3, flip_sse_G3, flip_sse_H3,

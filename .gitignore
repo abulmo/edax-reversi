@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 bin/
 data/
 doc/
@@ -5,3 +6,17 @@ doc/
 *.7z
 
 .DS_Store
+=======
+*.o
+*.s
+*.exe
+*~
+pgopti*
+*.dyn
+all.gc*
+generate_flip.*
+generate_count_flip.*
+bcnttest.*
+bin/
+doc/
+>>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
