@@ -300,6 +300,7 @@ extern unsigned long long A1_A8[256];
 =======
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
+<<<<<<< HEAD
 >>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
   #ifdef HAS_CPU_64
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_insert_epi64(_mm_cvtsi64_si128(P), (O), 1), (x)))))
@@ -308,6 +309,9 @@ extern unsigned long long A1_A8[256];
 		_mm_cvtsi32_si128(P), ((P) >> 32), 1), (O), 2), (O >> 32), 3), (x)))))
   #endif
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_set_epi64x((O), (P)), (x)))))
+>>>>>>> c228033 (Replace mm_flip OP param unpack with _mm_set_epi64x)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x)))))
 	#define	vboard_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip((board).v2, (x)))))
 
