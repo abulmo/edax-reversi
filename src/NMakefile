@@ -4,35 +4,112 @@
 # Compilation options for Microsoft Visual C++ & nmake.
 #
 # If you have a CPU supporting popcount (Intel Nehalem (i7) or AMD Barcelona or greater),
-# add /D "POPCOUNT" to the compiler option set.
+# add /D POPCOUNT to the compiler option set.
 #
 
-# Microsoft Visual C++ 2008 or better for Windows (7 or Vista) 64bits.
-W64_VC_FLAGS = /I"..\include" /O2 /GL /fp:fast /favor:INTEL64 /arch:AVX\
-               /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__" /D "USE_MSVC_X64" /D "POPCOUNT"\
-               /MT
+# Microsoft Visual C++ 2008 or better for Windows (7 or Vista).
+# VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
+VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /MT
 
-# Microsoft Visual C++ 2008 of better for Windows (7 or Vista or xp) 32bits.
-W32_VC_FLAGS = /I"..\include" /O2 /GL /fp:fast\
-               /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__"  /D "USE_MASM_X86"\
-               /MT /L ws2_32
+vc-w64-modern:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
 
-win-vc-x64:
-	cl $(W64_VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
+vc-w64-avx512:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX512 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-avx512.exe /link /VERSION:4.5
+#	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D __AVX512VL__ /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-avx512.exe /link /VERSION:4.5
 
-win-vc-x86:
-	cl $(W32_VC_FLAGS) all.c /Fe..\bin\wEdax-w32.exe
+vc-w64-popcnt:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /VERSION:4.5
 
-win-vc-pgo-x64:
+vc-w64-k10:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN /favor:AMD64 all.c ws2_32.lib /Fe..\bin\wEdax-w64-k10.exe /link /VERSION:4.5
+
+vc-w64:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
+
+vc-w32-modern:
+	cl $(VC_FLAGS) /GL /D hasSSE2 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w32-modern.exe
+
+vc-w32-sse:
+	cl $(VC_FLAGS) /GL /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-w32-sse.exe
+
+vc-w32-mmx:
+	cl $(VC_FLAGS) /GL /arch:IA32 /D hasMMX all.c ws2_32.lib /Fe..\bin\wEdax-w32-mmx.exe
+
+vc-w32:
+	cl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
+
+vc-a64:
+#	vcvarsamd64_arm64.bat
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.5
+
+vc-a32:
+#	vcvarsamd64_arm.bat
+	cl $(VC_FLAGS) /GL all.c ws2_32.lib /Fe..\bin\wEdax-a32.exe
+
+icc-w64-modern:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+
+icc-w64-avx512:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:CORE-AVX512 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-avx512.exe /link /VERSION:4.5
+
+icc-w64:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
+
+icc-w32:
+	icl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
+
+clang-w64-modern:
+	clang-cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+
+clang-w64:
+	clang-cl $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /VERSION:4.5
+
+clang-w32:
+	clang-cl $(VC_FLAGS) /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
+
+vc-pgo-w64-modern:
 	set VCPROFILE_PATH=..\src
-	cl $(W64_VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /ltcg:pgi /VERSION:4.5
 	cd ..\bin
-	wEdax-x64.exe -l 60 -solve problem\fforum-20-39.obf
-	wEdax-x64.exe -l 21 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
 	cd ..\src
-	link all.obj  ws2_32.lib /out:..\bin\wEdax-x64.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-modern.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
 
-	 
+vc-pgo-w64-k10:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /GL /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN all.c ws2_32.lib /Fe..\bin\wEdax-w64-k10.exe /link /ltcg:pgi /VERSION:4.5
+	cd ..\bin
+	wEdax-w64-k10 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-k10 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-k10.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
+
+vc-pgo-w64:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /GL all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /ltcg:pgi /VERSION:4.5
+	cd ..\bin
+	wEdax-w64 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
+
+icc-pgo-w64-modern:
+	icl $(VC_FLAGS) /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT /Qprof-gen all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+	cd ..\bin
+	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	icl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT /Qprof-use /Qip all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+
 clean:
 	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj
 
