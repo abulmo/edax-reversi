@@ -1744,7 +1744,7 @@ int NWS_endgame(Search *search, const int alpha)
 	board0 = load_rboard(search->board);
 	store_rboard(hashboard, board0);
 	ofssolid = 0;
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (6%)
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (7%)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		score = SCORE_MAX - 2 * get_stability_fulls(search->board.opponent, search->board.player, full);
 		if (score <= alpha) {	// (3%)
@@ -1843,7 +1843,7 @@ int NWS_endgame(Search *search, const int alpha)
 		if (hash_get(&search->hash_table, &hashboard, hash_code, &hash_data.data)) {	// (6%)
 			hash_data.data.lower -= ofssolid;
 			hash_data.data.upper -= ofssolid;
-			if (search_TC_NWS(&hash_data.data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))
+			if (search_TC_NWS(&hash_data.data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score))	// (6%)
 				return score;
 		}
 		// else if (ofssolid)	// slows down
@@ -1855,24 +1855,28 @@ int NWS_endgame(Search *search, const int alpha)
 		parity0 = search->eval.parity;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bestmove = movelist.move; bestmove->score = -SCORE_INF;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 =======
 		--search->eval.n_empties;	// for next move
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+>>>>>>> 8c70641 (refactor NWS_endgame loop)
 		bestscore = -SCORE_INF;
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 		// loop over all moves
-		foreach_best_move(move, movelist) {
-			search_swap_parity(search, move->x);
-			empty_remove(search->empties, move->x);
-			rboard_update(&search->board, board0, move);
-
-			if (search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)	// (43%)
+		move = &movelist.move[0];
+		if (--search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)	// for next move (44%)
+			while ((move = move_next_best(move))) {	// (72%)
+				search->eval.parity = parity0 ^ QUADRANT_ID[move->x];
+				search->empties[search->empties[move->x].previous].next = search->empties[move->x].next;	// remove - maintain single link only
+				rboard_update(&search->board, board0, move);
 				score = -search_shallow(search, ~alpha, false);
-			else	score = -NWS_endgame(search, ~alpha);
+				search->empties[search->empties[move->x].previous].next = move->x;	// restore
 
+<<<<<<< HEAD
 			search->eval.parity = parity0;
 			empty_restore(search->empties, move->x);
 			store_rboard(search->board, board0);
@@ -1895,11 +1899,33 @@ int NWS_endgame(Search *search, const int alpha)
 				hash_data.data.move[0] = move->x;
 				if (bestscore > alpha) break;	// (57%)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+				if (score > bestscore) {	// (63%)
+					bestscore = score;
+					hash_data.data.move[0] = move->x;
+					if (bestscore > alpha) break;	// (48%)
+				}
+>>>>>>> 8c70641 (refactor NWS_endgame loop)
 			}
-		}
-		++search->eval.n_empties;
+		else
+			while ((move = move_next_best(move))) {	// (76%)
+				search->eval.parity = parity0 ^ QUADRANT_ID[move->x];
+				empty_remove(search->empties, move->x);
+				rboard_update(&search->board, board0, move);
+				score = -NWS_endgame(search, ~alpha);
+				empty_restore(search->empties, move->x);
 
-		if (search->stop)
+				if (score > bestscore) {	// (63%)
+					bestscore = score;
+					hash_data.data.move[0] = move->x;
+					if (bestscore > alpha) break;	// (39%)
+				}
+			}
+		++search->eval.n_empties;
+		store_rboard(search->board, board0);
+		search->eval.parity = parity0;
+
+		if (search->stop)	// (1%)
 			return alpha;
 
 		hash_data.data.wl.c.depth = search->eval.n_empties;
@@ -1918,12 +1944,10 @@ int NWS_endgame(Search *search, const int alpha)
 		search_swap_parity(search, move->x);
 		empty_remove(search->empties, move->x);
 		rboard_update(&search->board, board0, move);
-		--search->eval.n_empties;
-		if (search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)
+		if (--search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)	// (56%)
 			bestscore = -search_shallow(search, ~alpha, false);
 		else	bestscore = -NWS_endgame(search, ~alpha);
 		++search->eval.n_empties;
-
 		empty_restore(search->empties, move->x);
 		search->eval.parity = parity0;
 		store_rboard(search->board, board0);
