@@ -74,6 +74,7 @@
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(__AVX__) || defined(__SSE4_1__)
 	static inline int vectorcall TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
 #elif defined(__x86_64__) || defined(_M_X64)
@@ -112,10 +113,14 @@ extern const uint8_t COUNT_FLIP[8][256];
 #else
 	#define	vflip	__m128i
   #if defined(__x86_64__) || defined(_M_X64)
+=======
+#if defined(__AVX__) || defined(__SSE4_1__)
+	static inline int vectorcall TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
+#elif defined(__x86_64__) || defined(_M_X64)
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
 	#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
-  #else
+#else
 	static inline int vectorcall TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
-  #endif
 #endif
 
 #if defined(__AVX512VL__) || defined(__AVX10_1__)
@@ -150,6 +155,7 @@ extern const V4DI mask_dvhd[64];
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static inline __m128i vectorcall board_flip_next(__m128i OP, int x, __m128i flipped)
 {
 	OP = _mm_xor_si128(OP, _mm_or_si128(reduce_vflip(flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[x])));
@@ -173,6 +179,9 @@ static inline __m128i vectorcall board_flip_next(__m128i OP, int x, __m128i flip
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 static inline __m128i vectorcall board_flip_next(__m128i OP, int x, vflip flipped)
+=======
+static inline __m128i vectorcall board_flip_next(__m128i OP, int x, __m128i flipped)
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
 {
 	OP = _mm_xor_si128(OP, _mm_or_si128(reduce_vflip(flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[x])));
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
@@ -1197,6 +1206,7 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long bb;
 <<<<<<< HEAD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -1212,6 +1222,9 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
 	__m128i PO;
 	vflip	flipped;
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
+=======
+	__m128i PO, flipped;
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
 	int score, bestscore, nodes;
 	int x1 = _mm_extract_epi16(empties, 1);
 	int x2 = _mm_extract_epi16(empties, 0);
@@ -1338,7 +1351,7 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
  */
 static int vectorcall search_solve_3(__m128i OP, int alpha, volatile unsigned long long *n_nodes, __m128i empties)
 {
-	vflip flipped;
+	__m128i flipped;
 	int score, bestscore, x, pol;
 	unsigned long long opponent;
 =======
@@ -1558,8 +1571,7 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, volatile unsigned lo
 
 static int search_solve_4(Search *search, int alpha)
 {
-	__m128i	OP;
-	vflip	flipped;
+	__m128i	OP, flipped;
 	__m128i	empties_series;	// (AVX) B15:4th, B11:3rd, B7:2nd, B3:1st, lower 3 bytes for 3 empties
 				// (SSE) W3:1st, W2:2nd, W1:3rd, W0:4th
 	int x1, x2, x3, x4, paritysort, score, bestscore, pol;

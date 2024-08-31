@@ -284,6 +284,7 @@ extern unsigned long long A1_A8[256];
 <<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	extern const V4DI lmask_v4[66], rmask_v4[66];
 <<<<<<< HEAD
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
@@ -296,6 +297,10 @@ extern unsigned long long A1_A8[256];
 		__m128i flip2 = _mm_or_si128(_mm256_castsi256_si128(flip4), _mm256_extracti128_si256(flip4, 1));
 		return _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
 	}
+=======
+	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
+	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
   #ifdef HAS_CPU_64
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(reduce_vflip(mm_Flip(_mm_insert_epi64(_mm_cvtsi64_si128(P), (O), 1), (x)))))
   #else

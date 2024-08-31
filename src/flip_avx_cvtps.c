@@ -8,6 +8,7 @@
  * For MSB to LSB directions, MS1B using floating point conversion is used.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -16,6 +17,11 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+ * @date 1998 - 2024
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
  */
 
 #include "bit.h"
@@ -241,13 +247,17 @@ static const V4DI rmask_v4[66] = {
  * @param P player's disc pattern.
  * @param O opponent's disc pattern.
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @return partially reduced flipped disc pattern.
 =======
  * @return flipped disc pattern.
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+ * @return partially reduced flipped disc pattern.
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
  */
 
-__m256i vectorcall mm_Flip(const __m128i OP, int pos)
+__m128i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, outflank, mask;
 <<<<<<< HEAD
@@ -310,6 +320,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 =======
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
@@ -320,5 +331,8 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 =======
 	return flip;
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
+=======
+	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+>>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
 }
 
