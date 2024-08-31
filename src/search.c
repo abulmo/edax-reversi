@@ -1514,6 +1514,7 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // for 4 empties (min stage)
 bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 {
@@ -1523,10 +1524,13 @@ bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 		if (*score > alpha) {
 =======
 bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, unsigned long long allfull, V4DI *full)
+=======
+bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, const unsigned long long full[5])
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 {
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 		CUTOFF_STATS(++statistics.n_stability_try;)
-		*score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, allfull, full);
+		*score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, full);
 		if (*score <= alpha) {
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
@@ -1537,9 +1541,13 @@ bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, unsi
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if 0	// unused
 =======
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
+=======
+#if 0	// unused
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 /**
  * @brief Transposition Cutoff (TC).
  *

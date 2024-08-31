@@ -1182,7 +1182,7 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
  * @return the number of stable discs.
  */
 #ifdef __AVX2__
-unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
+void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
 	__m128i l81, l79;
@@ -1342,12 +1342,12 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 
 #endif
 	l81 = _mm_insert_epi64(l81, l8, 1);
-	full->v4 = _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1);
+	_mm256_storeu_si256((__m256i *) full, _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1));
 	l81 = _mm_and_si128(l81, l79);
-	return _mm_cvtsi128_si64(l81) & _mm_extract_epi64(l81, 1);
+	full[4] = _mm_cvtsi128_si64(_mm_and_si128(l81, _mm_shuffle_epi32(l81, 0x4e)));
 }
 
-int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsigned long long allfull, V4DI *full)
+int get_stability_fulls_given(const unsigned long long P, const unsigned long long O, const unsigned long long full[5])
 {
 	unsigned long long stable, P_central;
 	__m128i	v2_stable, v2_old_stable, v2_P_central;
@@ -1374,8 +1374,12 @@ int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsign
 
 	// add full lines
 	P_central = (P & 0x007e7e7e7e7e7e00);
+<<<<<<< HEAD
 	stable |= (allfull & P_central);
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
+=======
+	stable |= (full[4] & P_central);
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 
 	if (stable == 0)
 		return 0;
@@ -1393,7 +1397,7 @@ int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsign
 	do {
 		v2_old_stable = v2_stable;
 		v4_stable = _mm256_broadcastq_epi64(v2_stable);
-		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), full->v4);
+		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897), _mm256_sllv_epi64(v4_stable, shift1897)), *(__m256i *) full);
 		v2_stable = _mm_and_si128(_mm256_castsi256_si128(v4_stable), _mm256_extracti128_si256(v4_stable, 1));
 		v2_stable = _mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable));
 		v2_stable = _mm_or_si128(v2_old_stable, _mm_and_si128(v2_stable, v2_P_central));
@@ -2188,7 +2192,7 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 
 #elif defined(hasNeon)
-unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
+void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
 	uint8x8_t l01;
@@ -2200,19 +2204,19 @@ unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 
 	l01 = vcreate_u8(disc);			l79 = r79 = vreinterpretq_u64_u8(vcombine_u8(l01, vrev64_u8(l01)));
 	l01 = vceq_u8(l01, vdup_n_u8(0xff));	l79 = vandq_u64(l79, vornq_u64(vshrq_n_u64(l79, 9), e790));
-	full->ull[0] = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
+	full[0] = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
 						r79 = vandq_u64(r79, vornq_u64(vshlq_n_u64(r79, 9), e791));
 	l8 = disc;				l79 = vbicq_u64(l79, vbicq_u64(e792, vshrq_n_u64(l79, 18)));	// De Morgan
 	l8 &= (l8 >> 8) | (l8 << 56);		r79 = vbicq_u64(r79, vshlq_n_u64(vbicq_u64(e792, r79), 18));
 	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e793, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
-	l8 &= (l8 >> 32) | (l8 << 32);		full->ull[2] = vgetq_lane_u64(l79, 0);
-	full->ull[1] = l8;			full->ull[3] = vertical_mirror(vgetq_lane_u64(l79, 1));
+	l8 &= (l8 >> 32) | (l8 << 32);		full[2] = vgetq_lane_u64(l79, 0);
+	full[1] = l8;				full[3] = vertical_mirror(vgetq_lane_u64(l79, 1));
 
-	return full->ull[0] & l8 & full->ull[2] & full->ull[3];
+	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
 #else	// 1 CPU, 3 SSE
-unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
+void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
 	__m128i l01, l79, r79;	// full lines
@@ -2224,15 +2228,15 @@ unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 
 	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(vertical_mirror(disc)));
 	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(e790, _mm_srli_epi64(l79, 9)));
-	_mm_storel_epi64(&full->v2[0], l01);	r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
-						l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e792), l79);	// De Morgan
-	l8 = disc;				r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e792), 18), r79);
-	l8 &= (l8 >> 8) | (l8 << 56);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
-	l8 &= (l8 >> 16) | (l8 << 48);		_mm_storel_epi64(&full->v2[1], l79);	// full->ull[2]
-	l8 &= (l8 >> 32) | (l8 << 32);		full->ull[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
-	full->ull[1] = l8;
+	_mm_storel_epi64((__m128i*) &full[0], l01);
+						r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
+	l8 = disc;				l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e792), l79);	// De Morgan
+	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e792), 18), r79);
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
+	l8 &= (l8 >> 32) | (l8 << 32);		_mm_storel_epi64((__m128i *) &full[2], l79);
+	full[1] = l8;				full[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
 
-	return full->ull[0] & l8 & full->ull[2] & full->ull[3];
+	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
 #endif

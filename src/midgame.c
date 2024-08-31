@@ -64,6 +64,7 @@ static int accumlate_eval(int ply, Eval *eval)
 	const Eval_weight *w;
 	int sum;
 
+<<<<<<< HEAD
 	if (ply >= EVAL_N_PLY)
 		ply = EVAL_N_PLY - 2 + (ply & 1);
 	ply -= 2;
@@ -224,6 +225,12 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
 	int sum;
 
 	assert(w < &EVAL_WEIGHT[EVAL_N_PLY]);
+=======
+	assert(ply < EVAL_N_PLY);
+	if (ply < 2)
+		ply += 2;
+	w = &(*EVAL_WEIGHT)[ply - 2];
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 
 #if defined(__AVX2__) && !defined(AMD_BEFORE_ZEN3)
 	enum {
@@ -1687,8 +1694,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 	int reduced_depth, depth_pv_extension, saved_selectivity, ofssolid;
 	Board hashboard;
+<<<<<<< HEAD
 	V4DI full;
 >>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
+=======
+	unsigned long long full[5];
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 
 	SEARCH_STATS(++statistics.n_PVS_midgame);
 
@@ -1717,6 +1728,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		return search_solve_0(search);
 	else if (USE_PV_EXTENSION && search->eval.n_empties <= search->depth_pv_extension)
 		depth = search->eval.n_empties;
+<<<<<<< HEAD
 	else if (depth == 2 && search->eval.n_empties > 2)
 		return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 =======
@@ -1727,6 +1739,8 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		return search_solve_0(search);
 	else if (USE_PV_EXTENSION && depth < search->eval.n_empties && search->eval.n_empties <= search->depth_pv_extension)
 		return PVS_midgame(search, alpha, beta, search->eval.n_empties, parent);
+=======
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 	else if (depth == 2 && search->eval.n_empties > 2)
 		return search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
@@ -1967,7 +1981,8 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		// store solid-normalized for endgame TC
 		if ((search->eval.n_empties <= MASK_SOLID_DEPTH) && (search->eval.n_empties > DEPTH_TO_SHALLOW_SEARCH)
 		  && (hash_store_data.data.wl.c.selectivity == NO_SELECTIVITY)) {
-			solid_opp = get_all_full_lines(search->board.player | search->board.opponent, &full) & search->board.opponent;
+			get_all_full_lines(search->board.player | search->board.opponent, full);
+			solid_opp = full[4] & search->board.opponent;
 			if (solid_opp) {
 				hashboard.player = search->board.player ^ solid_opp;	// normalize solid to player
 				hashboard.opponent = search->board.opponent ^ solid_opp;

@@ -111,9 +111,9 @@ int get_weighted_mobility(const unsigned long long, const unsigned long long);
 int get_potential_mobility(const unsigned long long, const unsigned long long);
 void edge_stability_init(void);
 unsigned long long get_stable_edge(const unsigned long long, const unsigned long long);
-unsigned long long get_all_full_lines(const unsigned long long, V4DI *);
+void get_all_full_lines(const unsigned long long, unsigned long long [5]);
 int get_stability(const unsigned long long, const unsigned long long);
-int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsigned long long allfull, V4DI *full);
+int get_stability_fulls_given(const unsigned long long, const unsigned long long, const unsigned long long [5]);
 int get_edge_stability(const unsigned long long, const unsigned long long);
 int get_corner_stability(const unsigned long long);
 

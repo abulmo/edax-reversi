@@ -891,9 +891,13 @@ unsigned long long transpose(unsigned long long b)
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 unsigned long long transpose(unsigned long long b)
 {
+<<<<<<< HEAD
 	static const V4DI s3210 = {{ 3, 2, 1, 0 }};
 	__m256i	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), s3210.v4);
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	__m256i	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), _mm256_set_epi64x(0, 1, 2, 3));
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 	return ((unsigned long long) _mm256_movemask_epi8(v) << 32)
 		| (unsigned int) _mm256_movemask_epi8(_mm256_slli_epi64(v, 4));
 }

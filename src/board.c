@@ -1204,9 +1204,8 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 /**
  * @brief Get full lines.
  *
- * @param line all discs on a line.
- * @param dir tested direction
- * @return a bitboard with f lines along the tested direction.
+ * @param disc all discs on the board.
+ * @param full all 1 if full line, otherwise all 0.  full[4] = and of [0] to [3]
  */
 
 #if !defined(__AVX2__) && !defined(hasNeon) && !defined(hasSSE2) && !defined(hasMMX)
@@ -1249,29 +1248,33 @@ static unsigned long long get_full_lines_v(unsigned long long full)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
 unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
+=======
+void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
+>>>>>>> 4303b09 (Returns all full lines in full[4])
 {
 	unsigned long long l7, l9, r7, r9;	// full lines
 
-	full->ull[0] = get_full_lines_h(disc);
-	full->ull[1] = get_full_lines_v(disc);
+	full[0] = get_full_lines_h(disc);
+	full[1] = get_full_lines_v(disc);
 
 	l7 = r7 = disc;
 	l7 &= 0xff01010101010101 | (l7 >> 7);	r7 &= 0x80808080808080ff | (r7 << 7);
 	l7 &= 0xffff030303030303 | (l7 >> 14);	r7 &= 0xc0c0c0c0c0c0ffff | (r7 << 14);
 	l7 &= 0xffffffff0f0f0f0f | (l7 >> 28);	r7 &= 0xf0f0f0f0ffffffff | (r7 << 28);
 	l7 &= r7;
-	full->ull[3] = l7;
+	full[3] = l7;
 
 	l9 = r9 = disc;
 	l9 &= 0xff80808080808080 | (l9 >> 9);	r9 &= 0x01010101010101ff | (r9 << 9);
 	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
 	l9 = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
-	full->ull[2] = l9;
+	full[2] = l9;
 
-	return full->ull[0] & full->ull[1] & l9 & l7;
+	full[4] =  full[0] & full[1] & l9 & l7;
 }
 #endif // hasSSE2/hasNeon/hasMMX
 
@@ -1313,7 +1316,7 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @return the number of stable discs.
  */
 #if !defined(__AVX2__) && !(defined(hasMMX) && !defined(hasSSE2))
-int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsigned long long allfull, V4DI *full)
+int get_stability_fulls_given(const unsigned long long P, const unsigned long long O, const unsigned long long full[5])
 {
 	unsigned long long stable, P_central, stable_h, stable_v, stable_d7, stable_d9, old_stable;
 
@@ -1322,7 +1325,7 @@ int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsign
 
 	// add full lines
 	P_central = (P & 0x007e7e7e7e7e7e00);
-	stable |= (allfull & P_central);
+	stable |= (full[4] & P_central);
 
 	if (stable == 0)
 		return 0;
@@ -1330,10 +1333,10 @@ int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsign
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 	do {
 		old_stable = stable;
-		stable_h = ((stable >> 1) | (stable << 1) | full->ull[0]);
-		stable_v = ((stable >> 8) | (stable << 8) | full->ull[1]);
-		stable_d9 = ((stable >> 9) | (stable << 9) | full->ull[2]);
-		stable_d7 = ((stable >> 7) | (stable << 7) | full->ull[3]);
+		stable_h = ((stable >> 1) | (stable << 1) | full[0]);
+		stable_v = ((stable >> 8) | (stable << 8) | full[1]);
+		stable_d9 = ((stable >> 9) | (stable << 9) | full[2]);
+		stable_d7 = ((stable >> 7) | (stable << 7) | full[3]);
 		stable |= (stable_h & stable_v & stable_d9 & stable_d7 & P_central);
 	} while (stable != old_stable);
 
@@ -1343,13 +1346,12 @@ int get_stability_fulls_given(unsigned long long P, unsigned long long O, unsign
 
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
-	V4DI	full;
-	unsigned long long allfull;
+	unsigned long long full[5];
 
 	// compute the exact stable edges (from precomputed tables)
-	allfull = get_all_full_lines(P | O, &full);
+	get_all_full_lines(P | O, full);
 
-	return get_stability_fulls_given(P, O, allfull, &full);
+	return get_stability_fulls_given(P, O, full);
 }
 
 /**
