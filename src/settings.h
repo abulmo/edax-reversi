@@ -323,11 +323,9 @@
 
 /** Allow type puning */
 #ifndef USE_TYPE_PUNING
-#ifdef ANDROID
-#define USE_TYPE_PUNING false
-#else
-#define USE_TYPE_PUNING true
-#endif
+// #ifndef ANDROID
+#define USE_TYPE_PUNING 1
+// #endif
 #endif
 
 /** Hash-n-way. */

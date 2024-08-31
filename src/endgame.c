@@ -1087,13 +1087,13 @@ int NWS_endgame(Search *search, const int alpha)
 			bestscore = search_solve(search);
 =======
 	if (!search->stop) {
-		hash_store_data.data.depth = search->n_empties;
-		hash_store_data.data.selectivity = NO_SELECTIVITY;
-		hash_store_data.data.cost = last_bit(search->n_nodes - nodes_org);
+		hash_store_data.data.wl.c.depth = search->n_empties;
+		hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
+		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes - nodes_org);
+		hash_store_data.data.move[0] = bestmove->x;
 		hash_store_data.alpha = alpha;
 		hash_store_data.beta = alpha + 1;
 		hash_store_data.score = bestmove->score;
-		hash_store_data.move = bestmove->x;
 		hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 
 		if (SQUARE_STATS(1) + 0) {

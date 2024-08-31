@@ -1486,9 +1486,9 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 	
 =======
 
-		hash_store_data.data.depth = depth;
-		hash_store_data.data.selectivity = selectivity;
-		hash_store_data.data.cost = 0;
+		hash_store_data.data.wl.c.depth = depth;
+		hash_store_data.data.wl.c.selectivity = selectivity;
+		hash_store_data.data.wl.c.cost = 0;
 		hash_store_data.alpha = alpha;
 		hash_store_data.beta = beta;
 
@@ -1528,7 +1528,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 					hash_store_data.score = *score;
-					hash_store_data.move = move->x;
+					hash_store_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
@@ -1538,6 +1538,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 
 			etc_hash_code = board_get_hash_code(&next);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
 				*score = -etc.upper;
 				if (*score > alpha) {
@@ -1546,6 +1547,9 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
 =======
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.selectivity >= selectivity && etc.depth >= etc_depth) {
+=======
+			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 				*score = -etc.upper;
 				if (*score > alpha) {
 <<<<<<< HEAD
@@ -1553,7 +1557,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 					hash_store_data.score = *score;
-					hash_store_data.move = move->x;
+					hash_store_data.data.move[0] = move->x;
 					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)

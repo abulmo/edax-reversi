@@ -4,10 +4,14 @@
  * Hash table's header.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2020
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -88,9 +92,12 @@ typedef struct HashStoreData {
 	int beta;
 	int score;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	unsigned char move;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 } HashStoreData;
 
 /* declaration */

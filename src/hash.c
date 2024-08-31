@@ -37,6 +37,44 @@
 
 /** HashData init value */
 const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMOVE, NOMOVE }};
+<<<<<<< HEAD
+=======
+
+/**
+ * @brief Initialize global hash code data.
+ */
+void hash_code_init(void)
+{
+	int i, j;
+	Random r;
+
+	random_seed(&r, 0x5DEECE66Dull);
+	for (i = 0; i < 16; ++i)
+	for (j = 0; j < 256; ++j) {
+		do {
+			hash_rank[i][j] = random_get(&r);
+		} while (bit_count(hash_rank[i][j]) < 8); 
+	}
+}
+
+
+/**
+ * @brief Initialize global hash move data.
+ */
+void hash_move_init(void)
+{
+	int i, j;
+	Random r;
+
+	random_seed(&r, 0x5DEECE66Dull);
+	for (i = 0; i < 64; ++i)
+	for (j = 0; j < 60; ++j) {
+		do {
+			hash_move[i][j] = random_get(&r);
+		} while (bit_count(hash_move[i][j]) < 8); 
+	}
+}
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 /**
  * @brief Initialise the hashtable.
@@ -206,6 +244,7 @@ static void data_update(HashData *data, HashStoreData *storedata)
 	if (score < storedata->beta && score < data->upper) data->upper = (signed char) score;
 	if (score > storedata->alpha && score > data->lower) data->lower = (signed char) score;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
 		data->move[0] = storedata->data.move[0];
@@ -213,11 +252,18 @@ static void data_update(HashData *data, HashStoreData *storedata)
 	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);
 =======
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->move) {
+=======
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 		data->move[1] = data->move[0];
-		data->move[0] = storedata->move;
+		data->move[0] = storedata->data.move[0];
 	}
+<<<<<<< HEAD
 	data->cost = (unsigned char) MAX(storedata->data.cost, data->cost);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	HASH_STATS(++statistics.n_hash_update;)
 }
 
@@ -243,6 +289,7 @@ static void data_upgrade(HashData *data, HashStoreData *storedata)
 	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
 	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
 		data->move[1] = data->move[0];
 		data->move[0] = storedata->data.move[0];
@@ -251,13 +298,21 @@ static void data_upgrade(HashData *data, HashStoreData *storedata)
 	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);  // this may not work well in parallel search.
 =======
 	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->move) {
+=======
+	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 		data->move[1] = data->move[0];
-		data->move[0] = storedata->move;
+		data->move[0] = storedata->data.move[0];
 	}
+<<<<<<< HEAD
 	data->depth = storedata->data.depth;
 	data->selectivity = storedata->data.selectivity;
 	data->cost = (unsigned char) MAX(storedata->data.cost, data->cost);  // this may not work well in parallel search.
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	data->wl.us.selectivity_depth = storedata->data.wl.us.selectivity_depth;
+	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);  // this may not work well in parallel search.
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	HASH_STATS(++statistics.n_hash_upgrade;)
 
 	assert(data->upper >= data->lower);
@@ -281,12 +336,16 @@ static void data_new(HashData *data, HashStoreData *storedata)
 	int score = storedata->score;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
 	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
 	if (score > storedata->alpha || score == SCORE_MIN) data->move[0] = storedata->data.move[0];
 	else data->move[0] = NOMOVE;
 	data->move[1] = NOMOVE;
 	data->wl = storedata->data.wl;
+<<<<<<< HEAD
 =======
 	if (score < storedata->beta) storedata->data.upper = (signed char) score; else storedata->data.upper = SCORE_MAX;
 	if (score > storedata->alpha) storedata->data.lower = (signed char) score; else storedata->data.lower = SCORE_MIN;
@@ -295,6 +354,8 @@ static void data_new(HashData *data, HashStoreData *storedata)
 	storedata->data.move[1] = NOMOVE;
 	*data = storedata->data;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	assert(data->upper >= data->lower);
 }
 
@@ -361,10 +422,13 @@ static void hash_set(Hash *hash, HashLock *lock, const Board *board, HashStoreDa
 	HASH_COLLISIONS(hash->key = storedata->hash_code;)
 	hash->board = *board;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	storedata->data.move[0] = storedata->move;
 	storedata->data.move[1] = NOMOVE;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	hash->data = storedata->data;
 	assert(hash->data.upper >= hash->data.lower);
 	spin_unlock(lock);
@@ -396,9 +460,12 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 {
 	bool ok = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	HashData *const data = &hash->data;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
@@ -412,6 +479,7 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 				data_new(&hash->data, storedata);
 =======
 		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
+<<<<<<< HEAD
 			if (data->selectivity == storedata->data.selectivity && data->depth == storedata->data.depth)
 				data_update(data, storedata);
 			else	data_upgrade(data, storedata);
@@ -419,6 +487,14 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 			if (data->lower > data->upper) { // reset the hash-table...
 				data_new(data, storedata);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth)
+				data_update(&hash->data, storedata);
+			else	data_upgrade(&hash->data, storedata);
+			hash->data.wl.c.date = storedata->data.wl.c.date;
+			if (hash->data.lower > hash->data.upper) { // reset the hash-table...
+				data_new(&hash->data, storedata);
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 			}
 			ok = true;
 		} 
@@ -488,6 +564,7 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStore
 {
 	bool ok = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 	if (board_equal(&hash->board, board)) {
 		spin_lock(lock);
@@ -509,19 +586,20 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStore
 				// }
 =======
 	HashData *const data = &hash->data;
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 	if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
 		spin_lock(lock);
 		if (hash->board.player == board->player && hash->board.opponent == board->opponent) {
-			if (data->selectivity == storedata->data.selectivity && data->depth == storedata->data.depth) {
-				if (data->lower < storedata->data.lower) data->lower = storedata->data.lower;
-				if (data->upper > storedata->data.upper) data->upper = storedata->data.upper;
+			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth) {
+				if (hash->data.lower < storedata->data.lower) hash->data.lower = storedata->data.lower;
+				if (hash->data.upper > storedata->data.upper) hash->data.upper = storedata->data.upper;
 			} else {
-				data->depth = storedata->data.depth;
-				data->selectivity = storedata->data.selectivity;
-				data->lower = storedata->data.lower;
-				data->upper = storedata->data.upper;
+				hash->data.lower = storedata->data.lower;
+				hash->data.upper = storedata->data.upper;
 			}
+<<<<<<< HEAD
 			data->cost = 0;
 			data->date = storedata->data.date;
 			if (storedata->move != NOMOVE) {
@@ -532,6 +610,16 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStore
 					data->move[1] = storedata->move;
 				}
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+			hash->data.wl = storedata->data.wl;
+			if (storedata->data.move[0] != NOMOVE) {
+				// if (hash->data.move[0] != storedata->data.move[0]) {
+					hash->data.move[1] = hash->data.move[0];
+					hash->data.move[0] = storedata->data.move[0];
+				// } else {
+				//	hash->data.move[1] = storedata->data.move[0];
+				// }
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 			}
 			ok = true;
 		}
@@ -558,12 +646,17 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
 	int i;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date ? hash_table->date : 1;
 	storedata->data.wl.c.cost = 0;
 =======
 
 	storedata->data.date = hash_table->date ? hash_table->date : 1;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	storedata->data.wl.c.date = hash_table->date ? hash_table->date : 1;
+	storedata->data.wl.c.cost = 0;
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
@@ -580,9 +673,12 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
 	// new entry
 	HASH_COLLISIONS(storedata->hash_code = hash_code;)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	storedata->data.cost = 0;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	hash_set(worst, lock, board, storedata);
 }
 
@@ -624,10 +720,14 @@ void hash_store(HashTable *hash_table, const Board *board, const unsigned long l
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date;
 =======
 	storedata->data.date = hash_table->date;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	storedata->data.wl.c.date = hash_table->date;
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	if (hash_update(hash, lock, board, storedata)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
@@ -668,6 +768,7 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	storedata->data.wl.c.date = hash_table->date;
 	if (hash_replace(hash, lock, board, storedata)) return;
 =======
@@ -675,6 +776,9 @@ void hash_force(HashTable *hash_table, const Board *board, const unsigned long l
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 =======
 	storedata->data.date = hash_table->date;
+=======
+	storedata->data.wl.c.date = hash_table->date;
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 	if (hash_replace(hash, lock, board, storedata)) return;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
@@ -837,8 +941,12 @@ void hash_print(const HashData *data, FILE *f)
 	fprintf(f, "%s ; ", move_to_string(data->move[1], WHITE, s_move));
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->wl.c.date, data->wl.c.cost, data->wl.c.depth, selectivity_table[data->wl.c.selectivity].percent);
 =======
 	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->date, data->cost, data->depth, selectivity_table[data->selectivity].percent);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->wl.c.date, data->wl.c.cost, data->wl.c.depth, selectivity_table[data->wl.c.selectivity].percent);
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 }

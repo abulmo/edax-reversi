@@ -454,11 +454,11 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
 	HashStoreData hash_store_data;
 	const unsigned long long hash_code = board_get_hash_code(board);
 
-	hash_store_data.data.depth = depth;
-	hash_store_data.data.selectivity = selectivity;
+	hash_store_data.data.wl.c.depth = depth;
+	hash_store_data.data.wl.c.selectivity = selectivity;
+	hash_store_data.data.move[0] = move;
 	hash_store_data.data.lower = lower;
 	hash_store_data.data.upper = upper;
-	hash_store_data.move = move;
 	hash_feed(&search->hash_table, board, hash_code, &hash_store_data);
 	hash_feed(&search->pv_table, board, hash_code, &hash_store_data);
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
@@ -583,10 +583,14 @@ static bool skip_search(Engine *engine, int *old_score)
 		if (beta > hash_data.upper) beta = *old_score = hash_data.upper;
 		// skip search ?
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (hash_data.wl.c.depth >= search->depth && hash_data.wl.c.selectivity >= search->selectivity && alpha >= beta) {
 =======
 		if (hash_data.depth >= search->depth && hash_data.selectivity >= search->selectivity && alpha >= beta) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		if (hash_data.wl.c.depth >= search->depth && hash_data.wl.c.selectivity >= search->selectivity && alpha >= beta) {
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 			if (hash_data.move[0] != NOMOVE) movelist_sort_bestmove(movelist, hash_data.move[0]);
 			else if (hash_data.lower > SCORE_MIN) return false;
 			bestmove = movelist_first(movelist);
@@ -607,12 +611,17 @@ static bool skip_search(Engine *engine, int *old_score)
 			}
 		} else {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			if (hash_data.wl.c.depth < search->depth || hash_data.wl.c.selectivity < search->selectivity) {
 				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
 =======
 			if (hash_data.depth < search->depth || hash_data.selectivity < search->selectivity) {
 				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.depth, selectivity_table[hash_data.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			if (hash_data.wl.c.depth < search->depth || hash_data.wl.c.selectivity < search->selectivity) {
+				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
+>>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 			} else {
 				cassio_debug("Edax does not skip the search: unsolved score alpha %d < beta %d\n", alpha, beta); 
 			}
