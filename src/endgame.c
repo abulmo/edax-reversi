@@ -1719,6 +1719,23 @@ int NWS_endgame(Search *search, const int alpha)
 		ffull = true;
 	}
 
+	// Improvement of Serch by Reducing Redundant Information in a Position of Othello
+	// Hidekazu Matsuo, Shuji Narazaki
+	// http://id.nii.ac.jp/1001/00156359/
+	// (1-2% improvement)
+	hashboard = search->board;
+	ofssolid = 0;
+	if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (72%)
+		if (!ffull)
+			get_all_full_lines(hashboard.player | hashboard.opponent, full);
+		solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
+		hashboard.player ^= solid_opp;	// normalize solid to player
+		hashboard.opponent ^= solid_opp;
+		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+	}
+	hash_code = board_get_hash_code(&hashboard);
+	hash_prefetch(&search->hash_table, hash_code);
+
 	search_get_movelist(search, &movelist);
 
 <<<<<<< HEAD
@@ -1764,6 +1781,7 @@ int NWS_endgame(Search *search, const int alpha)
 			movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
 =======
 	if (movelist.n_moves > 1) {	// (96%)
+<<<<<<< HEAD
 		// Improvement of Serch by Reducing Redundant Information in a Position of Othello
 		// Hidekazu Matsuo, Shuji Narazaki
 		// http://id.nii.ac.jp/1001/00156359/
@@ -1784,6 +1802,8 @@ int NWS_endgame(Search *search, const int alpha)
 		hash_code = board_get_hash_code(&hashboard);
 >>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 
+=======
+>>>>>>> 30464b5 (add hash_prefetch to NWS_endgame)
 		// transposition cutoff
 		if (hash_get(&search->hash_table, &hashboard, hash_code, &hash_data)) {	// (6%)
 			hash_data.lower -= ofssolid;

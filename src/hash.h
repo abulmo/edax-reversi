@@ -152,6 +152,7 @@ inline void hash_prefetch(HashTable *hashtable, unsigned long long hashcode) {
 =======
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 
+<<<<<<< HEAD
 #ifdef hasSSE2
 	#define	hash_prefetch(hashtable, hashcode)	_mm_prefetch((char const*)((hashtable)->hash + ((hashcode) & (hashtable)->hash_mask)), _MM_HINT_T0)
 #elif defined(__ARM_ACLE)
@@ -163,6 +164,21 @@ inline void hash_prefetch(HashTable *hashtable, unsigned long long hashcode) {
 #endif
 <<<<<<< HEAD
 =======
+=======
+inline void hash_prefetch(HashTable *hashtable, unsigned long long hashcode) {
+	Hash *p = hashtable->hash + (hashcode & hashtable->hash_mask);
+  #ifdef hasSSE2
+	_mm_prefetch((char const *) p, _MM_HINT_T0);
+	_mm_prefetch((char const *)(p + HASH_N_WAY - 1), _MM_HINT_T0);
+  #elif defined(__ARM_ACLE)
+	__pld(p);
+	__pld(p + HASH_N_WAY - 1);
+  #elif defined(__GNUC__)
+	__builtin_prefetch(p);
+	__builtin_prefetch(p + HASH_N_WAY - 1);
+  #endif
+}
+>>>>>>> 30464b5 (add hash_prefetch to NWS_endgame)
 
 #endif
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)

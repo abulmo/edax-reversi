@@ -670,6 +670,7 @@ int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned lon
 		} while (_m_to_int(_m_packsswb(m, m)) != 0);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #ifdef POPCOUNT
 		t = bit_count_32(_m_to_int(stable)) + bit_count_32(_m_to_int(_m_psrlqi(stable, 32)));
   #else
@@ -682,15 +683,24 @@ int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned lon
 	#endif
 #else
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+  #ifdef POPCOUNT
+		t = bit_count_32(_m_to_int(stable)) + bit_count_32(_m_to_int(_m_psrlqi(stable, 32)));
+  #else
+>>>>>>> 30464b5 (add hash_prefetch to NWS_endgame)
 		m = _m_psubd(stable, _m_pand(_m_psrlqi(stable, 1), *(__m64 *) &mask_55));
 		m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
 		m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
 		t = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif
 =======
 #endif
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+  #endif
+>>>>>>> 30464b5 (add hash_prefetch to NWS_endgame)
 	}
 	_mm_empty();
 	return t;
@@ -892,12 +902,12 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 	int	count;
 	static const unsigned long long mask_v = 0x00ffffffffffff00ULL;
 	// static const unsigned long long mask_d = 0x007e7e7e7e7e7e00ULL;	// = mask_7e & mask_v
-#ifdef POPCOUNT
+  #ifdef POPCOUNT
 	int	mh, ml;
-#else
+  #else
 	static const unsigned long long mask_15 = 0x1555555555555515ULL;
 	static const unsigned long long mask_01 = 0x0100000000000001ULL;
-#endif
+  #endif
 
 	mO = _m_pand(*(__m64 *) &O, *(__m64 *) &mask_7e);
 	m = _m_por(_m_psllqi(mO, 1), _m_psrlqi(mO, 1));
@@ -908,16 +918,16 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 	m = _m_por(m, _m_por(_m_psllqi(mO, 9), _m_psrlqi(mO, 9)));
 	m = _m_pandn(_m_por(*(__m64 *) &O, *(__m64 *) &P), m);
 
-#ifdef POPCOUNT
+  #ifdef POPCOUNT
 	ml = _m_to_int(m);
 	mh = _m_to_int(_m_psrlqi(m, 32));
-	count = __popcnt(ml) + __popcnt(mh) + __popcnt((ml & 0x00000081) + (mh & 0x81000000));
-#else
+	count = bit_count_32(ml) + bit_count_32(mh) + bit_count_32((ml & 0x00000081) + (mh & 0x81000000));
+  #else
 	m = _m_paddd(_m_psubd(m, _m_pand(_m_psrlqi(m, 1), *(__m64 *) &mask_15)), _m_pand(m, *(__m64 *) &mask_01));
 	m = _m_paddd(_m_pand(m, *(__m64 *) &mask_33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &mask_33));
 	m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &mask_0F);
 	count = ((unsigned int) _m_to_int(_m_paddb(m, _m_psrlqi(m, 32))) * 0x01010101u) >> 24;
-#endif
+  #endif
 	_mm_empty();
 	return count;
 }
