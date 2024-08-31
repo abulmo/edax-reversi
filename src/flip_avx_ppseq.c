@@ -8,9 +8,15 @@
  * For MSB to LSB directions, sequencial search with parallel prefix
  * is used.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
  * @author Toshihiko Okuhara
  * @version 4.5
+=======
+ * @date 1998 - 2020
+ * @author Toshihiko Okuhara
+ * @version 4.4
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
  */
 
 #include "bit.h"
@@ -90,12 +96,17 @@ const V4DI lmask_v4[66] = {
  * @param pos player's move.
  * @param P player's disc pattern.
  * @param O opponent's disc pattern.
+<<<<<<< HEAD
  * @return partially reduced flipped disc pattern.
+=======
+ * @return flipped disc pattern.
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
  */
 
 __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, mOO, flip, shift2, pre, outflank, mask, ocontig;
+<<<<<<< HEAD
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
 
 	PP = _mm256_broadcastq_epi64(OP);
@@ -103,6 +114,16 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
 	ocontig = _mm256_set1_epi64x(X_TO_BIT[pos]);
+=======
+	__m128i	flip2;
+	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
+
+	PP = _mm256_broadcastq_epi64(OP);
+	mOO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55),
+		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
+
+	ocontig = _mm256_broadcastq_epi64(*(__m128i *) &X_TO_BIT[pos]);
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 	ocontig = _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift1897));
 	ocontig = _mm256_or_si256(ocontig, _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift1897)));
 	pre = _mm256_and_si256(mOO, _mm256_srlv_epi64(mOO, shift1897));	// parallel prefix
@@ -121,6 +142,13 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	outflank = _mm256_add_epi64(outflank, _mm256_cmpeq_epi64(outflank, ocontig));
 	flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
 
+<<<<<<< HEAD
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+=======
+	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
+
+	return flip2;
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 }
 

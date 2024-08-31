@@ -60,6 +60,7 @@
 	#include "flip_sse_bswap.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_AVX
 	#include "flip_avx_ppfill.c"
+<<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
 	#include "flip_avx512cd.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
@@ -70,6 +71,8 @@
   #endif
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SVE
 	#include "flip_sve_lzcnt.c"
+=======
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
 #endif
@@ -1064,12 +1067,15 @@ void edge_stability_init(void)
 	}
 	// printf("edge_stability_init: %d\n", (int)(cpu_clock() - t));
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	init_mmx();
 #endif
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+>>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
 }
 
 #ifdef HAS_CPU_64
