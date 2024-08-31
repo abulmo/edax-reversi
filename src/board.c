@@ -144,6 +144,7 @@ unsigned char edge_stability[256 * 256];
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	#include "board_mmx.c"
 #endif
@@ -156,6 +157,9 @@ unsigned char edge_stability[256 * 256];
 =======
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+=======
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #include "board_mmx.c"
 #endif
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(hasNeon)) && !defined(ANDROID)
@@ -531,12 +535,15 @@ bool board_check_move(const Board *board, Move *move)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #if !(defined(hasMMX) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)))
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
 #if !(defined(hasMMX) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)))	// 32bit MMX/SSE version in board_mmx.c
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 /**
  * @brief Update a board.
  *
@@ -549,12 +556,20 @@ bool board_check_move(const Board *board, Move *move)
 void board_update(Board *board, const Move *move)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))	// 3DNow CPU has fast emms, and possibly slow SSE
+=======
+#if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	__m128i	OP = _mm_loadu_si128((__m128i *) board);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
 	_mm_storeu_si128((__m128i *) board, _mm_shuffle_epi32(OP, 0x4e));
 
+<<<<<<< HEAD
 #elif defined(hasMMX)
+=======
+#elif defined(hasMMX)	// 3DNow CPU has fast emms
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	__m64	F = *(__m64 *) &move->flipped;
 	__m64	P = _m_pxor(*(__m64 *) &board->player, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
 	__m64	O = _m_pxor(*(__m64 *) &board->opponent, F);
@@ -567,11 +582,14 @@ void board_update(Board *board, const Move *move)
 	board->opponent = board->player ^ (move->flipped | X_TO_BIT[move->x]);
 	board->player = O ^ move->flipped;
 #endif
+<<<<<<< HEAD
 =======
 	unsigned long long O = board->opponent;
 	board->opponent = board->player ^ (move->flipped | X_TO_BIT[move->x]);
 	board->player = O ^ move->flipped;
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	board_check(board);
 }
 
@@ -587,6 +605,9 @@ void board_update(Board *board, const Move *move)
 void board_restore(Board *board, const Move *move)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))
 	__m128i	OP = _mm_shuffle_epi32(_mm_loadu_si128((__m128i *) board), 0x4e);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
@@ -605,6 +626,7 @@ void board_restore(Board *board, const Move *move)
 	board->player = board->opponent ^ (move->flipped | X_TO_BIT[move->x]);
 	board->opponent = P ^ move->flipped;
 #endif
+<<<<<<< HEAD
 =======
 	unsigned long long P = board->player;
 	board->player = board->opponent ^ (move->flipped | X_TO_BIT[move->x]);
@@ -616,6 +638,10 @@ void board_restore(Board *board, const Move *move)
 =======
 #endif // hasMMX
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+	board_check(board);
+}
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 
 /**
  * @brief Passing move
@@ -976,6 +1002,7 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // AVX2
 =======
 =======
@@ -1006,6 +1033,8 @@ int get_potential_mobility(const unsigned long long P, const unsigned long long 
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
   #endif
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #endif // AVX2
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 
@@ -1368,14 +1397,12 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 	l7 &= 0xff01010101010101 | (l7 >> 7);	r7 &= 0x80808080808080ff | (r7 << 7);
 	l7 &= 0xffff030303030303 | (l7 >> 14);	r7 &= 0xc0c0c0c0c0c0ffff | (r7 << 14);
 	l7 &= 0xffffffff0f0f0f0f | (l7 >> 28);	r7 &= 0xf0f0f0f0ffffffff | (r7 << 28);
-	l7 &= r7;
-	full[3] = l7;
+	full[3] = l7 & r7;
 
 	l9 = r9 = disc;
 	l9 &= 0xff80808080808080 | (l9 >> 9);	r9 &= 0x01010101010101ff | (r9 << 9);
 	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
-	l9 = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
-	full[2] = l9;
+	full[2] = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
 }
 #endif // hasSSE2/hasNeon/hasMMX
 
@@ -1416,8 +1443,9 @@ static unsigned long long get_stable_edge(const unsigned long long P, const unsi
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
  */
-#if !defined(__AVX2__) && !(defined(hasMMX) && !defined(hasSSE2))
-  #if !(defined(hasSSE2) && !defined(HAS_CPU_64))
+#ifndef __AVX2__
+  #if !(defined(hasMMX) && !defined(hasSSE2))	// MMX version of get_stability in board_mmx.c
+    #if !(defined(hasSSE2) && !defined(HAS_CPU_64))	// 32bit SSE version in board_sse.c
 // compute the other stable discs (ie discs touching another stable disc in each flipping direction).
 static int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
 {
@@ -1437,7 +1465,7 @@ static int get_spreaded_stability(unsigned long long stable, unsigned long long 
 
 	return bit_count(stable);
 }
-  #endif
+    #endif
 
 // returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)
@@ -1464,9 +1492,8 @@ int get_stability_fulls(const unsigned long long P, const unsigned long long O, 
 
 	return get_spreaded_stability(stable, P_central, full);	// compute the other stable discs
 }
-#endif
+  #endif
 
-#ifndef __AVX2__
 /**
  * @brief Get intersection of full lines.
  *
@@ -1481,7 +1508,7 @@ unsigned long long get_all_full_lines(const unsigned long long disc)
 	get_full_lines(disc, full);
 	return full[0] & full[1] & full[2] & full[3];
 }
-#endif
+#endif // __AVX2__
 
 /**
 <<<<<<< HEAD

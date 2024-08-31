@@ -150,9 +150,6 @@ __m128i vectorcall get_moves_and_potential(__m256i, __m256i);
 >>>>>>> 0835dae (Reformat #if's)
 #else
 	unsigned long long get_potential_moves(const unsigned long long, const unsigned long long);
-  #if !(defined(hasSSE2) && !defined(POPCOUNT)) && !defined(hasNeon)
-	int get_potential_mobility(const unsigned long long, const unsigned long long);
-  #endif
 #endif
 
 void edge_stability_init(void);
@@ -176,7 +173,6 @@ int board_count_empties(const Board *board);
 	void init_mmx (void);
 	unsigned long long get_moves_mmx(const unsigned long long, const unsigned long long);
 	unsigned long long get_moves_sse(const unsigned long long, const unsigned long long);
-	int get_potential_mobility_mmx(unsigned long long, unsigned long long);
 
 #elif defined(ANDROID) && !defined(hasNeon) && !defined(hasSSE2)
 	void init_neon (void);
@@ -244,15 +240,12 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 
 // a1/a8/h1/h8 are already stable in horizontal line, so omit them in vertical line to ease kindergarten for CPU_64
-#if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__) // pdep is slow on AMD before Zen3
+#if 0 // defined(__BMI2__) && defined(HAS_CPU_64) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__) // pdep is slow on AMD before Zen3
 	#define	unpackA2A7(x)	_pdep_u64((x), 0x0101010101010101)
 	#define	unpackH2H7(x)	_pdep_u64((x), 0x8080808080808080)
-#elif defined(HAS_CPU_64)
-	#define	unpackA2A7(x)	((((x) & 0x7e) * 0x0000040810204080ULL) & 0x0001010101010100ULL)
-	#define	unpackH2H7(x)	((((x) & 0x7e) * 0x0002040810204000ULL) & 0x0080808080808000ULL)
 #else
-	#define	unpackA2A7(x)	(((unsigned long long)((((x) >> 4) * 0x00204081) & 0x01010101) << 32) | ((((x) & 0x0f) * 0x00204081) & 0x01010101))
-	#define	unpackH2H7(x)	(((unsigned long long)((((x) >> 4) * 0x10204080) & 0x80808080) << 32) | ((((x) & 0x0f) * 0x10204080) & 0x80808080))
+	#define	unpackA2A7(x)	((((x) & 0x7e) * 0x0000040810204080) & 0x0001010101010100)
+	#define	unpackH2H7(x)	((((x) & 0x7e) * 0x0002040810204000) & 0x0080808080808000)
 #endif
 
 <<<<<<< HEAD
@@ -386,12 +379,18 @@ extern unsigned long long A1_A8[256];
   #else
 	#define	board_flip(board,x)	flip[x]((unsigned int)((board)->player), ((unsigned int *) &(board)->player)[1], (unsigned int)((board)->opponent), ((unsigned int *) &(board)->opponent)[1])
   #endif
+<<<<<<< HEAD
 	#if defined(USE_GAS_MMX) && !defined(hasSSE2)
 		extern void init_flip_sse(void);
 	#endif
 <<<<<<< HEAD
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+  #if defined(USE_GAS_MMX) && !defined(hasSSE2)
+	extern void init_flip_sse(void);
+  #endif
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 
 <<<<<<< HEAD
 <<<<<<< HEAD

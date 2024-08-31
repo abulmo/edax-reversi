@@ -13,6 +13,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
  * @date 2014 - 2023
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -37,6 +40,7 @@
 #include "move.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef USE_GAS_MMX
   #ifndef hasMMX
 	#pragma GCC push_options
@@ -49,6 +53,13 @@
 	#pragma GCC target ("mmx")
 #endif
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#ifdef USE_GAS_MMX
+  #ifndef hasMMX
+	#pragma GCC push_options
+	#pragma GCC target ("mmx")
+  #endif
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	#include <mmintrin.h>
 #endif
 
@@ -60,10 +71,13 @@ static const unsigned long long mask_0F = 0x0f0f0f0f0f0f0f0fULL;
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #ifndef hasSSE2
 
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #ifndef hasMMX
 bool	hasMMX = false;
 #endif
@@ -126,6 +140,7 @@ void init_mmx (void)
 		init_flip_sse();
 #endif
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 #endif	// hasSSE2
@@ -240,6 +255,8 @@ void board_restore(Board *board, const Move *move)
 #endif
 #endif // hasMMX
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 
 /**
  * @brief MMX translation of get_moves
@@ -481,6 +498,9 @@ unsigned long long get_moves_mmx(const unsigned long long P, const unsigned long
  */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #ifdef hasMMX
 static void get_full_lines(const unsigned long long disc_, unsigned long long full[4])
 {
@@ -904,6 +924,7 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 #endif // hasMMX
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 
+<<<<<<< HEAD
 /**
  * @brief MMX translation of get_potential_mobility
  *
@@ -1084,6 +1105,8 @@ unsigned long long board_get_hash_code_mmx(const unsigned char *p)
 
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #if !defined(hasMMX) && defined(USE_GAS_MMX)
 	#pragma GCC pop_options
 #endif

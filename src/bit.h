@@ -119,11 +119,11 @@ extern const unsigned long long X_TO_BIT[];
 =======
 =======
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
-__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
+	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (hasNeon)
-uint64x2_t bit_weighted_count_neon(unsigned long long, unsigned long long);
+	uint64x2_t bit_weighted_count_neon(unsigned long long, unsigned long long);
 #else
-int bit_weighted_count(unsigned long long);
+	int bit_weighted_count(unsigned long long);
 #endif
 
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
@@ -134,9 +134,9 @@ extern const unsigned long long NEIGHBOUR[];
 /** Return a bitboard with bit x set. */
 // https://eukaryote.hateblo.jp/entry/2020/04/12/054905
 #ifdef HAS_CPU_64 // 1% slower on Sandy Bridge
-#define x_to_bit(x) (1ULL << (x))
+	#define x_to_bit(x) (1ULL << (x))
 #else
-#define x_to_bit(x) X_TO_BIT[x]
+	#define x_to_bit(x) X_TO_BIT[x]
 #endif
 
 <<<<<<< HEAD
@@ -658,16 +658,20 @@ typedef union {
 
 // X64 compatibility sims for X86
 #if !defined(HAS_CPU_64) && (defined(hasSSE2) || defined(USE_MSVC_X86))
+	// static inline __m128i _mm_cvtsi64_si128(const unsigned long long x) {
+	//	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
+	// }
+		// better code but requires lvalue
 	#define	_mm_cvtsi64_si128(x)	_mm_loadl_epi64((__m128i *) &(x))
 	static inline unsigned long long vectorcall _mm_cvtsi128_si64(__m128i x) {
 		return *(unsigned long long *) &x;
 	}
 
   #if defined(_MSC_VER) && _MSC_VER<1900
-	static inline __m128i vectorcall _mm_set_epi64x(unsigned long long b, unsigned long long a) {
+	static inline __m128i _mm_set_epi64x(unsigned long long b, unsigned long long a) {
 		return _mm_unpacklo_epi64(_mm_cvtsi64_si128(b), _mm_cvtsi64_si128(a));
 	}
-	static inline __m128i vectorcall _mm_set1_epi64x(unsigned long long x) {
+	static inline __m128i _mm_set1_epi64x(unsigned long long x) {
 		__m128i t = _mm_cvtsi64_si128(x);
 		return _mm_unpacklo_epi64(t, t);
 	}

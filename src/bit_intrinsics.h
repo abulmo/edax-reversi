@@ -103,16 +103,20 @@
 	static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x200802) & 0x4422110) + ((b << 7) & 0x880)) * 0x01010101 >> 24); }
 =======
 #if defined(_M_ARM) // || defined(_M_ARM64) // https://developercommunity.visualstudio.com/content/problem/498995/arm64-missing-rbit-intrinsics.html
-#define mirror_byte(b)	(_arm_rbit(b) >> 24)
+	#define mirror_byte(b)	(_arm_rbit(b) >> 24)
 #elif defined(__ARM_ACLE)
-#include <arm_acle.h>
-#define mirror_byte(b)	(__rbit(b) >> 24)
+	#include <arm_acle.h>
+	#define mirror_byte(b)	(__rbit(b) >> 24)
 #elif defined(HAS_CPU_64)
-// http://graphics.stanford.edu/~seander/bithacks.html
-#define mirror_byte(b)	(unsigned char)((((b) * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32)
+	// http://graphics.stanford.edu/~seander/bithacks.html
+	#define mirror_byte(b)	(unsigned char)((((b) * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32)
 #else
+<<<<<<< HEAD
 static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x200802) & 0x4422110) + ((b << 7) & 0x880)) * 0x01010101 >> 24); }
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+	static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x200802) & 0x4422110) + ((b << 7) & 0x880)) * 0x01010101 >> 24); }
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 #endif
 
 // rotl8

@@ -91,11 +91,16 @@ const unsigned long long NEIGHBOUR[] = {
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifndef POPCOUNT
   #if 0
 =======
 #if 0 // ndef POPCOUNT
 >>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
+=======
+#ifndef POPCOUNT
+  #if 0
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 int bit_count(unsigned long long b)
 {
 <<<<<<< HEAD
@@ -106,6 +111,7 @@ int bit_count(unsigned long long b)
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
 	b  = ((b >> 2) & 0x3333333333333333ULL) + (b & 0x3333333333333333ULL);
     #ifdef HAS_CPU_64
+<<<<<<< HEAD
 	b = (b + (b >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
 	c = (b * 0x0101010101010101ULL) >> 56;
     #else
@@ -225,15 +231,18 @@ void bit_init(void)
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
 	b  = ((b >> 2) & 0x3333333333333333ULL) + (b & 0x3333333333333333ULL);
 #ifdef HAS_CPU_64
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	b = (b + (b >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
 	c = (b * 0x0101010101010101ULL) >> 56;
-#else
+    #else
 	c = (b >> 32) + b;
 	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
 	c = (c * 0x01010101) >> 24;
-#endif
+    #endif
 	return c;
 }
+<<<<<<< HEAD
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 #endif
 
@@ -246,6 +255,10 @@ void bit_init(void)
 #endif
 =======
 #ifndef POPCOUNT
+=======
+
+  #else
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 // https://github.com/official-stockfish/Stockfish/pull/620/files
 // 2% faster than SWAR bit_count for 32 & 64 non-POPCOUNT build
 unsigned char PopCnt16[1 << 16];
@@ -257,6 +270,7 @@ static int bit_count_32_SWAR(unsigned int b)
 	b = ((b >> 4) + b) & 0x0F0F0F0F;
 	return (b * 0x01010101) >> 24;
 }
+  #endif
 #endif
 
 /**
@@ -358,6 +372,7 @@ uint64x2_t bit_weighted_count_neon(unsigned long long Q0, unsigned long long Q1)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif 0	// SWAR, for record
 int bit_weighted_count(unsigned long long v)
 {
@@ -379,10 +394,16 @@ int bit_weighted_count(unsigned long long v)
 
   #else
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
+=======
+#elif 0	// SWAR, for record
+int bit_weighted_count(unsigned long long v)
+{
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	int	c;
 
 	v  = v - ((v >> 1) & 0x1555555555555515) + (v & 0x0100000000000001);
 	v  = ((v >> 2) & 0x3333333333333333) + (v & 0x3333333333333333);
+<<<<<<< HEAD
 	c = (v >> 32) + v;
 	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
 	c = (c * 0x01010101) >> 24;
@@ -411,15 +432,29 @@ int bit_weighted_count(unsigned long long v)
 	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
 	c = (v * 0x0101010101010101ULL) >> 56;
     #else
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	c = (v >> 32) + v;
 	c = (c & 0x0F0F0F0F) + ((c >> 4) & 0x0F0F0F0F);
 	c = (c * 0x01010101) >> 24;
-    #endif
 	return c;
+<<<<<<< HEAD
 <<<<<<< HEAD
 #endif
 >>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
 =======
+=======
+}
+
+#else
+int bit_weighted_count(unsigned long long v)
+{
+  	unsigned int AH18 = ((v >> 56) | (v << 8)) & 0x8181;	// ror 56
+  #ifdef POPCOUNT
+	return bit_count(v) + bit_count_32(AH18);
+  #else
+  	return bit_count(v) + PopCnt16[AH18];
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
   #endif
 >>>>>>> e3cea41 (New vectored bit_weighted_count_sse)
 }
@@ -458,42 +493,42 @@ int first_bit_32(unsigned int b)
 	return  __builtin_clz(b & -b) ^ 31;
 =======
 {
-#if defined(_MSC_VER)
+  #if defined(_MSC_VER)
 	unsigned long index;
 	_BitScanForward(&index, b);
 	return (int) index;
 
-#elif defined(USE_GAS_X64) || defined(USE_GAS_X86)
+  #elif defined(USE_GAS_X64) || defined(USE_GAS_X86)
 	__asm__("rep; bsf	%1, %0" : "=r" (b) : "rm" (b));	// tzcnt on BMI CPUs, bsf otherwise
 	return (int) b;
 
-#elif defined(USE_MSVC_X86)
+  #elif defined(USE_MSVC_X86)
 	__asm {
 		bsf	eax, word ptr b
 	}
 
-#elif defined(USE_GCC_ARM)
+  #elif defined(USE_GCC_ARM)
 	return  __builtin_clz(b & -b) ^ 31;
 
-#else
+  #else
 	static const unsigned char magic[32] = {
 		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
 		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 	};
 
 	return magic[((b & (-b)) * 0x077CB531U) >> 27];
-#endif
+  #endif
 }
 #endif // first_bit_32
 
 #ifndef first_bit
 int first_bit(unsigned long long b)
 {
-#if defined(USE_GAS_X64)
+  #if defined(USE_GAS_X64)
 	__asm__("rep; bsfq	%1, %0" : "=r" (b) : "rm" (b));	// tzcntq on BMI CPUs
 	return (int) b;
 
-#elif defined(USE_GAS_X86)
+  #elif defined(USE_GAS_X86)
 	int 	x;
 	__asm__ ("bsf	%2, %0\n\t"	// (ZF differs from tzcnt)
 		"jnz	1f\n\t"
@@ -503,6 +538,7 @@ int first_bit(unsigned long long b)
 	return x;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   #else
@@ -542,10 +578,14 @@ int first_bit(unsigned long long b)
 =======
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+  #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	unsigned long index;
 	_BitScanForward64(&index, b);
 	return (int) index;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
@@ -555,6 +595,9 @@ int first_bit(unsigned long long b)
 =======
 #elif defined(USE_MSVC_X86)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+  #elif defined(USE_MSVC_X86)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	__asm {
 		bsf	eax, dword ptr b
 		jnz	l1
@@ -564,10 +607,14 @@ int first_bit(unsigned long long b)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(HAS_CPU_64)
 =======
 #elif defined(HAS_CPU_64)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+  #elif defined(HAS_CPU_64)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	static const unsigned char magic[64] = {
 		63, 0, 58, 1, 59, 47, 53, 2,
 		60, 39, 48, 27, 54, 33, 42, 3,
@@ -582,10 +629,14 @@ int first_bit(unsigned long long b)
 	return magic[((b & (-b)) * 0x07EDD5E59A4E28C2ULL) >> 58];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #else
 =======
 #else
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+  #else
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	const unsigned int lb = (unsigned int) b;
 	if (lb) {
 		return first_bit_32(lb);
@@ -593,10 +644,14 @@ int first_bit(unsigned long long b)
 		return 32 + first_bit_32(b >> 32);
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif
 =======
 #endif
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+  #endif
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -638,6 +693,7 @@ int next_bit(unsigned long long *b)
 int last_bit(unsigned long long b)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(USE_GAS_X64)
 =======
 #if defined(USE_GAS_X64)
@@ -658,10 +714,18 @@ int last_bit(unsigned long long b)
 =======
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+  #if defined(USE_GAS_X64)
+	__asm__("bsrq	%1, %0" :"=r" (b) :"rm" (b));
+	return b;
+
+  #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   #elif defined(USE_GAS_X86)
 	int	x;
@@ -675,6 +739,9 @@ int last_bit(unsigned long long b)
   #elif 0 // defined(USE_GCC_ARM)
 =======
 #elif defined(USE_GAS_X86)
+=======
+  #elif defined(USE_GAS_X86)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	int	x;
 	__asm__ ("bsr	%1, %0\n\t"
 		"leal	32(%0), %0\n\t"
@@ -684,11 +751,15 @@ int last_bit(unsigned long long b)
 	return x;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(USE_GCC_ARM)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 =======
 #elif 0 // defined(USE_GCC_ARM)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+  #elif 0 // defined(USE_GCC_ARM)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	const unsigned int hb = b >> 32;
 	if (hb) {
 		return 63 - __builtin_clz(hb);
@@ -698,6 +769,7 @@ int last_bit(unsigned long long b)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
 =======
 
@@ -705,6 +777,9 @@ int last_bit(unsigned long long b)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #elif defined(USE_MSVC_X86)
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+  #elif defined(USE_MSVC_X86)
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	__asm {
 		bsr	eax, dword ptr b+4
 		lea	eax, [eax+32]
@@ -714,6 +789,9 @@ int last_bit(unsigned long long b)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
   #elif defined(HAS_CPU_64)
 	// https://www.chessprogramming.org/BitScan#De_Bruijn_Multiplication_2
 	static const unsigned char magic[64] = {
@@ -762,10 +840,14 @@ int last_bit(unsigned long long b)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #else
 =======
 #else
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+  #else
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	static const unsigned char clz_table_4bit[16] = { 4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int	n = 63;
 	unsigned int	x;
@@ -778,11 +860,15 @@ int last_bit(unsigned long long b)
 	n -= clz_table_4bit[x >> (32 - 4)];
 	return n;
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif
 =======
 =======
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #endif
+=======
+  #endif
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 }
 #endif // last_bit
 

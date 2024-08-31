@@ -548,6 +548,7 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
 =======
 #if (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
@@ -555,6 +556,9 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 =======
   #if (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+  #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
+>>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 {
   #else
@@ -2452,6 +2456,7 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 
 static void get_full_lines(const unsigned long long disc, unsigned long long full[4])
 {
+	unsigned long long rdisc = vertical_mirror(disc);
 	unsigned long long l8;
 	__m128i l01, l79, r79;	// full lines
 	const __m128i kff  = _mm_set1_epi8(-1);
@@ -2460,7 +2465,7 @@ static void get_full_lines(const unsigned long long disc, unsigned long long ful
 	const __m128i e792 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);
 	const __m128i e793 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
 
-	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(vertical_mirror(disc)));
+	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(rdisc));
 	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(e790, _mm_srli_epi64(l79, 9)));
 	_mm_storel_epi64((__m128i*) &full[0], l01);
 						r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
