@@ -852,12 +852,18 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long long O)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long PM = P & 0x007E7E7E7E7E7E00;
 	unsigned long long OM = O & 0x007E7E7E7E7E7E00;
 	return get_moves(PM, OM) & 0x007E7E7E7E7E7E00;
 =======
 	return get_moves(P & 0x007E7E7E7E7E7E00, O & 0x007E7E7E7E7E7E00) & 0x007E7E7E7E7E7E00;
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	unsigned long long PM = P & 0x007E7E7E7E7E7E00;
+	unsigned long long OM = O & 0x007E7E7E7E7E7E00;
+	return get_moves(PM, OM) & 0x007E7E7E7E7E7E00;
+>>>>>>> e22b052 (_mm_cvtsi64_si128 x86 sim using loadl, requires lvalue)
 }
 
 /**

@@ -482,13 +482,17 @@ typedef struct Board {
 typedef union {
 	unsigned long long	ull[2];
 	Board	board;	// for vboard optimization in search
-#ifdef hasNeon
+  #ifdef hasNeon
 	uint64x2_t	v2;
-#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+  #elif defined(hasSSE2) || defined(USE_MSVC_X86)
 	__m128i	v2;
 	__m128d	d2;	// used in flip_carry_sse_32.c
+<<<<<<< HEAD
 #endif
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+  #endif
+>>>>>>> e22b052 (_mm_cvtsi64_si128 x86 sim using loadl, requires lvalue)
 }
 #if defined(__GNUC__) && !defined(hasSSE2)
 __attribute__ ((aligned (16)))
@@ -570,6 +574,7 @@ typedef union {
 >>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
 typedef union {
 	unsigned long long	ull[4];
+<<<<<<< HEAD
 	#ifdef __AVX2__
 		__m256i	v4;
 	#endif
@@ -607,52 +612,62 @@ typedef union {
 		__m64	v1[4];
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
 	#endif
+=======
+  #ifdef __AVX2__
+	__m256i	v4;
+  #endif
+  #ifdef hasSSE2
+	__m128i	v2[2];
+  #endif
+  #ifdef USE_MSVC_X86
+	__m64	v1[4];
+  #endif
+>>>>>>> e22b052 (_mm_cvtsi64_si128 x86 sim using loadl, requires lvalue)
 } V4DI;
 
 typedef union {
 	unsigned long long	ull[8];
-	#ifdef __AVX512F__
-		__m512i	v8;
-	#endif
-	#ifdef __AVX2__
-		__m256i	v4[2];
-	#endif
+  #ifdef __AVX512F__
+	__m512i	v8;
+  #endif
+  #ifdef __AVX2__
+	__m256i	v4[2];
+  #endif
 } V8DI;
 
 /* Define function attributes directive when available */
 
 #if (defined(_MSC_VER) || defined(__clang__)) && defined(hasSSE2)
-#define	vectorcall	__vectorcall
+	#define	vectorcall	__vectorcall
 #elif defined(__GNUC__) && defined(__i386__)
-#define	vectorcall	__attribute__((sseregparm))
+	#define	vectorcall	__attribute__((sseregparm))
 #elif 0 // defined(__GNUC__)	// erroreous result on pgo-build
-#define	vectorcall	__attribute__((sysv_abi))
+	#define	vectorcall	__attribute__((sysv_abi))
 #else
-#define	vectorcall
+	#define	vectorcall
 #endif
 
 // X64 compatibility sims for X86
 #if !defined(HAS_CPU_64) && (defined(hasSSE2) || defined(USE_MSVC_X86))
-static inline __m128i _mm_cvtsi64_si128(unsigned long long x) {
-	return _mm_unpacklo_epi32(_mm_cvtsi32_si128(x), _mm_cvtsi32_si128(x >> 32));
-}
-static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
-	return *(unsigned long long *) &x;
+	#define	_mm_cvtsi64_si128(x)	_mm_loadl_epi64((__m128i *) &(x))
+	static inline unsigned long long vectorcall _mm_cvtsi128_si64(__m128i x) {
+		return *(unsigned long long *) &x;
+	}
+
   #if defined(_MSC_VER) && _MSC_VER<1900
-static inline __m128i _mm_set_epi64x(unsigned long long b, unsigned long long a) {
-	return _mm_unpacklo_epi64(_mm_cvtsi64_si128(b), _mm_cvtsi64_si128(a));
-}
-static inline __m128i _mm_set1_epi64x(unsigned long long x) {
-	__m128i t = _mm_cvtsi64_si128(x);
-	return _mm_unpacklo_epi64(t, t);
-}
+	static inline __m128i vectorcall _mm_set_epi64x(unsigned long long b, unsigned long long a) {
+		return _mm_unpacklo_epi64(_mm_cvtsi64_si128(b), _mm_cvtsi64_si128(a));
+	}
+	static inline __m128i vectorcall _mm_set1_epi64x(unsigned long long x) {
+		__m128i t = _mm_cvtsi64_si128(x);
+		return _mm_unpacklo_epi64(t, t);
+	}
   #endif
-}
 #endif // !HAS_CPU_64
 
 #if __clang_major__ == 3	// undefined reference to `llvm.x86.avx.storeu.dq.256'
-#define	_mm_storeu_si128(a,b)	*(__m128i *)(a) = (b)
-#define	_mm256_storeu_si256(a,b)	*(__m256i *)(a) = (b)
+	#define	_mm_storeu_si128(a,b)	*(__m128i *)(a) = (b)
+	#define	_mm256_storeu_si256(a,b)	*(__m256i *)(a) = (b)
 #endif
 
 #endif // EDAX_BIT_H
