@@ -172,6 +172,7 @@ void eval_close(void);
 // void eval_free(Eval*);
 void eval_set(Eval*, const struct Board*);
 void eval_update(Eval*, const struct Move*);
+void eval_update_leaf(Eval*, const Eval*, const struct Move*);
 void eval_restore(Eval*, const struct Move*);
 void eval_pass(Eval*);
 double eval_sigma(const int, const int, const int);

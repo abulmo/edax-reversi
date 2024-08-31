@@ -1323,7 +1323,11 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 		       	break;
 		}
 	}
+<<<<<<< HEAD
   #endif
+=======
+#endif
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 }
 
 void eval_update(int x, unsigned long long f, Eval *eval)
@@ -1348,14 +1352,13 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	if (hasSSE2) {
 		if (eval->player)
-			eval_update_sse_1(eval, move);
+			eval_update_sse_1(eval, eval, move);
 		else
-			eval_update_sse_0(eval, move);
+			eval_update_sse_0(eval, eval, move);
 		eval_swap(eval);
 		return;
 	}
 #endif
-
 	if (eval->player)
 		eval_update_1(eval, move);
 	else
@@ -1365,8 +1368,31 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 =======
+=======
+void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
+{
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+	if (hasSSE2) {
+		if (eval_in->player)
+			eval_update_sse_1(eval_out, eval_in, move);
+		else
+			eval_update_sse_0(eval_out, eval_in, move);
+		// eval_out->player = eval_in->player ^ 1;
+		return;
+	}
+#endif
+	eval_out->feature = eval_in->feature;
+	if (eval_in->player)
+		eval_update_1(eval_out, move);
+	else
+		eval_update_0(eval_out, move);
+	// eval_out->player = eval_in->player ^ 1;
+}
+
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 #if 0 // replaced with simple save-restore
 
 /**

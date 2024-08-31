@@ -1097,12 +1097,17 @@ void search_restore_midgame(Search *search, int x, const Eval *eval0)
  * @param move    played move.
  * @param Ev	  eval to restore.
  */
+<<<<<<< HEAD
 void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+void search_restore_midgame(Search *search, const Move *move, const Eval *eval_to_restore)
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	// search_swap_parity(search, move->x);
 	// ++search->eval.n_empties;
@@ -1111,11 +1116,14 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
 	// board_restore(&search->board, move);
 	empty_restore(search->empties, x);
 =======
+=======
+	search_swap_parity(search, move->x);
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 	empty_restore(search->x_to_empties[move->x]);
 	board_restore(&search->board, move);
-	// search_swap_parity(search, move->x);
 	// eval_restore(search->eval, move);
-	search->eval = *Ev;
+	search->eval.feature = eval_to_restore->feature;
+	eval_swap(&search->eval);
 	++search->n_empties;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	assert(search->height > 0);

@@ -398,11 +398,15 @@ void task_search(Task *task)
 		if (alpha >= node->beta) break;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
 =======
 		Ev0 = search->eval;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {

@@ -170,6 +170,7 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int x, score, bestscore, alphathres;
 	unsigned long long flipped;
 	Eval Ev;
@@ -182,6 +183,8 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	Move move[1];
 =======
+=======
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 	Move move;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty;
@@ -196,19 +199,28 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 =======
 =======
 	unsigned long long moves = get_moves(search->board.player, search->board.opponent);
+<<<<<<< HEAD
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned short *f;
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+	const short *w;
+	const unsigned short *f;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 	if (moves) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bestscore = SCORE_INF * 128;	// min stage
 		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
 		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
 =======
+=======
+		w = EVAL_WEIGHT[search->eval.player ^ 1][61 - search->n_empties];
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		bestscore = -SCORE_INF;
 		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
 		foreach_empty (empty, search->empties) {
@@ -216,8 +228,7 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 				board_get_move(&search->board, empty->x, &move);
 				if (move_wipeout(&move, &search->board)) return SCORE_MAX;
 
-				Ev = search->eval;
-				eval_update(&Ev, &move);
+				eval_update_leaf(&Ev, &search->eval, &move);
 				f = Ev.feature.us;
 				SEARCH_UPDATE_EVAL_NODES(search->n_nodes);
 				score = -w[f[ 0] + 0] - w[f[ 1] + 0] - w[f[ 2] + 0] - w[f[ 3] + 0]
@@ -235,6 +246,7 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 				  - w[f[46] + 226314];
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 				eval_restore(search->eval, move);
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
@@ -243,6 +255,8 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 =======
 				// eval_restore(&search->eval, &move);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 
 		board0.board = search->board;
 		x = NOMOVE;
@@ -338,6 +352,7 @@ int search_eval_2(Search *search, int alpha, int beta, unsigned long long moves)
 	if (moves) {
 		bestscore = -SCORE_INF;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		eval0.feature = search->eval.feature;
 		eval0.n_empties = search->eval.n_empties--;
 		board0.board = search->board;
@@ -360,6 +375,9 @@ int search_eval_2(Search *search, int alpha, int beta, unsigned long long moves)
 				else if (bestscore > alpha) alpha = bestscore;
 =======
 		Ev0 = search->eval;
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		foreach_empty(empty, search->empties) {
 			if (moves & empty->b) {
 				board_get_move(&search->board, empty->x, &move);
@@ -614,8 +632,12 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 		bestscore = -SCORE_INF; bestmove = NOMOVE;
 =======
 		bestscore = -SCORE_INF; hash_store_data.move = NOMOVE;
+<<<<<<< HEAD
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		Ev0 = search->eval;
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		foreach_move(move, movelist) {
 			search_update_midgame(search, move);
 				score = -NWS_shallow(search, -(alpha + 1), depth - 1, hash_table);
@@ -811,7 +833,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		bestscore = -SCORE_INF; hash_store_data.move = NOMOVE;
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		lower = alpha;
-		Ev0 = search->eval;
+		Ev0.feature = search->eval.feature;
 		foreach_move(move, movelist) {
 			search_update_midgame(search, move);
 				if (bestscore == -SCORE_INF) {
@@ -1026,6 +1048,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 
 		// loop over all moves
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0.board = search->board;
 		eval0 = search->eval;
 		for (move = node_first_move(&node, &movelist); move; move = node_next_move(&node)) {
@@ -1037,6 +1060,9 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 				node_update(&node, move);
 =======
 		Ev0 = search->eval;
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		for (move = node_first_move(&node, &movelist); move; move = node_next_move(&node)) {
 			if (!node_split(&node, move)) {
 				search_update_midgame(search, move);
@@ -1264,6 +1290,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 
 		// first move
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
 		if ((move = node_first_move(&node, &movelist))) { // why if there ?
@@ -1274,6 +1301,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 			node_update(&node, move);
 =======
 		Ev0 = search->eval;
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		if ((move = node_first_move(&node, &movelist))) { // why if there ?
 			search_update_midgame(search, move); search->node_type[search->height] = PV_NODE;
 				move->score = -PVS_midgame(search, -beta, -alpha, depth - 1, &node);

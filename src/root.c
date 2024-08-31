@@ -458,8 +458,12 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	} else {
 		// first move
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
+=======
+		Ev0.feature = search->eval.feature;
+>>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
 		if ((move = node_first_move(&node, movelist))) {
 			assert(board_check_move(&search->board, move));
 =======

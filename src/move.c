@@ -210,7 +210,7 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 		} else {
 			int selectivity = search->selectivity;
 			search->selectivity = NO_SELECTIVITY;
-			Ev0 = search->eval;
+			Ev0.feature = search->eval.feature;
 			search_update_midgame(search, move);
 				SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 				move->score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
