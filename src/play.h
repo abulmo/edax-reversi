@@ -23,10 +23,10 @@
 
 /** play structure */
 typedef struct Play {
-	Board board[1];            /**< current board. */
-	Board initial_board[1];    /**< initial board. */
-	Search search[1];          /**< search. */
-	Result result[1];          /**< search result. */
+	Board board;               /**< current board. */
+	Board initial_board;       /**< initial board. */
+	Search search;             /**< search. */
+	Result result;             /**< search result. */
 	Book *book;                /**< opening book */
 	int type;                  /**< ui type */
 	int player;                /**< current player's color. */
@@ -52,16 +52,14 @@ typedef struct Play {
 	struct {
 		Thread thread;         /**< thread. */
 		Lock lock;             /**< lock. */
-		Board board[1];        /**< pondered position */
+		Board board;           /**< pondered position */
 		bool launched;         /**< launched thread */
 		bool verbose;          /**< verbose pondering */
-	} ponder[1];               /**< pondering thread */
+	} ponder;                  /**< pondering thread */
 	char error_message[PLAY_MESSAGE_MAX_LENGTH]; /**< error message */
 } Play;
 
 /* functions */
-bool play_is_game_over(Play*);
-bool play_must_pass(Play *play);
 void play_init(Play*, Book*);
 void play_free(Play*);
 void play_new(Play*);
@@ -98,6 +96,10 @@ void play_force_restore(Play*);
 bool play_force_go(Play*, Move*);
 void play_symetry(Play*, const int);
 const char* play_show_opening_name(Play*, const char *(*opening_get_name)(const Board*));
+// bool play_is_game_over(Play*);
+// bool play_must_pass(Play *play);
+#define	play_is_game_over(play)	board_is_game_over(&(play)->board)
+#define	play_must_pass(play)	board_is_pass(&(play)->board)
 
 #endif
 
