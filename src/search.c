@@ -1001,7 +1001,11 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	previous->next = NULL;
 }
 
+<<<<<<< HEAD
 #if 0	// inlined
+=======
+#if 0
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 /**
  * @brief Update the search state after a move.
  *
@@ -1042,6 +1046,7 @@ void search_restore_endgame(Search *search, const Move *move)
 	++search->n_empties;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 }
+#endif
 
 /**
  * @brief Update the search state after a passing move.
@@ -1062,8 +1067,19 @@ void search_pass_endgame(Search *search)
  * @param search  search.
  * @param move    played move.
  */
+static void search_update_midgame_tail(Search *search)
+{
+<<<<<<< HEAD
+=======
+	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
+
+	++search->height;
+	search->node_type[search->height] = next_node_type[search->node_type[search->height - 1]];
+}
+
 void search_update_midgame(Search *search, const Move *move)
 {
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 //	line_push(&debug_line, move->x);
 
 	search_swap_parity(search, move->x);
@@ -1079,9 +1095,13 @@ void search_update_midgame(Search *search, const Move *move)
 	eval_update(&search->eval, move);
 	assert(search->n_empties > 0);
 	--search->n_empties;
+<<<<<<< HEAD
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+=======
+	search_update_midgame_tail(search);
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 }
 
 /**
@@ -1138,6 +1158,7 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 void search_update_pass_midgame(Search *search, Eval *backup)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_pass(search);
 	backup->feature = search->eval.feature;
 =======
@@ -1147,11 +1168,17 @@ void search_update_pass_midgame(Search *search, Eval *backup)
 	board_pass(search->board);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 =======
+=======
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_pass(&search->board);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	eval_pass(&search->eval);
+<<<<<<< HEAD
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+=======
+	search_update_midgame_tail(search);
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 }
 
 /**

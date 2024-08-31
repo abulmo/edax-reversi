@@ -712,9 +712,14 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	SquareList *empty;
 	Move move;
-	int score, bestscore = -SCORE_INF;
+	int x, score, bestscore = -SCORE_INF;
 	// const int beta = alpha + 1;
+<<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+	Board board0;
+	unsigned int parity0, paritymask;
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 	assert(0 <= search->eval.n_empties && search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH);
@@ -725,6 +730,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	// stability cutoff (try 8%, cut 7%)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	board0.board = search->board;
 	moves = vboard_get_moves(board0);
@@ -817,28 +823,33 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 				else if (score > bestscore) bestscore = score;
 			}
 		}
+=======
+	board0 = search->board;
+	parity0 = search->eval.parity;
+	for (paritymask = 0; paritymask <= 15; paritymask += 15) {	// 0 for odd, 15 for even
+		if (parity0 != paritymask) {	// 0: all even, 15: all odd
+			foreach_empty (empty, search->empties) {
+				if ((parity0 ^ paritymask) & empty->quadrant) {
+					x = empty->x;
+					if ((NEIGHBOUR[x] & board0.opponent) && board_get_move(&search->board, x, &move)) {
+						search_swap_parity(search, x);
+						empty_remove(search->x_to_empties[x]);
+						board_update(&search->board, &move);
+						--search->n_empties;
 
-		foreach_even_empty (empty, search->empties, search->eval.parity) {
-			if ((NEIGHBOUR[empty->x] & search->board.opponent)
-			&& board_get_move(&search->board, empty->x, &move)) {
-				search_update_endgame(search, &move);
-					if (search->n_empties == 4) score = -search_solve_4(search, -(alpha + 1));
-					else score = -search_shallow(search, -(alpha + 1));
-				search_restore_endgame(search, &move);
-				if (score > alpha) return score;
-				else if (score > bestscore) bestscore = score;
-			}
-		}
-	} else 	{
-		foreach_empty (empty, search->empties) {
-			if ((NEIGHBOUR[empty->x] & search->board.opponent)
-			&& board_get_move(&search->board, empty->x, &move)) {
-				search_update_endgame(search, &move);
-					if (search->n_empties == 4) score = -search_solve_4(search, -(alpha + 1));
-					else score = -search_shallow(search, -(alpha + 1));
-				search_restore_endgame(search, &move);
-				if (score > alpha) return score;
-				else if (score > bestscore) bestscore = score;
+						if (search->n_empties == 4) score = -search_solve_4(search, -(alpha + 1));
+						else score = -search_shallow(search, -(alpha + 1));
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+
+						search->eval.parity = parity0;
+						empty_restore(search->x_to_empties[x]);
+						search->board = board0;
+						++search->n_empties;
+
+						if (score > alpha) return score;
+						else if (score > bestscore) bestscore = score;
+					}
+				}
 			}
 		}
 	}
@@ -847,7 +858,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	if (bestscore == -SCORE_INF) {
 		if (can_move(search->board.opponent, search->board.player)) { // pass
 			search_pass_endgame(search);
-				bestscore = -search_shallow(search, -(alpha + 1));
+			bestscore = -search_shallow(search, -(alpha + 1));
 			search_pass_endgame(search);
 		} else { // gameover
 			bestscore = search_solve(search);
@@ -904,7 +915,12 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 6506166 (More SSE optimizations)
 =======
 	long long nodes_org;
+<<<<<<< HEAD
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	Board board0;
+	unsigned int parity0;
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 
 	if (search->stop) return alpha;
 
@@ -950,7 +966,7 @@ int NWS_endgame(Search *search, const int alpha)
 		bestmove->next = 0;
 		if (can_move(search->board.opponent, search->board.player)) { // pass
 			search_pass_endgame(search);
-				bestmove->score = -NWS_endgame(search, -(alpha + 1));
+			bestmove->score = -NWS_endgame(search, -(alpha + 1));
 			search_pass_endgame(search);
 			bestmove->x = PASS;
 		} else  { // game over
@@ -979,13 +995,24 @@ int NWS_endgame(Search *search, const int alpha)
 	} else {
 		movelist_evaluate(&movelist, search, &hash_data, alpha, 0);
 
+		board0 = search->board;
+		parity0 = search->eval.parity;
 		bestmove = movelist.move; bestmove->score = -SCORE_INF;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 		// loop over all moves
 		foreach_best_move(move, movelist) {
-			search_update_endgame(search, move);
-				move->score = -NWS_endgame(search, -(alpha + 1));
-			search_restore_endgame(search, move);
+			search_swap_parity(search, move->x);
+			empty_remove(search->x_to_empties[move->x]);
+			board_update(&search->board, move);
+			--search->n_empties;
+
+			move->score = -NWS_endgame(search, -(alpha + 1));
+
+			search->eval.parity = parity0;
+			empty_restore(search->x_to_empties[move->x]);
+			search->board = board0;
+			++search->n_empties;
+
 			if (move->score > bestmove->score) {
 				bestmove = move;
 				if (bestmove->score > alpha) break;

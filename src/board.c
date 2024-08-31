@@ -13,6 +13,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -20,6 +21,9 @@
 =======
  * @date 1998 - 2018
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+ * @date 1998 - 2020
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -507,6 +511,7 @@ bool board_check_move(const Board *board, Move *move)
  */
 void board_update(Board *board, const Move *move)
 {
+<<<<<<< HEAD
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))	// 3DNow CPU has fast emms, and possibly slow SSE
 	__m128i	OP = _mm_loadu_si128((__m128i *) board);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
@@ -525,6 +530,11 @@ void board_update(Board *board, const Move *move)
 	board->opponent = board->player ^ (move->flipped | X_TO_BIT[move->x]);
 	board->player = O ^ move->flipped;
 #endif
+=======
+	unsigned long long O = board->opponent;
+	board->opponent = board->player ^ (move->flipped | x_to_bit(move->x));
+	board->player = O ^ move->flipped;
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_check(board);
 }
 
@@ -539,6 +549,7 @@ void board_update(Board *board, const Move *move)
  */
 void board_restore(Board *board, const Move *move)
 {
+<<<<<<< HEAD
 #if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))
 	__m128i	OP = _mm_shuffle_epi32(_mm_loadu_si128((__m128i *) board), 0x4e);
 	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
@@ -557,6 +568,11 @@ void board_restore(Board *board, const Move *move)
 	board->player = board->opponent ^ (move->flipped | X_TO_BIT[move->x]);
 	board->opponent = P ^ move->flipped;
 #endif
+=======
+	unsigned long long P = board->player;
+	board->player = board->opponent ^ (move->flipped | x_to_bit(move->x));
+	board->opponent = P ^ move->flipped;
+>>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 	board_check(board);
 }
 <<<<<<< HEAD
