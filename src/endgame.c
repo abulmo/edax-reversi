@@ -156,6 +156,7 @@ int board_score_1(const Board *board, const int beta, const int x)
 	score = 2 * bit_count(player) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	n_flips = last_flip(x, player);
 	score += n_flips;
 
@@ -170,14 +171,23 @@ int board_score_1(const Board *board, const int beta, const int x)
 	if ((n_flips = last_flip(x, board->player)) != 0) {
 		score -= n_flips;
 	} else {
+=======
+	n_flips = last_flip(x, board->player);
+	score -= n_flips;
+
+	if (n_flips == 0) {
+>>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
 		score2 = score + 2;	// empty for player
 		if (score >= 0)
 			score = score2;
 		if (score < beta) {	// lazy cut-off
-			if ((n_flips = last_flip(x, board->opponent)) != 0) {
+			if ((n_flips = last_flip(x, board->opponent)) != 0)
 				score = score2 + n_flips;
+<<<<<<< HEAD
 			}
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+>>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
 		}
 	}
 

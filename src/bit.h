@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+ * @date 1998 - 2020
+>>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -331,6 +335,7 @@ __attribute__ ((aligned (16)))
 V2DI;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 typedef union {
 	unsigned long long	ull[4];
   #ifdef __AVX2__
@@ -396,9 +401,15 @@ typedef union {
 	#define	_mm256_storeu_si256(a,b)	*(__m256i *)(a) = (b)
 =======
 #ifdef __AVX2__
+=======
+#ifdef hasSSE2
+>>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
 typedef union {
 	unsigned long long	ull[4];
-	__m256i	v4;
+	#ifdef __AVX2__
+		__m256i	v4;
+	#endif
+	__m128i	v2[2];
 } V4DI;
 >>>>>>> 1dc032e (Improve visual c compatibility)
 #endif
