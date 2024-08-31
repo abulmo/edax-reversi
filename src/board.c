@@ -154,7 +154,7 @@ unsigned char edge_stability[256 * 256];
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 #include "board_mmx.c"
 #endif
-#if !defined(ANDROID) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(hasNeon))
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(hasNeon)) && !defined(ANDROID)
 #include "board_sse.c"
 >>>>>>> 1dc032e (Improve visual c compatibility)
 #endif
@@ -775,12 +775,18 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
 	if (hasSSE2)
 		return get_moves_sse(P, O);
+<<<<<<< HEAD
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	else if (hasMMX)
 >>>>>>> 0f2fb39 (Chage 32-bit get_moves_mmx/sse parameters to 64 bits)
 		return get_moves_mmx(P, O);
+=======
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 	#endif
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+	if (hasMMX)
+		return get_moves_mmx(P, O);
 	#endif
 
 	OM = O & 0x7e7e7e7e7e7e7e7e;
@@ -1183,60 +1189,6 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
  * @param dir tested direction
  * @return a bitboard with f lines along the tested direction.
  */
-static inline unsigned long long get_full_lines(const unsigned long long line, const int dir)
-{
-#if KOGGE_STONE & 2
-
-	// kogge-stone algorithm
- 	// 5 << + 5 >> + 7 & + 10 |
-	// + better instruction independency
-	unsigned long long full_l, full_r, edge_l, edge_r;
-	const  unsigned long long edge = 0xff818181818181ff;
-	const int dir2 = dir << 1;
-	const int dir4 = dir << 2;
-
-	full_l = line & (edge | (line >> dir)); full_r  = line & (edge | (line << dir));
-	edge_l = edge | (edge >> dir);        edge_r  = edge | (edge << dir);
-	full_l &= edge_l | (full_l >> dir2);  full_r &= edge_r | (full_r << dir2);
-	edge_l |= edge_l >> dir2;             edge_r |= edge_r << dir2;
-	full_l &= edge_l | (full_l >> dir4);  full_r &= edge_r | (full_r << dir4);
-
-	return full_r & full_l;
-
-#elif PARALLEL_PREFIX & 2
-
-	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
-	// 5 << + 5 >> + 7 & + 10 |
-	unsigned long long full_l, full_r;
-	unsigned long long edge_l, edge_r;
-	const  unsigned long long edge = 0xff818181818181ff;
-	const int dir2 = dir + dir;
-
-	full_l  = edge | (line << dir);       full_r  = edge | (line >> dir);
-	full_l &= edge | (full_l << dir);     full_r &= edge | (full_r >> dir);
-	edge_l  = edge | (edge << dir);       edge_r  = edge | (edge >> dir);
-	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
-	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
-
-	return full_l & full_r;
-
-#else
-
-	// sequential algorithm
- 	// 6 << + 6 >> + 12 & + 5 |
-	unsigned long long full;
-	const unsigned long long edge = line & 0xff818181818181ff;
-
-	full = (line & (((line >> dir) & (line << dir)) | edge));
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-
-	return ((full >> dir) & (full << dir));
-
-#endif
-}
 
 #ifdef HAS_CPU_64
 static unsigned long long get_full_lines_h(unsigned long long full)
@@ -1263,14 +1215,15 @@ static unsigned long long get_full_lines_h(unsigned long long full)
 
 static unsigned long long get_full_lines_v(unsigned long long full)
 {
-#ifdef _MSC_VER
-	full &= _rotr64(full, 8);
-	full &= _rotr64(full, 16);
-	full &= _rotr64(full, 32);
-#else
+#ifdef HAS_CPU_64
 	full &= (full >> 8) | (full << 56);	// ror 8
 	full &= (full >> 16) | (full << 48);	// ror 16
 	full &= (full >> 32) | (full << 32);	// ror 32
+#else
+	unsigned int	t = (unsigned int) full & (unsigned int)(full >> 32);
+	t &= (t >> 16) | (t << 16);	// ror 16
+	t &= (t >> 8) | (t << 24);	// ror 8
+	full = t | ((unsigned long long) t << 32);
 #endif
 	return full;
 }
@@ -1280,14 +1233,27 @@ static unsigned long long get_full_lines_v(unsigned long long full)
 =======
 unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 {
-	unsigned long long allfull;
+	unsigned long long l7, l9, r7, r9;	// full lines
 
-	allfull = full->ull[0] = get_full_lines_h(disc);
-	allfull &= (full->ull[1] = get_full_lines_v(disc));
-	allfull &= (full->ull[2] = get_full_lines(disc, 9));
-	allfull &= (full->ull[3] = get_full_lines(disc, 7));
-	return allfull;
+	full->ull[0] = get_full_lines_h(disc);
+	full->ull[1] = get_full_lines_v(disc);
+
+	l7 = r7 = disc;
+	l7 &= 0xff01010101010101 | (l7 >> 7);	r7 &= 0x80808080808080ff | (r7 << 7);
+	l7 &= 0xffff030303030303 | (l7 >> 14);	r7 &= 0xc0c0c0c0c0c0ffff | (r7 << 14);
+	l7 &= 0xffffffff0f0f0f0f | (l7 >> 28);	r7 &= 0xf0f0f0f0ffffffff | (r7 << 28);
+	l7 &= r7;
+	full->ull[3] = l7;
+
+	l9 = r9 = disc;
+	l9 &= 0xff80808080808080 | (l9 >> 9);	r9 &= 0x01010101010101ff | (r9 << 9);
+	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
+	l9 = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
+	full->ull[2] = l9;
+
+	return full->ull[0] & full->ull[1] & l9 & l7;
 }
+
 #endif // hasSSE2/hasNeon
 
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
@@ -1334,14 +1300,14 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, old_stable;
 
 	// compute the exact stable edges (from precomputed tables)
-#if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)
+#if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)	// no GAS_MMX dispatch
 	if (hasSSE2) {
 		stable = get_stable_edge_sse(P, O);
 		allfull = get_all_full_lines_sse(P | O, &full);
 	} else
 #endif
 	{
-#if (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2) && !defined(hasNeon)
 		if (hasMMX)
 			return get_stability_mmx(P, O);
 #endif

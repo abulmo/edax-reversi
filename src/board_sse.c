@@ -1306,15 +1306,14 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 
 #endif
 	l81 = _mm_insert_epi64(l81, l8, 1);
-	full->v2[0] = l81;			full->v2[1] = l79;
+	full->v4 = _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1);
 	l81 = _mm_and_si128(l81, l79);
-	return _mm_cvtsi128_si64(_mm_and_si128(l81, _mm_unpackhi_epi64(l81, l81)));
+	return _mm_cvtsi128_si64(l81) & _mm_extract_epi64(l81, 1);
 }
 
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
 	V4DI	full;
-	unsigned long long disc = (P | O);
 	unsigned long long P_central = (P & 0x007e7e7e7e7e7e00);
 	unsigned long long stable;
 	__m128i	v2_stable, v2_old_stable, v2_P_central;
@@ -1328,8 +1327,12 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	// compute the exact stable edges (from precomputed tables) and add full lines
+<<<<<<< HEAD
 	stable = get_stable_edge_sse(P, O) | (get_all_full_lines(disc, &full) & P_central);
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
+=======
+	stable = get_stable_edge_sse(P, O) | (get_all_full_lines(P | O, &full) & P_central);
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 
 	if (stable == 0)
 		return 0;
@@ -2144,69 +2147,49 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 #elif defined(__ARM_NEON__)
 unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
 {
-	unsigned long long allfull, l8;
+	unsigned long long l8;
 	uint8x8_t l01;
 	uint64x2_t l79, r79;
-	const uint64x2_t e790 = vdupq_n_u64(0x007e7e7e7e7e7e00);
-	const uint64x2_t e791 = vdupq_n_u64(0x00003f3f3f3f3f3f);
-	const uint64x2_t e792 = vdupq_n_u64(0x0f0f0f0ff0f0f0f0);
+	const uint64x2_t e790 = vdupq_n_u64(0x007f7f7f7f7f7f7f);
+	const uint64x2_t e791 = vdupq_n_u64(0xfefefefefefefe00);
+	const uint64x2_t e792 = vdupq_n_u64(0x00003f3f3f3f3f3f);
+	const uint64x2_t e793 = vdupq_n_u64(0x0f0f0f0ff0f0f0f0);
 
 	l01 = vcreate_u8(disc);			l79 = r79 = vreinterpretq_u64_u8(vcombine_u8(l01, vrev64_u8(l01)));
 	l01 = vceq_u8(l01, vdup_n_u8(0xff));	l79 = vandq_u64(l79, vornq_u64(vshrq_n_u64(l79, 9), e790));
-	allfull = full->ull[0] = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
-						r79 = vandq_u64(r79, vornq_u64(vshlq_n_u64(r79, 9), e790));
-	l8 = disc;				l79 = vbicq_u64(l79, vbicq_u64(e791, vshrq_n_u64(l79, 18)));	// De Morgan
-	l8 &= (l8 >> 8) | (l8 << 56);		r79 = vbicq_u64(r79, vshlq_n_u64(vbicq_u64(e791, r79), 18));
-	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e792, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
-	l8 &= (l8 >> 32) | (l8 << 32);		allfull &= (full->ull[2] = vgetq_lane_u64(l79, 0));
-	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[3] = vertical_mirror(vgetq_lane_u64(l79, 1)));
-	return allfull;
+	full->ull[0] = vget_lane_u64(vreinterpret_u64_u8(l01), 0);
+						r79 = vandq_u64(r79, vornq_u64(vshlq_n_u64(r79, 9), e791));
+	l8 = disc;				l79 = vbicq_u64(l79, vbicq_u64(e792, vshrq_n_u64(l79, 18)));	// De Morgan
+	l8 &= (l8 >> 8) | (l8 << 56);		r79 = vbicq_u64(r79, vshlq_n_u64(vbicq_u64(e792, r79), 18));
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = vandq_u64(vandq_u64(l79, r79), vorrq_u64(e793, vsliq_n_u64(vshrq_n_u64(l79, 36), r79, 36)));
+	l8 &= (l8 >> 32) | (l8 << 32);		full->ull[2] = vgetq_lane_u64(l79, 0);
+	full->ull[1] = l8;			full->ull[3] = vertical_mirror(vgetq_lane_u64(l79, 1));
+
+	return full->ull[0] & l8 & full->ull[2] & full->ull[3];
 }
 
-#elif 1	// 1 CPU, 3 SSE
+#else	// 1 CPU, 3 SSE
 unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
 {
-	unsigned long long allfull, l8;
+	unsigned long long l8;
 	__m128i l01, l79, r79;	// full lines
 	const __m128i kff  = _mm_set1_epi64x(0xffffffffffffffff);
-	const __m128i edge = _mm_set1_epi64x(0xff818181818181ff);
-	const __m128i e791 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);
-	const __m128i e792 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
+	const __m128i e790 = _mm_set1_epi64x(0xff80808080808080);
+	const __m128i e791 = _mm_set1_epi64x(0x01010101010101ff);
+	const __m128i e792 = _mm_set1_epi64x(0x00003f3f3f3f3f3f);
+	const __m128i e793 = _mm_set1_epi64x(0x0f0f0f0ff0f0f0f0);
 
 	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(vertical_mirror(disc)));
-	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(edge, _mm_srli_epi64(l79, 9)));
-	allfull = full->ull[0] = _mm_cvtsi128_si64(l01);
-						r79 = _mm_and_si128(r79, _mm_or_si128(edge, _mm_slli_epi64(r79, 9)));
-	l8 = disc;				l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e791), l79);	// De Morgan
-	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e791), 18), r79);
-	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e792, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
-	l8 &= (l8 >> 32) | (l8 << 32);		allfull &= (full->ull[2] = _mm_cvtsi128_si64(l79));
-	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79))));
-	return allfull;
-}
+	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(e790, _mm_srli_epi64(l79, 9)));
+	full->ull[0] = _mm_cvtsi128_si64(l01);	r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
+						l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e792), l79);	// De Morgan
+	l8 = disc;				r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e792), 18), r79);
+	l8 &= (l8 >> 8) | (l8 << 56);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
+	l8 &= (l8 >> 16) | (l8 << 48);		full->ull[2] = _mm_cvtsi128_si64(l79);
+	l8 &= (l8 >> 32) | (l8 << 32);		full->ull[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
+	full->ull[1] = l8;
 
-#else	// 4 CPU
-unsigned long long get_all_full_lines_sse(const unsigned long long disc, V4DI *full)
-{
-	unsigned long long allfull, l8, l1, l7, l9, r7, r9;	// full lines
-	static const unsigned long long edge = 0xff818181818181ff;
-	static const unsigned long long k01 = 0x0101010101010101;
-	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
-	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
-
-	l1 = l7 = r7 = disc;
-	l1 &= l1 >> 1;				l7 &= edge | (l7 >> 7);		r7 &= edge | (r7 << 7);
-	l1 &= l1 >> 2;				l7 &= e7[0] | (l7 >> 14);	r7 &= e7[1] | (r7 << 14);
-	l1 &= l1 >> 4;				l7 &= e7[2] | (l7 >> 28);	r7 &= e7[3] | (r7 << 28);
-	l1 = (l1 & k01) * 0xff);		l7 &= r7;
-	allfull = (full->ull[0] = l1);		allfull &= (full->ull[3] = l7);
-
-	l8 = l9 = r9 = disc;
-	l8 &= (l8 >> 8) | (l8 << 56);		l9 &= edge | (l9 >> 9);		r9 &= edge | (r9 << 9);
-	l8 &= (l8 >> 16) | (l8 << 48);		l9 &= e9[0] | (l9 >> 18);	r9 &= e9[1] | (r9 << 18);
-	l8 &= (l8 >> 32) | (l8 << 32);		l9 = l9 & r9 & (e9[2] | (l9 >> 36) | (r9 << 36)));
-	allfull &= (full->ull[1] = l8);		allfull &= (full->ull[2] = l9);
-	return allfull;
+	return full->ull[0] & l8 & full->ull[2] & full->ull[3];
 }
 
 #endif

@@ -556,36 +556,37 @@ int get_stability_fulls(unsigned long long P, unsigned long long O, unsigned lon
 unsigned long long get_all_full_lines_mmx(const unsigned long long disc_, V4DI *full)
 {
 	__m64	disc = *(__m64 *) &disc_;
-	__m64	full_v, full_l, full_r;
-	static const unsigned long long MFF = 0xffffffffffffffff;
-	static const unsigned long long edge = 0xff818181818181ffULL;
-	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
-	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
-
-	// get_full_lines_mmx(full_h, disc, 1, e1);
-	full->v1[0] = _m_pcmpeqb(*(__m64 *) &MFF, disc);
-
-	// get_full_lines_mmx(full_v, disc, 8, e8);
-	full_v = _m_pand(_m_punpcklbw(disc, disc), _m_punpckhbw(disc, disc));	//  (d,d,c,c,b,b,a,a) & (h,h,g,g,f,f,e,e)
-	full_v = _m_pand(_m_punpcklwd(full_v, full_v), _m_punpckhwd(full_v, full_v));	// (dh,dh,dh,dh,cg,cg,cg,cg) & (bf,bf,bf,bf,ae,ae,ae,ae)
-	full->v1[1] = _m_pand(_m_punpckldq(full_v, full_v), _m_punpckhdq(full_v, full_v));	// (bdfh*4, bdfh*4) & (aceg*4, aceg*4)
+	__m64	full_l, full_r;
+	unsigned int	full_v;
+	const __m64	kFF = _m_pcmpeqb(disc, disc);
+	static const unsigned long long e7[] = { 0xff01010101010101, 0x80808080808080ff, 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xff80808080808080, 0x01010101010101ff, 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0x0f0f0f0ff0f0f0f0 };
 
 	// get_full_lines_mmx(full_d7, disc, 7, e7);
-	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 7)));
-	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 7)));
-	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[0], _m_psrlqi(full_l, 14)));
-	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[1], _m_psllqi(full_r, 14)));
-	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[2], _m_psrlqi(full_l, 28)));
-	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[3], _m_psllqi(full_r, 28)));
+	full_l = _m_pand(disc, _m_por(*(__m64 *) &e7[0], _m_psrlqi(disc, 7)));
+	full_r = _m_pand(disc, _m_por(*(__m64 *) &e7[1], _m_psllqi(disc, 7)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[2], _m_psrlqi(full_l, 14)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[3], _m_psllqi(full_r, 14)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e7[4], _m_psrlqi(full_l, 28)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e7[5], _m_psllqi(full_r, 28)));
 	full->v1[3] = _m_pand(full_l, full_r);
 
 	// get_full_lines_mmx(full_d9, disc, 9, e9);
-	full_l = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psrlqi(disc, 9)));
-	full_r = _m_pand(disc, _m_por(*(__m64 *) &edge, _m_psllqi(disc, 9)));
-	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e9[0], _m_psrlqi(full_l, 18)));
-	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e9[1], _m_psllqi(full_r, 18)));
-	full->v1[2] = _m_pand(_m_pand(full_l, full_r), _m_por(*(__m64 *) &e9[2], _m_por(_m_psrlqi(full_l, 36), _m_psllqi(full_r, 36))));
+	full_l = _m_pand(disc, _m_por(*(__m64 *) &e9[0], _m_psrlqi(disc, 9)));
+	full_r = _m_pand(disc, _m_por(*(__m64 *) &e9[1], _m_psllqi(disc, 9)));
+	full_l = _m_pand(full_l, _m_por(*(__m64 *) &e9[2], _m_psrlqi(full_l, 18)));
+	full_r = _m_pand(full_r, _m_por(*(__m64 *) &e9[3], _m_psllqi(full_r, 18)));
+	full->v1[2] = _m_pand(_m_pand(full_l, full_r), _m_por(*(__m64 *) &e9[4], _m_por(_m_psrlqi(full_l, 36), _m_psllqi(full_r, 36))));
+
+	// get_full_lines_mmx(full_h, disc, 1, e1);
+	full->v1[0] = _m_pcmpeqb(kFF, disc);
 	_mm_empty();
+
+	// get_full_lines_mmx(full_v, disc, 8, e8);
+	full_v = (unsigned int) disc_ & (unsigned int)(disc_ >> 32);
+	full_v &= (full_v >> 16) | (full_v << 16);	// ror 16
+	full_v &= (full_v >> 8) | (full_v << 24);	// ror 8
+	full->ull[1] = full_v | ((unsigned long long) full_v << 32);
 
 	return full->ull[0] & full->ull[1] & full->ull[2] & full->ull[3];
 }
@@ -666,6 +667,7 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // returns stability count only
 int get_stability(const unsigned long long P, const unsigned long long O)
 {
@@ -677,32 +679,35 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 =======
 #elif defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))
 // LLVM ERROR: Unsupported asm: input constraint with a matching output constraint of incompatible type!
+=======
+#elif defined(USE_GAS_MMX)
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 
 #define	get_full_lines_mmx(result,disc,dir,edge)	__asm__ (\
 		"movq	%1, %%mm0\n\t"		"movq	%1, %%mm1\n\t"\
 		"psrlq	%2, %%mm0\n\t"		"psllq	%2, %%mm1\n\t"\
-		"por	%5, %%mm0\n\t"		"por	%5, %%mm1\n\t"\
+		"por	%5, %%mm0\n\t"		"por	%6, %%mm1\n\t"\
 		"pand	%1, %%mm0\n\t"		"pand	%1, %%mm1\n\t"\
 		"movq	%%mm0, %%mm2\n\t"	"movq	%%mm1, %%mm3\n\t"\
 		"psrlq	%3, %%mm0\n\t"		"psllq	%3, %%mm1\n\t"\
-		"por	%6, %%mm0\n\t"		"por	%7, %%mm1\n\t"\
+		"por	%7, %%mm0\n\t"		"por	%8, %%mm1\n\t"\
 		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm3, %%mm1\n\t"\
 		"movq	%%mm0, %%mm2\n\t"	"pand	%%mm1, %%mm0\n\t"\
 		"psrlq	%4, %%mm2\n\t"		"psllq	%4, %%mm1\n\t"\
-		"por	%8, %%mm2\n\t"		"por	%9, %%mm1\n\t"\
+		"por	%9, %%mm2\n\t"		"por	%10, %%mm1\n\t"\
 		"pand	%%mm2, %%mm0\n\t"	"pand	%%mm1, %%mm0\n\t"\
 		"movq	%%mm0, %0"\
 	: "=m" (result)\
 	: "y" (disc), "i" (dir), "i" (dir * 2), "i" (dir * 4),\
-	  "my" (e0), "m" (edge[0]), "m" (edge[1]), "m" (edge[2]), "m" (edge[3])\
+	  "m" (edge[0]), "m" (edge[1]), "m" (edge[2]), "m" (edge[3]), "m" (edge[4]), "m" (edge[5])\
 	: "mm0", "mm1", "mm2", "mm3");
 
 unsigned long long get_all_full_lines_mmx(const unsigned long long disc_, V4DI *full)
 {
 	__m64	disc;
-	static const unsigned long long e0 = 0xff818181818181ffULL;
-	static const unsigned long long e7[] = { 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
-	static const unsigned long long e9[] = { 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0xfffffffff0f0f0f0, 0x0f0f0f0fffffffff };
+	unsigned int	full_v;
+	static const unsigned long long e7[] = { 0xff01010101010101, 0x80808080808080ff, 0xffff030303030303, 0xc0c0c0c0c0c0ffff, 0xffffffff0f0f0f0f, 0xf0f0f0f0ffffffff };
+	static const unsigned long long e9[] = { 0xff80808080808080, 0x01010101010101ff, 0xffffc0c0c0c0c0c0, 0x030303030303ffff, 0xfffffffff0f0f0f0, 0x0f0f0f0fffffffff };
 
 	__asm__ (
 		"movd	%1, %0\n\t"
@@ -716,23 +721,15 @@ unsigned long long get_all_full_lines_mmx(const unsigned long long disc_, V4DI *
 	__asm__ (
 		"pcmpeqb %%mm0, %%mm0\n\t"
 		"pcmpeqb %1, %%mm0\n\t"
-		"movq	%%mm0, %0"
+		"movq	%%mm0, %0\n\t"
+		"emms"
 	: "=m" (full->ull[0]) : "y" (disc) : "mm0");
 
 	// get_full_lines_mmx(full_v, disc, 8, e8);
-	__asm__ (
-		"movq	%1, %%mm0\n\t"		"movq	%1, %%mm1\n\t"
-		"punpcklbw %%mm0, %%mm0\n\t"	"punpckhbw %%mm1, %%mm1\n\t"
-		"pand	%%mm1, %%mm0\n\t"	// (d,d,c,c,b,b,a,a) & (h,h,g,g,f,f,e,e)
-		"movq	%%mm0, %%mm1\n\t"
-		"punpcklwd %%mm0, %%mm0\n\t"	"punpckhwd %%mm1, %%mm1\n\t"
-		"pand	%%mm1, %%mm0\n\t"	// (dh,dh,dh,dh,cg,cg,cg,cg) & (bf,bf,bf,bf,ae,ae,ae,ae)
-		"movq	%%mm0, %%mm1\n\t"
-		"punpckldq %%mm0, %%mm0\n\t"	"punpckhdq %%mm1, %%mm1\n\t"
-		"pand	%%mm1, %%mm0\n\t"	// (bdfh*4, bdfh*4) & (aceg*4, aceg*4)
-		"movq	%%mm0, %0\n\t"
-		"emms"
-	: "=m" (full->ull[1]) : "y" (disc) : "mm0", "mm1");
+	full_v = (unsigned int) disc_ & (unsigned int)(disc_ >> 32);
+	full_v &= (full_v >> 16) | (full_v << 16);	// ror 16
+	full_v &= (full_v >> 8) | (full_v << 24);	// ror 8
+	full->ull[1] = full_v | ((unsigned long long) full_v << 32);
 
 	return full->ull[0] & full->ull[1] & full->ull[2] & full->ull[3];
 }
@@ -762,22 +759,17 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 
 	PL &= 0x7f7f7f00;
 	PH &= 0x007f7f7f;
+	SL |= (unsigned int) allfull & PL;
+	SH |= (unsigned int)(allfull >> 32) & PH;
 
 	__asm__(
 		"movd	%2, %0\n\t"		"movd	%4, %1\n\t"
 		"movd	%3, %%mm0\n\t"		"movd	%5, %%mm1\n\t"
 		"punpckldq %%mm0, %0\n\t"	"punpckldq %%mm1, %1\n\t"
-	: "=y" (P_central), "=y" (stable)
-	: "g" (PL), "g" (PH), "g" (SL | ((unsigned int) allfull & PL)), "g" (SH | ((unsigned int)(allfull >> 32) & PH))
-	: "mm0", "mm1" );
+	: "=y" (P_central), "=y" (stable) : "g" (PL), "g" (PH), "g" (SL), "g" (SH) : "mm0", "mm1" );
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-	__asm__ (
-		"movq	%1, %%mm0\n\t"
-		"packsswb %%mm0, %%mm0\n\t"
-		"movd	%%mm0, %0\n\t"
-	: "=g" (t) : "y" (stable) : "mm0" );
-
+	t = SL | SH;
 	if (t) {
 		do {
 			__asm__ (
@@ -799,7 +791,7 @@ int get_stability_mmx(unsigned long long P, unsigned long long O)
 				"packsswb %%mm3, %%mm3\n\t"
 				"movd	%%mm3, %0"
 			: "=g" (t), "+y" (stable)
-			: "m" (full.ull[0]), "m" (full.ull[1]), "m" (full.ull[3]), "m" (full.ull[2]), "m" (P_central)
+			: "m" (full.ull[0]), "m" (full.ull[1]), "m" (full.ull[3]), "m" (full.ull[2]), "y" (P_central)
 			: "mm0", "mm1", "mm2", "mm3");
 		} while (t);
 

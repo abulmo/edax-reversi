@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -14,6 +15,10 @@
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
+=======
+ * @date 1998 - 2022
+ * @author Richard Delorme
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
  * @version 4.5
  */
 
@@ -948,6 +953,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 int NWS_endgame(Search *search, const int alpha)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int score, ofssolid, bestscore;
 	unsigned long long hash_code, solid_opp;
 	// const int beta = alpha + 1;
@@ -964,8 +970,11 @@ int NWS_endgame(Search *search, const int alpha)
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 =======
 	int score;
+=======
+	int score, ofssolid;
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 	HashTable *const hash_table = &search->hash_table;
-	unsigned long long hash_code;
+	unsigned long long hash_code, solid_opp;
 	// const int beta = alpha + 1;
 	HashData hash_data;
 	HashStoreData hash_store_data;
@@ -977,11 +986,17 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 	long long nodes_org;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 =======
 	Board board0;
 	unsigned int parity0;
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	Board board0, hashboard;
+	unsigned int parity0;
+	V4DI full;
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 
 	if (search->stop) return alpha;
 
@@ -1018,8 +1033,34 @@ int NWS_endgame(Search *search, const int alpha)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 
 	// transposition cutoff
-	hash_code = board_get_hash_code(&search->board);
-	if (hash_get(hash_table, &search->board, hash_code, &hash_data) && search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha, &score)) return score;
+
+	// Improvement of Serch by Reducing Redundant Information in a Position of Othello
+	// Hidekazu Matsuo, Shuji Narazaki
+	// http://id.nii.ac.jp/1001/00156359/
+	// (1-2% improvement)
+	hashboard = search->board;
+	ofssolid = 0;
+	if (search->eval.n_empties < 9) {
+#if (defined(USE_MSVC_X86) || defined(ANDROID)) && !defined(hasSSE2) && !defined(hasNeon)	// no GAS_MMX dispatch
+		if (hasSSE2)
+			solid_opp = get_all_full_lines_sse(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
+		else
+#endif
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2) && !defined(hasNeon)
+		if (hasMMX)
+			solid_opp = get_all_full_lines_mmx(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
+		else
+#endif
+		solid_opp = get_all_full_lines(hashboard.player | hashboard.opponent, &full) & hashboard.opponent;
+		hashboard.player ^= solid_opp;	// normalize solid to player
+		hashboard.opponent ^= solid_opp;
+		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+	}
+
+	hash_code = board_get_hash_code(&hashboard);
+	if (hash_get(hash_table, &hashboard, hash_code, &hash_data))
+		if (search_TC_NWS(&hash_data, search->eval.n_empties, NO_SELECTIVITY, alpha + ofssolid, &score))
+			return score - ofssolid;
 
 	search_get_movelist(search, &movelist);
 
@@ -1183,10 +1224,10 @@ int NWS_endgame(Search *search, const int alpha)
 		hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
 		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes - nodes_org);
 		hash_store_data.data.move[0] = bestmove->x;
-		hash_store_data.alpha = alpha;
-		hash_store_data.beta = alpha + 1;
-		hash_store_data.score = bestmove->score;
-		hash_store(hash_table, &search->board, hash_code, &hash_store_data);
+		hash_store_data.alpha = alpha + ofssolid;
+		hash_store_data.beta = alpha + ofssolid + 1;
+		hash_store_data.score = bestmove->score + ofssolid;
+		hash_store(hash_table, &hashboard, hash_code, &hash_store_data);
 
 		if (SQUARE_STATS(1) + 0) {
 			foreach_move(move, movelist)
@@ -1196,8 +1237,13 @@ int NWS_endgame(Search *search, const int alpha)
 >>>>>>> 6506166 (More SSE optimizations)
 =======
 				++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];
+<<<<<<< HEAD
 			if (bestmove->score > alpha) ++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[bestmove->score]];
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+			if (bestmove->score > alpha)
+				++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[bestmove->score]];
+>>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
 		}
 	}
 
