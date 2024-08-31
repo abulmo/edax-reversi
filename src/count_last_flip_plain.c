@@ -164,10 +164,14 @@ const unsigned long long mask_d[2][64] = {
 #define	packD(PM)	(((((unsigned int)(PM)) * 0x01010101u) + (((unsigned int)((PM) >> 32)) * 0x01010101u)) >> 24)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // HAS_CPU_64
 =======
 #endif // __x86_64__
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#endif // HAS_CPU_64
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -176,6 +180,7 @@ const unsigned long long mask_d[2][64] = {
  * @param P player's disc pattern.
  * @return flipped disc count.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 int last_flip(int pos, unsigned long long P)
 {
@@ -187,6 +192,12 @@ inline int last_flip(int pos, unsigned long long P)
 	unsigned long long PM;
 	unsigned char	n_flipped;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+int last_flip(int pos, unsigned long long P)
+{
+	unsigned long long PM;
+	int	n_flipped;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	int	x = pos & 0x07;
 	int	y = pos >> 3;
 

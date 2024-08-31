@@ -382,10 +382,14 @@ static inline __m128i flipmask (__m128i outflank) {
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
 =======
 unsigned long long Flip(int pos, const unsigned long long P, const unsigned long long O)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 {
 	__m128i	outflank7, outflank8, outflank9, PP, OO;
 	int	x, y8, index_h;

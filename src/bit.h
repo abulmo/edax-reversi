@@ -95,6 +95,7 @@ extern const unsigned long long X_TO_BIT[];
 //#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b1eae0d (Reduce flip table by rotated outflank; revise lzcnt & rol8 defs)
 =======
 #ifndef __has_builtin
@@ -156,18 +157,20 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #endif
 
 // ctz / clz
+=======
+/** Loop over each bit set. */
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctzll)
 	#define	first_bit(x)	__builtin_ctzll(x)
 	#define	last_bit(x)	(63 - __builtin_clzll(x))
-#elif defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
-	#define	first_bit(x)	_tzcnt_u64(x)
-	#define	last_bit(x)	(63 - _lzcnt_u64(x))
+#elif defined(tzcnt_u64)
+	#define	first_bit(x)	tzcnt_u64(x)
+	#define	last_bit(x)	(63 - lzcnt_u64(x))
 #else
 	int first_bit(unsigned long long);
 	int last_bit(unsigned long long);
 #endif
 
-/** Loop over each bit set. */
 #define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
 
 #ifdef HAS_CPU_64
@@ -176,10 +179,8 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 		foreach_bit(i, b)
 #else
 	typedef unsigned int	widest_register;
-	#if (defined(__GNUC__) && __GNUC__ >= 4) || __has_builtin(__builtin_ctz)
-		#define	first_bit_32(x)	__builtin_ctz(x)
-	#elif defined(_M_ARM) || defined(_M_ARM64)
-		#define first_bit_32(x) _arm_clz(_arm_rbit(x))
+	#ifdef tzcnt_u32
+		#define	first_bit_32(x)	tzcnt_u32(x)
 	#else
 		int first_bit_32(unsigned int);
 	#endif
@@ -189,6 +190,10 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #endif
 
 // popcount
+#if !defined(POPCOUNT) && (defined(__ARM_NEON__) || defined(_M_ARM) || defined(_M_ARM64))
+	#define	POPCOUNT	1
+#endif
+
 #ifdef POPCOUNT
 	/*
 	#if defined (USE_GAS_X64)
@@ -208,7 +213,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 		}
 	*/
 	#ifdef _MSC_VER
-		#ifdef _M_ARM
+		#if defined(_M_ARM) || defined(_M_ARM64)
 			#define bit_count(x)	_CountOneBits64(x)
 		#elif defined(_M_X64)
 			#define	bit_count(x)	((int) __popcnt64(x))
@@ -231,6 +236,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 >>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
 #endif
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -378,6 +384,8 @@ typedef union {
 	#define	hasMMX	1
 #endif
 
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 	#ifndef hasSSE2
 		extern bool	hasSSE2;
@@ -512,88 +520,6 @@ static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 		| (unsigned int) _mm_cvtsi128_si32(x);
 }
 #endif
-#endif
-
-// lzcnt / tzcnt (0 allowed)
-#ifdef USE_GAS_X86
-#ifdef __LZCNT__
-static inline int _lzcnt_u64(unsigned long long x) {
-	int	y;
-	__asm__ (
-		"lzcntl	%1, %0\n\t"
-		"lzcntl	%2, %2\n\t"
-		"leal	(%0, %2), %0\n\t"
-		"cmovnc	%2, %0"
-	: "=&r" (y) : "0" ((unsigned int) x), "r" ((unsigned int) (x >> 32)) );
-	return y;
-}
-#endif
-#ifdef __BMI__
-static inline int _tzcnt_u64(unsigned long long x) {
-	int	y;
-	__asm__ (
-		"tzcntl	%1, %0\n\t"
-		"tzcntl	%2, %2\n\t"
-		"leal	(%0, %2), %0\n\t"
-		"cmovnc	%2, %0"
-	: "=&r" (y) : "0" ((unsigned int) (x >> 32)), "r" ((unsigned int) x) );
-	return y;
-}
-#endif
-#elif defined(USE_MSVC_X86) && (defined(__AVX2__) || defined(__LZCNT__))
-static inline int _lzcnt_u64(unsigned long long x) {
-	__asm {
-		lzcnt	eax, dword ptr x
-		lzcnt	edx, dword ptr x+4
-		lea	eax, [eax+edx]
-		cmovnc	eax, edx
-	}
-}
-
-static inline int _tzcnt_u64(unsigned long long x) {
-	__asm {
-		tzcnt	eax, dword ptr x+4
-		tzcnt	edx, dword ptr x
-		lea	eax, [eax+edx]
-		cmovnc	eax, edx
-	}
-}
-#endif
-
-#if defined(__AVX2__) || defined(__LZCNT__)
-	#define	lzcnt_u32(x)	_lzcnt_u32(x)
-	#define	lzcnt_u64(x)	_lzcnt_u64(x)
-
-#elif defined(_M_ARM) || defined(_M_ARM64)
-	#define lzcnt_u32(x)	_CountLeadingZeros(x)
-	#define lzcnt_u64(x)	_CountLeadingZeros64(x)
-
-#elif defined(_MSC_VER)
-	#ifdef _M_X64
-		static inline int lzcnt_u64(unsigned long long n) {
-			unsigned long i;
-			if (!_BitScanReverse64(&i, n))
-				i = 64 ^ 63;
-			return i ^ 63;
-		}
-	#else
-		static inline int lzcnt_u64(unsigned long long n) {
-			unsigned long i;
-			if (_BitScanReverse(&i, n >> 32))
-				return i ^ 31;
-			if (!_BitScanReverse(&i, (unsigned int) n))
-				i = 64 ^ 63;
-			return i ^ 63;
-		}
-	#endif
-
-#elif defined(__ARM_FEATURE_CLZ)
-	#define	lzcnt_u32(x)	__clz(x)
-	#define	lzcnt_u64(x)	__clzll(x)
-
-#else
-	static inline int lzcnt_u32(unsigned long x) { return (x ? __builtin_clz(x) : 32); }
-	static inline int lzcnt_u64(unsigned long x) { return (x ? __builtin_clzll(x) : 64); }
 #endif
 
 #endif // EDAX_BIT_H

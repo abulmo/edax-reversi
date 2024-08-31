@@ -280,9 +280,10 @@ static inline unsigned long long OutflankToFlipmask(unsigned long long outflank)
  */
 static unsigned long long flip_A1(const unsigned long long P, const unsigned long long O)
 {
-	unsigned char outflank_h;
+	unsigned int outflank_h;
 	unsigned long long flipped, outflank_v, outflank_d9;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	outflank_v = ((O | ~0x0101010101010100) + 1) & P & 0x0101010101010100;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010100;
@@ -310,8 +311,17 @@ static unsigned long long flip_A1(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0040201008040200;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+	outflank_v = ((O | ~0x0101010101010100) + 1) & P & 0x0101010101010100;
+	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010100;
+
+	outflank_d9 = ((O | ~0x8040201008040200) + 1) & P & 0x8040201008040200;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x8040201008040200;
 >>>>>>> 6506166 (More SSE optimizations)
+
+	outflank_h = (unsigned char) (O + 0x02) & P;
+	flipped |= outflank_h - ((unsigned int) (outflank_h != 0) << 1);
 
 	return flipped;
 }
@@ -325,9 +335,10 @@ static unsigned long long flip_A1(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_B1(const unsigned long long P, const unsigned long long O)
 {
-	unsigned char outflank_h;
+	unsigned int outflank_h;
 	unsigned long long flipped, outflank_v, outflank_d9;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	outflank_v = ((O | ~0x0202020202020200) + 1) & P & 0x0202020202020200;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020200;
@@ -355,8 +366,17 @@ static unsigned long long flip_B1(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0000402010080400;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+	outflank_v = ((O | ~0x0202020202020200) + 1) & P & 0x0202020202020200;
+	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020200;
+
+	outflank_d9 = ((O | ~0x0080402010080400) + 1) & P & 0x0080402010080400;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x0080402010080400;
 >>>>>>> 6506166 (More SSE optimizations)
+
+	outflank_h = (unsigned char) (O + 0x04) & P;
+	flipped |= outflank_h - ((unsigned int) (outflank_h != 0) << 2);
 
 	return flipped;
 }
@@ -600,9 +620,10 @@ static unsigned long long flip_H1(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_A2(const unsigned long long P, const unsigned long long O)
 {
-	unsigned short outflank_h;
+	unsigned int outflank_h;
 	unsigned long long flipped, outflank_v, outflank_d9;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	outflank_v = ((O | ~0x0101010101010000) + 1) & P & 0x0101010101010000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010000;
@@ -630,8 +651,17 @@ static unsigned long long flip_A2(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0020100804020000;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+	outflank_v = ((O | ~0x0101010101010000) + 1) & P & 0x0101010101010000;
+	flipped = OutflankToFlipmask(outflank_v) & 0x0101010101010000;
+
+	outflank_d9 = ((O | ~0x4020100804020000) + 1) & P & 0x4020100804020000;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x4020100804020000;
 >>>>>>> 6506166 (More SSE optimizations)
+
+	outflank_h = (unsigned short) (O + 0x0200) & P;
+	flipped |= (outflank_h - (outflank_h >> 8)) & 0x7e00;
 
 	return flipped;
 }
@@ -645,9 +675,10 @@ static unsigned long long flip_A2(const unsigned long long P, const unsigned lon
  */
 static unsigned long long flip_B2(const unsigned long long P, const unsigned long long O)
 {
-	unsigned short outflank_h;
+	unsigned int outflank_h;
 	unsigned long long flipped, outflank_v, outflank_d9;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	outflank_v = ((O | ~0x0202020202020000) + 1) & P & 0x0202020202020000;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020000;
@@ -675,8 +706,17 @@ static unsigned long long flip_B2(const unsigned long long P, const unsigned lon
 	flipped |= (outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0040201008040000;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+	outflank_v = ((O | ~0x0202020202020000) + 1) & P & 0x0202020202020000;
+	flipped = OutflankToFlipmask(outflank_v) & 0x0202020202020000;
+
+	outflank_d9 = ((O | ~0x8040201008040000) + 1) & P & 0x8040201008040000;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= OutflankToFlipmask(outflank_d9) & 0x8040201008040000;
 >>>>>>> 6506166 (More SSE optimizations)
+
+	outflank_h = (unsigned short) (O + 0x0400) & P;
+	flipped |= (outflank_h - (outflank_h >> 8)) & 0x7c00;
 
 	return flipped;
 }

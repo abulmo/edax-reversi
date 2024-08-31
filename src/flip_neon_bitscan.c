@@ -34,6 +34,7 @@
  * returned to generate moves.
  *
  * If the OUTFLANK search is in LSB to MSB direction, carry propagation 
+<<<<<<< HEAD
  * (with Neon if appropriate) can be used to determine contiguous opponent discs.
  * If the OUTFLANK search is in MSB to LSB direction, lzcnt64 is used.
  *
@@ -48,6 +49,21 @@
 // included from board.c or linked in Android Arm32 dispatch build
 #if defined(flip_neon) || defined(DISPATCH_NEON)
 
+=======
+ * can be used to determine contiguous opponent discs.
+ * If the OUTFLANK search is in MSB to LSB direction, lzcnt64 is used if 
+ * available, or __builtin_bswap is used to use carry propagation backwards.
+ *
+ * @date 1998 - 2020
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.4
+ */
+
+#include "arm_neon.h"
+#include "bit_intrinsics.h"
+
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 /** rotated outflank array (indexed with inner 6 bits) */
 static const unsigned char OUTFLANK_3[64] = {	// ...bahgf
 	0x00, 0x00, 0x10, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x11, 0x09, 0x00, 0x00, 0x00, 0x00,
@@ -199,8 +215,13 @@ static unsigned long long flip_D1(const unsigned long long P, const unsigned lon
 	outflank_v = (outflank_v & -outflank_v) & 0x0808080808080800 & P;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0808080808080800;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) O & 0x40221408) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000008041221408) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+=======
+	outflank_d = ((P & 0x0000008041221408) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+	outflank_d = OUTFLANK_3[((O & 0x0000000040221408) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0000000040221408;	// A4D1H5
 
 	outflank_h = OUTFLANK_3[(O >> 1) & 0x3f] & rotl8(P, 3);
@@ -225,8 +246,13 @@ static unsigned long long flip_E1(const unsigned long long P, const unsigned lon
 	outflank_v = (outflank_v & -outflank_v) & 0x1010101010101000 & P;
 	flipped = OutflankToFlipmask(outflank_v) & 0x1010101010101000;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) O & 0x02442810) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000000182442810) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+=======
+	outflank_d = ((P & 0x0000000182442810) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+	outflank_d = OUTFLANK_4[((O & 0x0000000002442810) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0000000002442810;	// A5E1H4
 
 	outflank_h = OUTFLANK_4[(O >> 1) & 0x3f] & rotl8(P, 2);
@@ -399,8 +425,13 @@ static unsigned long long flip_D2(const unsigned long long P, const unsigned lon
 	outflank_v = (outflank_v & -outflank_v) & 0x0808080808080000 & P;
 	flipped = OutflankToFlipmask(outflank_v) & 0x0808080808080000;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) (O >> 8) & 0x40221408) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000804122140800) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+=======
+	outflank_d = ((P & 0x0000804122140800) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+	outflank_d = OUTFLANK_3[((O & 0x0000004022140800) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0000004022140800;	// A5D2H6
 
 	outflank_h = OUTFLANK_3[(O >> 9) & 0x3f] & rotl8(P >> 8, 3);
@@ -425,8 +456,13 @@ static unsigned long long flip_E2(const unsigned long long P, const unsigned lon
 	outflank_v = (outflank_v & -outflank_v) & 0x1010101010100000 & P;
 	flipped = OutflankToFlipmask(outflank_v) & 0x1010101010100000;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) (O >> 8) & 0x02442810) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000018244281000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+=======
+	outflank_d = ((P & 0x0000018244281000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+	outflank_d = OUTFLANK_4[((O & 0x0000000244281000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0000000244281000;	// A6E2H5
 
 	outflank_h = OUTFLANK_4[(O >> 9) & 0x3f] & rotl8(P >> 8, 2);
@@ -615,8 +651,13 @@ static unsigned long long flip_D3(const unsigned long long P, const unsigned lon
 	outflank_h = OUTFLANK_3[(O >> 17) & 0x3f] & rotl8(P >> 16, 3);
 	flipped |= (unsigned char) FLIPPED_3_H[outflank_h] << 16;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) (O >> 16) & 0x40221408) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0080412214080000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+=======
+	outflank_d = ((P & 0x0080412214080000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+	outflank_d = OUTFLANK_3[((O & 0x0000402214080000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0000402214080000;	// A6D3H7
 
 	flipped |= (((P << 7) & 0x0000000000001000) | ((P << 8) & 0x000000000000800) | ((P << 9) & 0x000000000000400)) & O;
@@ -643,8 +684,13 @@ static unsigned long long flip_E3(const unsigned long long P, const unsigned lon
 	outflank_h = OUTFLANK_4[(O >> 17) & 0x3f] & rotl8(P >> 16, 2);
 	flipped |= (unsigned char) FLIPPED_4_H[outflank_h] << 16;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) (O >> 16) & 0x02442810) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0001824428100000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+=======
+	outflank_d = ((P & 0x0001824428100000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+	outflank_d = OUTFLANK_4[((O & 0x0000024428100000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0000024428100000;	// A7E3H6
 
 	flipped |= (((P << 7) & 0x0000000000002000) | ((P << 8) & 0x000000000001000) | ((P << 9) & 0x000000000000800)) & O;
@@ -667,15 +713,24 @@ static unsigned long long flip_F3(const unsigned long long P, const unsigned lon
 	uint32x4_t OL = vtrnq_u32(vreinterpretq_u32_u64(OO), vreinterpretq_u32_u64(OO)).val[0];
 	uint32x4_t outflankL;
 	uint64x2_t outflankH, flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x001f000000002020, 0x0000408000001008 };
+=======
+	const uint32x4_t maskL = { 0x00002020, 0x001f0000, 0x00001008, 0x00004080 };
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	const uint64x2_t maskH = { 0x2020202020000000, 0x0102040810000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint64x2_t one = vdupq_n_u64(1);
 	unsigned long long flipped_g3g4;
 
+<<<<<<< HEAD
 	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OL))))), PL);
 	flipped = vpaddlq_u32(vandq_u32(vreinterpretq_u32_u64(maskL), vreinterpretq_u32_s32(
+=======
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flipped = vpaddlq_u32(vandq_u32(maskL, vreinterpretq_u32_s32(
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL))))));
 
 	outflankH = vbicq_u64(maskH, OO);
@@ -702,14 +757,23 @@ static unsigned long long flip_G3(const unsigned long long P, const unsigned lon
 	uint32x4_t OL = vtrnq_u32(vreinterpretq_u32_u64(OO), vreinterpretq_u32_u64(OO)).val[0];
 	uint32x4_t outflankL;
 	uint64x2_t outflankH, flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x003f000000004040, 0x0000000000002010 };
+=======
+	const uint32x4_t maskL = { 0x00004040, 0x003f0000, 0x00002010, 0 };
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	const uint64x2_t maskH = { 0x4040404040000000, 0x0204081020000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint64x2_t one = vdupq_n_u64(1);
 
+<<<<<<< HEAD
 	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OL))))), PL);
 	flipped = vpaddlq_u32(vandq_u32(vreinterpretq_u32_u64(maskL), vreinterpretq_u32_s32(
+=======
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flipped = vpaddlq_u32(vandq_u32(maskL, vreinterpretq_u32_s32(
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL))))));
 
 	outflankH = vbicq_u64(maskH, OO);
@@ -734,14 +798,23 @@ static unsigned long long flip_H3(const unsigned long long P, const unsigned lon
 	uint32x4_t OL = vtrnq_u32(vreinterpretq_u32_u64(OO), vreinterpretq_u32_u64(OO)).val[0];
 	uint32x4_t outflankL;
 	uint64x2_t outflankH, flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x007f000000008080, 0x0000000000004020 };
+=======
+	const uint32x4_t maskL = { 0x00008080, 0x007f0000, 0x00004020, 0 };
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	const uint64x2_t maskH = { 0x8080808080000000, 0x0408102040000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint64x2_t one = vdupq_n_u64(1);
 
+<<<<<<< HEAD
 	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OL))))), PL);
 	flipped = vpaddlq_u32(vandq_u32(vreinterpretq_u32_u64(maskL), vreinterpretq_u32_s32(
+=======
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flipped = vpaddlq_u32(vandq_u32(maskL, vreinterpretq_u32_s32(
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL))))));
 
 	outflankH = vbicq_u64(maskH, OO);
@@ -769,11 +842,17 @@ static unsigned long long flip_A4(const unsigned long long P, const unsigned lon
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint32x4_t one = vdupq_n_u32(1);
 
+<<<<<<< HEAD
 	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OO)))));
 	outflankL = vandq_u32(outflankL, PP);
 	flipped = vandq_u64(maskL, vreinterpretq_u64_s32(
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+=======
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OO)))));
+	outflankL = vandq_u32(outflankL, PP);
+	flipped = vandq_u64(maskL, vreinterpretq_u64_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 	outflankH = vbicq_u32(vreinterpretq_u32_u64(maskH), OO);
 	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PP);
@@ -800,11 +879,17 @@ static unsigned long long flip_B4(const unsigned long long P, const unsigned lon
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint32x4_t one = vdupq_n_u32(1);
 
+<<<<<<< HEAD
 	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OO)))));
 	outflankL = vandq_u32(outflankL, PP);
 	flipped = vandq_u64(maskL, vreinterpretq_u64_s32(
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+=======
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OO)))));
+	outflankL = vandq_u32(outflankL, PP);
+	flipped = vandq_u64(maskL, vreinterpretq_u64_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 	outflankH = vbicq_u32(vreinterpretq_u32_u64(maskH), OO);
 	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PP);
@@ -827,6 +912,7 @@ static unsigned long long flip_C4(const unsigned long long P, const unsigned lon
 	uint32x4_t PH = vsetq_lane_u32(vgetq_lane_u32(PP, 1), PP, 2);	// HHHL
 	uint32x4_t OH = vsetq_lane_u32(vgetq_lane_u32(OO, 1), OO, 2);
 	uint32x4_t outflankL, outflankH, flippedL4, flippedH;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0004040403000000, 0x0008102000020100 };
@@ -845,6 +931,26 @@ static unsigned long long flip_C4(const unsigned long long P, const unsigned lon
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4)), vget_high_u32(flippedH));
+=======
+	uint32x2_t flippedL2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x03000000, 0x00040404, 0x00020100, 0x00081020 };
+	const uint32x4_t maskH = { 0xf8000000, 0x04040404, 0x40201008, 0x00000102 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, vtrnq_u32(OO, OO).val[0])))));
+	outflankL = vandq_u32(outflankL, vtrnq_u32(PP, PP).val[0]);
+	flippedL4 = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+	flippedL2 = vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+
+	flippedLH = vtrn_u32(flippedL2, vget_high_u32(flippedH));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedH)));
 
 	return vget_lane_u64(flipped, 0);
@@ -864,6 +970,7 @@ static unsigned long long flip_D4(const unsigned long long P, const unsigned lon
 	uint32x4_t PH = vsetq_lane_u32(vgetq_lane_u32(PP, 1), PP, 2);	// HHHL
 	uint32x4_t OH = vsetq_lane_u32(vgetq_lane_u32(OO, 1), OO, 2);
 	uint32x4_t outflankL, outflankH, flippedL4, flippedH;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0008080807000000, 0x0010204000040201 };
@@ -882,6 +989,26 @@ static unsigned long long flip_D4(const unsigned long long P, const unsigned lon
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4)), vget_high_u32(flippedH));
+=======
+	uint32x2_t flippedL2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x07000000, 0x00080808, 0x00040201, 0x00102040 };
+	const uint32x4_t maskH = { 0xf0000000, 0x08080808, 0x80402010, 0x00010204 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, vtrnq_u32(OO, OO).val[0])))));
+	outflankL = vandq_u32(outflankL, vtrnq_u32(PP, PP).val[0]);
+	flippedL4 = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+	flippedL2 = vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+
+	flippedLH = vtrn_u32(flippedL2, vget_high_u32(flippedH));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedH)));
 
 	return vget_lane_u64(flipped, 0);
@@ -901,6 +1028,7 @@ static unsigned long long flip_E4(const unsigned long long P, const unsigned lon
 	uint32x4_t PH = vsetq_lane_u32(vgetq_lane_u32(PP, 1), PP, 2);	// HHHL
 	uint32x4_t OH = vsetq_lane_u32(vgetq_lane_u32(OO, 1), OO, 2);
 	uint32x4_t outflankL, outflankH, flippedL4, flippedH;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x001010100f000000, 0x0020408000080402 };
@@ -919,6 +1047,26 @@ static unsigned long long flip_E4(const unsigned long long P, const unsigned lon
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4)), vget_high_u32(flippedH));
+=======
+	uint32x2_t flippedL2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x0f000000, 0x00101010, 0x00080402, 0x00204080 };
+	const uint32x4_t maskH = { 0xe0000000, 0x10101010, 0x00804020, 0x01020408 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, vtrnq_u32(OO, OO).val[0])))));
+	outflankL = vandq_u32(outflankL, vtrnq_u32(PP, PP).val[0]);
+	flippedL4 = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+	flippedL2 = vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+
+	flippedLH = vtrn_u32(flippedL2, vget_high_u32(flippedH));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedH)));
 
 	return vget_lane_u64(flipped, 0);
@@ -938,6 +1086,7 @@ static unsigned long long flip_F4(const unsigned long long P, const unsigned lon
 	uint32x4_t PH = vsetq_lane_u32(vgetq_lane_u32(PP, 1), PP, 2);	// HHHL
 	uint32x4_t OH = vsetq_lane_u32(vgetq_lane_u32(OO, 1), OO, 2);
 	uint32x4_t outflankL, outflankH, flippedL4, flippedH;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x002020201f000000, 0x0040800000100804 };
@@ -956,6 +1105,26 @@ static unsigned long long flip_F4(const unsigned long long P, const unsigned lon
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4)), vget_high_u32(flippedH));
+=======
+	uint32x2_t flippedL2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x1f000000, 0x00202020, 0x00100804, 0x00408000 };
+	const uint32x4_t maskH = { 0xc0000000, 0x20202020, 0x00008040, 0x02040810 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, vtrnq_u32(OO, OO).val[0])))));
+	outflankL = vandq_u32(outflankL, vtrnq_u32(PP, PP).val[0]);
+	flippedL4 = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+	flippedL2 = vorr_u32(vget_low_u32(flippedL4), vget_high_u32(flippedL4));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+
+	flippedLH = vtrn_u32(flippedL2, vget_high_u32(flippedH));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedH)));
 
 	return vget_lane_u64(flipped, 0);
@@ -976,14 +1145,23 @@ static unsigned long long flip_G4(const unsigned long long P, const unsigned lon
 	uint32x4_t OL = vtrnq_u32(vreinterpretq_u32_u64(OO), vreinterpretq_u32_u64(OO)).val[0];
 	uint32x4_t outflankL;
 	uint64x2_t outflankH, flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x3f00000000404040, 0x0000000000201008 };
+=======
+	const uint32x4_t maskL = { 0x00404040, 0x3f000000, 0x00201008, 0 };
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	const uint64x2_t maskH = { 0x4040404000000000, 0x0408102000000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint64x2_t one = vdupq_n_u64(1);
 
+<<<<<<< HEAD
 	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OL))))), PL);
 	flipped = vpaddlq_u32(vandq_u32(vreinterpretq_u32_u64(maskL), vreinterpretq_u32_s32(
+=======
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flipped = vpaddlq_u32(vandq_u32(maskL, vreinterpretq_u32_s32(
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL))))));
 
 	outflankH = vbicq_u64(maskH, OO);
@@ -1008,14 +1186,23 @@ static unsigned long long flip_H4(const unsigned long long P, const unsigned lon
 	uint32x4_t OL = vtrnq_u32(vreinterpretq_u32_u64(OO), vreinterpretq_u32_u64(OO)).val[0];
 	uint32x4_t outflankL;
 	uint64x2_t outflankH, flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x7f00000000808080, 0x0000000000402010 };
+=======
+	const uint32x4_t maskL = { 0x00808080, 0x7f000000, 0x00402010, 0 };
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	const uint64x2_t maskH = { 0x8080808000000000, 0x0810204000000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
 	const uint64x2_t one = vdupq_n_u64(1);
 
+<<<<<<< HEAD
 	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(
 		vclzq_u32(vbicq_u32(vreinterpretq_u32_u64(maskL), OL))))), PL);
 	flipped = vpaddlq_u32(vandq_u32(vreinterpretq_u32_u64(maskL), vreinterpretq_u32_s32(
+=======
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flipped = vpaddlq_u32(vandq_u32(maskL, vreinterpretq_u32_s32(
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 		vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL))))));
 
 	outflankH = vbicq_u64(maskH, OO);
@@ -1041,6 +1228,7 @@ static unsigned long long flip_A5(const unsigned long long P, const unsigned lon
 	uint32x4_t outflankL, outflankH, flippedL, flippedH;
 	uint32x4x2_t flippedLH;
 	uint64x2_t flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x0000000001010101, 0x0000000002040810 };
 	const uint64x2_t maskH = { 0x01010100000000fe, 0x0804020000000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
@@ -1054,6 +1242,19 @@ static unsigned long long flip_A5(const unsigned long long P, const unsigned lon
 	outflankH = vbicq_u32(vreinterpretq_u32_u64(maskH), OH);
 	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
+=======
+	const uint32x4_t maskL = { 0x01010101, 0, 0x02040810, 0 };
+	const uint32x4_t maskH = { 0x000000fe, 0x01010100, 0, 0x08040200 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OO))))), PP);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 	flippedLH = vtrnq_u32(flippedL, flippedH);
 	flipped = vreinterpretq_u64_u32(vorrq_u32(flippedLH.val[0], flippedLH.val[1]));
@@ -1077,6 +1278,7 @@ static unsigned long long flip_B5(const unsigned long long P, const unsigned lon
 	uint32x4_t outflankL, outflankH, flippedL, flippedH;
 	uint32x4x2_t flippedLH;
 	uint64x2_t flipped;
+<<<<<<< HEAD
 	const uint64x2_t maskL = { 0x0000000002020202, 0x0000000004081020 };
 	const uint64x2_t maskH = { 0x02020200000000fc, 0x1008040000000000 };
 	const uint32x4_t msb = vdupq_n_u32(0x80000000);
@@ -1090,6 +1292,19 @@ static unsigned long long flip_B5(const unsigned long long P, const unsigned lon
 	outflankH = vbicq_u32(vreinterpretq_u32_u64(maskH), OH);
 	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
 	flippedH = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
+=======
+	const uint32x4_t maskL = { 0x02020202, 0, 0x04081020, 0 };
+	const uint32x4_t maskH = { 0x000000fc, 0x02020200, 0, 0x10080400 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OO))))), PP);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, OH);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), PH);
+	flippedH = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 	flippedLH = vtrnq_u32(flippedL, flippedH);
 	flipped = vreinterpretq_u64_u32(vorrq_u32(flippedLH.val[0], flippedLH.val[1]));
@@ -1111,6 +1326,7 @@ static unsigned long long flip_C5(const unsigned long long P, const unsigned lon
 	uint32x4_t PL = vsetq_lane_u32(vgetq_lane_u32(PP, 0), PP, 3);	// LLHL
 	uint32x4_t OL = vsetq_lane_u32(vgetq_lane_u32(OO, 0), OO, 3);
 	uint32x4_t outflankL, outflankH, flippedH4, flippedL;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0000000304040404, 0x0810204002010000 };
@@ -1128,6 +1344,25 @@ static unsigned long long flip_C5(const unsigned long long P, const unsigned lon
 	flippedH4 = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vget_high_u32(flippedL), vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4)));
+=======
+	uint32x2_t flippedH2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x04040404, 0x00000003, 0x02010000, 0x08102040 };
+	const uint32x4_t maskH = { 0x04040400, 0x000000f8, 0x20100800, 0x00010200 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, vtrnq_u32(OO, OO).val[1]);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), vtrnq_u32(PP, PP).val[1]);
+	flippedH4 = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+	flippedH2 = vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4));
+
+	flippedLH = vtrn_u32(vget_high_u32(flippedL), flippedH2);
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedL)));
 
 	return vget_lane_u64(flipped, 0);
@@ -1147,6 +1382,7 @@ static unsigned long long flip_D5(const unsigned long long P, const unsigned lon
 	uint32x4_t PL = vsetq_lane_u32(vgetq_lane_u32(PP, 0), PP, 3);	// LLHL
 	uint32x4_t OL = vsetq_lane_u32(vgetq_lane_u32(OO, 0), OO, 3);
 	uint32x4_t outflankL, outflankH, flippedH4, flippedL;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0000000708080808, 0x1020408004020100 };
@@ -1164,6 +1400,25 @@ static unsigned long long flip_D5(const unsigned long long P, const unsigned lon
 	flippedH4 = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vget_high_u32(flippedL), vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4)));
+=======
+	uint32x2_t flippedH2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x08080808, 0x00000007, 0x04020100, 0x10204080 };
+	const uint32x4_t maskH = { 0x08080800, 0x000000f0, 0x40201000, 0x01020400 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, vtrnq_u32(OO, OO).val[1]);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), vtrnq_u32(PP, PP).val[1]);
+	flippedH4 = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+	flippedH2 = vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4));
+
+	flippedLH = vtrn_u32(vget_high_u32(flippedL), flippedH2);
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedL)));
 
 	return vget_lane_u64(flipped, 0);
@@ -1183,6 +1438,7 @@ static unsigned long long flip_E5(const unsigned long long P, const unsigned lon
 	uint32x4_t PL = vsetq_lane_u32(vgetq_lane_u32(PP, 0), PP, 3);	// LLHL
 	uint32x4_t OL = vsetq_lane_u32(vgetq_lane_u32(OO, 0), OO, 3);
 	uint32x4_t outflankL, outflankH, flippedH4, flippedL;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0000000f10101010, 0x2040800008040201 };
@@ -1200,6 +1456,25 @@ static unsigned long long flip_E5(const unsigned long long P, const unsigned lon
 	flippedH4 = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vget_high_u32(flippedL), vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4)));
+=======
+	uint32x2_t flippedH2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x10101010, 0x0000000f, 0x08040201, 0x20408000 };
+	const uint32x4_t maskH = { 0x10101000, 0x000000e0, 0x80402000, 0x02040800 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, vtrnq_u32(OO, OO).val[1]);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), vtrnq_u32(PP, PP).val[1]);
+	flippedH4 = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+	flippedH2 = vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4));
+
+	flippedLH = vtrn_u32(vget_high_u32(flippedL), flippedH2);
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedL)));
 
 	return vget_lane_u64(flipped, 0);
@@ -1219,6 +1494,7 @@ static unsigned long long flip_F5(const unsigned long long P, const unsigned lon
 	uint32x4_t PL = vsetq_lane_u32(vgetq_lane_u32(PP, 0), PP, 3);	// LLHL
 	uint32x4_t OL = vsetq_lane_u32(vgetq_lane_u32(OO, 0), OO, 3);
 	uint32x4_t outflankL, outflankH, flippedH4, flippedL;
+<<<<<<< HEAD
 	uint32x2x2_t flippedLH;
 	uint64x1_t flipped;
 	const uint64x2_t maskL = { 0x0000001f20202020, 0x4080000010080402 };
@@ -1236,6 +1512,25 @@ static unsigned long long flip_F5(const unsigned long long P, const unsigned lon
 	flippedH4 = vandq_u32(vreinterpretq_u32_u64(maskH), vqsubq_u32(outflankH, one));
 
 	flippedLH = vtrn_u32(vget_high_u32(flippedL), vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4)));
+=======
+	uint32x2_t flippedH2;
+	uint32x2x2_t flippedLH;
+	uint64x1_t flipped;
+	const uint32x4_t maskL = { 0x20202020, 0x0000001f, 0x10080402, 0x40800000 };
+	const uint32x4_t maskH = { 0x20202000, 0x000000c0, 0x00804000, 0x04081000 };
+	const uint32x4_t msb = vdupq_n_u32(0x80000000);
+	const uint32x4_t one = vdupq_n_u32(1);
+
+	outflankL = vandq_u32(vshlq_u32(msb, vnegq_s32(vreinterpretq_s32_u32(vclzq_u32(vbicq_u32(maskL, OL))))), PL);
+	flippedL = vandq_u32(maskL, vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(vaddq_u32(outflankL, outflankL)))));
+
+	outflankH = vbicq_u32(maskH, vtrnq_u32(OO, OO).val[1]);
+	outflankH = vandq_u32(vbicq_u32(outflankH, vsubq_u32(outflankH, one)), vtrnq_u32(PP, PP).val[1]);
+	flippedH4 = vandq_u32(maskH, vqsubq_u32(outflankH, one));
+	flippedH2 = vorr_u32(vget_low_u32(flippedH4), vget_high_u32(flippedH4));
+
+	flippedLH = vtrn_u32(vget_high_u32(flippedL), flippedH2);
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped = vreinterpret_u64_u32(vorr_u32(vorr_u32(flippedLH.val[0], flippedLH.val[1]), vget_low_u32(flippedL)));
 
 	return vget_lane_u64(flipped, 0);
@@ -1394,8 +1689,13 @@ static unsigned long long flip_D6(const unsigned long long P, const unsigned lon
 	outflank_h = OUTFLANK_3[(O >> 41) & 0x3f] & rotl8(P >> 40, 3);
 	flipped |= (unsigned long long)(unsigned char) FLIPPED_3_H[outflank_h] << 40;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) (O >> 16) & 0x08142240) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000081422418000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+=======
+	outflank_d = ((P & 0x0000081422418000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+	outflank_d = OUTFLANK_3[((O & 0x0000081422400000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0000081422400000;	// A3D6H2
 
 	flipped |= (((P >> 9) & 0x0010000000000000) | ((P >> 8) & 0x0008000000000000) | ((P >> 7) & 0x0004000000000000)) & O;
@@ -1421,8 +1721,13 @@ static unsigned long long flip_E6(const unsigned long long P, const unsigned lon
 	outflank_h = OUTFLANK_4[(O >> 41) & 0x3f] & rotl8(P >> 40, 2);
 	flipped |= (unsigned long long)(unsigned char) FLIPPED_4_H[outflank_h] << 40;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) (O >> 16) & 0x10284402) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0000102844820100) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+=======
+	outflank_d = ((P & 0x0000102844820100) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+	outflank_d = OUTFLANK_4[((O & 0x0000102844020000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0000102844020000;	// A2E6H3
 
 	flipped |= (((P >> 9) & 0x0020000000000000) | ((P >> 8) & 0x0010000000000000) | ((P >> 7) & 0x0008000000000000)) & O;
@@ -1598,8 +1903,13 @@ static unsigned long long flip_D7(const unsigned long long P, const unsigned lon
 	outflank_v = outflank_right(O, 0x0000080808080808) & P;
 	flipped  = (outflank_v * -2) & 0x0000080808080808;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) (O >> 24) & 0x08142240) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0008142241800000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+=======
+	outflank_d = ((P & 0x0008142241800000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]...
+	outflank_d = OUTFLANK_3[((O & 0x0008142240000000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0008142240000000;	// A4D7H3
 
 	outflank_h = OUTFLANK_3[(O >> 49) & 0x3f] & rotl8(P >> 48, 3);
@@ -1623,8 +1933,13 @@ static unsigned long long flip_E7(const unsigned long long P, const unsigned lon
 	outflank_v = outflank_right(O, 0x0000101010101010) & P;
 	flipped  = (outflank_v * -2) & 0x0000101010101010;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) (O >> 24) & 0x10284402) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0010284482010000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+=======
+	outflank_d = ((P & 0x0010284482010000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]...
+	outflank_d = OUTFLANK_4[((O & 0x0010284402000000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x0010284402000000;	// A3E7H4
 
 	outflank_h = OUTFLANK_4[(O >> 49) & 0x3f] & rotl8(P >> 48, 2);
@@ -1793,8 +2108,13 @@ static unsigned long long flip_D8(const unsigned long long P, const unsigned lon
 	outflank_v = outflank_right(O, 0x0008080808080808) & P;
 	flipped  = (outflank_v * -2) & 0x0008080808080808;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_3[(((unsigned int) (O >> 32) & 0x08142240) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x0814224180000000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]e0cba...
+=======
+	outflank_d = ((P & 0x0814224180000000) * 0x0101010101010101) >> 53;	// hgfedc[bahgf]e0cba...
+	outflank_d = OUTFLANK_3[((O & 0x0814224000000000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_3_H[outflank_d] & 0x0814224000000000;	// A5D8H4
 
 	outflank_h = OUTFLANK_3[(O >> 57) & 0x3f] & rotl8(P >> 56, 3);
@@ -1818,8 +2138,13 @@ static unsigned long long flip_E8(const unsigned long long P, const unsigned lon
 	outflank_v = outflank_right(O, 0x0010101010101010) & P;
 	flipped  = (outflank_v * -2) & 0x0010101010101010;
 
+<<<<<<< HEAD
 	outflank_d = OUTFLANK_4[(((unsigned int) (O >> 32) & 0x10284402) * 0x01010101) >> 25];
 	outflank_d &= ((P & 0x1028448201000000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]f0dcba...
+=======
+	outflank_d = ((P & 0x1028448201000000) * 0x0101010101010101) >> 54;	// hgfed[cbahg]f0dcba...
+	outflank_d = OUTFLANK_4[((O & 0x1028440200000000) * 0x0101010101010101) >> 57] & outflank_d;
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flipped |= FLIPPED_4_H[outflank_d] & 0x1028440200000000;	// A4E8H5
 
 	outflank_h = OUTFLANK_4[(O >> 57) & 0x3f] & rotl8(P >> 56, 2);
@@ -1916,8 +2241,14 @@ static unsigned long long flip_pass(const unsigned long long P, const unsigned l
 	return 0;
 }
 
+<<<<<<< HEAD
 /** Array of functions to compute flipped discs */
 unsigned long long (*flip_neon[])(const unsigned long long, const unsigned long long) = {
+=======
+
+/** Array of functions to compute flipped discs */
+unsigned long long (*flip[])(const unsigned long long, const unsigned long long) = {
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	flip_A1, flip_B1, flip_C1, flip_D1, flip_E1, flip_F1, flip_G1, flip_H1,
 	flip_A2, flip_B2, flip_C2, flip_D2, flip_E2, flip_F2, flip_G2, flip_H2,
 	flip_A3, flip_B3, flip_C3, flip_D3, flip_E3, flip_F3, flip_G3, flip_H3,
@@ -1929,4 +2260,7 @@ unsigned long long (*flip_neon[])(const unsigned long long, const unsigned long 
 	flip_pass, flip_pass
 };
 
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)

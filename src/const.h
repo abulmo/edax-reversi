@@ -94,6 +94,7 @@ typedef	unsigned char	NodeType;
 #define RELEASE 4
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define VERSION_STRING "4.4.5"
 #define EDAX_NAME "Edax 4.4.5"
 >>>>>>> 5124720 (-eval-file options added as documented; minor fix on console output)
@@ -105,6 +106,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.4.7"
 #define EDAX_NAME "Edax 4.4.7"
 >>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
+=======
+#define VERSION_STRING "4.4.8"
+#define EDAX_NAME "Edax 4.4.8"
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

@@ -218,12 +218,15 @@ extern unsigned char edge_stability[256 * 256];
 	#define mm_Flip(OP,x)	mm_flip[x](OP)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_loadu_si128((__m128i *) (board)))))
 
+<<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP
 	extern unsigned long long flip(int, const unsigned long long, const unsigned long long);
 	#define	Flip(x,P,O)	flip((x), (P), (O))
 	#define	board_flip(board,x)	flip((x), (board)->player, (board)->opponent)
 
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
 	extern unsigned long long (*flip[BOARD_SIZE + 2])(unsigned int, unsigned int, unsigned int, unsigned int);
 	#define Flip(x,P,O)	flip[x]((unsigned int)(P), (unsigned int)((P) >> 32), (unsigned int)(O), (unsigned int)((O) >> 32))
@@ -235,6 +238,7 @@ extern unsigned char edge_stability[256 * 256];
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6506166 (More SSE optimizations)
 =======
@@ -292,6 +296,17 @@ extern unsigned char edge_stability[256 * 256];
 =======
 	#define	board_flip(board,x)	flip[x]((board)->player, (board)->opponent)
 >>>>>>> 6506166 (More SSE optimizations)
+=======
+#else
+	#if (MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP) || (MOVE_GENERATOR == MOVE_GENERATOR_NEON)
+		extern unsigned long long Flip(int, unsigned long long, unsigned long long);
+	#else
+		extern unsigned long long (*flip[BOARD_SIZE + 2])(const unsigned long long, const unsigned long long);
+		#define	Flip(x,P,O)	flip[x]((P), (O))
+	#endif
+
+	#define	board_flip(board,x)	Flip((x), (board)->player, (board)->opponent)
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #endif
 
 #endif

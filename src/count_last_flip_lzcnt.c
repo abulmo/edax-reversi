@@ -30,12 +30,16 @@
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "bit_intrinsics.h"
 =======
 #ifdef __LZCNT__
 #include <x86intrin.h>
 #endif
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#include "bit_intrinsics.h"
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 /** precomputed count flip array */
 static const unsigned char COUNT_FLIP[8][256] = {
@@ -122,6 +126,7 @@ static const unsigned char COUNT_FLIP[8][256] = {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef lzcnt_u64
 
 /* bit masks for vertical and diagonal lines for A8..H8 */
@@ -187,11 +192,28 @@ static const unsigned long long mask_9[8] = {
 	0x0000000000000000ULL, 0x0000000000000000ULL, 0x0201000000000000ULL, 0x0402010000000000ULL,
 	0x0804020100000000ULL, 0x1008040201000000ULL, 0x2010080402010000ULL, 0x4020100804020100ULL
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#ifdef lzcnt_u64
+
+/* bit masks for vertical and diagonal lines for A8..H8 */
+static const unsigned long long mask_9_7[8][2] = {
+	{ 0x0204081020408000, 0x0000000000000000 },
+	{ 0x0204081020400000, 0x8000000000000000 },
+	{ 0x0204081020000000, 0x8040000000000000 },
+	{ 0x0204081000000000, 0x8040200000000000 },
+	{ 0x0204080000000000, 0x8040201000000000 },
+	{ 0x0204000000000000, 0x8040201008000000 },
+	{ 0x0200000000000000, 0x8040201008040000 },
+	{ 0x0000000000000000, 0x8040201008040200 }
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 };
 
 #else
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 /* bit masks for vertical and diagonal lines for A1..H1 */
 static const unsigned long long mask_9_7[8][2] = {
 	{ 0x0000000000000000, 0x4020100804020100 },
@@ -202,6 +224,7 @@ static const unsigned long long mask_9_7[8][2] = {
 	{ 0x0000000408102040, 0x0000000000020100 },
 	{ 0x0000020408102040, 0x0000000000000100 },
 	{ 0x0001020408102040, 0x0000000000000000 }
+<<<<<<< HEAD
 =======
 /* bit masks for vertical and diagonal lines for A1..H2 */
 static const unsigned long long mask_7[8] = {
@@ -213,11 +236,16 @@ static const unsigned long long mask_9[16] = {
 	0x4020100804020100ULL, 0x0020100804020100ULL, 0x0000100804020100ULL, 0x0000000804020100ULL,
 	0x0000000004020100ULL, 0x0000000000020100ULL, 0x0000000000000100ULL, 0x0000000000000000ULL
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 };
 
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 /* bit masks for diagonal lines for A5..H6 */
 static const unsigned long long mask_d[16][2] = {
 	{ 0x0000000102040810, 0x0804020100000000 },
@@ -237,6 +265,7 @@ static const unsigned long long mask_d[16][2] = {
 	{ 0x1020408000000000, 0x0080402010080402 },
 	{ 0x2040800000000000, 0x0000804020100804 }
 };
+<<<<<<< HEAD
 
 #ifdef HAS_CPU_64
 
@@ -249,11 +278,19 @@ static const unsigned long long mask_d[16][2] = {
 #define packD(PM)	(((PM) * 0x0101010101010101ULL) >> 56)
 #define	mask_8(x)	(0x0101010101010101ULL << (x))
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+
+#ifdef HAS_CPU_64
+
+#define	packV(P, x)	(((((P) >> (x)) & 0x0101010101010101) * 0x0102040810204080) >> 56)
+#define packD(PM)	(((PM) * 0x0101010101010101) >> 56)
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 #else
 
 #define	packV(P, x)	(((((((unsigned int)(P)) >> (x)) & 0x01010101u) + (((((unsigned int)((P) >> 32)) >> (x)) & 0x01010101u) << 4)) * 0x01020408u) >> 24)
 #define	packD(PM)	(((((unsigned int)(PM)) * 0x01010101u) + (((unsigned int)((PM) >> 32)) * 0x01010101u)) >> 24)
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 #endif // HAS_CPU_64
@@ -273,6 +310,10 @@ static int inline __lzcnt64(unsigned long long x) {
 
 #endif // __x86_64__
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+
+#endif // HAS_CPU_64
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -285,6 +326,7 @@ static int inline __lzcnt64(unsigned long long x) {
 int last_flip(int pos, unsigned long long P)
 {
 	unsigned long long	P8, P7, P9;
+<<<<<<< HEAD
 <<<<<<< HEAD
 	int	n_flipped;
 	int	x = pos & 7;
@@ -609,53 +651,56 @@ int last_flip(int pos, unsigned long long P)
 >>>>>>> f24cc06 (avoid BMI2 for AMD; more lzcnt/tzcnt in count_last_flip_bitscan)
 =======
 	unsigned int	t;
+=======
+>>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 	int	n_flipped;
 	int	x = pos & 7;
-	int	y = pos & 0x38;
 
-	n_flipped = COUNT_FLIP[x][(unsigned char) (P >> y)];
+	n_flipped = COUNT_FLIP[x][(unsigned char) (P >> (pos & 0x38))];
 
-	switch (pos & 0x30) {
+#ifdef lzcnt_u64
 
-#ifdef __LZCNT__
+	if (pos < 0x20) {
+		P = vertical_mirror(P);
+		pos ^= 0x38;
+	}
 
-		case 0:
-			P = __builtin_bswap64(P);
-			y ^= 0x38;
-			// not break;
-		case 0x30:
-			P <<= (64 - y);
-			P8 = P & mask_8(x);
-			P7 = P & mask_7[x];
-			P9 = P & mask_9[x];
-			n_flipped += (((int) __lzcnt64(P8) & 0x38) + ((int) __lzcnt64(P7) & 0x38) + ((int) __lzcnt64(P9) & 0x38)) >> 2;
-			break;
+	if (pos >= 0x30) {
+		P <<= (64 - pos);
+		P8 = P & 0x0101010101010101;
+		P7 = P & mask_9_7[x][0];
+		P9 = (P << 8) & mask_9_7[x][1];
+		n_flipped += ((lzcnt_u64(P8) & 0x38) + (lzcnt_u64(P7) & 0x38) + (lzcnt_u64(P9) & 0x38)) >> 2;
+
+		return n_flipped;
+	}
 
 #else // ls1b - slow
-		case 0x30:
-			P = __builtin_bswap64(P);
-			pos ^= 0x38;
-			// not break;
-		case 0:
-			P >>= (pos + 1);
-			P8 = P & 0x0080808080808080ULL;
-			n_flipped += ((P8 & -P8) * 0x00004080c1014180ULL) >> 60;
-			P7 = P & mask_7[x];
-			n_flipped += ((P7 & -P7) * 0x0001040c2050c000ULL) >> 60;
-			P9 = P & mask_9[x];
-			n_flipped += ((P9 & -P9) * 0x000010100c080503ULL) >> 60;
-			break;
+
+	if (pos & 0x10) {	// 0 1 2 3 4 5 6 7 -> 0 1 4 5 4 5 0 1
+		P = vertical_mirror(P);
+		pos ^= 0x38;
+	}
+
+	if (pos < 0x10) {
+		P >>= (pos + 1);
+		P8 = P & 0x0080808080808080;
+		n_flipped += ((P8 & -P8) * 0x00004080c1014180) >> 60;
+		P7 = P & mask_9_7[x][0];
+		n_flipped += ((P7 & -P7) * 0x0001040c2050c000) >> 60;
+		P9 = P & mask_9_7[x][1];
+		n_flipped += ((P9 & -P9) * 0x000010100c080503) >> 60;
+
+		return n_flipped;
+	}
 #endif
 
-		default:
-			y = pos >> 3;
-			n_flipped += COUNT_FLIP[y][packV(P, x)];
-			P7 = P & mask_d[0][pos];
-			n_flipped += COUNT_FLIP[x][packD(P7)];
-			P9 = P & mask_d[1][pos];
-			n_flipped += COUNT_FLIP[x][packD(P9)];
-			break;
-	}
+	n_flipped += COUNT_FLIP[pos >> 3][packV(P, x)];
+	P7 = P & mask_d[pos - 0x20][0];
+	n_flipped += COUNT_FLIP[x][packD(P7)];
+	P9 = P & mask_d[pos - 0x20][1];
+	n_flipped += COUNT_FLIP[x][packD(P9)];
+
 	return n_flipped;
 }
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
