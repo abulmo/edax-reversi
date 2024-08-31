@@ -306,6 +306,7 @@ void tune_move_evaluate(Search *search, const char *filename, const char *w_name
 int movelist_get_moves(MoveList *movelist, const Board *board)
 {
 	Move *previous = movelist->move;
+<<<<<<< HEAD
 	Move *move;
 	unsigned long long moves = board_get_moves(board);
 	int x, n;
@@ -322,6 +323,26 @@ int movelist_get_moves(MoveList *movelist, const Board *board)
 	previous->next = NULL;
 	movelist->n_moves = n;
 	return n;
+=======
+	Move *move = movelist->move + 1;
+	unsigned long long moves = get_moves(board->player, board->opponent);
+	int x, j;
+	widest_register	b;
+
+	movelist->n_moves = 0;
+	foreach_bit_r (x, moves, j, b) {
+		board_get_move(board, x, move);
+		move->score = -SCORE_INF;
+		previous = previous->next = move;
+		++move;
+		++(movelist->n_moves);
+	}
+	previous->next = NULL;
+
+	assert(movelist->n_moves == bit_count(moves));
+
+	return movelist->n_moves;
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**

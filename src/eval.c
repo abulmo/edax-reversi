@@ -1540,6 +1540,7 @@ void eval_set(Eval *eval, const Board *board)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int	i, x;
   #ifdef VECTOR_EVAL_UPDATE
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
@@ -1560,22 +1561,31 @@ void eval_set(Eval *eval, const Board *board)
 =======
 #ifdef VECTOR_EVAL_UPDATE
 	int i, x;
+=======
+	int	i, j, x;
+  #ifdef VECTOR_EVAL_UPDATE
+	widest_register	r;
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
 
 	eval->feature = EVAL_FEATURE_all_opponent;
-	foreach_bit(x, b)
+	foreach_bit_r (x, b, j, r)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
 	b = ~(board->opponent | board->player);
-	foreach_bit(x, b)
+	foreach_bit_r (x, b, j, r)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
 
+<<<<<<< HEAD
 #else
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 	int i, j, x;
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
+=======
+  #else
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	Board	b;
 
 	if (eval->n_empties & 1) {
@@ -1611,6 +1621,7 @@ void eval_set(Eval *eval, const Board *board)
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif
 =======
 	search->eval.player = 0;
@@ -1625,6 +1636,9 @@ void eval_set(Eval *eval, const Board *board)
 =======
 #endif
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**
@@ -1677,14 +1691,20 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 static void eval_update_0(int x, unsigned long long f, Eval *eval)
 {
 	int	j;
+<<<<<<< HEAD
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	widest_register	b;
 #ifdef VECTOR_EVAL_UPDATE
+=======
+	widest_register	r;
+  #ifdef VECTOR_EVAL_UPDATE
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	int	i;
 
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
 
+<<<<<<< HEAD
 	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
 		foreach_bit_r (x, f, b)
 			for (i = 0; i < 12; ++i)
@@ -1693,6 +1713,12 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
 <<<<<<< HEAD
+=======
+	foreach_bit_r (x, f, j, r)
+		for (i = 0; i < 12; ++i)
+			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
+
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
   #else
 	const CoordinateToFeature *s = EVAL_X2F + x;
 
@@ -1733,6 +1759,7 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1746,11 +1773,21 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
 		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	foreach_bit_r (x, f, j, r) {
+		s = EVAL_X2F + x;
+		switch (s->n_feature) {
+		default:
+			eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
+		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
+		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 			eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 			eval->feature.us[s->feature[1].i] -= s->feature[1].x;
 			eval->feature.us[s->feature[0].i] -= s->feature[0].x;
 			break;
+<<<<<<< HEAD
 		}
 	}
 <<<<<<< HEAD
@@ -1777,6 +1814,11 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 #endif
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+		}
+	}
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**
@@ -1829,22 +1871,25 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	int	j, x;
 =======
 	int	j;
+<<<<<<< HEAD
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	widest_register	b;
 #ifdef VECTOR_EVAL_UPDATE
+=======
+	widest_register	r;
+  #ifdef VECTOR_EVAL_UPDATE
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	int	i;
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b)
-			for (i = 0; i < 12; ++i)
-				eval->feature.ull[i] += EVAL_FEATURE[x + j].ull[i];
-	}
+	foreach_bit_r (x, f, j, r)
+		for (i = 0; i < 12; ++i)
+			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
 
-#else
+  #else
 	const CoordinateToFeature *s = EVAL_X2F + x;
 
 	switch (s->n_feature) {
@@ -1867,6 +1912,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, f) {
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
@@ -1880,11 +1926,21 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
 		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	foreach_bit_r (x, f, j, r) {
+		s = EVAL_X2F + x;
+		switch (s->n_feature) {
+		default:
+		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
+		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
+		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
 		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
 		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
 		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
 		       	break;
+<<<<<<< HEAD
 =======
 	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
 		foreach_bit_r (x, f, b) {
@@ -1908,6 +1964,11 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 =======
 #endif
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+		}
+	}
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 void eval_update(int x, unsigned long long f, Eval *eval)
@@ -1916,6 +1977,7 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 <<<<<<< HEAD
 	assert(f);
 
+<<<<<<< HEAD
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
 		eval_update_sse(x, f, eval, eval);
@@ -1933,6 +1995,9 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 
 #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+=======
+  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	if (hasSSE2) {
 		if (eval->n_empties & 1)
 			eval_update_sse_1(x, f, eval, eval);
@@ -1940,7 +2005,7 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 			eval_update_sse_0(x, f, eval, eval);
 		return;
 	}
-#endif
+  #endif
 	if (eval->n_empties & 1)
 		eval_update_1(x, f, eval);
 	else
@@ -1970,7 +2035,7 @@ void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 {
-#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
+  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
 	if (hasSSE2) {
 		if (eval_in->n_empties & 1)
 			eval_update_sse_1(x, f, eval_out, eval_in);
@@ -1978,7 +2043,7 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 			eval_update_sse_0(x, f, eval_out, eval_in);
 		return;
 	}
-#endif
+  #endif
 	eval_out->feature = eval_in->feature;
 	if (eval_in->n_empties & 1)
 		eval_update_1(x, f, eval_out);

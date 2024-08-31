@@ -533,10 +533,8 @@ static inline int _tzcnt_u64(unsigned long long x) {
 =======
 	#ifdef _M_ARM
 		#define	tzcnt_u32(x)	_arm_clz(_arm_rbit(x))
-	#elif __ARM_ACLE >= 110
+	#elif (__ARM_ARCH >= 6 && __ARM_ISA_THUMB >= 2) || __ARM_ARCH >= 7
 		#define	tzcnt_u32(x)	__clz(__rbit(x))
-	// #elif defined(__GNUC__)
-	//	#define	tzcnt_u32(x)	__builtin_ctz(x)	// '& 0x07' optimized out assuming x != 0
 	#endif
 #endif
 

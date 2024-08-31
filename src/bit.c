@@ -427,12 +427,16 @@ int first_bit_32(unsigned int b)
 	_BitScanForward(&index, b);
 	return (int) index;
 
+#elif defined(USE_GAS_X64) || defined(USE_GAS_X86)
+	__asm__("rep; bsf	%1, %0" : "=r" (b) : "rm" (b));	// tzcnt on BMI CPUs, bsf otherwise
+	return (int) b;
+
 #elif defined(USE_MSVC_X86)
 	__asm {
 		bsf	eax, word ptr b
 	}
 
-#elif 0 // defined(USE_GCC_ARM)
+#elif defined(USE_GCC_ARM)
 	return  __builtin_clz(b & -b) ^ 31;
 
 #else
@@ -450,12 +454,12 @@ int first_bit_32(unsigned int b)
 int first_bit(unsigned long long b)
 {
 #if defined(USE_GAS_X64)
-	__asm__("bsfq	%1, %0" : "=r" (b) : "rm" (b));
+	__asm__("rep; bsfq	%1, %0" : "=r" (b) : "rm" (b));	// tzcntq on BMI CPUs
 	return (int) b;
 
 #elif defined(USE_GAS_X86)
 	int 	x;
-	__asm__ ("bsf	%2, %0\n\t"
+	__asm__ ("bsf	%2, %0\n\t"	// (ZF differs from tzcnt)
 		"jnz	1f\n\t"
 		"bsf	%1, %0\n\t"
 		"addl	$32, %0\n"

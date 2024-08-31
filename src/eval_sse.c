@@ -8,6 +8,7 @@
  * SSE/AVX translation of some eval.c functions
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2018 - 2023
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -16,6 +17,11 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 2018 - 2022
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
  */
 
 #include <assert.h>
@@ -104,12 +110,14 @@ typedef union {
 
 void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
-#ifdef __AVX2__
+	int	j;
+	widest_register	r;
+  #ifdef __AVX2__
 	__m256i	f0 = _mm256_sub_epi16(eval_in->feature.v16[0], _mm256_slli_epi16(EVAL_FEATURE[x].v16[0], 1));
 	__m256i	f1 = _mm256_sub_epi16(eval_in->feature.v16[1], _mm256_slli_epi16(EVAL_FEATURE[x].v16[1], 1));
 	__m256i	f2 = _mm256_sub_epi16(eval_in->feature.v16[2], _mm256_slli_epi16(EVAL_FEATURE[x].v16[2], 1));
 
-	foreach_bit(x, f) {
+	foreach_bit_r (x, f, j, r) {
 		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -119,6 +127,7 @@ void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *
 	eval_out->feature.v16[1] = f1;
 	eval_out->feature.v16[2] = f2;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   #else
 	__m128i	f0 = eval_in->feature.v8[0];
@@ -133,6 +142,9 @@ void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *
 #else
 	int	j;
 	widest_register	b;
+=======
+  #else
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	const __m128i *ef;
 
 <<<<<<< HEAD
@@ -208,16 +220,14 @@ void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *
 	__m128i	f4 = _mm_sub_epi16(eval_in->feature.v8[4], _mm_slli_epi16(ef[4], 1));
 	__m128i	f5 = _mm_sub_epi16(eval_in->feature.v8[5], _mm_slli_epi16(ef[5], 1));
 
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b) {
-			ef = EVAL_FEATURE[x + j].v8;
-			f0 = _mm_sub_epi16(f0, ef[0]);
-			f1 = _mm_sub_epi16(f1, ef[1]);
-			f2 = _mm_sub_epi16(f2, ef[2]);
-			f3 = _mm_sub_epi16(f3, ef[3]);
-			f4 = _mm_sub_epi16(f4, ef[4]);
-			f5 = _mm_sub_epi16(f5, ef[5]);
-		}
+	foreach_bit_r (x, f, j, r) {
+		ef = EVAL_FEATURE[x].v8;
+		f0 = _mm_sub_epi16(f0, ef[0]);
+		f1 = _mm_sub_epi16(f1, ef[1]);
+		f2 = _mm_sub_epi16(f2, ef[2]);
+		f3 = _mm_sub_epi16(f3, ef[3]);
+		f4 = _mm_sub_epi16(f4, ef[4]);
+		f5 = _mm_sub_epi16(f5, ef[5]);
 	}
 
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
@@ -228,19 +238,25 @@ void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *
 	eval_out->feature.v8[4] = f4;
 	eval_out->feature.v8[5] = f5;
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif
 =======
 #endif
+=======
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
-#ifdef __AVX2__
+	int	j;
+	widest_register	r;
+  #ifdef __AVX2__
 	__m256i	f0 = _mm256_sub_epi16(eval_in->feature.v16[0], EVAL_FEATURE[x].v16[0]);
 	__m256i	f1 = _mm256_sub_epi16(eval_in->feature.v16[1], EVAL_FEATURE[x].v16[1]);
 	__m256i	f2 = _mm256_sub_epi16(eval_in->feature.v16[2], EVAL_FEATURE[x].v16[2]);
 
-	foreach_bit(x, f) {
+	foreach_bit_r (x, f, j, r) {
 		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -249,9 +265,7 @@ void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *
 	eval_out->feature.v16[1] = f1;
 	eval_out->feature.v16[2] = f2;
 
-#else
-	int	j;
-	widest_register	b;
+  #else
 	const __m128i *ef;
 
 	ef = EVAL_FEATURE[x].v8;
@@ -262,16 +276,14 @@ void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *
 	__m128i	f4 = _mm_sub_epi16(eval_in->feature.v8[4], ef[4]);
 	__m128i	f5 = _mm_sub_epi16(eval_in->feature.v8[5], ef[5]);
 
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b) {
-			ef = EVAL_FEATURE[x + j].v8;
-			f0 = _mm_add_epi16(f0, ef[0]);
-			f1 = _mm_add_epi16(f1, ef[1]);
-			f2 = _mm_add_epi16(f2, ef[2]);
-			f3 = _mm_add_epi16(f3, ef[3]);
-			f4 = _mm_add_epi16(f4, ef[4]);
-			f5 = _mm_add_epi16(f5, ef[5]);
-		}
+	foreach_bit_r (x, f, j, r) {
+		ef = EVAL_FEATURE[x].v8;
+		f0 = _mm_add_epi16(f0, ef[0]);
+		f1 = _mm_add_epi16(f1, ef[1]);
+		f2 = _mm_add_epi16(f2, ef[2]);
+		f3 = _mm_add_epi16(f3, ef[3]);
+		f4 = _mm_add_epi16(f4, ef[4]);
+		f5 = _mm_add_epi16(f5, ef[5]);
 	}
 
 	eval_out->feature.v8[0] = f0;
@@ -280,8 +292,12 @@ void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *
 	eval_out->feature.v8[3] = f3;
 	eval_out->feature.v8[4] = f4;
 	eval_out->feature.v8[5] = f5;
+<<<<<<< HEAD
 #endif
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 #else	// SSE dispatch (Eval may not be aligned)
@@ -307,9 +323,8 @@ static void eval_update_sse_0(Eval *eval_out, const Eval *eval_in, const Move *m
 static void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 {
-	widest_register	b;
-	unsigned int	fl = (unsigned int) f;
-	unsigned int	fh = (unsigned int) (f >> 32);
+	widest_register	r;
+	int	j;
 
 	__asm__ (
 		"movdqa	%2, %%xmm0\n\t"		"movdqa	%3, %%xmm1\n\t"
@@ -331,11 +346,15 @@ static void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const
 	: :  "m" (eval_in->feature.us[32]), "m" (eval_in->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit_32(x, fl) {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	foreach_bit_r(x, fl, b) {
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
+=======
+	foreach_bit_r (x, f, j, r) {
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		__asm__ (
 			"psubw	%0, %%xmm2\n\t"
 			"psubw	%1, %%xmm3\n\t"
@@ -389,6 +408,7 @@ static void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const
 		: :  "m" (EVAL_FEATURE[x].us[0]), "m" (EVAL_FEATURE[x].us[8]), "m" (EVAL_FEATURE[x].us[16]),
 		"m" (EVAL_FEATURE[x].us[24]), "m" (EVAL_FEATURE[x].us[32]), "m" (EVAL_FEATURE[x].us[40]));
 	}
+<<<<<<< HEAD
 	foreach_bit_r(x, fh, b) {
 		__asm__ (
 			"psubw	%0, %%xmm2\n\t"
@@ -401,6 +421,8 @@ static void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const
 		"m" (EVAL_FEATURE[x + 32].us[24]), "m" (EVAL_FEATURE[x + 32].us[32]), "m" (EVAL_FEATURE[x + 32].us[40]));
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 	}
+=======
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 
 	__asm__ (
 		"movdqu	%%xmm2, %0\n\t"
@@ -418,9 +440,8 @@ static void eval_update_sse_0(int x, unsigned long long f, Eval *eval_out, const
 
 static void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
 {
-	widest_register	b;
-	unsigned int	fl = (unsigned int) f;
-	unsigned int	fh = (unsigned int) (f >> 32);
+	widest_register	r;
+	int	j;
 
 	__asm__ (
 		"movdqu	%0, %%xmm2\n\t"		"movdqu	%1, %%xmm3\n\t"
@@ -435,7 +456,7 @@ static void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const
 		"psubw	%2, %%xmm6\n\t"		"psubw	%3, %%xmm7\n"
 	: :  "m" (eval_in->feature.us[32]), "m" (eval_in->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
-	foreach_bit_r(x, fl, b) {
+	foreach_bit_r (x, f, j, r) {
 		__asm__ (
 			"paddw	%0, %%xmm2\n\t"
 			"paddw	%1, %%xmm3\n\t"
@@ -445,17 +466,6 @@ static void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const
 			"paddw	%5, %%xmm7\n"
 		: :  "m" (EVAL_FEATURE[x].us[0]), "m" (EVAL_FEATURE[x].us[8]), "m" (EVAL_FEATURE[x].us[16]),
 		"m" (EVAL_FEATURE[x].us[24]), "m" (EVAL_FEATURE[x].us[32]), "m" (EVAL_FEATURE[x].us[40]));
-	}
-	foreach_bit_r(x, fh, b) {
-		__asm__ (
-			"paddw	%0, %%xmm2\n\t"
-			"paddw	%1, %%xmm3\n\t"
-			"paddw	%2, %%xmm4\n\t"
-			"paddw	%3, %%xmm5\n\t"
-			"paddw	%4, %%xmm6\n\t"
-			"paddw	%5, %%xmm7\n"
-		: :  "m" (EVAL_FEATURE[x + 32].us[0]), "m" (EVAL_FEATURE[x + 32].us[8]), "m" (EVAL_FEATURE[x + 32].us[16]),
-		"m" (EVAL_FEATURE[x + 32].us[24]), "m" (EVAL_FEATURE[x + 32].us[32]), "m" (EVAL_FEATURE[x + 32].us[40]));
 	}
 
 	__asm__ (
@@ -490,8 +500,9 @@ static void eval_update_sse_1(int x, unsigned long long f, Eval *eval_out, const
  */
 void eval_set(Eval *eval, const Board *board)
 {
-	int x;
+	int x, j;
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   #ifdef __AVX2__
@@ -505,15 +516,23 @@ void eval_set(Eval *eval, const Board *board)
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 #ifdef __AVX2__
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	widest_register	r;
+  #ifdef __AVX2__
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	__m256i	f0 = EVAL_FEATURE_all_opponent.v16[0];
 	__m256i	f1 = EVAL_FEATURE_all_opponent.v16[1];
 	__m256i	f2 = EVAL_FEATURE_all_opponent.v16[2];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 	foreach_bit(x, b) {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	foreach_bit_r (x, b, j, r) {
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -522,6 +541,7 @@ void eval_set(Eval *eval, const Board *board)
 <<<<<<< HEAD
 
 	b = ~(board->opponent | board->player);
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 =======
@@ -530,6 +550,9 @@ void eval_set(Eval *eval, const Board *board)
 	b = ~(board->opponent | board->player);
 	foreach_bit(x, b) {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	foreach_bit_r (x, b, j, r) {
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
 		f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
 		f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
@@ -539,10 +562,14 @@ void eval_set(Eval *eval, const Board *board)
 	eval->feature.v16[2] = f2;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #else
 =======
 #else
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+  #else
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	__m128i	f0 = EVAL_FEATURE_all_opponent.v8[0];
 	__m128i	f1 = EVAL_FEATURE_all_opponent.v8[1];
 	__m128i	f2 = EVAL_FEATURE_all_opponent.v8[2];
@@ -551,10 +578,14 @@ void eval_set(Eval *eval, const Board *board)
 	__m128i	f5 = EVAL_FEATURE_all_opponent.v8[5];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 	foreach_bit(x, b) {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	foreach_bit_r (x, b, j, r) {
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
 		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
@@ -566,6 +597,7 @@ void eval_set(Eval *eval, const Board *board)
 <<<<<<< HEAD
 
 	b = ~(board->opponent | board->player);
+<<<<<<< HEAD
 	foreach_bit (x, b) {
 =======
 =======
@@ -574,6 +606,9 @@ void eval_set(Eval *eval, const Board *board)
 	b = ~(board->opponent | board->player);
 	foreach_bit(x, b) {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	foreach_bit_r (x, b, j, r) {
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
 		f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
 		f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
@@ -588,6 +623,7 @@ void eval_set(Eval *eval, const Board *board)
 	eval->feature.v8[3] = f3;
 	eval->feature.v8[4] = f4;
 	eval->feature.v8[5] = f5;
+<<<<<<< HEAD
 <<<<<<< HEAD
   #endif
 }
@@ -1367,6 +1403,9 @@ void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 #endif
+=======
+  #endif
+>>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**

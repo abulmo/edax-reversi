@@ -202,8 +202,7 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 
 #ifdef HAS_CPU_64
 	typedef unsigned long long	widest_register;
-	#define foreach_bit_r(i, f, b)	b = (widest_register) f;\
-		foreach_bit(i, b)
+	#define foreach_bit_r(i, b, j, r)	(void) j; r = b; foreach_bit(i, r)
 #else
 	typedef unsigned int	widest_register;
 	#ifdef tzcnt_u32
@@ -211,9 +210,8 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	#else
 		int first_bit_32(unsigned int);
 	#endif
-	#define foreach_bit_r(i, f, b)	b = (widest_register) f;\
-		f >>= (sizeof(widest_register) % sizeof(f)) * CHAR_BIT;\
-		for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
+	#define foreach_bit_r(i, b, j, r)	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) \
+		for (i = first_bit_32(r = (widest_register)(b >> j)) + j; r; i = first_bit_32(r &= (r - 1)) + j)
 #endif
 
 // popcount
