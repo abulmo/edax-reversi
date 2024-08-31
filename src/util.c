@@ -6,9 +6,9 @@
  * This should be the only file with linux/windows
  * dedicated code.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2023
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #include "bit.h"
@@ -158,7 +158,8 @@ long long time_read(FILE *f)
 	long long t = 0;
 	int n, c;
 
-	while (isspace(c = getc(f)));
+	while (isspace(c = getc(f)))
+		;
 	ungetc(c, f);
 	n = 0; while (isdigit(c = getc(f))) n = n * 10 + (c - '0');
 	if (c == ':') {
@@ -221,8 +222,14 @@ void relax(int t)
  */
 char* format_scientific(double v, const char *unit, char *f)
 {
-	static const char *multiple = "EPTGMk mµnpfa"; //
-	int u;
+#ifdef UNICODE
+	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
+	static const char fmt[] = " %5.*f %lc%s";
+#else
+	static const char multiple[] = "EPTGMK mμnpfa"; // μ:B5@CP1252
+	static const char fmt[] = " %5.*f %c%s";
+#endif
+	int u, d;
 
 	if (fabs(v) < 1e-24) {
 		u = 0;
@@ -231,11 +238,12 @@ char* format_scientific(double v, const char *unit, char *f)
 		if (u > 6) u = 6; else if (u < -6) u = -6;
 		v /= pow(10, 3 * u);
 	}
-	
-	if (fabs(v) - floor(fabs(v)) < 0.01) sprintf(f, " %5.1f %c%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.05) < 10.0) sprintf(f, " %5.3f  %c%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.5) < 100.0) sprintf(f, " %5.2f  %c%s", v, multiple[6 - u], unit);
-	else sprintf(f, " %5.1f  %c%s", v, multiple[6 - u], unit);
+
+	if (fabs(v) - floor(fabs(v)) < 0.01) d = 1;
+	else if (fabs(v + 0.05) < 10.0) d = 3;
+	else if (fabs(v + 0.5) < 100.0) d = 2;
+	else d = 1;
+	sprintf(f, fmt, d, v, multiple[6 - u], unit);
 
 	return f;
 }
@@ -250,7 +258,7 @@ char* format_scientific(double v, const char *unit, char *f)
 void print_scientific(double v, const char *unit, FILE *f)
 {
 	char s[32];
-	fprintf(f, "%s", format_scientific(v, unit, s));
+	fputs(format_scientific(v, unit, s), f);
 }
 
 
@@ -564,8 +572,8 @@ char* parse_word(const char *string, char *word, unsigned int n)
 	if (string) {
 		string = parse_skip_spaces(string);
 		while (*string && !isspace(*string) && n--) *word++ = *string++;
-		*word = '\0';
 	}
+	*word = '\0';
 	return (char*) string;
 }
 
@@ -585,8 +593,8 @@ char* parse_field(const char *string, char *word, unsigned int n, char separator
 		string = parse_skip_spaces(string);
 		while (*string && *string != separator && n--) *word++ = *string++;
 		if (*string == separator) ++string;
-		*word = '\0';
 	}
+	*word = '\0';
 	return (char*) string;
 }
 
@@ -626,16 +634,18 @@ char* parse_line(const char *string, char *line, unsigned int n)
  */
 char* parse_move(const char *string, const Board *board, Move *move)
 {
-
 	*move = MOVE_INIT;
 
 	if (string) {
 		char *word = parse_skip_spaces(string);
 		int x = string_to_coordinate(word);
 		move->x = x;
-		move->flipped = flip[x](board->player, board->opponent);
-		if ((x == PASS && board_is_pass(board)) || (move->flipped && !board_is_occupied(board, x))) return word + 2;
-		else if (board_is_pass(board)) {
+		move->flipped = board_flip(board, x);
+		if (move->flipped && !board_is_occupied(board, x)) {
+			return word + 2;
+		} else if (board_is_pass(board)) {
+			if (x == PASS)
+				return word + 2;
 			move->x = PASS;
 			move->flipped = 0;
 		} else {
@@ -657,14 +667,14 @@ char* parse_move(const char *string, const Board *board, Move *move)
 char* parse_game(const char *string, const Board *board_init, Line *line)
 {
 	const char *next;
-	Board board[1];
-	Move move[1];
+	Board board;
+	Move move;
 
-	*board = *board_init;
+	board = *board_init;
 
-	while ((next = parse_move(string, board, move)) != string || move->x == PASS) {
-		line_push(line, move->x);
-		board_update(board, move);
+	while ((next = parse_move(string, &board, &move)) != string || move.x == PASS) {
+		line_push(line, move.x);
+		board_update(&board, &move);
 		string = next;
 	}
 
@@ -683,34 +693,34 @@ char* parse_board(const char *string, Board *board, int *player)
 {
 	if (string) {
 		int i;
-		const char *s = parse_skip_spaces(string);
+		unsigned long long b = 1;
+		const char *s = string;
 
 		board->player = board->opponent = 0;
 		for (i = A1; i <= H8; ++i) {
-			if (*s == '\0') return (char*) string;
+			s = parse_skip_spaces(s);
 			switch (tolower(*s)) {
 			case 'b':
 			case 'x':
 			case '*':
-				board->player |= x_to_bit(i);
+				board->player |= b;
 				break;
 			case 'o':
 			case 'w':
-				board->opponent |= x_to_bit(i);
+				board->opponent |= b;
 				break;
 			case '-':
 			case '.':
 				break;
 			default:
-				if (!isspace(*s)) return (char*) string;
-				i--;
-				break;
+				return (char*) string;
 			}
 			++s;
+			b <<= 1;
 		}
 		board_check(board);
 
-		for (;*s; ++s) {
+		for (; *s; ++s) {
 			switch (tolower(*s)) {
 			case 'b':
 			case 'x':
@@ -765,7 +775,7 @@ char* parse_int(const char *string, int *result)
 		char *end = s;
 		long long n = 0;
 
-		if (s) n = strtol(s, &end, 10);
+		if (*s) n = strtol(s, &end, 10);
 
 		if (end == s) {
 			errno = EINVAL;
@@ -925,7 +935,7 @@ void thread_create(Thread *thread, void* (*function)(void*), void *data)
 	pthread_create(thread, NULL, function, data);
 #elif defined(_WIN32)
 	DWORD id;
-	*thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) function, data, 0, &id);
+	*thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)(void (*)(void)) function, data, 0, &id);
 #endif
 }
 
@@ -966,7 +976,7 @@ Thread thread_self(void)
  */
 void thread_set_cpu(Thread thread, int i)
 {
-#if defined(__linux__) && !defined(ANDROID)
+#if defined(__linux__) && defined(CPU_SET)
 	cpu_set_t cpu;
 
 	CPU_ZERO(&cpu);
