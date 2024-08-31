@@ -749,8 +749,10 @@ const EVAL_FEATURE_V EVAL_FEATURE[65] = {
 
 const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 	 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
-	 3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  3280,  1093,  1093,
-	 1093,  1093,   364,   364,   364,   364,   121,   121,   121,   121,    40,    40,    40,    40,     0,     0
+//	11111111(3)                 +3^8                       +3^8*2                      +3^8*3         1111111(3)
+	 3280,  3280,  3280,  3280,  9841,  9841,  9841,  9841, 16402, 16402, 16402, 16402, 22963, 22963,  1093,  1093,
+//	              364(=111111(3))+2187        121(=11111(3))+2187+729     40(=1111(3))+2187+729+243
+	 1093,  1093,  2551,  2551,  2551,  2551,  3037,  3037,  3037,  3037,  3199,  3199,  3199,  3199,     0,     0
 }};
 
 #endif
@@ -759,10 +761,14 @@ const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 // static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
 // static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 static const unsigned short EVAL_OFFSET[] = {
 	    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
 	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
 	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
+<<<<<<< HEAD
 =======
 =======
 #endif
@@ -773,11 +779,15 @@ static const unsigned short EVAL_OFFSET[] = {
 static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
 =======
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
+=======
+};
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 
 /** packed feature offset/size */
 static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
 // static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
 
+<<<<<<< HEAD
 #ifdef DEBUG
 static const int EVAL_MAX_VALUE[] = {
 	 19682,  19682,  19682,  19682,
@@ -801,6 +811,8 @@ static const int EVAL_MAX_VALUE[] = {
 static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
 // static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
 
+=======
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 /** feature symetry packing */
 typedef struct {
 <<<<<<< HEAD
@@ -1157,7 +1169,7 @@ void eval_open(const char* file)
 	for (j = 0; j < 81; ++j)
 		(*P)[1].EVAL_S4[j] = (*P)[0].EVAL_S4[OPPONENT_FEATURE[j + 29484]];	// 1111110000(3)
 
-	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	 /* 9 corner squares : 19683 -> 10206 */
+	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	/* 9 corner squares : 19683 -> 10206 */
 	for (j = 0; j < 19683; ++j)
 		(*P)[1].EVAL_C9[j] = (*P)[0].EVAL_C9[OPPONENT_FEATURE[j + 19683]];	// 1000000000(3)
 
@@ -1224,6 +1236,7 @@ void eval_open(const char* file)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
 =======
 	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -1234,6 +1247,9 @@ void eval_open(const char* file)
 =======
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof (*EVAL_WEIGHT));
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
+=======
+	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof(*EVAL_WEIGHT));
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
 =======
 	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -1357,27 +1373,27 @@ void eval_open(const char* file)
 		for (k = 0; k < 59049; k++) {
 			pe->C10[k] = w[pp->EVAL_C10[k] + EVAL_PACKED_OFS[1]];
 			i = pp->EVAL_S10[k];
-			pe->S10[0][k] = w[i + EVAL_PACKED_OFS[2]];
-			pe->S10[1][k] = w[i + EVAL_PACKED_OFS[3]];
+			pe->S100[k] = w[i + EVAL_PACKED_OFS[2]];
+			pe->S101[k] = w[i + EVAL_PACKED_OFS[3]];
 		}
 		for (k = 0; k < 6561; k++) {
 			i = pp->EVAL_S8[k];
-			pe->S8[0][k] = w[i + EVAL_PACKED_OFS[4]];
-			pe->S8[1][k] = w[i + EVAL_PACKED_OFS[5]];
-			pe->S8[2][k] = w[i + EVAL_PACKED_OFS[6]];
-			pe->S8[3][k] = w[i + EVAL_PACKED_OFS[7]];
+			pe->S8x4[k] = w[i + EVAL_PACKED_OFS[4]];
+			pe->S8x4[k + 6561] = w[i + EVAL_PACKED_OFS[5]];
+			pe->S8x4[k + 13122] = w[i + EVAL_PACKED_OFS[6]];
+			pe->S8x4[k + 19683] = w[i + EVAL_PACKED_OFS[7]];
 		}
 		for (k = 0; k < 2187; k++) {
-			pe->S7[k] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
+			pe->S7654[k] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
 		}
 		for (k = 0; k < 729; k++) {
-			pe->S6[k] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
+			pe->S7654[k + 2187] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
 		}
 		for (k = 0; k < 243; k++) {
-			pe->S5[k] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
+			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
 		}
 		for (k = 0; k < 91; k++) {
-			pe->S4[k] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
+			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
 		}
 <<<<<<< HEAD
 		pe[226314] = w[EVAL_PACKED_OFS[12]];
@@ -1554,6 +1570,7 @@ void eval_set(Eval *eval, const Board *board)
 			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
 		}
 		eval->feature.us[i] = x + EVAL_OFFSET[i];
+<<<<<<< HEAD
 =======
 		eval->feature.us[i] = 0;
 =======
@@ -1575,6 +1592,8 @@ void eval_set(Eval *eval, const Board *board)
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 =======
 		eval->feature.us[i] = x;
+=======
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 	}
 <<<<<<< HEAD
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
@@ -2117,15 +2136,15 @@ void eval_pass(Eval *eval)
 	for (i =  4; i < 16; ++i)	// 10
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i]];
 	for (i = 16; i < 30; ++i)	// 8
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 26244];
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244] + EVAL_OFFSET[i];
 	for (i = 30; i < 34; ++i)	// 7
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 28431];
 	for (i = 34; i < 38; ++i)	// 6
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29160];
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2187 + 29160] + 2187;
 	for (i = 38; i < 42; ++i)	// 5
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29403];
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2916 + 29403] + 2916;
 	for (i = 42; i < 46; ++i)	// 4
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 29484];
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 3159 + 29484] + 3159;
 }
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 

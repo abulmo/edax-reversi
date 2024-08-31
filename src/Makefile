@@ -2,10 +2,14 @@
 # makefile to Compile Edax
 #
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright 1998 - 2024
 =======
 # Copyright 1998 - 2018
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+# Copyright 1998 - 2022
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 # Richard Delorme
 # Version 4.5
 #
@@ -56,6 +60,7 @@ ifeq ($(COMP),gcc)
 	ifeq ($(ARCH),x64-modern)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -72,6 +77,9 @@ ifeq ($(COMP),gcc)
 =======
 		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 	endif
 	ifeq ($(ARCH),x64-popcnt)
 		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
@@ -371,6 +379,7 @@ ifeq ($(COMP),clang)
 	ifeq ($(ARCH),x64-modern)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -381,6 +390,9 @@ ifeq ($(COMP),clang)
 =======
 		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 

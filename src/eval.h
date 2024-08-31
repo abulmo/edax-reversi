@@ -102,7 +102,7 @@ typedef union {
 	__m256i	v16[3];
 #endif
 }
-#if defined(__GNUC__) && !defined(hasSSE2)
+#if defined(__GNUC__)
 __attribute__ ((aligned (16)))
 #endif
 EVAL_FEATURE_V;
@@ -146,15 +146,13 @@ enum { EVAL_N_WEIGHT = 226315 };
 /** unpacked weights */
 // enum { EVAL_N_WEIGHT = 226315 };
 typedef struct Eval_weight {
+	short	S0;		// also acts as guard for VGATHERDD access
 	short	C9[19683];
 	short	C10[59049];
-	short	S10[2][59049];
-	short	S8[4][6561];
-	short	S7[2187];
-	short	S6[729];
-	short	S5[243];
-	short	S4[81];
-	short	S0;
+	short	S100[59049];
+	short	S101[59049];
+	short	S8x4[6561*4];
+	short	S7654[2187+729+243+81];
 } Eval_weight;
 >>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 
