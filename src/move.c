@@ -475,6 +475,9 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 	Move	*move;
 	int	score, parity_weight;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 
 	// if (search->eval.n_empties < 21)	// mostly true
 		parity_weight = (search->eval.n_empties < 12) ? w_low_parity : w_mid_parity;
@@ -499,6 +502,7 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 		else if (move->x == hash_data->move[1]) score = (1 << 28);
 		else {
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef __AVX2__
 			__m128i PO = _mm_xor_si128(*(__m128i *) &search->board,
 				_mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
@@ -507,10 +511,20 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 			score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
 			score += (36 - bit_weighted_count(_mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
 
+=======
+#ifdef __AVX2__
+			__m128i PO = _mm_xor_si128(_mm_loadu_si128((__m128i *) &search->board),
+				_mm_or_si128(_mm_broadcastq_epi64(*(__m128i *) &move->flipped), _mm_cvtsi64_si128(X_TO_BIT[move->x])));
+			score  = get_corner_stability(_mm_cvtsi128_si64(PO)) * w_corner_stability; // corner stability
+			__m128i MM = get_moves_and_potential(_mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55), _mm256_broadcastq_epi64(PO));
+			score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
+			score += (36 - bit_weighted_count(_mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 #else
 			unsigned long long O = search->board.player ^ (move->flipped | x_to_bit(move->x));
 			unsigned long long P = search->board.opponent ^ move->flipped;
 			score  = get_corner_stability(O) * w_corner_stability; // corner stability
+<<<<<<< HEAD
   #if defined(hasSSE2) && !defined(POPCOUNT)
 			__m128i MM = bit_weighted_count_sse(get_moves(P, O), get_potential_moves(P, O));
 			score += (36 - _mm_extract_epi16(MM, 4)) * w_potential_mobility; // potential mobility
@@ -535,11 +549,19 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 			O = search->board.player ^ (move->flipped | x_to_bit(move->x));
 			P = search->board.opponent ^ move->flipped;
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+=======
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 			score += (36 - get_potential_mobility(P, O)) * w_potential_mobility; // potential mobility
-			score += get_corner_stability(O) * w_corner_stability; // corner stability
 			score += (36 - get_weighted_mobility(P, O)) * w_mobility; // real mobility
+<<<<<<< HEAD
 			// board_restore(&search->board, move);
 >>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
+=======
+#endif
+			score += SQUARE_VALUE[move->x]; // square type
+			score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0; // parity
+			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 		}
 		move->score = score;
 	} while ((move = move->next));
@@ -721,6 +743,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 
 				SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef __AVX2__
 				__m128i MM =  get_moves_and_potential(_mm256_set1_epi64x(search->board.player), _mm256_set1_epi64x(search->board.opponent));
 				score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
@@ -773,10 +796,18 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	foreach_move (move, *movelist) {
 		move_evaluate(move, search, hash_data, sort_alpha, sort_depth);
 =======
+=======
+#ifdef __AVX2__
+				__m128i MM =  get_moves_and_potential(_mm256_broadcastq_epi64(*(__m128i *) &search->board.player), _mm256_broadcastq_epi64(*(__m128i *) &search->board.opponent));
+				score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
+				score += (36 - bit_weighted_count(_mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
+#else
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 				score += (36 - get_potential_mobility(search->board.player, search->board.opponent)) * w_potential_mobility; // potential mobility
+				score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) * w_mobility; // real mobility
+#endif
 				score += get_edge_stability(search->board.opponent, search->board.player) * w_edge_stability; // edge stability
-				score += (36 - get_weighted_mobility(search->board.player, search->board.opponent)) *  w_mobility; // real mobility
-				switch(sort_depth) {
+				switch (sort_depth) {
 				case 0:
 					score += ((SCORE_MAX - search_eval_0(search)) >> 2) * w_eval; // 1 level score bonus
 					break;

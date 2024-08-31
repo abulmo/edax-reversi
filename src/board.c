@@ -925,8 +925,11 @@ int get_weighted_mobility(const unsigned long long P, const unsigned long long O
 	return bit_weighted_count(get_moves(P, O));
 }
 
+<<<<<<< HEAD
 #ifndef __AVX2__
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
+=======
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 /**
  * @brief Get some potential moves.
  *
@@ -958,11 +961,14 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // AVX2
 =======
 =======
 #endif // AVX2
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
+=======
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 
 /**
  * @brief Get potential mobility.

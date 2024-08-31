@@ -2667,25 +2667,38 @@ unsigned long long get_all_full_lines(const unsigned long long disc)
 }
 
 /**
- * @brief AVX2 optimized get_potential_moves.
+ * @brief AVX2 optimized get_moves + get_potential_moves.
  *
- * Get the list of empty squares in contact of a player square.
+ * Get the bitboard of empty squares in contact of a player square, as well as real mobility.
  *
- * @param P bitboard with player's discs.
- * @param O bitboard with opponent's discs.
- * @return all potential moves in a 64-bit unsigned integer.
+ * @param PP broadcasted bitboard with player's discs.
+ * @param OO broadcasted bitboard with opponent's discs.
+ * @return potential moves in a higner 64-bit, real moves in a lower 64-bit.
  */
-static unsigned long long get_potential_moves(const unsigned long long P, const unsigned long long O)
+__m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
 {
+	__m256i	MM, potmob, flip_l, flip_r, pre_l, pre_r, shift2;
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
-	__m256i O4 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
-	__m128i O2;
+	__m256i	mOO = _mm256_and_si256(OO, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
+	__m128i occupied = _mm_or_si128(_mm256_castsi256_si128(PP), _mm256_castsi256_si128(OO));
 
-	O4 = _mm256_and_si256(O4, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
-	O4 = _mm256_or_si256(_mm256_srlv_epi64(O4, shift1897), _mm256_sllv_epi64(O4, shift1897));
-	O2 = _mm_or_si128(_mm256_castsi256_si128(O4), _mm256_extracti128_si256(O4, 1));
-	O2 = _mm_or_si128(O2, _mm_unpackhi_epi64(O2, O2));
-	return _mm_cvtsi128_si64(O2) & ~(P|O); // mask with empties
+	flip_l = _mm256_and_si256(mOO, _mm256_sllv_epi64(PP, shift1897));
+	flip_r = _mm256_and_si256(mOO, _mm256_srlv_epi64(PP, shift1897));
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(mOO, _mm256_sllv_epi64(flip_l, shift1897)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(mOO, _mm256_srlv_epi64(flip_r, shift1897)));
+	pre_l = _mm256_sllv_epi64(mOO, shift1897);	pre_r = _mm256_srlv_epi64(mOO, shift1897);
+	potmob = _mm256_or_si256(pre_l, pre_r);
+	pre_l = _mm256_and_si256(mOO, pre_l);		pre_r = _mm256_and_si256(mOO, pre_r);
+	shift2 = _mm256_add_epi64(shift1897, shift1897);
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(pre_l, _mm256_sllv_epi64(flip_l, shift2)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(pre_r, _mm256_srlv_epi64(flip_r, shift2)));
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(pre_l, _mm256_sllv_epi64(flip_l, shift2)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(pre_r, _mm256_srlv_epi64(flip_r, shift2)));
+	MM = _mm256_or_si256(_mm256_sllv_epi64(flip_l, shift1897), _mm256_srlv_epi64(flip_r, shift1897));
+
+	MM = _mm256_or_si256(_mm256_unpacklo_epi64(MM, potmob), _mm256_unpackhi_epi64(MM, potmob));
+	return _mm_andnot_si128(occupied, _mm_or_si128(_mm256_castsi256_si128(MM), _mm256_extracti128_si256(MM, 1)));	// mask with empties
 }
+
 #endif
 >>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)

@@ -158,6 +158,7 @@ unsigned long long get_moves_sse(unsigned long long, unsigned long long);
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(USE_GAS_MMX) && defined(__3dNOW__)
 unsigned long long board_get_hash_code_mmx(const unsigned char *p);
 #elif defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -167,6 +168,12 @@ unsigned long long board_get_hash_code_sse(const unsigned char *p);
 
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
+=======
+#ifdef __AVX2__
+__m128i vectorcall get_moves_and_potential(__m256i, __m256i);
+#endif
+
+>>>>>>> 6a997c5 (new get_moves_and_potential for AVX2)
 extern unsigned char edge_stability[256 * 256];
 <<<<<<< HEAD
 <<<<<<< HEAD
