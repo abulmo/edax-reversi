@@ -354,12 +354,8 @@ int bit_weighted_count(unsigned long long v)
 <<<<<<< HEAD
 =======
 #if defined(POPCOUNT)
-
-  #ifdef HAS_CPU_64
-	return bit_count(v) + bit_count(v & 0x8100000000000081ULL);
-  #else
-	return bit_count(v) + bit_count_32(((unsigned int)(v >> 32) & 0x81000000) | ((unsigned int) v & 0x00000081));
-  #endif
+  	unsigned int P2187 = (v >> 48) | (v << 16);	// ror 48
+	return bit_count(v) + bit_count_32(P2187 & 0x00818100);
 
 #else
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
