@@ -9,6 +9,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
  * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -353,7 +356,7 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
 =======
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 	// n_flips = last_flip(pos, P);
-#ifdef HAS_CPU_64	// vaddvq
+  #ifdef HAS_CPU_64	// vaddvq
 	unsigned int t0, t1;
 	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
 
@@ -367,7 +370,7 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
 	n_flips += COUNT_FLIP_Y[t1 >> 8];
 	n_flips += COUNT_FLIP_Y[t1 & 0xFF];
 
-#else // Neon kindergarten
+  #else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
 
 	I0 = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
@@ -377,7 +380,7 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
 	I1 = vpaddlq_u32(vmulq_u32(vreinterpretq_u32_u64(dmask), vreinterpretq_u32_u64(I1)));
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 11)];
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3)];
-#endif
+  #endif
 	score += n_flips;
 
 	if (n_flips == 0) {
@@ -388,17 +391,17 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
 		if (score > alpha) {	// lazy cut-off
 			// n_flips = last_flip(pos, O);
 			m = o_mask[pos];	// valid diagonal bits
-#ifdef HAS_CPU_64
+  #ifdef HAS_CPU_64
 			n_flips  = COUNT_FLIP_X[(t0 >> 8) ^ 0xFF];
 			n_flips += COUNT_FLIP_X[(t0 ^ m) & 0xFF];
 			n_flips += COUNT_FLIP_Y[(t1 ^ m) >> 8];
 			n_flips += COUNT_FLIP_Y[(~t1) & 0xFF];
-#else
+  #else
 			n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2) ^ 0xFF];
 			n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0) ^ (m & 0xFF)];
 			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 11) ^ (m >> 8)];
 			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3) ^ 0xFF];
-#endif
+  #endif
 			if (n_flips != 0)
 <<<<<<< HEAD
 				score = score2 + n_flips;
@@ -412,6 +415,7 @@ static int board_score_neon_1(uint64x1_t P, int alpha, int pos)
 	return score;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif
 
 // from bench.c
@@ -421,6 +425,9 @@ int board_score_1(const unsigned long long player, const int beta, const int x)
 }
 =======
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+#endif
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
 
 // from bench.c
 int board_score_1(const unsigned long long player, const int beta, const int x)

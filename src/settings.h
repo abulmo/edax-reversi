@@ -96,8 +96,12 @@
 =======
 >>>>>>> ba1be42 (AVX512 last flip with lastflip_highcut)
 
+<<<<<<< HEAD
 #define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
 #define COUNT_LAST_FLIP_KINDERGARTEN 2	// 33.5Mnps
 #define COUNT_LAST_FLIP_SSE 3		// 34.7Mnps
 #define COUNT_LAST_FLIP_BITSCAN 4	// 33.9Mnps
@@ -106,10 +110,14 @@
 #define COUNT_LAST_FLIP_BMI2 7		// 34.7Mnps	// slow on AMD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
 #define COUNT_LAST_FLIP_AVX_PPFILL 8
 #define COUNT_LAST_FLIP_AVX512 9
 #define COUNT_LAST_FLIP_NEON 10
 #define COUNT_LAST_FLIP_SVE 11
+<<<<<<< HEAD
 =======
 #define	COUNT_LAST_FLIP_CARRY 1
 #define COUNT_LAST_FLIP_KINDERGARTEN 2
@@ -119,6 +127,8 @@
 #define COUNT_LAST_FLIP_32 6
 #define COUNT_LAST_FLIP_BMI2 7
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
@@ -220,8 +230,12 @@
 =======
 	#if defined(__AVX512VL__) || defined(__AVX10_1__)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
+<<<<<<< HEAD
 	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2) || defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
 >>>>>>> ba1be42 (AVX512 last flip with lastflip_highcut)
+=======
+	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
+>>>>>>> ddb5d3f (Add SVE SIMULLASTFLIP to endgame_neon (but not enabled))
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
 	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_NEON
