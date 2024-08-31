@@ -669,8 +669,7 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
 #if 1
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
-	unsigned char	n_flips;
-	unsigned int	t;
+	unsigned int	n_flips, t;
 	unsigned long long P;
 	int	score, score2;
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
@@ -986,7 +985,8 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, int sort3, volatile 
 	}
 #endif
 
-	for (pol = 1; pol >= -1; pol -= 2) {
+	pol = 1;
+	do {
 		// best move alphabeta search
 		bestscore = -SCORE_INF;
 		bb = EXTRACT_O(OP);	// opponent
@@ -1007,6 +1007,7 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, int sort3, volatile 
 		if (/* (NEIGHBOUR[x] & bb) && */ !TESTZ_FLIP(flipped = mm_Flip(OP, x))) {
 			score = -board_solve_2(board_flip_next(OP, x, flipped), ~alpha, n_nodes, _mm_shufflelo_epi16(empties, 0xc9));
 			if (score > bestscore) bestscore = score;
+			return bestscore * pol;
 		}
 
 		if (bestscore > -SCORE_INF)
@@ -1014,7 +1015,7 @@ static int vectorcall search_solve_3(__m128i OP, int alpha, int sort3, volatile 
 
 		OP = _mm_shuffle_epi32(OP, SWAP64);
 		alpha = ~alpha;	// = -(alpha + 1)
-	}
+	} while ((pol = -pol) < 0);
 
 <<<<<<< HEAD
 	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
@@ -1872,7 +1873,8 @@ int search_solve_4(Search *search, const int alpha)
 	sort3 = sort3_shuf[paritysort];
 #endif
 
-	for (pol = 1; pol >= -1; pol -= 2) {
+	pol = 1;
+	do {
 		// best move alphabeta search
 		bestscore = -SCORE_INF;
 		opp = EXTRACT_O(OP);
@@ -1903,6 +1905,7 @@ int search_solve_4(Search *search, const int alpha)
 		if ((NEIGHBOUR[x4] & opp) && !TESTZ_FLIP(flipped = mm_Flip(OP, x4))) {
 			score = -search_solve_3(board_flip_next(OP, x4, flipped), ~alpha, sort3 >> 12, &search->n_nodes, empties_series);
 			if (score > bestscore) bestscore = score;
+			return bestscore * pol;
 		}
 
 		if (bestscore > -SCORE_INF)
@@ -1911,7 +1914,7 @@ int search_solve_4(Search *search, const int alpha)
 		OP = _mm_shuffle_epi32(OP, SWAP64);
 		alpha = ~alpha;	// = -(alpha + 1)
 		empties_series = SHUFFLE_EMPTIES(empties_series, 0x93);	// (SSE) x4x1x2x3 -> x1x2x3x4
-	}
+	} while ((pol = -pol) < 0);
 
 	return board_solve(_mm_cvtsi128_si64(OP), 4);	// gameover
 }

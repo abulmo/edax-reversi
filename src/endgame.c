@@ -108,6 +108,7 @@ static int board_solve(const unsigned long long player, const int n_empties)
 	SEARCH_STATS(++statistics.n_search_solve);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (diff == 0)
 		score = diff;
 	else if (diff > 0)
@@ -118,6 +119,12 @@ static int board_solve(const unsigned long long player, const int n_empties)
 	if (diff > 0)
 		score += n_empties;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	if (diff == 0)
+		score = diff;
+	else if (diff > 0)
+		score = diff + n_empties;
+>>>>>>> c0fb778 (small optimizations in endgame)
 	return score;
 }
 
@@ -342,16 +349,16 @@ static int board_solve_2(unsigned long long player, unsigned long long opponent,
 
 	SEARCH_STATS(++statistics.n_board_solve_2);
 
-	if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (84%/87%)
+	if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (84%/84%)
 		bestscore = board_score_1(opponent ^ flipped, alpha + 1, x2);
 
-		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (50%/92%/93%)
+		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (50%/93%/92%)
 			score = board_score_1(opponent ^ flipped, alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
 			nodes = 3;
 		} else	nodes = 2;
 
-	} else if ((NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (91%/87%)
+	} else if ((NEIGHBOUR[x2] & opponent) && (flipped = Flip(x2, player, opponent))) {	// (96%/75%)
 		bestscore = board_score_1(opponent ^ flipped, alpha + 1, x1);
 		nodes = 2;
 
@@ -529,6 +536,7 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	bestscore = -SCORE_INF;
 	pol = 1;
 	do {
@@ -576,20 +584,24 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 =======
 	for (pol = 1; pol >= -1; pol -= 2) {
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	pol = 1;
+	do {
+>>>>>>> c0fb778 (small optimizations in endgame)
 		// best move alphabeta search
 		bestscore = -SCORE_INF;
-		if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (91%/91%)
+		if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (89%/91%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x1));
 			bestscore = -board_solve_2(next_player, next_opponent, ~alpha, x2, x3, n_nodes);
-			if (bestscore > alpha) return bestscore * pol;	// (73%)
+			if (bestscore > alpha) return bestscore * pol;	// (78%/63%)
 		}
 
 		if (/* (NEIGHBOUR[x2] & opponent) && */ (flipped = Flip(x2, player, opponent))) {	// (97%/78%)
 			next_player = opponent ^ flipped;
 			next_opponent = player ^ (flipped | x_to_bit(x2));
 			score = -board_solve_2(next_player, next_opponent, ~alpha, x1, x3, n_nodes);
-			if (score > alpha) return score * pol;	// (72%)
+			if (score > alpha) return score * pol;	// (32%/9%)
 			else if (score > bestscore) bestscore = score;
 		}
 
@@ -625,13 +637,15 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 >>>>>>> 92a4ad9 (Expand board to 2 ULLs in non-SSE search_solve_3 and _4)
 			score = -board_solve_2(next_player, next_opponent, ~alpha, x1, x2, n_nodes);
 			if (score > bestscore) bestscore = score;
+			return bestscore * pol;	// (26%)
 		}
 
-		if (bestscore > -SCORE_INF)	// (100%)
-			return bestscore * pol;	// (40%)
+		if (bestscore > -SCORE_INF)	// (76%)
+			return bestscore * pol;	// (9%)
 
 		flipped = player; player = opponent; opponent = flipped;
 		alpha = ~alpha;	// = -(alpha + 1)
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	}
 >>>>>>> 46e4b64 (Optimize endgame (esp. 2 empties) score comparisons)
@@ -643,6 +657,8 @@ static int search_solve_3(unsigned long long player, unsigned long long opponent
 
 		next_opponent = player; player = opponent; opponent = next_opponent;	// pass
 		alpha = ~alpha;	// = -(alpha + 1)
+=======
+>>>>>>> c0fb778 (small optimizations in endgame)
 	} while ((pol = -pol) < 0);
 
 	return board_solve(player, 3);	// gameover
@@ -831,6 +847,7 @@ static int search_solve_4(Search *search, int alpha)
 <<<<<<< HEAD
 	player = search->board.player;
 	opponent = search->board.opponent;
+<<<<<<< HEAD
 	bestscore = SCORE_INF;	// min stage
 	pol = 1;
 	do {
@@ -931,6 +948,10 @@ static int search_solve_4(Search *search, int alpha)
 	opponent = search->board.opponent;
 >>>>>>> 92a4ad9 (Expand board to 2 ULLs in non-SSE search_solve_3 and _4)
 	for (pol = 1; pol >= -1; pol -= 2) {
+=======
+	pol = 1;
+	do {
+>>>>>>> c0fb778 (small optimizations in endgame)
 		// best move alphabeta search
 		bestscore = -SCORE_INF;
 		if ((NEIGHBOUR[x1] & opponent) && (flipped = Flip(x1, player, opponent))) {	// (76%/77%)
@@ -961,14 +982,15 @@ static int search_solve_4(Search *search, int alpha)
 			next_opponent = player ^ (flipped | x_to_bit(x4));
 			score = -search_solve_3(next_player, next_opponent, ~alpha, sort3 >> 12, x1, x2, x3, &search->n_nodes);
 			if (score > bestscore) bestscore = score;
+			return bestscore * pol;	// (37%)
 		}
 
-		if (bestscore > -SCORE_INF)	// (91%)
-			return bestscore * pol;	// (42%)
+		if (bestscore > -SCORE_INF)	// (72%)
+			return bestscore * pol;	// (13%)
 
 		flipped = player; player = opponent; opponent = flipped;
 		alpha = ~alpha;	// = -(alpha + 1)
-	}
+	} while ((pol = -pol) < 0);
 
 	return board_solve(search->board.player, 4);	// gameover
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
