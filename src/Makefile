@@ -1,7 +1,11 @@
 #
 # makefile to Compile Edax
 #
+<<<<<<< HEAD
 # Copyright 1998 - 2024
+=======
+# Copyright 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 # Richard Delorme
 # Version 4.5
 #
@@ -82,8 +86,12 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -m32 -march=native -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x86)
+<<<<<<< HEAD
 		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+		CFLAGS += -m32 -march=i386 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif

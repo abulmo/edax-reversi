@@ -3,7 +3,11 @@
  *
  * Search's header file.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -221,6 +225,7 @@ int search_get_pv_cost(Search*);
 void show_current_move(FILE *f, Search*, const Move*, const int, const int, const bool);
 int search_bound(const Search*, int);
 
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
   #ifdef __AVX2__
 	#define	mm_malloc(s)	_mm_malloc((s), 32)
@@ -241,16 +246,28 @@ int search_bound(const Search*, int);
 	}
 	#define mm_free(p)	free(*((void **)(p) - 1));
   #endif
+=======
+#ifdef __SSE2__
+	#ifdef __AVX2__
+		#define	mm_malloc(s)	_mm_malloc((s), 32)
+	#else
+		#define	mm_malloc(s)	_mm_malloc((s), 16)
+	#endif
+	#define	mm_free(p)	_mm_free(p)
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #else
 	#define	mm_malloc(s)	malloc(s)
 	#define	mm_free(p)	free(p)
 #endif
 
+<<<<<<< HEAD
 #ifdef hasSSE2	// search->board is aligned
 	#define	search_pass(search)	_mm_store_si128((__m128i *) &(search)->board, _mm_shuffle_epi32(*(__m128i *) &(search)->board, 0x4e))
 #else
 	#define	search_pass(search)	board_pass(&(search)->board)
 #endif
 
+=======
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #endif
 

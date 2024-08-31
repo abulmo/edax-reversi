@@ -959,7 +959,7 @@ __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
  *
  * SSE/AVX translation of some board.c functions
  *
- * @date 2014
+ * @date 2014 - 2018
  * @author Toshihiko Okuhara
  * @version 4.4
  */
@@ -968,15 +968,7 @@ __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
 #include "hash.h"
 #include "board.h"
 
-#ifdef __AVX2__
-	#include <x86intrin.h>
-#else
-	#ifndef hasSSE2
-		#pragma GCC push_options
-		#pragma GCC target ("sse2")
-	#endif
-	#include <emmintrin.h>
-#endif
+#include <x86intrin.h>
 
 /**
  * @brief SSE2 translation of board_symetry
@@ -987,7 +979,6 @@ __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
  */
 void board_symetry_sse(const Board *board, const int s, Board *sym)
 {
-	// __v2di	PO;	// gcc4.7: lto-wrapper: internal compiler error in convert_move at expr.c:327
 	static const __v2di mask0F0F = { 0x0F0F0F0F0F0F0F0FULL, 0x0F0F0F0F0F0F0F0FULL };
 	static const __v2di mask00AA = { 0x00AA00AA00AA00AAULL, 0x00AA00AA00AA00AAULL };
 	static const __v2di maskCCCC = { 0x0000CCCC0000CCCCULL, 0x0000CCCC0000CCCCULL };
@@ -1110,7 +1101,7 @@ void board_symetry_sse(const Board *board, const int s, Board *sym)
 	__asm__ (
 		"movlps	%%xmm0, %0\n\t"
 		"movhps	%%xmm0, %1"
-	: "=m" (sym->player), "=m" (sym->opponent) : : "xmm0", "xmm1", "xmm2" );
+	: "=m" (sym->player), "=m" (sym->opponent));
 #endif // __AVX__
 
 	board_check(sym);
@@ -1378,7 +1369,7 @@ unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int 
 		"andl	%%ebx, %%eax"
 	: "=&A" (moves)
 	: "m" (PL), "m" (PH), "m" (OL), "m" (OH), "m" (mask7e)
-	: "ebx", "ecx", "esi", "edi", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5" );
+	: "ebx", "ecx", "esi", "edi" );
 
 	return moves;
 }
@@ -1597,10 +1588,6 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 
 #endif // __AVX2__
 #endif // __x86_64__
-
-#if !defined(__AVX__) && !defined(hasSSE2)
-	#pragma GCC pop_options
-#endif
 
 /**
  * @brief SSE translation of board_get_hash_code.

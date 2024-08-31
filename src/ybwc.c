@@ -22,7 +22,11 @@
  * ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  * -# Feldmann R. (1993) Game-Tree Search on Massively Parallel System - PhD Thesis, Paderborn (English version).
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @author Richard Delorme
  * @version 4.5
  */

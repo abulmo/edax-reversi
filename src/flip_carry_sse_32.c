@@ -307,6 +307,7 @@ static const UINT64 FLIPPED_5_V[137] = {
 };
 
 
+<<<<<<< HEAD
 /*
  * Set all bits below the sole outflank bit if outfrank != 0
  */
@@ -322,6 +323,18 @@ static inline unsigned long long OutflankToFlipmask(unsigned long long outflank)
 }
 #else
 	#define OutflankToFlipmask(x)	((x) - (unsigned int) ((x) != 0))
+=======
+#ifdef hasSSE2
+	#include <x86intrin.h>
+	#define	SSE2
+#else
+	// #pragma GCC push_options
+	// #pragma GCC target ("sse2")
+	#include <x86intrin.h>
+	// #pragma GCC pop_options
+	#define	SSE2	/* __attribute__ ((__target__ ("sse2"))) */	// seems still buggy, 
+		// therefore SSE intrinsics cannot be used in dispatching version.
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #endif
 
 #if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)

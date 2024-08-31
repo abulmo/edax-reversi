@@ -31,7 +31,11 @@
 #include <stdlib.h>
 #include <assert.h>
 
+<<<<<<< HEAD
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
+=======
+#ifndef __SSE2__
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -180,6 +184,7 @@ static const CoordinateToFeature EVAL_X2F[] = {
 	{4, {{ 0,     0}, { 0,     0}, { 0,     0}, { 0,     0}}} // <- PASS
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #endif
 #if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -466,6 +471,10 @@ static const unsigned short EVAL_OFFSET[] = {
 	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
 	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
 =======
+=======
+#endif
+
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /** feature offset/size */
 // static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
 static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
@@ -953,6 +962,7 @@ void eval_close(void)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -963,6 +973,14 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
 
 =======
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+#if defined(__SSE2__) || defined(USE_GAS_MMX)
+#include "eval_sse.c"
+#endif
+
+#ifndef __SSE2__
+
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /**
  * @brief Set up evaluation features from a board.
  *
@@ -1013,6 +1031,19 @@ void eval_set(Eval *eval, const Board *board)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * @brief Swap player's feature.
+ *
+ * @param eval  Evaluation function.
+ */
+static void eval_swap(Eval *eval)
+{
+	eval->player ^= 1;
+}
+
+/**
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @brief Update the features after a player's move.
  *
  * @param x     Move position.
@@ -1035,10 +1066,9 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	const CoordinateToFeature *s = EVAL_X2F + move->x;
 	register int x;
 	unsigned long long f = move->flipped;
-	
 #ifdef DEBUG
-
 	int i, j;
+
 	for (i = 0; i < s->n_feature; ++i) {
 		j = s->feature[i].i;
 		assert(0 <= j && j < EVAL_N_FEATURE);
@@ -1057,9 +1087,13 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 	}
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
+<<<<<<< HEAD
   #else
 	const CoordinateToFeature *s = EVAL_X2F + x;
 
+=======
+#else
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	switch (s->n_feature) {
 	default:
 <<<<<<< HEAD
@@ -1098,7 +1132,12 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 			break;
 		}
 	}
+<<<<<<< HEAD
   #endif
+=======
+
+#endif
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 }
 
 /**
@@ -1119,6 +1158,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	unsigned long long f = move->flipped;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
+<<<<<<< HEAD
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
@@ -1136,7 +1176,11 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
 =======
+=======
+#ifdef DEBUG
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	int i, j;
+
 	for (i = 0; i < s->n_feature; ++i) {
 		j = s->feature[i].i;
 		assert(0 <= j && j < EVAL_N_FEATURE);
@@ -1155,7 +1199,6 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	}
 
 #else
-
 	switch (s->n_feature) {
 	default:
 	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
@@ -1194,6 +1237,7 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 
 void eval_update(int x, unsigned long long f, Eval *eval)
 {
+<<<<<<< HEAD
 	assert(f);
 
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
@@ -1206,6 +1250,27 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 		eval_update_1(x, f, eval);
 	else
 		eval_update_0(x, f, eval);
+=======
+	assert(move->flipped);
+	assert(WHITE == eval->player || BLACK == eval->player);
+
+#ifdef USE_GAS_MMX
+	if (hasSSE2) {
+		if (eval->player)
+			eval_update_sse_1(eval, move);
+		else
+			eval_update_sse_0(eval, move);
+		eval_swap(eval);
+		return;
+	}
+#endif
+
+	if (eval->player)
+		eval_update_1(eval, move);
+	else
+		eval_update_0(eval, move);
+	eval_swap(eval);
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 }
 
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
@@ -1231,8 +1296,8 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 	unsigned long long f = move->flipped;
 
 #ifdef DEBUG
-
 	int i, j;
+
 	for (i = 0; i < s->n_feature; ++i) {
 		j = s->feature[i].i;
 		assert(0 <= j && j < EVAL_N_FEATURE);
@@ -1251,7 +1316,6 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 	}
 
 #else
-
 	switch (s->n_feature) {
 	default:
 	       	eval->feature.us[s->feature[6].i] += 2 * s->feature[6].x;
@@ -1277,7 +1341,6 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 		       	break;
 		}
 	}
-	
 #endif
 
 }
@@ -1289,8 +1352,8 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	unsigned long long f = move->flipped;
 
 #ifdef DEBUG
-
 	int i, j;
+
 	for (i = 0; i < s->n_feature; ++i) {
 		j = s->feature[i].i;
 		assert(0 <= j && j < EVAL_N_FEATURE);
@@ -1309,7 +1372,6 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	}
 
 #else
-
 	switch (s->n_feature) {
 	default:
 	       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
@@ -1335,18 +1397,29 @@ static void eval_restore_1(Eval *eval, const Move *move)
 		       	break;
 		}
 	}
-
 #endif
-
 }
 
 void eval_restore(Eval *eval, const Move *move)
 {
-	static void (*eval_restore_f[])(Eval*, const Move*) = {eval_restore_0, eval_restore_1};
 	assert(move->flipped);
 	eval_swap(eval);
 	assert(WHITE == eval->player || BLACK == eval->player);
-	eval_restore_f[eval->player](eval, move);
+
+#ifdef USE_GAS_MMX
+	if (hasSSE2) {
+		if (eval->player)
+			eval_restore_sse_1(eval, move);
+		else
+			eval_restore_sse_0(eval, move);
+		return;
+	}
+#endif
+
+	if (eval->player)
+		eval_restore_1(eval, move);
+	else
+		eval_restore_0(eval, move);
 }
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
@@ -1359,6 +1432,7 @@ void eval_pass(Eval *eval)
 {
 	int i;
 
+<<<<<<< HEAD
 	for (i =  0; i <  4; ++i)	// 9
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
 	for (i =  4; i < 16; ++i)	// 10
@@ -1374,6 +1448,9 @@ void eval_pass(Eval *eval)
 	for (i = 42; i < 46; ++i)	// 4
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 3159 + 29484] + 3159;
 }
+=======
+#endif // __SSE2__
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 
 /**
  * @brief Compute the error-type of the evaluation function according to the

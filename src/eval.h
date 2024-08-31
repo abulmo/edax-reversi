@@ -50,12 +50,12 @@ typedef struct Eval {
 	unsigned int parity;                          /**< parity (4) */
 =======
 	union {
-		unsigned short int us[EVAL_N_FEATURE];         /**!< discs' features */
+		unsigned short us[EVAL_N_FEATURE];         /**!< discs' features */
 #ifdef __SSE2__
-		__v8hi	v8[6];
+		__v8hu	v8[6];
 #endif
 #ifdef __AVX2__
-		__v16hi	v16[3];
+		__v16hu	v16[3];
 #endif
 	} feature;
 	int player;

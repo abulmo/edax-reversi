@@ -4,10 +4,14 @@
  * Bitwise operations header file.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -25,18 +29,78 @@
 struct Random;
 
 /* declaration */
+<<<<<<< HEAD
 void bit_init(void);
 // int next_bit(unsigned long long*);
 void bitboard_write(unsigned long long, FILE*);
+=======
+int bit_weighted_count(const unsigned long long);
+// int next_bit(unsigned long long*);
+void bitboard_write(const unsigned long long, FILE*);
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 unsigned long long transpose(unsigned long long);
 unsigned int horizontal_mirror_32(unsigned int b);
 unsigned long long horizontal_mirror(unsigned long long);
 int get_rand_bit(unsigned long long, struct Random*);
 
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (__ARM_NEON)
 	uint64x2_t bit_weighted_count_neon(unsigned long long, unsigned long long);
+=======
+#ifdef __GNUC__
+#define	first_bit(x)	__builtin_ctzll(x)
+#define	last_bit(x)	(63 - __builtin_clzll(x))
+#else
+int first_bit(unsigned long long);
+int last_bit(unsigned long long);
+#endif
+
+/** Loop over each bit set. */
+#define foreach_bit(i, b)	for (i = first_bit(b); b; i = first_bit(b &= (b - 1)))
+
+#ifndef __x86_64__
+#ifdef __GNUC__
+#define	first_bit_32(x)	__builtin_ctz(x)
+#else
+int first_bit_32(unsigned int);
+#endif
+#define foreach_bit_32(i, b)	for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
+#endif
+
+extern const unsigned long long X_TO_BIT[];
+/** Return a bitboard with bit x set. */
+#define x_to_bit(x) X_TO_BIT[x]
+
+//#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
+
+#ifdef POPCOUNT
+	/*
+	#if defined (USE_GAS_X64)
+		static inline int bit_count (unsigned long long x) {
+			long long	y;
+			__asm__ ( "popcntq %1,%0" : "=r" (y) : "rm" (x));
+			return y;
+		}
+	#elif defined (USE_GAS_X86)
+		static inline int bit_count (unsigned long long x) {
+			unsigned int	y0, y1;
+			__asm__ ( "popcntl %2,%0\n\t"
+				"popcntl %3,%1"
+				: "=&r" (y0), "=&r" (y1)
+				: "rm" ((unsigned int) x), "rm" ((unsigned int) (x >> 32)));
+			return y0 + y1;
+		}
+	*/
+	#if defined (USE_MSVC_X64)
+		#define	bit_count(x)	__popcnt64(x)
+	#elif defined (__x86_64__)
+		#define bit_count(x)	__builtin_popcountll(x)
+	#else
+		#define bit_count(x)	(__builtin_popcount((unsigned int) (x)) + __builtin_popcount((unsigned int) ((x) >> 32)))
+	#endif
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #else
 	int bit_weighted_count(unsigned long long);
 #endif

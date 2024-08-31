@@ -3,7 +3,11 @@
  *
  * Search near the end of the game.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -167,8 +171,12 @@ int search_eval_1(Search *search, int alpha, int beta, unsigned long long moves)
 	register int score, bestscore;
 	const Board *board = search->board;
 	unsigned long long moves = get_moves(board->player, board->opponent);
+<<<<<<< HEAD
 	unsigned short int *f;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+	unsigned short *f;
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);

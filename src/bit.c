@@ -7,10 +7,14 @@
  * algorithm.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2018
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -203,6 +207,7 @@ int bit_weighted_count(unsigned long long v)
 }
 #endif
 
+#ifndef __GNUC__
 /**
  *
  * @brief Search the first bit set.
@@ -266,7 +271,11 @@ int first_bit(unsigned long long b)
 	_BitScanForward64(&index, b);
 	return (int) index;
 
+<<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
+=======
+#elif defined(USE_MASM_X86)
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	__asm {
 		bsf	eax, dword ptr b
 		jnz	l1
@@ -298,8 +307,11 @@ int first_bit(unsigned long long b)
 	}
   #endif
 }
+<<<<<<< HEAD
 #endif // first_bit
 
+=======
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 #if 0
 /**
  * @brief Search the next bit set.
@@ -338,6 +350,7 @@ int last_bit(unsigned long long b)
 	_BitScanReverse64(&index, b);
 	return (int) index;
 
+<<<<<<< HEAD
   #elif defined(USE_GAS_X86)
 	int	x;
 	__asm__ ("bsr	%1, %0\n\t"
@@ -348,6 +361,20 @@ int last_bit(unsigned long long b)
 	return x;
 
   #elif 0 // defined(USE_GCC_ARM)
+=======
+#elif defined(USE_GAS_X86)
+
+  int x1, x2;
+	__asm__ ("bsr %1,%0\n\t"
+		"jnz 1f\n\t"
+		"bsr %0,%0\n\t"
+		"subl $32,%0\n"
+        "1:\taddl $32,%0" : "=&q" (x1), "=&q" (x2) : "1" ((int) (b >> 32)), "0" ((int) b));
+  return x1;
+
+	
+#elif defined(USE_GCC_ARM)
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 	const unsigned int hb = b >> 32;
 	if (hb) {
 		return 63 - __builtin_clz(hb);
@@ -386,6 +413,7 @@ int last_bit(unsigned long long b)
 
 	return magic[(b * 0x03f79d71b4cb0a89) >> 58];
 
+<<<<<<< HEAD
   #else
 	static const unsigned char clz_table_4bit[16] = { 4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int	n = 63;
@@ -399,6 +427,49 @@ int last_bit(unsigned long long b)
 	n -= clz_table_4bit[x >> (32 - 4)];
 	return n;
   #endif
+=======
+#endif
+}
+
+#ifndef __x86_64__
+int first_bit_32(unsigned int b)
+{
+#if defined(USE_MSVC_X64)
+
+	unsigned long index;
+	_BitScanForward(&index, b);
+	return (int) index;
+
+#elif defined(USE_MASM_X86)
+	__asm {
+		bsf eax, word ptr b
+	}
+
+#elif defined(USE_GCC_ARM)
+	return  __builtin_clz(b & -b) ^ 31;
+
+#else
+
+	static const int magic[32] = {
+		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
+		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+	};
+
+	return magic[((b & (-b)) * 0x077CB531U) >> 27];
+
+#endif
+#endif // __x86_64__
+#endif // __GNUC__
+
+/**
+ * @brief Swap bytes of a short (little <-> big endian).
+ * @param s An unsigned short.
+ * @return The mirrored short.
+ */
+unsigned short bswap_short(unsigned short s)
+{
+	return (unsigned short) ((s >> 8) & 0x00FF) | ((s & 0x00FF) <<  8);
+>>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 }
 #endif // last_bit
 
