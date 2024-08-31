@@ -712,7 +712,172 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	return score;
 }
 
-#elif LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE	// reasonably fast on all platforms
+#elif 0 // (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
+// experimental AVX512 lastflip version (speed not tested)
+
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	int	score, score2;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	unsigned long long F;
+	__m256i	flip, outflank, eraser, rmask, lmask;
+	__m128i	flip2;
+
+	rmask = rmask_v4[pos].v4;
+		// right: look for player bit with lzcnt
+	outflank = _mm256_and_si256(PP, rmask);
+	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
+		// set all bits higher than outflank
+	// flip = _mm256_and_si256(_mm256_xor_si256(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank), rmask);
+	flip = _mm256_ternarylogic_epi64(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank, rmask, 0x28);
+
+	lmask = lmask_v4[pos].v4;
+		// look for player LS1B
+	outflank = _mm256_and_si256(PP, lmask);
+	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
+		// set all bits if outflank = 0, otherwise higher bits than outflank
+	outflank = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(outflank, lmask));
+	flip = _mm256_ternarylogic_epi64(flip, outflank, lmask, 0xf2);
+
+	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+	F = _mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
+	score = SCORE_MAX - 2 - 2 * bit_count(P | F);	// 2 * bit_count(O) - SCORE_MAX
+
+	if (F == 0) {
+		score2 = score + 2;	// empty for player
+		if (score >= 0)
+			score = score2;
+
+		if (score < beta) {	// lazy cut-off
+				// right: look for opponent bit with lzcnt
+			outflank = _mm256_andnot_si256(PP, rmask);
+			outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
+				// set all bits higher than outflank
+			// flip = _mm256_and_si256(_mm256_xor_si256(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank), rmask);
+			flip = _mm256_ternarylogic_epi64(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank, rmask, 0x28);
+
+				// look for opponent LS1B
+			outflank = _mm256_andnot_si256(PP, lmask);
+			outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
+				// set all bits if outflank = 0, otherwise higher bits than outflank
+			outflank = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+			// flip = _mm256_or_si256(flip, _mm256_andnot_si256(outflank, lmask));
+			flip = _mm256_ternarylogic_epi64(flip, outflank, lmask, 0xf2);
+
+			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+			F = _mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
+			if (F)
+				score = score2 + bit_count(F) * 2;
+		}
+	}
+
+	return score;
+}
+
+#elif 0 // (MOVE_GENERATOR == MOVE_GENERATOR_AVX)
+// experimental AVX2 lastflip version (a little slower)
+
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	int	score, score2;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	unsigned long long F;
+	__m256i	flip, outflank, eraser, rmask, lmask;
+	__m128i	flip2;
+
+	rmask = rmask_v4[pos].v4;
+		// isolate player MS1B by clearing lower shadow bits
+	outflank = _mm256_and_si256(PP, rmask);
+	eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
+		// clear if no player bit
+	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(outflank, eraser), rmask);
+		// eraser = player's shadow
+	eraser = _mm256_or_si256(eraser, outflank);
+	eraser = _mm256_or_si256(eraser, _mm256_srlv_epi64(eraser, _mm256_set_epi64x(14, 18, 16, 2)));
+	flip = _mm256_andnot_si256(eraser, flip);
+	flip = _mm256_andnot_si256(_mm256_srlv_epi64(eraser, _mm256_set_epi64x(28, 36, 32, 4)), flip);
+
+	lmask = lmask_v4[pos].v4;
+		// look for player LS1B
+	outflank = _mm256_and_si256(PP, lmask);
+	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
+		// set all bits if outflank = 0, otherwise higher bits than outflank
+	eraser = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+	flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, lmask));
+
+	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+	F = _mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
+	score = SCORE_MAX - 2 - 2 * bit_count(P | F);	// 2 * bit_count(O) - SCORE_MAX
+
+	if (F == 0) {
+		score2 = score + 2;	// empty for player
+		if (score >= 0)
+			score = score2;
+
+		if (score < beta) {	// lazy cut-off
+				// isolate opponent MS1B by clearing lower shadow bits
+			outflank = _mm256_andnot_si256(PP, rmask);
+			eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
+				// clear if no player bit
+			flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(outflank, eraser), rmask);
+				// eraser = opponent's shadow
+			eraser = _mm256_or_si256(eraser, outflank);
+			eraser = _mm256_or_si256(eraser, _mm256_srlv_epi64(eraser, _mm256_set_epi64x(14, 18, 16, 2)));
+			flip = _mm256_andnot_si256(eraser, flip);
+			flip = _mm256_andnot_si256(_mm256_srlv_epi64(eraser, _mm256_set_epi64x(28, 36, 32, 4)), flip);
+
+				// look for opponent LS1B
+			outflank = _mm256_andnot_si256(PP, lmask);
+			outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
+				// set all bits if outflank = 0, otherwise higher bits than outflank
+			eraser = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+			flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, lmask));
+
+			flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
+			F = _mm_cvtsi128_si64(_mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e)));	// SWAP64
+			if (F)
+				score = score2 + bit_count(F) * 2;
+		}
+	}
+
+	return score;
+}
+
+#elif 0 // def __AVX2__
+// experimental bruteforce AVX2 version (slower on icc, par on msvc)
+// https://eukaryote.hateblo.jp/entry/2020/05/10/033228
+static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
+{
+	unsigned char	p_flip, o_flip;
+	unsigned int	tP, tO, h;
+	unsigned long long P;
+	int	score, score2;
+	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+	__m256i M = mask_dvhd[pos].v4;
+	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
+
+	(void) beta;	// no lazy cut-off
+	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
+	tP = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
+	tO = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256(PP, M)));
+	h = (P >> (pos & 0x38)) & 0xFF;
+	p_flip  = COUNT_FLIP_X[h];			o_flip  = COUNT_FLIP_X[h ^ 0xFF];
+	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip += COUNT_FLIP_Y[tO & 0xFF];
+	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip += COUNT_FLIP_Y[(tO >> 16) & 0xFF];
+	p_flip += COUNT_FLIP_Y[tP >> 24];		o_flip += COUNT_FLIP_Y[tO >> 24];
+
+	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
+	score2 = score + o_flip + (int)(((o_flip - 1) & score) >= 0) * 2;	// ((o_flip > 0) | (score >= 0))
+	score -= p_flip;
+	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
+}
+
+#else	// COUNT_LAST_FLIP_SSE - reasonably fast on all platforms
 static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 {
 	unsigned int	n_flips, t;
@@ -775,65 +940,6 @@ static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
 	}
 
 	return score;
-}
-
-#elif 0
-// experimental AVX2 lastflip version (a little slower)
-extern unsigned long long vectorcall mm_LastFlip(const __m256i PP, int pos);	// in flip_avx_ppfill.c
-
-static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
-{
-	int	score, score2;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-	unsigned long long P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
-	unsigned long long F;
-
-	F = _mm_cvtsi128_si64(mm_LastFlip(PP, pos));
-	score = SCORE_MAX - 2 - 2 * bit_count(P | F);	// 2 * bit_count(O) - SCORE_MAX
-
-	if (F == 0) {
-		score2 = score + 2;	// empty for player
-		if (score >= 0)
-			score = score2;
-		if (score < beta) {	// lazy cut-off
-			F = _mm_cvtsi128_si64(mm_LastFlip(_mm256_xor_si256(PP, _mm256_set1_epi64x(-1)), pos));
-			if (F)
-				score = score2 + bit_count(F) * 2;
-		}
-	}
-
-	return score;
-}
-
-#else
-// experimental bruteforce AVX2 version (slower on icc, par on msvc)
-// https://eukaryote.hateblo.jp/entry/2020/05/10/033228
-static inline int board_score_sse_1(__m128i PO, const int beta, const int pos)
-{
-	unsigned char	p_flip, o_flip;
-	unsigned int	tP, tO, h;
-	unsigned long long P;
-	int	score, score2;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-
-	__m256i M = mask_dvhd[pos].v4;
-	__m256i PP = _mm256_permute4x64_epi64(_mm256_castsi128_si256(PO), 0x55);
-
-	(void) beta;	// no lazy cut-off
-	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
-	tP = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, M)));
-	tO = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256(PP, M)));
-	h = (P >> (pos & 0x38)) & 0xFF;
-	p_flip  = COUNT_FLIP_X[h];			o_flip  = COUNT_FLIP_X[h ^ 0xFF];
-	p_flip += COUNT_FLIP_Y[tP & 0xFF];		o_flip += COUNT_FLIP_Y[tO & 0xFF];
-	p_flip += COUNT_FLIP_Y[(tP >> 16) & 0xFF];	o_flip += COUNT_FLIP_Y[(tO >> 16) & 0xFF];
-	p_flip += COUNT_FLIP_Y[tP >> 24];		o_flip += COUNT_FLIP_Y[tO >> 24];
-
-	score = SCORE_MAX - 2 - 2 * bit_count(P);	// 2 * bit_count(O) - SCORE_MAX
-	score2 = score + o_flip + (int)(((o_flip - 1) & score) >= 0) * 2;	// ((o_flip > 0) | (score >= 0))
-	score -= p_flip;
-	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
 }
 #endif
 

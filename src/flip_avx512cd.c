@@ -39,6 +39,7 @@
 #include "bit.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const V8DI lrmask[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -108,6 +109,9 @@ const V8DI lrmask[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
 =======
 static const V4DI lmask_v4[66] = {
+=======
+const V4DI lmask_v4[66] = {
+>>>>>>> 17f847d (Experimental BMI2/AVX2/AVX512 lastflip inlined in endgame_sse.c)
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100 }},
 	{{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200 }},
@@ -176,7 +180,7 @@ static const V4DI lmask_v4[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
 };
 
-static const V4DI rmask_v4[66] = {
+const V4DI rmask_v4[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x0000000000000003, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -332,15 +336,18 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	// outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
 	// outflank = _mm256_and_si256(outflank, PP);
 	outflank = _mm256_ternarylogic_epi64(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank, PP, 0x80);
-		// set all bits lower than outflank if outflank != 0
-	outflank = _mm256_sub_epi64(outflank, _mm256_min_epu64(outflank, _mm256_set1_epi64x(1)));
-	// flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
-	flip = _mm256_ternarylogic_epi64(flip, outflank, mask, 0xf8);
+		// set all bits if outflank = 0, otherwise higher bits than outflank
+	outflank = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(outflank, mask));
+	flip = _mm256_ternarylogic_epi64(flip, outflank, mask, 0xf2);
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
 
 	return flip2;
 }
+<<<<<<< HEAD
 
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
+=======
+>>>>>>> 17f847d (Experimental BMI2/AVX2/AVX512 lastflip inlined in endgame_sse.c)

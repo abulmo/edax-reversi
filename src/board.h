@@ -219,6 +219,7 @@ extern unsigned long long A1_A8[256];
 <<<<<<< HEAD
 <<<<<<< HEAD
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512)
+	extern const V4DI lmask_v4[66], rmask_v4[66];
 	extern __m128i vectorcall mm_Flip(const __m128i OP, int pos);
 <<<<<<< HEAD
 	inline __m128i vectorcall reduce_vflip(__m128i flip) { return _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e)); }
