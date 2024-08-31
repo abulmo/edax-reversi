@@ -39,7 +39,10 @@ int bit_weighted_count(const unsigned long long);
 void bitboard_write(const unsigned long long, FILE*);
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 unsigned long long transpose(unsigned long long);
+<<<<<<< HEAD
 unsigned int horizontal_mirror_32(unsigned int b);
+=======
+>>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
 unsigned long long horizontal_mirror(unsigned long long);
 int get_rand_bit(unsigned long long, struct Random*);
 
@@ -49,6 +52,20 @@ int get_rand_bit(unsigned long long, struct Random*);
 #elif defined (__ARM_NEON)
 	uint64x2_t bit_weighted_count_neon(unsigned long long, unsigned long long);
 =======
+#ifdef __GNUC__
+#define	bswap_short(x)	__builtin_bswap16(x)
+#define	bswap_int(x)	__builtin_bswap32(x)
+#define	vertical_mirror(x)	__builtin_bswap64(x)
+#elif defined(_MSC_VER)
+#define	bswap_short(x)	_byteswap_ushort(x)
+#define	bswap_int(x)	_byteswap_ulong(x)
+#define	vertical_mirror(x)	_byteswap_uint64(x)
+#else
+unsigned short bswap_short(unsigned short);
+unsigned int bswap_int(unsigned int);
+unsigned long long vertical_mirror(unsigned long long);
+#endif
+
 #ifdef __GNUC__
 #define	first_bit(x)	__builtin_ctzll(x)
 #define	last_bit(x)	(63 - __builtin_clzll(x))

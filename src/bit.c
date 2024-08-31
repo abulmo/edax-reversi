@@ -461,6 +461,7 @@ int first_bit_32(unsigned int b)
 #endif // __x86_64__
 #endif // __GNUC__
 
+#if !defined(__GNUC__) && !defined(_MSC_VER)
 /**
  * @brief Swap bytes of a short (little <-> big endian).
  * @param s An unsigned short.
@@ -493,9 +494,18 @@ unsigned int bswap_int(unsigned int i)
  */
 unsigned long long vertical_mirror(unsigned long long b)
 {
+<<<<<<< HEAD
 	return bswap_int((unsigned int)(b >> 32)) | ((unsigned long long) bswap_int((unsigned int) b) << 32);
 }
 #endif // bswap_int
+=======
+	b = ((b >>  8) & 0x00FF00FF00FF00FFULL) | ((b & 0x00FF00FF00FF00FFULL) <<  8);
+	b = ((b >> 16) & 0x0000FFFF0000FFFFULL) | ((b & 0x0000FFFF0000FFFFULL) << 16);
+	b = (b >> 32) | (b << 32);
+	return b;
+}
+#endif
+>>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
 
 /**
  * @brief Mirror the unsigned long long (exchange the line 1 - 8, 2 - 7, 3 - 6 & 4 - 5).
@@ -542,8 +552,12 @@ unsigned long long transpose(unsigned long long b)
 unsigned long long transpose(unsigned long long b)
 {
 	static const __v4di s3210 = { 3, 2, 1, 0 };
+<<<<<<< HEAD
 	__v4di	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_set_epi64x(0, b)), s3210);
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+	__v4di	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), s3210);
+>>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
 	return ((unsigned long long) _mm256_movemask_epi8(v) << 32)
 		| (unsigned int) _mm256_movemask_epi8(_mm256_slli_epi64(v, 4));
 }

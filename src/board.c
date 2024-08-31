@@ -292,6 +292,7 @@ void board_transpose(const Board *board, Board *sym)
 
 void board_symetry(const Board *board, const int s, Board *sym)
 {
+<<<<<<< HEAD
 	*sym = *board;
 	if (s & 1)
 		board_horizontal_mirror(sym, sym);
@@ -299,6 +300,38 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		board_vertical_mirror(sym, sym);
 	if (s & 4)
 		board_transpose(sym, sym);
+=======
+	register unsigned long long player, opponent;
+
+#if (defined(USE_GAS_MMX) || defined(__x86_64__)) && !defined(DEBUG)	// crashes debug build on GCC5.1
+	if (hasSSE2) {
+		board_symetry_sse(board, s, sym);
+		return;
+	}
+#endif
+
+	player = board->player;
+	opponent = board->opponent;
+
+	if (s & 1) {
+		player = horizontal_mirror(player);
+		opponent = horizontal_mirror(opponent);
+	}
+	if (s & 2) {
+		player = vertical_mirror(player);
+		opponent = vertical_mirror(opponent);
+	}
+	if (s & 4) {
+		player = transpose(player);
+		opponent = transpose(opponent);
+	}
+
+	// board_symetry_sse(board, s, sym);
+	// assert((sym->player == player) && (sym->opponent == opponent));
+
+	sym->player = player;
+	sym->opponent = opponent;
+>>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
 
 	board_check(sym);
 }

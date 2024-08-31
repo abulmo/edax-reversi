@@ -110,16 +110,8 @@ Kindergarten version eliminates bit_count call.
 Loop optimization and flip using carry propagation. One time execution but affect total solving time.
 
 ## 3. eval.c
-Switch cases and table sizes are optimized. This small change slightly imploves endgame solving. I guess this should improve midgame too.
-
-    Athlon -eval
-    problem\fforum-20-39.obf: 111349635 nodes in 0:07.954 (13999200 nodes/s).
-    Athlon +eval
-    problem\fforum-20-39.obf: 111349635 nodes in 0:07.889 (14114544 nodes/s).
-    Core2 -eval
-    problem/fforum-20-39.obf: 111349635 nodes in 0:10.161 (10958531 nodes/s).
-    Core2 +eval
-    problem/fforum-20-39.obf: 111349635 nodes in 0:09.978 (11159514 nodes/s).
+Eval feature calculation using SSE2 / AVX2 (now in eval_sse.c) improves midgame by 15-30% and endgame by 8-12%.
+eval_open (one time execution) is also optimized.
 
 ## 4. hash.c
 I think hash->data.move[0] on line 677 should be hash->data.move[1].

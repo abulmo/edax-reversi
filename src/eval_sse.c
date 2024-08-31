@@ -287,11 +287,11 @@ typedef union {
 #ifdef __AVX2__
 	__v16hu	v16[3];
 #endif
-} EVAL_FEATURE_V
+}
 #if defined(__GNUC__) && !defined(__SSE2__)
 __attribute__ ((aligned (16)))
 #endif
-;
+EVAL_FEATURE_V;
 
 static const EVAL_FEATURE_V EVAL_FEATURE[65] = {
 	{{ // a1
@@ -574,11 +574,11 @@ static const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 void eval_set(Eval *eval, const Board *board)
 {
 	int x;
+	unsigned long long	b = board->player;
 #ifdef __AVX2__
 	__v16hu	f0 = EVAL_FEATURE_all_opponent.v16[0];
 	__v16hu	f1 = EVAL_FEATURE_all_opponent.v16[1];
 	__v16hu	f2 = EVAL_FEATURE_all_opponent.v16[2];
-	unsigned long long	b = board->player;
 
 	foreach_bit(x, b) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -602,7 +602,6 @@ void eval_set(Eval *eval, const Board *board)
 	__v8hu	f3 = EVAL_FEATURE_all_opponent.v8[3];
 	__v8hu	f4 = EVAL_FEATURE_all_opponent.v8[4];
 	__v8hu	f5 = EVAL_FEATURE_all_opponent.v8[5];
-	unsigned long long	b = board->player;
 
 	foreach_bit(x, b) {
 		f0 -= EVAL_FEATURE[x].v8[0];
@@ -650,12 +649,12 @@ static void eval_swap(Eval *eval)
  */
 static void eval_update_0(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[move->x].v16[0] * 2;
-	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[move->x].v16[1] * 2;
-	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[move->x].v16[2] * 2;
+	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[x].v16[0] * 2;
+	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[x].v16[1] * 2;
+	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[x].v16[2] * 2;
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -667,12 +666,12 @@ static void eval_update_0(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[move->x].v8[0] * 2;
-	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[move->x].v8[1] * 2;
-	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[move->x].v8[2] * 2;
-	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[move->x].v8[3] * 2;
-	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[move->x].v8[4] * 2;
-	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[move->x].v8[5] * 2;
+	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[x].v8[0] * 2;
+	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[x].v8[1] * 2;
+	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[x].v8[2] * 2;
+	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[x].v8[3] * 2;
+	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[x].v8[4] * 2;
+	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[x].v8[5] * 2;
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v8[0];
@@ -700,12 +699,12 @@ static void eval_update_0(Eval *eval, const Move *move)
  */
 static void eval_update_1(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[move->x].v16[0];
-	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[move->x].v16[1];
-	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[move->x].v16[2];
+	__v16hu	f0 = eval->feature.v16[0] - EVAL_FEATURE[x].v16[0];
+	__v16hu	f1 = eval->feature.v16[1] - EVAL_FEATURE[x].v16[1];
+	__v16hu	f2 = eval->feature.v16[2] - EVAL_FEATURE[x].v16[2];
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v16[0];
@@ -717,12 +716,12 @@ static void eval_update_1(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[move->x].v8[0];
-	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[move->x].v8[1];
-	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[move->x].v8[2];
-	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[move->x].v8[3];
-	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[move->x].v8[4];
-	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[move->x].v8[5];
+	__v8hu	f0 = eval->feature.v8[0] - EVAL_FEATURE[x].v8[0];
+	__v8hu	f1 = eval->feature.v8[1] - EVAL_FEATURE[x].v8[1];
+	__v8hu	f2 = eval->feature.v8[2] - EVAL_FEATURE[x].v8[2];
+	__v8hu	f3 = eval->feature.v8[3] - EVAL_FEATURE[x].v8[3];
+	__v8hu	f4 = eval->feature.v8[4] - EVAL_FEATURE[x].v8[4];
+	__v8hu	f5 = eval->feature.v8[5] - EVAL_FEATURE[x].v8[5];
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v8[0];
@@ -761,12 +760,12 @@ void eval_update(Eval *eval, const Move *move)
  */
 static void eval_restore_0(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[move->x].v16[0] * 2;
-	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[move->x].v16[1] * 2;
-	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[move->x].v16[2] * 2;
+	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[x].v16[0] * 2;
+	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[x].v16[1] * 2;
+	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[x].v16[2] * 2;
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v16[0];
@@ -778,12 +777,12 @@ static void eval_restore_0(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[move->x].v8[0] * 2;
-	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[move->x].v8[1] * 2;
-	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[move->x].v8[2] * 2;
-	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[move->x].v8[3] * 2;
-	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[move->x].v8[4] * 2;
-	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[move->x].v8[5] * 2;
+	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[x].v8[0] * 2;
+	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[x].v8[1] * 2;
+	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[x].v8[2] * 2;
+	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[x].v8[3] * 2;
+	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[x].v8[4] * 2;
+	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[x].v8[5] * 2;
 
 	foreach_bit(x, f) {
 		f0 += EVAL_FEATURE[x].v8[0];
@@ -805,12 +804,12 @@ static void eval_restore_0(Eval *eval, const Move *move)
 
 static void eval_restore_1(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned long long f = move->flipped;
 #ifdef __AVX2__
-	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[move->x].v16[0];
-	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[move->x].v16[1];
-	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[move->x].v16[2];
+	__v16hu	f0 = eval->feature.v16[0] + EVAL_FEATURE[x].v16[0];
+	__v16hu	f1 = eval->feature.v16[1] + EVAL_FEATURE[x].v16[1];
+	__v16hu	f2 = eval->feature.v16[2] + EVAL_FEATURE[x].v16[2];
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v16[0];
@@ -822,12 +821,12 @@ static void eval_restore_1(Eval *eval, const Move *move)
 	eval->feature.v16[2] = f2;
 
 #else
-	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[move->x].v8[0];
-	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[move->x].v8[1];
-	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[move->x].v8[2];
-	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[move->x].v8[3];
-	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[move->x].v8[4];
-	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[move->x].v8[5];
+	__v8hu	f0 = eval->feature.v8[0] + EVAL_FEATURE[x].v8[0];
+	__v8hu	f1 = eval->feature.v8[1] + EVAL_FEATURE[x].v8[1];
+	__v8hu	f2 = eval->feature.v8[2] + EVAL_FEATURE[x].v8[2];
+	__v8hu	f3 = eval->feature.v8[3] + EVAL_FEATURE[x].v8[3];
+	__v8hu	f4 = eval->feature.v8[4] + EVAL_FEATURE[x].v8[4];
+	__v8hu	f5 = eval->feature.v8[5] + EVAL_FEATURE[x].v8[5];
 
 	foreach_bit(x, f) {
 		f0 -= EVAL_FEATURE[x].v8[0];
@@ -868,11 +867,11 @@ void eval_pass(Eval *eval)
 	eval_swap(eval);
 }
 
-#else	// SSE dispatch
+#else	// SSE dispatch (Eval may not be aligned)
 
 static void eval_update_sse_0(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned int	fl = (unsigned int) move->flipped;
 	unsigned int	fh = (unsigned int) (move->flipped >> 32);
 
@@ -881,19 +880,19 @@ static void eval_update_sse_0(Eval *eval, const Move *move)
 		"movdqu	%0, %%xmm2\n\t"		"movdqu	%1, %%xmm3\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"psubw	%%xmm0, %%xmm2\n\t"	"psubw	%%xmm1, %%xmm3\n"
-	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[move->x].us[0]),  "m" (EVAL_FEATURE[move->x].us[8]));
+	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[x].us[0]),  "m" (EVAL_FEATURE[x].us[8]));
 	__asm__ (
 		"movdqa	%2, %%xmm0\n\t"		"movdqa	%3, %%xmm1\n\t"
 		"movdqu	%0, %%xmm4\n\t"		"movdqu	%1, %%xmm5\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"psubw	%%xmm0, %%xmm4\n\t"	"psubw	%%xmm1, %%xmm5\n"
-	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[move->x].us[16]),  "m" (EVAL_FEATURE[move->x].us[24]));
+	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[x].us[16]),  "m" (EVAL_FEATURE[x].us[24]));
 	__asm__ (
 		"movdqa	%2, %%xmm0\n\t"		"movdqa	%3, %%xmm1\n\t"
 		"movdqu	%0, %%xmm6\n\t"		"movdqu	%1, %%xmm7\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"psubw	%%xmm0, %%xmm6\n\t"	"psubw	%%xmm1, %%xmm7\n"
-	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[move->x].us[32]),  "m" (EVAL_FEATURE[move->x].us[40]));
+	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
 	foreach_bit_32(x, fl) {
 		__asm__ (
@@ -931,22 +930,22 @@ static void eval_update_sse_0(Eval *eval, const Move *move)
 
 static void eval_update_sse_1(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned int	fl = (unsigned int) move->flipped;
 	unsigned int	fh = (unsigned int) (move->flipped >> 32);
 
 	__asm__ (
 		"movdqu	%0, %%xmm2\n\t"		"movdqu	%1, %%xmm3\n\t"
 		"psubw	%2, %%xmm2\n\t"		"psubw	%3, %%xmm3\n"
-	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[move->x].us[0]),  "m" (EVAL_FEATURE[move->x].us[8]));
+	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[x].us[0]),  "m" (EVAL_FEATURE[x].us[8]));
 	__asm__ (
 		"movdqu	%0, %%xmm4\n\t"		"movdqu	%1, %%xmm5\n\t"
 		"psubw	%2, %%xmm4\n\t"		"psubw	%3, %%xmm5\n"
-	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[move->x].us[16]),  "m" (EVAL_FEATURE[move->x].us[24]));
+	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[x].us[16]),  "m" (EVAL_FEATURE[x].us[24]));
 	__asm__ (
 		"movdqu	%0, %%xmm6\n\t"		"movdqu	%1, %%xmm7\n\t"
 		"psubw	%2, %%xmm6\n\t"		"psubw	%3, %%xmm7\n"
-	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[move->x].us[32]),  "m" (EVAL_FEATURE[move->x].us[40]));
+	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
 	foreach_bit_32(x, fl) {
 		__asm__ (
@@ -984,7 +983,7 @@ static void eval_update_sse_1(Eval *eval, const Move *move)
 
 static void eval_restore_sse_0(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned int	fl = (unsigned int) move->flipped;
 	unsigned int	fh = (unsigned int) (move->flipped >> 32);
 
@@ -993,19 +992,19 @@ static void eval_restore_sse_0(Eval *eval, const Move *move)
 		"movdqu	%0, %%xmm2\n\t"		"movdqu	%1, %%xmm3\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"paddw	%%xmm0, %%xmm2\n\t"	"paddw	%%xmm1, %%xmm3\n"
-	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[move->x].us[0]),  "m" (EVAL_FEATURE[move->x].us[8]));
+	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[x].us[0]),  "m" (EVAL_FEATURE[x].us[8]));
 	__asm__ (
 		"movdqa	%2, %%xmm0\n\t"		"movdqa	%3, %%xmm1\n\t"
 		"movdqu	%0, %%xmm4\n\t"		"movdqu	%1, %%xmm5\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"paddw	%%xmm0, %%xmm4\n\t"	"paddw	%%xmm1, %%xmm5\n"
-	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[move->x].us[16]),  "m" (EVAL_FEATURE[move->x].us[24]));
+	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[x].us[16]),  "m" (EVAL_FEATURE[x].us[24]));
 	__asm__ (
 		"movdqa	%2, %%xmm0\n\t"		"movdqa	%3, %%xmm1\n\t"
 		"movdqu	%0, %%xmm6\n\t"		"movdqu	%1, %%xmm7\n\t"
 		"psllw	$1, %%xmm0\n\t"		"psllw	$1, %%xmm1\n\t"
 		"paddw	%%xmm0, %%xmm6\n\t"	"paddw	%%xmm1, %%xmm7\n"
-	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[move->x].us[32]),  "m" (EVAL_FEATURE[move->x].us[40]));
+	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
 	foreach_bit_32(x, fl) {
 		__asm__ (
@@ -1043,22 +1042,22 @@ static void eval_restore_sse_0(Eval *eval, const Move *move)
 
 static void eval_restore_sse_1(Eval *eval, const Move *move)
 {
-	int	x;
+	int	x = move->x;
 	unsigned int	fl = (unsigned int) move->flipped;
 	unsigned int	fh = (unsigned int) (move->flipped >> 32);
 
 	__asm__ (
 		"movdqu	%0, %%xmm2\n\t"		"movdqu	%1, %%xmm3\n\t"
 		"paddw	%2, %%xmm2\n\t"		"paddw	%3, %%xmm3\n"
-	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[move->x].us[0]),  "m" (EVAL_FEATURE[move->x].us[8]));
+	: :  "m" (eval->feature.us[0]), "m" (eval->feature.us[8]), "m" (EVAL_FEATURE[x].us[0]),  "m" (EVAL_FEATURE[x].us[8]));
 	__asm__ (
 		"movdqu	%0, %%xmm4\n\t"		"movdqu	%1, %%xmm5\n\t"
 		"paddw	%2, %%xmm4\n\t"		"paddw	%3, %%xmm5\n"
-	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[move->x].us[16]),  "m" (EVAL_FEATURE[move->x].us[24]));
+	: :  "m" (eval->feature.us[16]), "m" (eval->feature.us[24]), "m" (EVAL_FEATURE[x].us[16]),  "m" (EVAL_FEATURE[x].us[24]));
 	__asm__ (
 		"movdqu	%0, %%xmm6\n\t"		"movdqu	%1, %%xmm7\n\t"
 		"paddw	%2, %%xmm6\n\t"		"paddw	%3, %%xmm7\n"
-	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[move->x].us[32]),  "m" (EVAL_FEATURE[move->x].us[40]));
+	: :  "m" (eval->feature.us[32]), "m" (eval->feature.us[40]), "m" (EVAL_FEATURE[x].us[32]),  "m" (EVAL_FEATURE[x].us[40]));
 
 	foreach_bit_32(x, fl) {
 		__asm__ (
