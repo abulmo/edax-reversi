@@ -13,9 +13,9 @@
  *  - With "-follow-cassio" Edax will follow more closely Cassio's search request. By default, it
  * searches with settings that make it better in tournament mode against Roxane, Cassio, etc.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2023
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #include "cassio.h"
@@ -200,9 +200,9 @@ static bool is_position_new(Engine *engine, Board *board)
 	cassio_debug("Position list: adding position %llx\n", board_get_hash_code(board));
 	engine->last_position.board[0] = *board;
 	engine->last_position.n = MIN(ENGINE_N_POSITION, engine->last_position.n + 1);
-	hash_clear(engine->search->hash_table);
-	hash_clear(engine->search->pv_table);
-	hash_clear(engine->search->shallow_table);
+	hash_clear(&engine->search->hash_table);
+	hash_clear(&engine->search->pv_table);
+	hash_clear(&engine->search->shallow_table);
 	
 	return true;
 }
@@ -220,8 +220,8 @@ static void engine_observer(Result *result)
 	n += sprintf(engine_result + n, ", depth %d, @%d%%, %c%+d.00 <= v <= %c%+d.00, ",
 		 result->depth, selectivity_table[result->selectivity].percent,
 		 color, result->bound[result->move].lower, color, result->bound[result->move].upper);
-	line_to_string(result->pv, result->pv->n_moves, NULL, engine_result + n);
-	n += 2 * result->pv->n_moves;
+	line_to_string(&result->pv, result->pv.n_moves, NULL, engine_result + n);
+	n += 2 * result->pv.n_moves;
 	n += sprintf(engine_result + n, ", node %llu, time %.3f", result->n_nodes, 0.001 * result->time);
 
 	// avoid to send multiple times the same result.
@@ -238,8 +238,8 @@ static void engine_observer(Result *result)
 static Search* engine_create_search(void)
 {
 	Search *search;
-	
-	search = (Search*) malloc(sizeof (Search));
+
+	search = (Search*) mm_malloc(sizeof (Search));
 	if (search == NULL) {
 		engine_send("ERROR: Cannot allocate a new search engine.");
 		engine_send("bye bye!");
@@ -268,7 +268,7 @@ static Search* engine_create_search(void)
 static int engine_open(Search *search, const Board *board, const int player, const int alpha, const int beta, const int depth, const int precision)
 {
 	int k;
-	HashData hash_data[1];
+	HashData hash_data;
 	Move *move;
 	int score = 0;
 	
@@ -287,9 +287,9 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	search->child_nodes = 0;
 	search_time_init(search);
 	if (!search->options.keep_date) {
-		hash_clear(search->hash_table);
-		hash_clear(search->pv_table);
-		hash_clear(search->shallow_table);
+		hash_clear(&search->hash_table);
+		hash_clear(&search->pv_table);
+		hash_clear(&search->shallow_table);
 	}
 
 	search->height = 0;
@@ -299,17 +299,17 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	search->stability_bound.lower = 2 * get_stability(board->player, board->opponent) - SCORE_MAX;
 
 	// set the board
-	if (player != search->player || !board_equal(search->board, board)) {
+	if (player != search->player || !board_equal(&search->board, board)) {
 		search_set_board(search, board, player);
 
-		if (hash_get(search->pv_table, board, board_get_hash_code(board), hash_data)) {
-			if (hash_data->lower == -SCORE_INF && hash_data->upper < SCORE_INF) score = hash_data->upper;
-			else if (hash_data->upper == +SCORE_INF && hash_data->lower > -SCORE_INF) score = hash_data->lower;
-			else score = (hash_data->upper + hash_data->lower) / 2;
+		if (hash_get_from_board(&search->pv_table, board, &hash_data)) {
+			if (hash_data.lower == -SCORE_INF && hash_data.upper < SCORE_INF) score = hash_data.upper;
+			else if (hash_data.upper == +SCORE_INF && hash_data.lower > -SCORE_INF) score = hash_data.lower;
+			else score = (hash_data.upper + hash_data.lower) / 2;
 		}
-		if (!movelist_is_empty(search->movelist)) {
-			movelist_evaluate(search->movelist, search, hash_data, options.alpha, depth);
-			movelist_sort(search->movelist);
+		if (!movelist_is_empty(&search->movelist)) {
+			movelist_evaluate(&search->movelist, search, &hash_data, options.alpha, depth);
+			movelist_sort(&search->movelist);
 		}
 	}
 
@@ -318,19 +318,19 @@ static int engine_open(Search *search, const Board *board, const int player, con
 		search->result->bound[move->x].upper = SCORE_MAX;
 	}
 
-	search->result->n_moves_left = search->result->n_moves = search->movelist->n_moves;
+	search->result->n_moves_left = search->result->n_moves = search->movelist.n_moves;
 	search->result->book_move = false;
 
 	// set level
 	search->depth = depth;
-	if (options.transgress_cassio && (search->n_empties & 1) != (depth & 1)) ++search->depth;
-	if (options.transgress_cassio && search->depth > search->n_empties - 10) search->depth = search->n_empties;
+	if (options.transgress_cassio && (search->eval.n_empties & 1) != (depth & 1)) ++search->depth;
+	if (options.transgress_cassio && search->depth > search->eval.n_empties - 10) search->depth = search->eval.n_empties;
 	search->options.depth = search->depth;
 
-	BOUND(search->depth, 0, search->n_empties, "depth");
-	search->depth_pv_extension = get_pv_extension(search->depth, search->n_empties);
+	BOUND(search->depth, 0, search->eval.n_empties, "depth");
+	search->depth_pv_extension = get_pv_extension(search->depth, search->eval.n_empties);
 
-	if (options.transgress_cassio && depth < search->n_empties) k = 0;
+	if (options.transgress_cassio && depth < search->eval.n_empties) k = 0;
 	else if (precision <= 73) k = 0;
 	else if (precision <= 87) k = 1;
 	else if (precision <= 95) k = 2;
@@ -376,7 +376,7 @@ static void engine_close(Search *search)
 void* engine_init(void)
 {
 	Engine *engine;
-	
+
 	log_open(engine_log, options.ui_log_file);
 
 	engine = (Engine*) malloc(sizeof (Engine));
@@ -401,10 +401,11 @@ void* engine_init(void)
  */
 void engine_free(void *v)
 {
-	Search *search = (Search*) v;
+	Search *const search = (Search*) v;
+
 	if (search) {
 		search_free(search);
-		free(search);
+		mm_free(search);
 	}
 	log_close(engine_log);
 }
@@ -413,10 +414,16 @@ void engine_free(void *v)
 
 void feed_all_hash_table(Search *search, Board *board, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
+	HashStoreData hash_data;
 	const unsigned long long hash_code = board_get_hash_code(board);
 
-	hash_feed(search->hash_table, board, hash_code, depth, selectivity, lower, upper, move);
-	hash_feed(search->pv_table, board, hash_code, depth, selectivity, lower, upper, move);	
+	hash_data.data.wl.c.depth = depth;
+	hash_data.data.wl.c.selectivity = selectivity;
+	hash_data.data.move[0] = move;
+	hash_data.data.lower = lower;
+	hash_data.data.upper = upper;
+	hash_feed(&search->hash_table, board, hash_code, &hash_data);
+	hash_feed(&search->pv_table, board, hash_code, &hash_data);
 }
 
 /**
@@ -432,12 +439,12 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
  */
 void engine_feed_hash(void *v, Board *board, int lower, int upper, const int depth, const int precision, Line *pv)
 {
-	Engine *engine = (Engine*) v;
-	Search *search = engine->search;
+	Engine *const engine = (Engine*) v;
+	Search *const search = engine->search;
 	int i, selectivity, tmp;
 	int current_depth;
 	Move *move, *child_move;
-	MoveList movelist[1], child_movelist[1];
+	MoveList movelist, child_movelist;
 	
 	if (options.transgress_cassio && depth < board_count_empties(board)) selectivity = 0;
 	else if (precision <= 73) selectivity = 0;
@@ -453,15 +460,15 @@ void engine_feed_hash(void *v, Board *board, int lower, int upper, const int dep
 		current_depth = depth - i;
 		feed_all_hash_table(search, board, current_depth, selectivity, lower, upper, pv->move[i]);
 
-		movelist_get_moves(movelist, board);
-		movelist_sort_bestmove(movelist, pv->move[i]);
+		movelist_get_moves(&movelist, board);
+		movelist_sort_bestmove(&movelist, pv->move[i]);
 
 		foreach_move(move, movelist) {
 			board_update(board, move);
 				if (move->x == pv->move[i]) {
 					feed_all_hash_table(search, board, current_depth - 1, selectivity, -upper, -lower, NOMOVE);
 					if (lower > SCORE_MIN) {
-						movelist_get_moves(child_movelist, board);
+						movelist_get_moves(&child_movelist, board);
 						foreach_move(child_move, child_movelist) {
 							board_update(board, child_move);
 								feed_all_hash_table(search, board, current_depth - 2, selectivity, lower, SCORE_MAX, NOMOVE);
@@ -474,7 +481,7 @@ void engine_feed_hash(void *v, Board *board, int lower, int upper, const int dep
 			board_restore(board, move);
 		}
 
-		move = movelist_first(movelist);
+		move = movelist_first(&movelist);
 	
 		if (move && move->x == pv->move[i]) {
 			board_update(board, move);
@@ -500,14 +507,14 @@ void engine_feed_hash(void *v, Board *board, int lower, int upper, const int dep
  */
 void engine_empty_hash(void *v)
 {
-	Engine *engine = (Engine*) v;
+	Engine *const engine = (Engine*) v;
 	
-	if (engine && engine->search && engine->search->hash_table && engine->search->pv_table) {
+	if (engine && engine->search) {
 		cassio_debug("clear the hash-table.\n");
 		engine->last_position.n = 0;
-		hash_cleanup(engine->search->hash_table);
-		hash_cleanup(engine->search->pv_table);
-		hash_cleanup(engine->search->shallow_table);
+		hash_cleanup(&engine->search->hash_table);
+		hash_cleanup(&engine->search->pv_table);
+		hash_cleanup(&engine->search->shallow_table);
 	}
 }
 
@@ -519,49 +526,48 @@ void engine_empty_hash(void *v)
  */
 static bool skip_search(Engine *engine, int *old_score)
 {
-	Search *search = engine->search;
-	Board *board = search->board;
-	MoveList *movelist = search->movelist;
-	HashData hash_data[1];
+	Search *const search = engine->search;
+	MoveList *const movelist = &search->movelist;
+	HashData hash_data;
 	Move *bestmove;
 	int alpha = options.alpha;
 	int beta = options.beta;
 	Bound *bound;
 	char s[4], b[80];
-	const unsigned long long hash_code = board_get_hash_code(board);
+	const unsigned long long hash_code = board_get_hash_code(&search->board);
 	
 	*old_score = 0;
 	
-	if (hash_get(search->pv_table, board, hash_code, hash_data)
-	|| hash_get(search->hash_table, board, hash_code, hash_data)) {
+	if (hash_get(&search->pv_table, &search->board, hash_code, &hash_data)
+	|| hash_get(&search->hash_table, &search->board, hash_code, &hash_data)) {
 		// compute bounds
-		if (alpha < hash_data->lower) alpha = *old_score = hash_data->lower;
-		if (beta > hash_data->upper) beta = *old_score = hash_data->upper;
+		if (alpha < hash_data.lower) alpha = *old_score = hash_data.lower;
+		if (beta > hash_data.upper) beta = *old_score = hash_data.upper;
 		// skip search ?
-		if (hash_data->depth >= search->depth && hash_data->selectivity >= search->selectivity && alpha >= beta) {
-			if (hash_data->move[0] != NOMOVE) movelist_sort_bestmove(movelist, hash_data->move[0]);
-			else if (hash_data->lower > SCORE_MIN) return false;
+		if (hash_data.wl.c.depth >= search->depth && hash_data.wl.c.selectivity >= search->selectivity && alpha >= beta) {
+			if (hash_data.move[0] != NOMOVE) movelist_sort_bestmove(movelist, hash_data.move[0]);
+			else if (hash_data.lower > SCORE_MIN) return false;
 			bestmove = movelist_first(movelist);
 			bestmove->score = *old_score;
-			record_best_move(search, board, bestmove, options.alpha, options.beta, search->depth);
+			record_best_move(search, bestmove, options.alpha, options.beta, search->depth);
 			bound =  search->result->bound + bestmove->x;
 
 			if (bound->lower != bound->upper || is_pv_ok(search, bestmove->x, search->depth)) {
-				cassio_debug("Edax skips the search. The position is already in the hash table: %s (%d, %d) ?\n", move_to_string(bestmove->x, search->player, s), hash_data->lower, hash_data->upper);
+				cassio_debug("Edax skips the search. The position is already in the hash table: %s (%d, %d) ?\n", move_to_string(bestmove->x, search->player, s), hash_data.lower, hash_data.upper);
 				engine_observer(search->result);
 				return true;
 			} else {
 				cassio_debug("Edax does not skip the search : BAD PV!\n");
 			}
 		} else {
-			if (hash_data->depth < search->depth || hash_data->selectivity < search->selectivity) {
-				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data->depth,selectivity_table[hash_data->selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
+			if (hash_data.wl.c.depth < search->depth || hash_data.wl.c.selectivity < search->selectivity) {
+				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
 			} else {
 				cassio_debug("Edax does not skip the search: unsolved score alpha %d < beta %d\n", alpha, beta); 
 			}
 		}
 	} else {
-		cassio_debug("Edax does not skip the search: Position %s (hash=%llx) not found\n", board_to_string(board, search->player, b), board_get_hash_code(board));
+		cassio_debug("Edax does not skip the search: Position %s (hash=%llx) not found\n", board_to_string(&search->board, search->player, b), hash_code);
 	}
 	
 	return false;
@@ -584,9 +590,9 @@ static bool skip_search(Engine *engine, int *old_score)
  */
 double engine_midgame_search(void *v, const char *position, const double alpha, const double beta, const int depth, const int precision)
 {
-	Engine *engine = (Engine*) v;
-	Search *search = engine->search;
-	Board board[1];
+	Engine *const engine = (Engine*) v;
+	Search *const search = engine->search;
+	Board board;
 	int player;
 	int old_score;
 	
@@ -596,12 +602,12 @@ double engine_midgame_search(void *v, const char *position, const double alpha, 
 	}
 	
 	engine->is_searching = true;
-	player = board_set(board, position);
+	player = board_set(&board, position);
 	
-	old_score = engine_open(search, board, player, floor(alpha), ceil(beta), depth, precision);
+	old_score = engine_open(search, &board, player, floor(alpha), ceil(beta), depth, precision);
 	
 	if (skip_search(engine, &old_score)) {
-	} else if (is_position_new(engine, board)) {
+	} else if (is_position_new(engine, &board)) {
 		cassio_debug("iterative deepening.\n");
 		iterative_deepening(search, options.alpha, options.beta);
 	} else {
@@ -629,9 +635,9 @@ double engine_midgame_search(void *v, const char *position, const double alpha, 
  */
 int engine_endgame_search(void *v, const char *position, const int  alpha, const int beta, const int precision)
 {
-	Engine *engine = (Engine*) v;
-	Search *search = engine->search;
-	Board board[1];
+	Engine *const engine = (Engine*) v;
+	Search *const search = engine->search;
+	Board board;
 	int player;
 	int old_score;
 	int depth;
@@ -642,13 +648,13 @@ int engine_endgame_search(void *v, const char *position, const int  alpha, const
 	}
 	
 	engine->is_searching = true;
-	player = board_set(board, position);
-	depth = board_count_empties(board);
+	player = board_set(&board, position);
+	depth = board_count_empties(&board);
 	
-	old_score = engine_open(search, board, player, alpha, beta, depth, precision);
+	old_score = engine_open(search, &board, player, alpha, beta, depth, precision);
 	
 	if (skip_search(engine, &old_score)) {
-	} else if (is_position_new(engine, board)) {
+	} else if (is_position_new(engine, &board)) {
 		cassio_debug("iterative deepening.\n");
 		iterative_deepening(search, options.alpha, options.beta);
 	} else {
@@ -669,7 +675,7 @@ int engine_endgame_search(void *v, const char *position, const int  alpha, const
  */
 void engine_stop(void *v)
 {
-	Search *search = (Search*) v;
+	Search *const search = (Search*) v;
 	if (search == NULL) {
 		engine_send("ERROR: Engine need to be initialized.");
 		return;
@@ -683,7 +689,7 @@ void engine_stop(void *v)
 void engine_loop(void)
 {
 	char *cmd = NULL, *param = NULL;
-	Engine *engine = (Engine*) engine_init();
+	Engine *const engine = (Engine*) engine_init();
 
 	// loop forever
 	for (;;) {
@@ -707,12 +713,12 @@ void engine_loop(void)
 		} else if (strcmp(cmd, "feed-hash") == 0) {
 			int depth = 21, precision = 73, player;
 			double lower = -SCORE_INF, upper = SCORE_INF;
-			Board board[1];
-			Line pv[1];
+			Board board;
+			Line pv;
 			char *string;
 			
 			errno = 0;
-			string = parse_board(param, board, &player);
+			string = parse_board(param, &board, &player);
 			if (string == param) engine_send("Error: in feed-hash, Edax cannot parse position.");
 			else {
 				string = parse_real(string, &lower);
@@ -727,9 +733,9 @@ void engine_loop(void)
 							string = parse_int(string, &precision);
 							if (errno) engine_send("Error: in feed-hash, Edax cannot parse precision.");
 							else {
-								line_init(pv, player);
-								parse_game(string, board, pv);
-								engine_feed_hash(engine, board, floor(lower), ceil(upper), depth, precision, pv);
+								line_init(&pv, player);
+								parse_game(string, &board, &pv);
+								engine_feed_hash(engine, &board, floor(lower), ceil(upper), depth, precision, &pv);
 							}
 						}
 					}
@@ -751,12 +757,12 @@ void engine_loop(void)
 		} else if (strcmp(cmd, "midgame-search") == 0) {
 			double alpha = -SCORE_INF, beta = SCORE_INF;
 			int player, depth = 60, precision = 100;
-			Board board[1];
+			Board board;
 			char b[80];
 			char *s;
 
 			errno = 0;
-			s = parse_board(param, board, &player);
+			s = parse_board(param, &board, &player);
 			if (s == param) engine_send("ERROR: midgame-search cannot parse position.");
 			else {
 				s = parse_real(s, &alpha);
@@ -770,7 +776,7 @@ void engine_loop(void)
 						else {
 							s = parse_int(s, &precision);
 							if (errno) engine_send("ERROR: midgame_search cannot parse precision.");
-							engine_midgame_search(engine, board_to_string(board, player, b), alpha, beta, depth, precision);
+							engine_midgame_search(engine, board_to_string(&board, player, b), alpha, beta, depth, precision);
 						}
 					}
 				}
@@ -780,12 +786,12 @@ void engine_loop(void)
 		} else if (strcmp(cmd, "endgame-search") == 0) {
 			int alpha = -SCORE_INF, beta = SCORE_INF;
 			int player, precision = 100;
-			Board board[1];
+			Board board;
 			char b[80];
 			char *s;
 
 			errno = 0;
-			s = parse_board(param, board, &player);
+			s = parse_board(param, &board, &player);
 			if (s == param) engine_send("ERROR: endgame_search cannot parse position.");
 			else {
 				s = parse_int(s, &alpha);
@@ -796,7 +802,7 @@ void engine_loop(void)
 					else {
 						s = parse_int(s, &precision);
 						if (errno) engine_send("ERROR: endgame_search cannot parse precision.");
-						engine_endgame_search(engine, board_to_string(board, player, b), alpha, beta, precision);
+						engine_endgame_search(engine, board_to_string(&board, player, b), alpha, beta, precision);
 					}
 				}
 			}
