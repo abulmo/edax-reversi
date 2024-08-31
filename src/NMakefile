@@ -145,6 +145,9 @@ VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE\
 vc-w64-modern:
 	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
 
+vc-w64-avx512:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX512 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-avx512.exe /link /VERSION:4.5
+
 vc-w64-popcnt:
 	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-w64-popcnt.exe /link /VERSION:4.5
 

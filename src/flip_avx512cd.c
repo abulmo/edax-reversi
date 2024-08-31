@@ -1,14 +1,19 @@
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @file flip_avx512cd.c
 =======
  * @file flip_avx_lzcnt.c
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
+=======
+ * @file flip_avx512cd.c
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
  *
  * This module deals with flipping discs.
  *
  * For LSB to MSB directions, isolate LS1B can be used to determine
  * contiguous opponent discs.
+<<<<<<< HEAD
 <<<<<<< HEAD
  * For MSB to LSB directions, LZCNT is used.
  *
@@ -21,8 +26,11 @@
 =======
  * For horizontal MSB to LSB, LZCNT is used.
  * For the other MSB to LSB directions, byteswap then LS1B.
+=======
+ * For MSB to LSB directions, LZCNT is used.
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
  *
- * @date 1998 - 2020
+ * @date 1998 - 2023
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
@@ -254,6 +262,7 @@ static const V4DI rmask_v4[66] = {
 __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	__m256i	PP = _mm256_broadcastq_epi64(OP);
 	__m256i	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
 
@@ -300,6 +309,9 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 }
 =======
 	__m256i	PP, OO, flip, outflank, mask, minusone;
+=======
+	__m256i	PP, OO, flip, outflank, mask;
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 	__m128i	flip2;
 
 	PP = _mm256_broadcastq_epi64(OP);
@@ -311,19 +323,17 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
 	outflank = _mm256_and_si256(outflank, PP);
 		// set all bits higher than outflank
-	flip = _mm256_and_si256(_mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(outflank, outflank)), mask);
+	// flip = _mm256_and_si256(_mm256_xor_si256(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank), mask);
+	flip = _mm256_ternarylogic_epi64(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank, mask, 0x28);
 
 	mask = lmask_v4[pos].v4;
 		// look for non-opponent LS1B
 	outflank = _mm256_andnot_si256(OO, mask);
-	minusone = _mm256_cmpeq_epi32(mask, mask);	// = _mm256_set1_epi64x(-1), for MSVC
-	// outflank = _mm256_andnot_si256(_mm256_add_epi64(outflank, minusone), outflank);	// LS1B
+	// outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
 	// outflank = _mm256_and_si256(outflank, PP);
-	outflank = _mm256_ternarylogic_epi64(_mm256_add_epi64(outflank, minusone), outflank, PP, 0x08);
-		// set all bits lower than outflank
-	outflank = _mm256_add_epi64(outflank, minusone);
-		// sign bit becomes 1 only if outflank was 0, if so add back 1
-	outflank = _mm256_add_epi64(outflank, _mm256_srli_epi64(outflank, 63));
+	outflank = _mm256_ternarylogic_epi64(_mm256_sub_epi64(_mm256_setzero_si256(), outflank), outflank, PP, 0x80);
+		// set all bits lower than outflank if outflank != 0
+	outflank = _mm256_sub_epi64(outflank, _mm256_min_epu64(outflank, _mm256_set1_epi64x(1)));
 	// flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
 	flip = _mm256_ternarylogic_epi64(flip, outflank, mask, 0xf8);
 

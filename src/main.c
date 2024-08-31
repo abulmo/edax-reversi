@@ -53,6 +53,7 @@ void version(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
 =======
 
@@ -64,6 +65,9 @@ void version(void)
 =======
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 22 Toshihiko Okuhara\n\n");
 >>>>>>> 3030e39 (Fix android build; revise copyright in title)
+=======
+		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 23 Toshihiko Okuhara\n\n");
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 }
 
 

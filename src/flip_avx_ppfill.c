@@ -9,11 +9,15 @@
  * MS1B.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
  * @author Toshihiko Okuhara
  * @version 4.5
 =======
  * @date 1998 - 2020
+=======
+ * @date 1998 - 2023
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
@@ -245,6 +249,7 @@ static const V4DI rmask_v4[66] = {
 __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	__m256i	PP, OO, flip, outflank, eraser, mask;
 
 	PP = _mm256_broadcastq_epi64(OP);
@@ -254,14 +259,21 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 		// isolate non-opponent MS1B by clearing lower shadow bits
 =======
 	__m256i	PP, OO, flip, outflank, eraser, mask, minusone;
+=======
+	__m256i	PP, OO, flip, outflank, eraser, mask;
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 	__m128i	flip2;
 
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
 
 	mask = rmask_v4[pos].v4;
+<<<<<<< HEAD
 		// isolate non-opponent MS1B by clearing lower bits
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+		// isolate non-opponent MS1B by clearing lower shadow bits
+>>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 	eraser = _mm256_andnot_si256(OO, mask);
 #if 0 // blute force parallel prefix fill
 	outflank = _mm256_and_si256(PP, mask);
@@ -310,20 +322,16 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	outflank = _mm256_andnot_si256(_mm256_srlv_epi64(eraser, _mm256_set_epi64x(28, 36, 32, 4)), outflank);
 #endif
 		// set mask bits higher than outflank
-	// flip = _mm256_and_si256(mask, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));
-	minusone = _mm256_set1_epi64x(-1);
-	flip = _mm256_andnot_si256(_mm256_add_epi64(outflank, minusone), mask);
+	flip = _mm256_and_si256(mask, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));
 
 	mask = lmask_v4[pos].v4;
 		// look for non-opponent LS1B
 	outflank = _mm256_andnot_si256(OO, mask);
-	outflank = _mm256_andnot_si256(_mm256_add_epi64(outflank, minusone), outflank);	// LS1B
+	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
 	outflank = _mm256_and_si256(outflank, PP);
-		// set all bits lower than outflank
-	outflank = _mm256_add_epi64(outflank, minusone);
-		// sign bit becomes 1 only if outflank was 0, if so add back 1
-	outflank = _mm256_add_epi64(outflank, _mm256_srli_epi64(outflank, 63));
-	flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
+		// set all bits if outflank = 0, otherwise higher bits than outflank
+	eraser = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
+	flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, mask));
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
