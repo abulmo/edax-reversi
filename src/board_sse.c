@@ -2221,11 +2221,11 @@ unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 
 	l01 = l79 = _mm_cvtsi64_si128(disc);	l79 = r79 = _mm_unpacklo_epi64(l79, _mm_cvtsi64_si128(vertical_mirror(disc)));
 	l01 = _mm_cmpeq_epi8(kff, l01);		l79 = _mm_and_si128(l79, _mm_or_si128(e790, _mm_srli_epi64(l79, 9)));
-	full->ull[0] = _mm_cvtsi128_si64(l01);	r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
+	_mm_storel_epi64(&full->v2[0], l01);	r79 = _mm_and_si128(r79, _mm_or_si128(e791, _mm_slli_epi64(r79, 9)));
 						l79 = _mm_andnot_si128(_mm_andnot_si128(_mm_srli_epi64(l79, 18), e792), l79);	// De Morgan
 	l8 = disc;				r79 = _mm_andnot_si128(_mm_slli_epi64(_mm_andnot_si128(r79, e792), 18), r79);
 	l8 &= (l8 >> 8) | (l8 << 56);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(e793, _mm_or_si128(_mm_srli_epi64(l79, 36), _mm_slli_epi64(r79, 36))));
-	l8 &= (l8 >> 16) | (l8 << 48);		full->ull[2] = _mm_cvtsi128_si64(l79);
+	l8 &= (l8 >> 16) | (l8 << 48);		_mm_storel_epi64(&full->v2[1], l79);	// full->ull[2]
 	l8 &= (l8 >> 32) | (l8 << 32);		full->ull[3] = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
 	full->ull[1] = l8;
 

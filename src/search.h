@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2022
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -161,6 +165,11 @@ typedef struct Search {
 	void (*observer)(Result*);                    /**< call back function to print search result */
 } Search;
 
+typedef struct Search_Backup {
+	Board board;
+	Eval eval;
+} Search_Backup;
+
 struct Node;
 
 extern const unsigned char QUADRANT_ID[];
@@ -211,11 +220,15 @@ void search_pass_endgame(Search*);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 void search_update_midgame(Search*, const Move*);
 <<<<<<< HEAD
+<<<<<<< HEAD
 void search_restore_midgame(Search*, int, const Eval*);
 void search_update_pass_midgame(Search*, Eval*);
 void search_restore_pass_midgame(Search*, const Eval*);
 =======
 void search_restore_midgame(Search*, const Move*, const Eval*);
+=======
+void search_restore_midgame(Search*, int, const Search_Backup*);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 void search_update_pass_midgame(Search*);
 void search_restore_pass_midgame(Search*);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)

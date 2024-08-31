@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -22,6 +23,12 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+ * @date 1998 - 2022
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  */
 
 #include "eval.h"
@@ -1489,13 +1496,13 @@ void eval_set(Eval *eval, const Board *board)
 
 	eval->feature = EVAL_FEATURE_all_opponent;
 	foreach_bit(x, b)
-		for (i = 0; i < 48; ++i)
-			eval->feature.us[i] -= EVAL_FEATURE[x].us[i];
+		for (i = 0; i < 12; ++i)
+			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
 	b = ~(board->opponent | board->player);
 	foreach_bit(x, b)
-		for (i = 0; i < 48; ++i)
-			eval->feature.us[i] += EVAL_FEATURE[x].us[i];
+		for (i = 0; i < 12; ++i)
+			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
 
 #else
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
@@ -1601,13 +1608,13 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 #ifdef VECTOR_EVAL_UPDATE
 	int	i;
 
-	for (i = 0; i < 48; ++i)
-		eval->feature.us[i] -= EVAL_FEATURE[x].us[i] << 1;
+	for (i = 0; i < 12; ++i)
+		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
 
 	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
 		foreach_bit_r (x, f, b)
-			for (i = 0; i < 48; ++i)
-				eval->feature.us[i] -= EVAL_FEATURE[x + j].us[i];
+			for (i = 0; i < 12; ++i)
+				eval->feature.ull[i] -= EVAL_FEATURE[x + j].ull[i];
 	}
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 
@@ -1754,13 +1761,13 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	int	i;
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
 
-	for (i = 0; i < 48; ++i)
-		eval->feature.us[i] -= EVAL_FEATURE[x].us[i];
+	for (i = 0; i < 12; ++i)
+		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
 	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
 		foreach_bit_r (x, f, b)
-			for (i = 0; i < 48; ++i)
-				eval->feature.us[i] += EVAL_FEATURE[x + j].us[i];
+			for (i = 0; i < 12; ++i)
+				eval->feature.ull[i] += EVAL_FEATURE[x + j].ull[i];
 	}
 
 #else

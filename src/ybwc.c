@@ -24,6 +24,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -31,6 +32,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2022
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -286,10 +290,14 @@ void node_update(Node* node, Move *move)
 		node->bestmove = move->x;
 		if (node->height == 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			record_best_move(search, move, node->alpha, node->beta, node->depth);
 =======
 			record_best_move(search, &search->board, move, node->alpha, node->beta, node->depth);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			record_best_move(search, move, node->alpha, node->beta, node->depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			search->result->n_moves_left--;
 		}
 		if (score > node->alpha) node->alpha = score;
@@ -386,11 +394,15 @@ void task_search(Task *task)
 	Search *search = task->search;
 	Move *move = task->move;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Eval eval0;
 	Board board0;
 =======
 	Eval Ev0;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	Search_Backup backup;
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	int i;
 
 	search_set_state(search, node->search->stop);
@@ -403,6 +415,7 @@ void task_search(Task *task)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
 =======
@@ -411,6 +424,10 @@ void task_search(Task *task)
 =======
 		Ev0.feature = search->eval.feature;
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+		backup.board = search->board;
+		backup.eval = search->eval;
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {
@@ -418,11 +435,15 @@ void task_search(Task *task)
 				assert(node->pv_node == true);
 			}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		search_restore_midgame(search, move->x, &eval0);
 		search->board = board0;
 =======
 		search_restore_midgame(search, move, &Ev0);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+		search_restore_midgame(search, move->x, &backup);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		if (node->height == 0) {
 			move->cost = search_get_pv_cost(search);
 			move->score = search_bound(search, move->score);
@@ -435,10 +456,14 @@ void task_search(Task *task)
 			node->bestmove = move->x;
 			if (node->height == 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 				record_best_move(search, move, alpha, node->beta, node->depth);
 =======
 				record_best_move(search, &search->board, move, alpha, node->beta, node->depth);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+				record_best_move(search, move, alpha, node->beta, node->depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 				search->result->n_moves_left--;
 				if (search->options.verbosity == 4) pv_debug(search, move, stdout);
 			}

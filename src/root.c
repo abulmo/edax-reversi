@@ -4,10 +4,14 @@
  * Search near the end of the game.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2022
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -134,9 +138,8 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 		board_update(&board, &move);
 
 		hash_code = board_get_hash_code(&board);
-		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
-			x = hash_data.move[0];
-		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
+		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 		} else break;
 <<<<<<< HEAD
@@ -213,10 +216,14 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 	Bound expected_bound;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	board = search->board;
 =======
 	board = *init_board;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	board = search->board;
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 
 	spin_lock(result);
 
@@ -425,6 +432,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 	Move *move;
 	Node node;
+<<<<<<< HEAD
 	Eval Ev0;
 <<<<<<< HEAD
 	long long cost = -search_count_nodes(search);
@@ -442,6 +450,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	Board board0;
 =======
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
+=======
+	Search_Backup backup;
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	long long nodes_org = search_count_nodes(search);
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -491,11 +502,16 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		// first move
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
 =======
 		Ev0.feature = search->eval.feature;
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+		backup.board = search->board;
+		backup.eval = search->eval;
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		if ((move = node_first_move(&node, movelist))) {
 			assert(board_check_move(&search->board, move));
 =======
@@ -514,11 +530,15 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 				assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
 				assert(search->stability_bound.lower <= move->score && move->score <= search->stability_bound.upper);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_restore_midgame(search, move->x, &eval0);
 			search->board = board0;
 =======
 			search_restore_midgame(search, move, &Ev0);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+			search_restore_midgame(search, move->x, &backup);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 			node_update(&node, move);
 			if (search->options.verbosity == 4) pv_debug(search, move, stdout);
@@ -541,11 +561,15 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 						move->cost = search_get_pv_cost(search);
 					assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
 <<<<<<< HEAD
+<<<<<<< HEAD
 					search_restore_midgame(search, move->x, &eval0);
 					search->board = board0;
 =======
 					search_restore_midgame(search, move, &Ev0);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+					search_restore_midgame(search, move->x, &backup);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 					if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 					node_update(&node, move);
 					assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -585,7 +609,7 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		if (depth < search->options.multipv_depth) movelist_sort(movelist);
 		else movelist_sort_cost(movelist, &hash_data);
 		movelist_sort_bestmove(movelist, node.bestmove);
-		record_best_move(search, &search->board, movelist_first(movelist), alpha, beta, depth);
+		record_best_move(search, movelist_first(movelist), alpha, beta, depth);
 
 		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
 <<<<<<< HEAD
@@ -748,10 +772,14 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (!search->stop) record_best_move(search, movelist_first(&search->movelist), alpha, beta, depth);
 =======
 	if (!search->stop) record_best_move(search, &search->board, movelist_first(&search->movelist), alpha, beta, depth);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (!search->stop) record_best_move(search, movelist_first(&search->movelist), alpha, beta, depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	search->result->time = search_time(search);
 	search->result->n_nodes = search_count_nodes(search);
 	if (options.noise <= depth && search->options.verbosity >= 2) {
@@ -783,6 +811,7 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 	for (i = 0; i < 4; ++i) {
 		hash_code = board_get_hash_code(&board);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
 		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
@@ -794,6 +823,10 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+=======
+		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
+		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			x = hash_data.move[0];
 		} else break;
 
@@ -987,19 +1020,27 @@ void iterative_deepening(Search *search, int alpha, int beta)
 		movelist_sort(movelist);
 		bestmove = movelist_first(movelist); bestmove->score = score;
 <<<<<<< HEAD
-		record_best_move(search, bestmove, alpha, beta, old_depth);
-=======
-		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
-	} else {
-		Move pass = MOVE_PASS;
-		bestmove = &pass; bestmove->score = score;
 <<<<<<< HEAD
 		record_best_move(search, bestmove, alpha, beta, old_depth);
 =======
 		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		record_best_move(search, bestmove, alpha, beta, old_depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
+	} else {
+		Move pass = MOVE_PASS;
+		bestmove = &pass; bestmove->score = score;
+<<<<<<< HEAD
+<<<<<<< HEAD
+		record_best_move(search, bestmove, alpha, beta, old_depth);
+=======
+		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
+>>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		record_best_move(search, bestmove, alpha, beta, old_depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
 	}
 	search->selectivity = tmp_selectivity;

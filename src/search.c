@@ -1186,6 +1186,7 @@ void search_update_midgame(Search *search, const Move *move)
  *
  * @param search  search.
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param x       played move.
  * @param backup  board/eval to restore.
  */
@@ -1200,10 +1201,17 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
 =======
 void search_restore_midgame(Search *search, const Move *move, const Eval *eval_to_restore)
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+ * @param x       played move.
+ * @param backup  board/eval to restore.
+ */
+void search_restore_midgame(Search *search, int x, const Search_Backup *backup)
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	// search_swap_parity(search, move->x);
@@ -1235,6 +1243,15 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 =======
 >>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
+=======
+	// search_swap_parity(search, move->x);
+	// ++search->eval.n_empties;
+	// eval_restore(search->eval, move);
+	search->eval = backup->eval;
+	// board_restore(&search->board, move);
+	search->board = backup->board;
+	empty_restore(search->empties, x);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	assert(search->height > 0);
 	--search->height;
 }

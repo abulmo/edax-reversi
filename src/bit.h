@@ -9,6 +9,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -28,8 +29,11 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 6c3ed52 (Dogaishi hash reduction by Matsuo & Narazaki; edge-precise get_full_line)
+=======
+ * @date 1998 - 2022
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #ifndef EDAX_BIT_H

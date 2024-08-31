@@ -193,7 +193,7 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 	int	score, empties, parity_weight;
 	HashData dummy[1];
 	unsigned long long P, O;
-	Eval Ev0;
+	Search_Backup backup;
 
 	if (move_wipeout(move, &search->board)) move->score = (1 << 30);
 	else if (move->x == hash_data->move[0]) move->score = (1 << 29);
@@ -219,7 +219,8 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 		} else {
 			int selectivity = search->selectivity;
 			search->selectivity = NO_SELECTIVITY;
-			Ev0.feature = search->eval.feature;
+			backup.board = search->board;
+			backup.eval = search->eval;
 			search_update_midgame(search, move);
 
 			SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -242,7 +243,7 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 				break;
 			}
 
-			search_restore_midgame(search, move, &Ev0);
+			search_restore_midgame(search, move->x, &backup);
 			search->selectivity = selectivity;
 		}
 		move->score = score;

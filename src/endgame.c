@@ -326,13 +326,12 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 
 	if ((NEIGHBOUR[x1] & board->opponent) && (flipped = board_flip(board, x1))) {
 		bestscore = board_score_1(board->opponent ^ flipped, alpha + 1, x2);
-		nodes = 2;
 
 		if ((bestscore <= alpha) && (NEIGHBOUR[x2] & board->opponent) && (flipped = board_flip(board, x2))) {
 			score = board_score_1(board->opponent ^ flipped, alpha + 1, x1);
 			if (score > bestscore) bestscore = score;
 			nodes = 3;
-		}
+		} else	nodes = 2;
 
 	} else if ((NEIGHBOUR[x2] & board->opponent) && (flipped = board_flip(board, x2))) {
 		bestscore = board_score_1(board->opponent ^ flipped, alpha + 1, x1);
@@ -341,13 +340,12 @@ static int board_solve_2(Board *board, int alpha, const int x1, const int x2, vo
 	} else {	// pass
 		if ((NEIGHBOUR[x1] & board->player) && (flipped = Flip(x1, board->opponent, board->player))) {
 			bestscore = -board_score_1(board->player ^ flipped, -alpha, x2);
-			nodes = 2;
 
 			if ((bestscore > alpha) && (NEIGHBOUR[x2] & board->player) && (flipped = Flip(x2, board->opponent, board->player))) {
 				score = -board_score_1(board->player ^ flipped, -alpha, x1);
 				if (score < bestscore) bestscore = score;
 				nodes = 3;
-			}
+			} else	nodes = 2;
 
 <<<<<<< HEAD
 <<<<<<< HEAD

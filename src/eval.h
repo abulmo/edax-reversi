@@ -9,6 +9,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -20,6 +21,11 @@
  * @author Richard Delorme
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 1998 - 2022
+ * @author Richard Delorme
+ * @version 4.5
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  */
 
 #ifndef EDAX_EVAL_H
@@ -85,6 +91,7 @@ typedef struct Eval {
 =======
 typedef union {
 	unsigned short us[48];
+	unsigned long long ull[12];	// SWAR
 #ifdef __ARM_NEON__
 	int16x8_t v8[6];
 #elif defined(hasSSE2) || defined(USE_MSVC_X86)

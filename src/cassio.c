@@ -15,6 +15,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -22,6 +23,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+ * @date 1998 - 2022
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -596,10 +600,14 @@ static bool skip_search(Engine *engine, int *old_score)
 			bestmove = movelist_first(movelist);
 			bestmove->score = *old_score;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			record_best_move(search, bestmove, options.alpha, options.beta, search->depth);
 =======
 			record_best_move(search, &search->board, bestmove, options.alpha, options.beta, search->depth);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			record_best_move(search, bestmove, options.alpha, options.beta, search->depth);
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			bound =  search->result->bound + bestmove->x;
 
 			if (bound->lower != bound->upper || is_pv_ok(search, bestmove->x, search->depth)) {

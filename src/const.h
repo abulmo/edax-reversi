@@ -91,6 +91,7 @@ typedef	unsigned char	NodeType;
 
 #define VERSION 4
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define RELEASE 5
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
@@ -116,6 +117,9 @@ typedef	unsigned char	NodeType;
 #define EDAX_NAME "Edax 4.4.8"
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 =======
+=======
+#define RELEASE 5
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 #define VERSION_STRING "4.5.0"
 #define EDAX_NAME "Edax 4.5.0"
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)

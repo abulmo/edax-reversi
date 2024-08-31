@@ -14,10 +14,14 @@
 /**
  * @file bench.c
  *
- * @date 1998 - 2020
+ * @date 1998 - 2022
  * @author Richard Delorme
+<<<<<<< HEAD
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @version 4.5
+>>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  */
 
 #include "bit.h"
