@@ -5,7 +5,7 @@
  *
  * Of course, only the "reversi" variant is supported.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  *
@@ -45,7 +45,7 @@ static void xboard_observer(Result *result)
 	printf("%10lld ", result->n_nodes);
 	if (result->selectivity < 5) printf("@%2d%% ", selectivity_table[result->selectivity].percent);	
 	if (result->book_move) putchar('(');
-	line_print(result->pv, -200, " ", stdout);
+	line_print(&result->pv, -200, " ", stdout);
 	if (result->book_move) putchar(')');
 	putchar('\n');
 	fflush(stdout);
@@ -57,7 +57,7 @@ static void xboard_observer(Result *result)
 		fprintf(xboard_log->f, "%10lld ", result->n_nodes);
 		if (result->selectivity < 5) fprintf(xboard_log->f, "@%2d%% ", selectivity_table[result->selectivity].percent);	
 		if (result->book_move) fputc('(', xboard_log->f);
-		line_print(result->pv, -200, " ", xboard_log->f);
+		line_print(&result->pv, -200, " ", xboard_log->f);
 		if (result->book_move) fputc(')', xboard_log->f);
 		putc('\n', xboard_log->f);
 		fflush(xboard_log->f);
@@ -71,21 +71,21 @@ static void xboard_observer(Result *result)
  */
 void ui_init_xboard(UI *ui)
 {
-	Play *play = ui->play;
-	Search *search = play->search;
+	Play *const play = ui->play;
+	Search *const search = &play->search;
 
-	play_init(play, ui->book);
-	play->initial_player = board_from_FEN(play->initial_board, "8/8/8/3Pp3/3pP3/8/8/8 w - - 0 1");
+	play_init(play, &ui->book);
+	play->initial_player = board_from_FEN(&play->initial_board, "8/8/8/3Pp3/3pP3/8/8/8 w - - 0 1");
 	play_new(play);
 	search->options.header = NULL;
 	search->options.separator = NULL;
-	ui->book->search = search;
-	book_load(ui->book, options.book_file);
+	ui->book.search = search;
+	book_load(&ui->book, options.book_file);
 	search->id = 1;
 	search_set_observer(search, xboard_observer);
 	options.level = 60;
 	play->type = ui->type;
-	play->ponder->verbose = true;
+	play->ponder.verbose = true;
 
 	log_open(xboard_log, options.ui_log_file);
 }
@@ -96,8 +96,8 @@ void ui_init_xboard(UI *ui)
  */
 void ui_free_xboard(UI *ui)
 {
-	if (ui->book->need_saving) book_save(ui->book, options.book_file);
-	book_free(ui->book);
+	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
+	book_free(&ui->book);
 	play_free(ui->play);
 	log_close(xboard_log);
 }
@@ -155,7 +155,7 @@ static void xboard_setup(Play *play)
 {
 	char fen[120];
 
-	xboard_send("setup (P.....p.....) %s\n", board_to_FEN(play->board, play->player, fen));
+	xboard_send("setup (P.....p.....) %s\n", board_to_FEN(&play->board, play->player, fen));
 }
 
 /**
@@ -190,7 +190,7 @@ static void xboard_move(const int x)
  */
 static void xboard_hint(Play *play)
 {
-	const int x = search_guess(play->search, play->board);
+	const int x = search_guess(&play->search, &play->board);
 
 	if (x == NOMOVE) return;
 	
@@ -218,12 +218,11 @@ static void xboard_hint(Play *play)
  * @param play Play engine.
  */
 static void xboard_book(Play *play) {
-	Board *board = play->board;
-	Book *book = play->book;
-	MoveList movelist[1];
+	Book *const book = play->book;
+	MoveList movelist;
 	Move *move;
 
-	if (book_get_moves(book, board, movelist)) {
+	if (book_get_moves(book, &play->board, &movelist)) {
 		printf("\tBook:");
 		foreach_move(move, movelist) {
 			printf("  P@"); move_print(move->x, 1, stdout);
@@ -239,7 +238,7 @@ static void xboard_book(Play *play) {
 			}
 			putc('\n', xboard_log->f);
 			fflush(xboard_log->f);
-		}		
+		}
 	}
 }
 
@@ -251,14 +250,13 @@ static void xboard_book(Play *play) {
 static void xboard_check_game_over(Play *play)
 {
 	int n_discs[2];
-	const Board *board = play->board;
 	const char *(color[2]) = {"Black", "White"};
 	const int player = WHITE; // !!!!
 	const int opponent = !player;
 
 	if (play_is_game_over(play)) {
-		n_discs[play->player] = bit_count(board->player);
-		n_discs[!play->player] = bit_count(board->opponent);
+		n_discs[play->player] = bit_count(play->board.player);
+		n_discs[!play->player] = bit_count(play->board.opponent);
 		if (n_discs[player] > n_discs[opponent]) xboard_send("1-0 {%s wins %d-%d}\n", color[player], n_discs[player], n_discs[opponent]);
 		else if (n_discs[player] < n_discs[opponent]) xboard_send("0-1 {%s wins %d-%d}\n", color[opponent], n_discs[opponent], n_discs[player]);
 		else xboard_send("1/2-1/2 {Draw %d-%d}\n", n_discs[player], n_discs[opponent]);
@@ -282,9 +280,9 @@ static inline int hash_size(int n)
  */
 static void xboard_go(UI *ui, XBoardStats *stats)
 {
-	Play *play = ui->play;
-	Search *search = play->search;
-	Result *result = search->result;
+	Play *const play = ui->play;
+	Search *const search = &play->search;
+	Result *const result = search->result;
 
 	play_go(play, true);
 	xboard_move(play_get_last_move(play)->x);
@@ -303,7 +301,7 @@ static void xboard_go(UI *ui, XBoardStats *stats)
 		fprintf(xboard_log->f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %lld\n",
 			0.001 * result->time,  result->depth, selectivity_table[result->selectivity].percent, result->n_nodes);
 		fprintf(xboard_log->f, "edax search> best score = %d; pv = ", result->score);
-		line_print(result->pv, 100, NULL, xboard_log->f);
+		line_print(&result->pv, 100, NULL, xboard_log->f);
 		putc('\n', xboard_log->f);
 		fflush(xboard_log->f);
 	}
@@ -322,13 +320,13 @@ void xboard_stop_analyzing(Play *play)
 {
 	while (play->state == IS_ANALYZING) {
 		log_print(xboard_log, "edax (analyze)> stop\n");
-		search_stop_all(play->search, STOP_PONDERING);
+		search_stop_all(&play->search, STOP_PONDERING);
 		relax(10);
 	}
 
-	if (play->ponder->launched) {
-		thread_join(play->ponder->thread);
-		play->ponder->launched = false;
+	if (play->ponder.launched) {
+		thread_join(play->ponder.thread);
+		play->ponder.launched = false;
 		log_print(xboard_log, "edax (analyze)> stopped\n");
 	}
 }
@@ -348,12 +346,12 @@ static void xboard_analyze(Play *play)
 
 	if (play_is_game_over(play)) return;
 	if (play->state == IS_WAITING) {
-		play->ponder->board->player = play->ponder->board->opponent = 0;
-		play->state = IS_ANALYZING;		
-		search_cleanup(play->search);
+		play->ponder.board.player = play->ponder.board.opponent = 0;
+		play->state = IS_ANALYZING;
+		search_cleanup(&play->search);
 		log_print(xboard_log, "edax (analyze)> start\n");
-		thread_create(&play->ponder->thread, play_ponder_run, play);
-		play->ponder->launched = true;
+		thread_create(&play->ponder.thread, play_ponder_run, play);
+		play->ponder.launched = true;
 	}
 }
 
@@ -368,7 +366,7 @@ static void xboard_loop_analyze(UI *ui)
 {
 	Play *play = ui->play;
 	char *cmd = NULL, *param = NULL;
-	Search *search = play->search;
+	Search *const search = &play->search;
 
 	play_stop_pondering(play);
 	xboard_analyze(play);
@@ -440,7 +438,7 @@ static void xboard_loop_analyze(UI *ui)
 void ui_loop_xboard(UI *ui)
 {
 	char *cmd = NULL, *param = NULL;
-	Play *play = ui->play;
+	Play *const play = ui->play;
 	bool alien_variant = false;
 	XBoardStats stats = {0, 0, 0};
 	int edax_turn = EMPTY;
@@ -514,7 +512,7 @@ void ui_loop_xboard(UI *ui)
 			// new
 			} else if (strcmp(cmd, "new") == 0 ) {
 				options.level = 60;
-				play->initial_player = board_from_FEN(play->initial_board, "8/8/8/3Pp3/3pP3/8/8/8 w - - 0 1");
+				play->initial_player = board_from_FEN(&play->initial_board, "8/8/8/3Pp3/3pP3/8/8/8 w - - 0 1");
 				play_new(play);
 				edax_turn = !play->player;
 				if (alien_variant) xboard_setup(play);
@@ -705,14 +703,14 @@ void ui_loop_xboard(UI *ui)
 				BOUND(options.hash_table_size, 10, 30, "hash-table-size");
 				log_print(xboard_log, "edax setup> hash table size: 2**%d entries\n", options.hash_table_size);
 				play_stop_pondering(play);
-				search_resize_hashtable(play->search);
+				search_resize_hashtable(&play->search);
 			
 			} else if ((strcmp(cmd, "cores") == 0)) {
 				options.n_task = string_to_int(param, 1);
 				log_print(xboard_log, "edax setup> cores: %d\n", options.n_task);
-				if (search_count_tasks(play->search) != options.n_task) {
+				if (search_count_tasks(&play->search) != options.n_task) {
 					play_stop_pondering(play);
-					search_set_task_number(play->search, options.n_task);
+					search_set_task_number(&play->search, options.n_task);
 				}
 
 			} else if ((strcmp(cmd, "egtpath") == 0)) {
