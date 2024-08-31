@@ -1557,6 +1557,7 @@ int get_corner_stability(const unsigned long long P)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// BMI2 CPU has POPCOUNT
 	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
@@ -1585,6 +1586,9 @@ int get_corner_stability(const unsigned long long P)
 =======
 #ifdef USEPEXT // defined(__BMI2__) && defined(__x86_64__) && !defined(AMD_BEFORE_ZEN3)	// kindergarten for generic modern build
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+#ifdef USEPEXT // defined(__BMI2__) && defined(__x86_64__) && !defined(AMD_BEFORE_ZEN3)	// kindergarten for generic modern build
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	int cnt = n_stable_h8g8b8a8h7a7[_pext_u64(P, 0xc381000000000000)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
 >>>>>>> 6506166 (More SSE optimizations)

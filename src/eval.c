@@ -762,12 +762,16 @@ const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 // static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 static const unsigned short EVAL_OFFSET[] = {
 	    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
 	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
 	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -782,11 +786,15 @@ static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 65
 =======
 };
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+};
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
 /** packed feature offset/size */
 static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
 // static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #ifdef DEBUG
 static const int EVAL_MAX_VALUE[] = {
@@ -813,6 +821,8 @@ static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 10
 
 =======
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 /** feature symetry packing */
 typedef struct {
 <<<<<<< HEAD
@@ -1237,6 +1247,7 @@ void eval_open(const char* file)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
 =======
 	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -1250,6 +1261,9 @@ void eval_open(const char* file)
 =======
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof(*EVAL_WEIGHT));
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof(*EVAL_WEIGHT));
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
 =======
 	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -1320,7 +1334,11 @@ void eval_open(const char* file)
 		for (k = 0; k < 243; k++) {
 			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
 		}
+<<<<<<< HEAD
 		for (k = 0; k < 81; k++) {
+=======
+		for (k = 0; k < 91; k++) {
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
 		}
 		pe->S0 = w[EVAL_PACKED_OFS[12]];
@@ -1571,6 +1589,7 @@ void eval_set(Eval *eval, const Board *board)
 		}
 		eval->feature.us[i] = x + EVAL_OFFSET[i];
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		eval->feature.us[i] = 0;
 =======
@@ -1584,6 +1603,8 @@ void eval_set(Eval *eval, const Board *board)
 		}
 <<<<<<< HEAD
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
+=======
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	}
 <<<<<<< HEAD
   #endif
@@ -2136,7 +2157,11 @@ void eval_pass(Eval *eval)
 	for (i =  4; i < 16; ++i)	// 10
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i]];
 	for (i = 16; i < 30; ++i)	// 8
+<<<<<<< HEAD
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244] + EVAL_OFFSET[i];
+=======
+		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244]+ EVAL_OFFSET[i];
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	for (i = 30; i < 34; ++i)	// 7
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 28431];
 	for (i = 34; i < 38; ++i)	// 6

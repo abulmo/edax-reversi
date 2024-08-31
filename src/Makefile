@@ -3,6 +3,7 @@
 #
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright 1998 - 2024
 =======
 # Copyright 1998 - 2018
@@ -10,6 +11,9 @@
 =======
 # Copyright 1998 - 2022
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+# Copyright 1998 - 2022
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 # Richard Delorme
 # Version 4.5
 #
@@ -61,6 +65,7 @@ ifeq ($(COMP),gcc)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -80,6 +85,9 @@ ifeq ($(COMP),gcc)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	endif
 	ifeq ($(ARCH),x64-popcnt)
 		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
@@ -380,6 +388,7 @@ ifeq ($(COMP),clang)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -393,6 +402,9 @@ ifeq ($(COMP),clang)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 

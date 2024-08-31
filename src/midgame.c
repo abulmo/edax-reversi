@@ -19,10 +19,14 @@
  * @date 1998 - 2022
  * @author Richard Delorme
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
 =======
  * @author Toshihiko Okuhara
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+ * @author Toshihiko Okuhara
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
  * @version 4.5
  */
 
@@ -43,6 +47,7 @@
 #define RCD 0.5
 #endif
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -67,6 +72,22 @@ static int accumlate_eval(int ply, Eval *eval)
 	w = &(*EVAL_WEIGHT)[ply];
 
 #if defined(__AVX2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)
+=======
+/**
+ * @brief evaluate a midgame position with the evaluation function.
+ *
+ * @param w	Eval_weight for this ply.
+ * @param eval	Evaluation function.
+ */
+static int accumlate_eval(const Eval_weight *w, Eval *eval)
+{
+	unsigned short *f = eval->feature.us;
+	int sum;
+
+	assert(w < &EVAL_WEIGHT[EVAL_N_PLY]);
+
+#if defined(__AVX2__) && !defined(AMD_BEFORE_ZEN3)
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	enum {
 		W_C9 = offsetof(Eval_weight, C9) / sizeof(short) - 1,	// -1 to load the data into hi-word
 		W_C10 = offsetof(Eval_weight, C10) / sizeof(short) - 1,
@@ -84,6 +105,7 @@ static int accumlate_eval(int ply, Eval *eval)
 	DD = _mm256_i32gather_epi32((int *) w, FF, 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 
+<<<<<<< HEAD
 	DD = _mm256_i32gather_epi32((int *)((short *) w->S8x4 - 1), _mm256_cvtepu16_epi32(eval->feature.v8[2]), 2);
 	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
 
@@ -95,6 +117,19 @@ static int accumlate_eval(int ply, Eval *eval)
 	__m128i S = _mm_add_epi32(_mm256_castsi256_si128(SS), _mm256_extracti128_si256(SS, 1));
 
 	__m128i D = _mm_i32gather_epi32((int *)((short *) w->S8x4 - 1), _mm_cvtepu16_epi32(eval->feature.v8[3]), 2);
+=======
+	DD = _mm256_i32gather_epi32((int *)(w->S8x4 - 1), _mm256_cvtepu16_epi32(eval->feature.v8[2]), 2);
+	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
+
+	DD = _mm256_i32gather_epi32((int *)(w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[30]), 2);
+	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
+
+	DD = _mm256_i32gather_epi32((int *)(w->S7654 - 1), _mm256_cvtepu16_epi32(*(__m128i *) &f[38]), 2);
+	SS = _mm256_add_epi32(SS, _mm256_srai_epi32(DD, 16));
+	__m128i S = _mm_add_epi32(_mm256_castsi256_si128(SS), _mm256_extracti128_si256(SS, 1));
+
+	__m128i D = _mm_i32gather_epi32((int *)(w->S8x4 - 1), _mm_cvtepu16_epi32(eval->feature.v8[3]), 2);
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	S = _mm_add_epi32(S, _mm_srai_epi32(D, 16));
 
 	S = _mm_hadd_epi32(S, S);
@@ -114,6 +149,7 @@ static int accumlate_eval(int ply, Eval *eval)
 	  + w->S7654[f[42]] + w->S7654[f[43]] + w->S7654[f[44]] + w->S7654[f[45]];
 #endif
 	return sum + w->S8x4[f[28]] + w->S8x4[f[29]] + w->S0;
+<<<<<<< HEAD
 }
 
 /**
@@ -252,6 +288,8 @@ static int accumlate_eval(const Eval_weight *w, Eval *eval)
 #endif
 	return sum + w->S8x4[f[28]] + w->S8x4[f[29]] + w->S0;
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 }
 
 /**
@@ -268,6 +306,7 @@ int search_eval_0(Search *search)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	score = accumlate_eval((*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
 >>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 =======
@@ -276,6 +315,9 @@ int search_eval_0(Search *search)
 =======
 	score = accumlate_eval(&(*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+	score = accumlate_eval(&(*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
 	if (score >= 0) score = (score + 64) >> 7;
 	else score = -((-score + 64) >> 7);
@@ -355,6 +397,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 	unsigned long long flipped;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 	const short *w;
 <<<<<<< HEAD
@@ -367,11 +410,15 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 	const Eval_weight *w;
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+	const Eval_weight *w;
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 	if (moves) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -396,6 +443,9 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 		w = &(*EVAL_WEIGHT)[60 - search->eval.n_empties + 1];
 >>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
+=======
+		w = &(*EVAL_WEIGHT)[60 - search->eval.n_empties + 1];
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 		bestscore = -SCORE_INF;
 		if (beta > SCORE_MAX - 1) beta = SCORE_MAX - 1;
 		foreach_empty (x, search->empties) {
@@ -438,6 +488,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 				score = -accumlate_eval(w, &Ev);
 >>>>>>> e3334bd (Groups out accumlate_eval subroutine)
 =======
@@ -455,6 +506,12 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 			} while (!(moves & x_to_bit(x)));
 =======
 				score = -accumlate_eval(w, &Ev);
+=======
+				score = -accumlate_eval(w, &Ev);
+
+				if (score >= 0) score = (score + 64) >> 7;
+				else score = -((-score + 64) >> 7);
+>>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
 				if (score >= 0) score = (score + 64) >> 7;
 				else score = -((-score + 64) >> 7);
