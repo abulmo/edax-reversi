@@ -13,10 +13,15 @@
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 enum { MAX_N_GAMES = 3200000 };
 
 =======
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+enum { MAX_N_GAMES = 2500000 };
+
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 #define _CRT_SECURE_NO_WARNINGS
 
  // #include "const.h"
@@ -557,6 +562,7 @@ typedef struct Gamebase {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 enum { MAX_N_GAMES = 22000 };
 =======
@@ -564,6 +570,8 @@ enum { MAX_N_GAMES = 1000000 };
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
 
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 Gamebase* gamebase_create(int i)
 {
 	Gamebase* base = (Gamebase*) malloc(sizeof(int) + sizeof(Game) * MAX_N_GAMES);
@@ -701,24 +709,32 @@ void gamebase_import(Gamebase* base, const char* file_1, int minimax_ply)
 		j = 0; p = s;
 		while ((((*p >= 'A') && (*p <= 'H')) || ((*p >= 'a') && (*p <= 'h'))) && *(p + 1)) {
 			m = ((*p - 'A') & 7) + ((*(p + 1) - '1') & 7) * 8;
+<<<<<<< HEAD
 			g->move[j++] = m;
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
+=======
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 			assert(b.square[m] == PEMPTY);
 			if (!MPerform(&b, m)) {
-				g->move[j - 1] = m | 0x80;
 				b.player ^= (PBLACK ^ PWHITE);
 				if (!MPerform(&b, m))
 					break;
+				m |= 0x80;	// opponent pass
 			}
+			g->move[j++] = m;
 			p += 2;
 		}
 		while (j < 60)
+<<<<<<< HEAD
 <<<<<<< HEAD
 			base->games[i].move[j++] = PASS;
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 =======
 			g->move[j++] = PASS;
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
+=======
+			g->move[j++] = NOMOVE;
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 		m = b.ScoreDiff;
 		if (b.player != PBLACK)
 			m = -m;
@@ -786,7 +802,9 @@ bool game_get_board(Game* g, int ply, Board* b)
 	InitBoard(b);
 	for (i = 0; i < ply; ++i) {
 		m = g->move[i];
-		if (m & 0x80)
+		if (m == NOMOVE)
+			return false;
+		if (m & 0x80)	// same player
 			b->player ^= (PBLACK ^ PWHITE);
 <<<<<<< HEAD
 			if (!MPerform(b, g->move[i]))
@@ -1793,19 +1811,19 @@ void eval_builder_build_features(EvalBuilder* eval, Gamebase* base, int ply) {
 }
 
 /* equalize */
-void eval_builder_equalize(EvalBuilder* eval, double* w) {
-	int i, j, m;
+void eval_builder_equalize(EvalBuilder *eval,double *w){
+	int i, j;
+	int K = eval->n_data, I = eval->n_vectors - 1;
 	double correction;
 
-	m = 0;
-	for (i = 0; i < eval->n_vectors - 1; i++) {
+	for (i = 0; i < I; i++){
 		correction = 0.0;
 		for (j = 0; j < eval->vector_size[i]; j++)
-			correction += w[m + j];
+			correction += w[j];
 		correction /= j;
 		for (j = 0; j < eval->vector_size[i]; j++)
-			w[m++] -= correction;
-		w[eval->n_data - 1] += correction * eval->vector_times[i];
+			w[j] -= correction;
+		w[K-1] += correction * eval->vector_times[i] / eval->vector_times[I];
 	}
 }
 
@@ -1910,10 +1928,14 @@ void eval_builder_set_coefficient(EvalBuilder* eval, double* w) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* compute abs error */
 =======
 /* compute error */
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+/* compute abs error */
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 double eval_builder_get_abs_error(EvalBuilder* eval, double* w, double* e) {
 	int i, j, I = eval->n_games, J = eval->n_features;
 	double E = 0.0, score;
@@ -1931,10 +1953,14 @@ double eval_builder_get_abs_error(EvalBuilder* eval, double* w, double* e) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* compute abs error gradient */
 =======
 /* compute error gradient */
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+/* compute abs error gradient */
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 void eval_builder_get_abs_error_gradient(EvalBuilder* eval, double* e, double* g, int* N, int N_min) {
 	int i, j, k;
 	const int I = eval->n_games, J = eval->n_features, K = eval->n_data;
@@ -1968,10 +1994,14 @@ void eval_builder_get_abs_error_gradient(EvalBuilder* eval, double* e, double* g
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* compute squared error */
 =======
 /* compute error */
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+/* compute squared error */
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 double eval_builder_get_squared_error(EvalBuilder* eval, double* w, double* e) {
 	int i, j, I = eval->n_games, J = eval->n_features;
 	double E = 0.0, score;
@@ -1989,10 +2019,14 @@ double eval_builder_get_squared_error(EvalBuilder* eval, double* w, double* e) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* compute squared error gradient */
 =======
 /* compute error gradient */
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+/* compute squared error gradient */
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 void eval_builder_get_squared_error_gradient(EvalBuilder* eval, double* e, double* g, int* N, int N_min) {
 	int i, j, k;
 	const int I = eval->n_games, J = eval->n_features, K = eval->n_data;
@@ -2046,10 +2080,14 @@ double eval_builder_minimize_dir_abs_error(EvalBuilder* eval, double* w, double*
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* minimize the squared error along the gradient direction */
 =======
 /* minimize the absolute error along the gradient direction */
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
+=======
+/* minimize the squared error along the gradient direction */
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 double eval_builder_minimize_dir_squared_error(EvalBuilder* eval, double* w, double* d) {
 	const int I = eval->n_games, J = eval->n_features;
 	int* x;
@@ -3154,6 +3192,9 @@ int main(int argc, char** argv) {
 	EvalBuilder* eval_data, * eval_data_1, * eval_data_2;
 	EvalOption option = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 		0,			// min_iter
 		1000,			// max_iter
 		0.0001,			// tol		accuracy
@@ -3167,6 +3208,7 @@ int main(int argc, char** argv) {
 		1.0,			// alpha
 		0.1,			// beta
 		0			// minimax	minimax_ply
+<<<<<<< HEAD
 =======
 		0,
 		1000,
@@ -3186,6 +3228,8 @@ int main(int argc, char** argv) {
 		0.1,
 		0
 >>>>>>> 8e75d91 (add minimax option to eval_builder)
+=======
+>>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 	};
 
 	int filter, eval;
