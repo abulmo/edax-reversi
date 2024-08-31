@@ -11,9 +11,10 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.5
  */
 
 #include "board.h"
@@ -21,7 +22,6 @@
 #include "bit.h"
 #include "hash.h"
 #include "move.h"
-#include "settings.h"
 #include "util.h"
 
 #include <ctype.h>
@@ -30,102 +30,49 @@
 
 
 #if MOVE_GENERATOR == MOVE_GENERATOR_CARRY
-	#ifdef HAS_CPU_64
-		#include "flip_carry_64.c"
-		#include "count_last_flip_carry_64.c"
-	#else 
-		#include "flip_carry_32.c"
-		#include "count_last_flip_carry_32.c"
-	#endif
+	#include "flip_carry_64.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
 	#include "flip_sse.c"
-	#include "count_last_flip_kindergarten.c"
 #elif MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN
+  #ifdef __ARM_NEON
+	#define	flip_neon	flip
+	#include "flip_neon_bitscan.c"
+  #else
 	#include "flip_bitscan.c"
-	#include "count_last_flip_bitscan.c"
+  #endif
 #elif MOVE_GENERATOR == MOVE_GENERATOR_ROXANE
 	#include "flip_roxane.c"
-	#include "count_last_flip_kindergarten.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_32
+	#include "flip_carry_sse_32.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP
+	#include "flip_sse_bswap.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_AVX
+	#include "flip_avx_ppfill.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_AVX512
+	#include "flip_avx512cd.c"
+#elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
+  #ifdef __aarch64__
+	#include "flip_neon_rbit.c"
+  #else
+	#include "flip_neon_lzcnt.c"
+  #endif
+#elif MOVE_GENERATOR == MOVE_GENERATOR_SVE
+	#include "flip_sve_lzcnt.c"
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
-	#include "count_last_flip_kindergarten.c"
 #endif
 
 
 /** edge stability global data */
-static unsigned char edge_stability[256][256];
+unsigned char edge_stability[256 * 256];
 
-/** conversion from an 8-bit line to the A1-A8 line */
-static const unsigned long long A1_A8[256] = {
-	0x0000000000000000ULL, 0x0000000000000001ULL, 0x0000000000000100ULL, 0x0000000000000101ULL, 0x0000000000010000ULL, 0x0000000000010001ULL, 0x0000000000010100ULL, 0x0000000000010101ULL,
-	0x0000000001000000ULL, 0x0000000001000001ULL, 0x0000000001000100ULL, 0x0000000001000101ULL, 0x0000000001010000ULL, 0x0000000001010001ULL, 0x0000000001010100ULL, 0x0000000001010101ULL,
-	0x0000000100000000ULL, 0x0000000100000001ULL, 0x0000000100000100ULL, 0x0000000100000101ULL, 0x0000000100010000ULL, 0x0000000100010001ULL, 0x0000000100010100ULL, 0x0000000100010101ULL,
-	0x0000000101000000ULL, 0x0000000101000001ULL, 0x0000000101000100ULL, 0x0000000101000101ULL, 0x0000000101010000ULL, 0x0000000101010001ULL, 0x0000000101010100ULL, 0x0000000101010101ULL,
-	0x0000010000000000ULL, 0x0000010000000001ULL, 0x0000010000000100ULL, 0x0000010000000101ULL, 0x0000010000010000ULL, 0x0000010000010001ULL, 0x0000010000010100ULL, 0x0000010000010101ULL,
-	0x0000010001000000ULL, 0x0000010001000001ULL, 0x0000010001000100ULL, 0x0000010001000101ULL, 0x0000010001010000ULL, 0x0000010001010001ULL, 0x0000010001010100ULL, 0x0000010001010101ULL,
-	0x0000010100000000ULL, 0x0000010100000001ULL, 0x0000010100000100ULL, 0x0000010100000101ULL, 0x0000010100010000ULL, 0x0000010100010001ULL, 0x0000010100010100ULL, 0x0000010100010101ULL,
-	0x0000010101000000ULL, 0x0000010101000001ULL, 0x0000010101000100ULL, 0x0000010101000101ULL, 0x0000010101010000ULL, 0x0000010101010001ULL, 0x0000010101010100ULL, 0x0000010101010101ULL,
-	0x0001000000000000ULL, 0x0001000000000001ULL, 0x0001000000000100ULL, 0x0001000000000101ULL, 0x0001000000010000ULL, 0x0001000000010001ULL, 0x0001000000010100ULL, 0x0001000000010101ULL,
-	0x0001000001000000ULL, 0x0001000001000001ULL, 0x0001000001000100ULL, 0x0001000001000101ULL, 0x0001000001010000ULL, 0x0001000001010001ULL, 0x0001000001010100ULL, 0x0001000001010101ULL,
-	0x0001000100000000ULL, 0x0001000100000001ULL, 0x0001000100000100ULL, 0x0001000100000101ULL, 0x0001000100010000ULL, 0x0001000100010001ULL, 0x0001000100010100ULL, 0x0001000100010101ULL,
-	0x0001000101000000ULL, 0x0001000101000001ULL, 0x0001000101000100ULL, 0x0001000101000101ULL, 0x0001000101010000ULL, 0x0001000101010001ULL, 0x0001000101010100ULL, 0x0001000101010101ULL,
-	0x0001010000000000ULL, 0x0001010000000001ULL, 0x0001010000000100ULL, 0x0001010000000101ULL, 0x0001010000010000ULL, 0x0001010000010001ULL, 0x0001010000010100ULL, 0x0001010000010101ULL,
-	0x0001010001000000ULL, 0x0001010001000001ULL, 0x0001010001000100ULL, 0x0001010001000101ULL, 0x0001010001010000ULL, 0x0001010001010001ULL, 0x0001010001010100ULL, 0x0001010001010101ULL,
-	0x0001010100000000ULL, 0x0001010100000001ULL, 0x0001010100000100ULL, 0x0001010100000101ULL, 0x0001010100010000ULL, 0x0001010100010001ULL, 0x0001010100010100ULL, 0x0001010100010101ULL,
-	0x0001010101000000ULL, 0x0001010101000001ULL, 0x0001010101000100ULL, 0x0001010101000101ULL, 0x0001010101010000ULL, 0x0001010101010001ULL, 0x0001010101010100ULL, 0x0001010101010101ULL,
-	0x0100000000000000ULL, 0x0100000000000001ULL, 0x0100000000000100ULL, 0x0100000000000101ULL, 0x0100000000010000ULL, 0x0100000000010001ULL, 0x0100000000010100ULL, 0x0100000000010101ULL,
-	0x0100000001000000ULL, 0x0100000001000001ULL, 0x0100000001000100ULL, 0x0100000001000101ULL, 0x0100000001010000ULL, 0x0100000001010001ULL, 0x0100000001010100ULL, 0x0100000001010101ULL,
-	0x0100000100000000ULL, 0x0100000100000001ULL, 0x0100000100000100ULL, 0x0100000100000101ULL, 0x0100000100010000ULL, 0x0100000100010001ULL, 0x0100000100010100ULL, 0x0100000100010101ULL,
-	0x0100000101000000ULL, 0x0100000101000001ULL, 0x0100000101000100ULL, 0x0100000101000101ULL, 0x0100000101010000ULL, 0x0100000101010001ULL, 0x0100000101010100ULL, 0x0100000101010101ULL,
-	0x0100010000000000ULL, 0x0100010000000001ULL, 0x0100010000000100ULL, 0x0100010000000101ULL, 0x0100010000010000ULL, 0x0100010000010001ULL, 0x0100010000010100ULL, 0x0100010000010101ULL,
-	0x0100010001000000ULL, 0x0100010001000001ULL, 0x0100010001000100ULL, 0x0100010001000101ULL, 0x0100010001010000ULL, 0x0100010001010001ULL, 0x0100010001010100ULL, 0x0100010001010101ULL,
-	0x0100010100000000ULL, 0x0100010100000001ULL, 0x0100010100000100ULL, 0x0100010100000101ULL, 0x0100010100010000ULL, 0x0100010100010001ULL, 0x0100010100010100ULL, 0x0100010100010101ULL,
-	0x0100010101000000ULL, 0x0100010101000001ULL, 0x0100010101000100ULL, 0x0100010101000101ULL, 0x0100010101010000ULL, 0x0100010101010001ULL, 0x0100010101010100ULL, 0x0100010101010101ULL,
-	0x0101000000000000ULL, 0x0101000000000001ULL, 0x0101000000000100ULL, 0x0101000000000101ULL, 0x0101000000010000ULL, 0x0101000000010001ULL, 0x0101000000010100ULL, 0x0101000000010101ULL,
-	0x0101000001000000ULL, 0x0101000001000001ULL, 0x0101000001000100ULL, 0x0101000001000101ULL, 0x0101000001010000ULL, 0x0101000001010001ULL, 0x0101000001010100ULL, 0x0101000001010101ULL,
-	0x0101000100000000ULL, 0x0101000100000001ULL, 0x0101000100000100ULL, 0x0101000100000101ULL, 0x0101000100010000ULL, 0x0101000100010001ULL, 0x0101000100010100ULL, 0x0101000100010101ULL,
-	0x0101000101000000ULL, 0x0101000101000001ULL, 0x0101000101000100ULL, 0x0101000101000101ULL, 0x0101000101010000ULL, 0x0101000101010001ULL, 0x0101000101010100ULL, 0x0101000101010101ULL,
-	0x0101010000000000ULL, 0x0101010000000001ULL, 0x0101010000000100ULL, 0x0101010000000101ULL, 0x0101010000010000ULL, 0x0101010000010001ULL, 0x0101010000010100ULL, 0x0101010000010101ULL,
-	0x0101010001000000ULL, 0x0101010001000001ULL, 0x0101010001000100ULL, 0x0101010001000101ULL, 0x0101010001010000ULL, 0x0101010001010001ULL, 0x0101010001010100ULL, 0x0101010001010101ULL,
-	0x0101010100000000ULL, 0x0101010100000001ULL, 0x0101010100000100ULL, 0x0101010100000101ULL, 0x0101010100010000ULL, 0x0101010100010001ULL, 0x0101010100010100ULL, 0x0101010100010101ULL,
-	0x0101010101000000ULL, 0x0101010101000001ULL, 0x0101010101000100ULL, 0x0101010101000101ULL, 0x0101010101010000ULL, 0x0101010101010001ULL, 0x0101010101010100ULL, 0x0101010101010101ULL,
-};
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
+	#include "board_mmx.c"
+#endif
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(__ARM_NEON)) && !defined(ANDROID)
+	#include "board_sse.c"
+#endif
 
-/** conversion from an 8-bit line to the H1-H8 line */
-static const unsigned long long H1_H8[256] = {
-	0x0000000000000000ULL, 0x0000000000000080ULL, 0x0000000000008000ULL, 0x0000000000008080ULL, 0x0000000000800000ULL, 0x0000000000800080ULL, 0x0000000000808000ULL, 0x0000000000808080ULL,
-	0x0000000080000000ULL, 0x0000000080000080ULL, 0x0000000080008000ULL, 0x0000000080008080ULL, 0x0000000080800000ULL, 0x0000000080800080ULL, 0x0000000080808000ULL, 0x0000000080808080ULL,
-	0x0000008000000000ULL, 0x0000008000000080ULL, 0x0000008000008000ULL, 0x0000008000008080ULL, 0x0000008000800000ULL, 0x0000008000800080ULL, 0x0000008000808000ULL, 0x0000008000808080ULL,
-	0x0000008080000000ULL, 0x0000008080000080ULL, 0x0000008080008000ULL, 0x0000008080008080ULL, 0x0000008080800000ULL, 0x0000008080800080ULL, 0x0000008080808000ULL, 0x0000008080808080ULL,
-	0x0000800000000000ULL, 0x0000800000000080ULL, 0x0000800000008000ULL, 0x0000800000008080ULL, 0x0000800000800000ULL, 0x0000800000800080ULL, 0x0000800000808000ULL, 0x0000800000808080ULL,
-	0x0000800080000000ULL, 0x0000800080000080ULL, 0x0000800080008000ULL, 0x0000800080008080ULL, 0x0000800080800000ULL, 0x0000800080800080ULL, 0x0000800080808000ULL, 0x0000800080808080ULL,
-	0x0000808000000000ULL, 0x0000808000000080ULL, 0x0000808000008000ULL, 0x0000808000008080ULL, 0x0000808000800000ULL, 0x0000808000800080ULL, 0x0000808000808000ULL, 0x0000808000808080ULL,
-	0x0000808080000000ULL, 0x0000808080000080ULL, 0x0000808080008000ULL, 0x0000808080008080ULL, 0x0000808080800000ULL, 0x0000808080800080ULL, 0x0000808080808000ULL, 0x0000808080808080ULL,
-	0x0080000000000000ULL, 0x0080000000000080ULL, 0x0080000000008000ULL, 0x0080000000008080ULL, 0x0080000000800000ULL, 0x0080000000800080ULL, 0x0080000000808000ULL, 0x0080000000808080ULL,
-	0x0080000080000000ULL, 0x0080000080000080ULL, 0x0080000080008000ULL, 0x0080000080008080ULL, 0x0080000080800000ULL, 0x0080000080800080ULL, 0x0080000080808000ULL, 0x0080000080808080ULL,
-	0x0080008000000000ULL, 0x0080008000000080ULL, 0x0080008000008000ULL, 0x0080008000008080ULL, 0x0080008000800000ULL, 0x0080008000800080ULL, 0x0080008000808000ULL, 0x0080008000808080ULL,
-	0x0080008080000000ULL, 0x0080008080000080ULL, 0x0080008080008000ULL, 0x0080008080008080ULL, 0x0080008080800000ULL, 0x0080008080800080ULL, 0x0080008080808000ULL, 0x0080008080808080ULL,
-	0x0080800000000000ULL, 0x0080800000000080ULL, 0x0080800000008000ULL, 0x0080800000008080ULL, 0x0080800000800000ULL, 0x0080800000800080ULL, 0x0080800000808000ULL, 0x0080800000808080ULL,
-	0x0080800080000000ULL, 0x0080800080000080ULL, 0x0080800080008000ULL, 0x0080800080008080ULL, 0x0080800080800000ULL, 0x0080800080800080ULL, 0x0080800080808000ULL, 0x0080800080808080ULL,
-	0x0080808000000000ULL, 0x0080808000000080ULL, 0x0080808000008000ULL, 0x0080808000008080ULL, 0x0080808000800000ULL, 0x0080808000800080ULL, 0x0080808000808000ULL, 0x0080808000808080ULL,
-	0x0080808080000000ULL, 0x0080808080000080ULL, 0x0080808080008000ULL, 0x0080808080008080ULL, 0x0080808080800000ULL, 0x0080808080800080ULL, 0x0080808080808000ULL, 0x0080808080808080ULL,
-	0x8000000000000000ULL, 0x8000000000000080ULL, 0x8000000000008000ULL, 0x8000000000008080ULL, 0x8000000000800000ULL, 0x8000000000800080ULL, 0x8000000000808000ULL, 0x8000000000808080ULL,
-	0x8000000080000000ULL, 0x8000000080000080ULL, 0x8000000080008000ULL, 0x8000000080008080ULL, 0x8000000080800000ULL, 0x8000000080800080ULL, 0x8000000080808000ULL, 0x8000000080808080ULL,
-	0x8000008000000000ULL, 0x8000008000000080ULL, 0x8000008000008000ULL, 0x8000008000008080ULL, 0x8000008000800000ULL, 0x8000008000800080ULL, 0x8000008000808000ULL, 0x8000008000808080ULL,
-	0x8000008080000000ULL, 0x8000008080000080ULL, 0x8000008080008000ULL, 0x8000008080008080ULL, 0x8000008080800000ULL, 0x8000008080800080ULL, 0x8000008080808000ULL, 0x8000008080808080ULL,
-	0x8000800000000000ULL, 0x8000800000000080ULL, 0x8000800000008000ULL, 0x8000800000008080ULL, 0x8000800000800000ULL, 0x8000800000800080ULL, 0x8000800000808000ULL, 0x8000800000808080ULL,
-	0x8000800080000000ULL, 0x8000800080000080ULL, 0x8000800080008000ULL, 0x8000800080008080ULL, 0x8000800080800000ULL, 0x8000800080800080ULL, 0x8000800080808000ULL, 0x8000800080808080ULL,
-	0x8000808000000000ULL, 0x8000808000000080ULL, 0x8000808000008000ULL, 0x8000808000008080ULL, 0x8000808000800000ULL, 0x8000808000800080ULL, 0x8000808000808000ULL, 0x8000808000808080ULL,
-	0x8000808080000000ULL, 0x8000808080000080ULL, 0x8000808080008000ULL, 0x8000808080008080ULL, 0x8000808080800000ULL, 0x8000808080800080ULL, 0x8000808080808000ULL, 0x8000808080808080ULL,
-	0x8080000000000000ULL, 0x8080000000000080ULL, 0x8080000000008000ULL, 0x8080000000008080ULL, 0x8080000000800000ULL, 0x8080000000800080ULL, 0x8080000000808000ULL, 0x8080000000808080ULL,
-	0x8080000080000000ULL, 0x8080000080000080ULL, 0x8080000080008000ULL, 0x8080000080008080ULL, 0x8080000080800000ULL, 0x8080000080800080ULL, 0x8080000080808000ULL, 0x8080000080808080ULL,
-	0x8080008000000000ULL, 0x8080008000000080ULL, 0x8080008000008000ULL, 0x8080008000008080ULL, 0x8080008000800000ULL, 0x8080008000800080ULL, 0x8080008000808000ULL, 0x8080008000808080ULL,
-	0x8080008080000000ULL, 0x8080008080000080ULL, 0x8080008080008000ULL, 0x8080008080008080ULL, 0x8080008080800000ULL, 0x8080008080800080ULL, 0x8080008080808000ULL, 0x8080008080808080ULL,
-	0x8080800000000000ULL, 0x8080800000000080ULL, 0x8080800000008000ULL, 0x8080800000008080ULL, 0x8080800000800000ULL, 0x8080800000800080ULL, 0x8080800000808000ULL, 0x8080800000808080ULL,
-	0x8080800080000000ULL, 0x8080800080000080ULL, 0x8080800080008000ULL, 0x8080800080008080ULL, 0x8080800080800000ULL, 0x8080800080800080ULL, 0x8080800080808000ULL, 0x8080800080808080ULL,
-	0x8080808000000000ULL, 0x8080808000000080ULL, 0x8080808000008000ULL, 0x8080808000008080ULL, 0x8080808000800000ULL, 0x8080808000800080ULL, 0x8080808000808000ULL, 0x8080808000808080ULL,
-	0x8080808080000000ULL, 0x8080808080000080ULL, 0x8080808080008000ULL, 0x8080808080008080ULL, 0x8080808080800000ULL, 0x8080808080800080ULL, 0x8080808080808000ULL, 0x8080808080808080ULL,
-};
 
 /**
  * @brief Swap players.
@@ -151,36 +98,35 @@ void board_swap_players(Board *board)
  * @param string string describing the board
  * @return turn's color.
  */
-int board_set(Board *board, const char *string)
+int board_set(Board *board, const char *s)
 {
 	int i;
-	const char *s = string;
+	unsigned long long b = 1;
 
 	board->player = board->opponent = 0;
-	for (i = A1; i <= H8; ++i) {
-		if (*s == '\0') break;
+	for (i = A1; (i <= H8) && (*s != '\0'); ++s) {
 		switch (tolower(*s)) {
 		case 'b':
 		case 'x':
 		case '*':
-			board->player |= x_to_bit(i);
+			board->player |= b;
 			break;
 		case 'o':
 		case 'w':
-			board->opponent |= x_to_bit(i);
+			board->opponent |= b;
 			break;
 		case '-':
 		case '.':
 			break;
 		default:
-			i--;
-			break;
+			continue;
 		}
-		++s;
+		++i;
+		b <<= 1;
 	}
 	board_check(board);
 
-	for (;*s != '\0'; ++s) {
+	for (; *s != '\0'; ++s) {
 		switch (tolower(*s)) {
 		case 'b':
 		case 'x':
@@ -229,7 +175,7 @@ int board_from_FEN(Board *board, const char *string)
 			board->opponent |= x_to_bit(i);
 			++i;
 		} else {
-			return EMPTY;	
+			return EMPTY;
 		}
 	}
 
@@ -251,8 +197,8 @@ int board_from_FEN(Board *board, const char *string)
  */
 void board_init(Board *board)
 {
-	board->player   = 0x0000000810000000ULL; // BLACK
-	board->opponent = 0x0000001008000000ULL; // WHITE
+	board->player   = 0x0000000810000000; // BLACK
+	board->opponent = 0x0000001008000000; // WHITE
 }
 
 /**
@@ -272,7 +218,7 @@ void board_check(const Board *board)
 	}
 
 	// empty center ?
-	if (((board->player|board->opponent) & 0x0000001818000000ULL) != 0x0000001818000000ULL) {
+	if (~(board->player|board->opponent) & 0x0000001818000000) {
 		error("Empty center?\n");
 		board_print(board, BLACK, stderr);
 	}
@@ -286,27 +232,13 @@ void board_check(const Board *board)
  *
  * @param b1 first board
  * @param b2 second board
- * @return -1, 0, 1
+ * @return true if b1 is lesser than b2
  */
-int board_compare(const Board *b1, const Board *b2)
+bool board_lesser(const Board *b1, const Board *b2)
 {
-	if (b1->player > b2->player) return 1;
-	else if (b1->player < b2->player) return -1;
-	else if (b1->opponent > b2->opponent) return 1;
-	else if (b1->opponent < b2->opponent) return -1;
-	else return 0;
-}
-
-/**
- * @brief Compare two board for equality
- *
- * @param b1 first board
- * @param b2 second board
- * @return true if both board are equal
- */
-bool board_equal(const Board *b1, const Board *b2)
-{
-	return (b1->player == b2->player && b1->opponent == b2->opponent);
+	if (b1->player != b2->player)
+		return (b1->player < b2->player);
+	else	return (b1->opponent < b2->opponent);
 }
 
 /**
@@ -316,30 +248,40 @@ bool board_equal(const Board *b1, const Board *b2)
  * @param s symetry
  * @param sym symetric output board
  */
+#if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
+void board_horizontal_mirror(const Board *board, Board *sym)
+{
+	sym->player = horizontal_mirror(board->player);
+	sym->opponent = horizontal_mirror(board->opponent);
+}
+
+void board_vertical_mirror(const Board *board, Board *sym)
+{
+	sym->player = vertical_mirror(board->player);
+	sym->opponent = vertical_mirror(board->opponent);
+}
+
+void board_transpose(const Board *board, Board *sym)
+{
+	sym->player = transpose(board->player);
+	sym->opponent = transpose(board->opponent);
+}
+
 void board_symetry(const Board *board, const int s, Board *sym)
 {
-	register unsigned long long player = board->player;
-	register unsigned long long opponent = board->opponent;
-
-	if (s & 1) {
-		player = horizontal_mirror(player);
-		opponent = horizontal_mirror(opponent);
-	}
-	if (s & 2) {
-		player = vertical_mirror(player);
-		opponent = vertical_mirror(opponent);
-	}
-	if (s & 4) {
-		player = transpose(player);
-		opponent = transpose(opponent);
-	}
-
-	sym->player = player;
-	sym->opponent = opponent;
+	*sym = *board;
+	if (s & 1)
+		board_horizontal_mirror(sym, sym);
+	if (s & 2)
+		board_vertical_mirror(sym, sym);
+	if (s & 4)
+		board_transpose(sym, sym);
 
 	board_check(sym);
 }
+#endif
 
+#ifndef __AVX2__	// AVX2 version in board_sse.c
 /**
  * @brief unique board
  *
@@ -350,16 +292,22 @@ void board_symetry(const Board *board, const int s, Board *sym)
  */
 int board_unique(const Board *board, Board *unique)
 {
-	Board sym;
+	Board sym[8];
 	int i, s = 0;
 
-	assert(board != unique);
+	board_horizontal_mirror(board, &sym[1]);
+	board_vertical_mirror(board, &sym[2]);
+	board_vertical_mirror(&sym[1], &sym[3]);
+	board_transpose(board, &sym[4]);
+	board_vertical_mirror(&sym[4], &sym[5]);	// v-h reverted
+	board_horizontal_mirror(&sym[4], &sym[6]);
+	board_vertical_mirror(&sym[6], &sym[7]);
 
 	*unique = *board;
 	for (i = 1; i < 8; ++i) {
-		board_symetry(board, i, &sym);
-		if (board_compare(&sym, unique) < 0) {
-			*unique = sym;
+		// board_symetry(board, i, &sym);	// moved to before loop to minimize symetry ops
+		if (board_lesser(&sym[i], unique)) {
+			*unique = sym[i];
 			s = i;
 		}
 	}
@@ -367,6 +315,7 @@ int board_unique(const Board *board, Board *unique)
 	board_check(unique);
 	return s;
 }
+#endif
 
 /** 
  * @brief Get a random board by playing random moves.
@@ -377,22 +326,22 @@ int board_unique(const Board *board, Board *unique)
  */
 void board_rand(Board *board, int n_ply, Random *r)
 {
-	Move move[1];
+	Move move;
 	unsigned long long moves;
 	int ply;
 
 	board_init(board);
 	for (ply = 0; ply < n_ply; ply++) {
-		moves = get_moves(board->player, board->opponent);
+		moves = board_get_moves(board);
 		if (!moves) {
 			board_pass(board);
-			moves = get_moves(board->player, board->opponent);
+			moves = board_get_moves(board);
 			if (!moves) {
 				break;
 			}
 		}
-		board_get_move(board, get_rand_bit(moves, r), move);
-		board_update(board, move);
+		board_get_move_flip(board, get_rand_bit(moves, r), &move);
+		board_update(board, &move);
 	}
 }
 
@@ -407,10 +356,10 @@ void board_rand(Board *board, int n_ply, Random *r)
  * @param move  a Move structure remembering the modification.
  * @return      the flipped discs.
  */
-unsigned long long board_get_move(const Board *board, const int x, Move *move)
+unsigned long long board_get_move_flip(const Board *board, const int x, Move *move)
 {
-	move->flipped = flip[x](board->player, board->opponent);
 	move->x = x;
+	move->flipped = board_flip(board, x);
 	return move->flipped;
 }
 
@@ -424,8 +373,8 @@ unsigned long long board_get_move(const Board *board, const int x, Move *move)
 bool board_check_move(const Board *board, Move *move)
 {
 	if (move->x == PASS) return !can_move(board->player, board->opponent);
-	else if ((x_to_bit(move->x) & ~(board->player|board->opponent)) == 0) return false;
-	else if (move->flipped != flip[move->x](board->player, board->opponent)) return false;
+	else if (x_to_bit(move->x) & (board->player | board->opponent)) return false;
+	else if (move->flipped != board_flip(board, move->x)) return false;
 	else return true;
 }
 
@@ -436,14 +385,28 @@ bool board_check_move(const Board *board, Move *move)
  * according to the 'move' description.
  *
  * @param board the board to modify
- * @param move  A Move structure describing the modification.
+ * @param move  A Move structure describing the modification (may be PASS).
  */
 void board_update(Board *board, const Move *move)
 {
-	board->player ^= (move->flipped | x_to_bit(move->x));
-	board->opponent ^= move->flipped;
-	board_swap_players(board);
+#if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))	// 3DNow CPU has fast emms, and possibly slow SSE
+	__m128i	OP = _mm_loadu_si128((__m128i *) board);
+	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
+	_mm_storeu_si128((__m128i *) board, _mm_shuffle_epi32(OP, 0x4e));
 
+#elif defined(hasMMX)
+	__m64	F = *(__m64 *) &move->flipped;
+	__m64	P = _m_pxor(*(__m64 *) &board->player, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
+	__m64	O = _m_pxor(*(__m64 *) &board->opponent, F);
+	*(__m64 *) &board->player = O;
+	*(__m64 *) &board->opponent = P;
+	_mm_empty();
+
+#else
+	unsigned long long O = board->opponent;
+	board->opponent = board->player ^ (move->flipped | X_TO_BIT[move->x]);
+	board->player = O ^ move->flipped;
+#endif
 	board_check(board);
 }
 
@@ -458,10 +421,24 @@ void board_update(Board *board, const Move *move)
  */
 void board_restore(Board *board, const Move *move)
 {
-	board_swap_players(board);
-	board->player ^= (move->flipped | x_to_bit(move->x));
-	board->opponent ^= move->flipped;
+#if defined(hasSSE2) && (defined(HAS_CPU_64) || !defined(__3dNOW__))
+	__m128i	OP = _mm_shuffle_epi32(_mm_loadu_si128((__m128i *) board), 0x4e);
+	OP = _mm_xor_si128(OP, _mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
+	_mm_storeu_si128((__m128i *) board, OP);
 
+#elif defined(hasMMX)
+	__m64	F = *(__m64 *) &move->flipped;
+	__m64	P = *(__m64 *) &board->opponent;
+	__m64	O = *(__m64 *) &board->player;
+	*(__m64 *) &board->player = _m_pxor(P, _m_por(F, *(__m64 *) &X_TO_BIT[move->x]));
+	*(__m64 *) &board->opponent = _m_pxor(O, F);
+	_mm_empty();
+
+#else
+	unsigned long long P = board->player;
+	board->player = board->opponent ^ (move->flipped | X_TO_BIT[move->x]);
+	board->opponent = P ^ move->flipped;
+#endif
 	board_check(board);
 }
 
@@ -475,48 +452,32 @@ void board_restore(Board *board, const Move *move)
 void board_pass(Board *board)
 {
 	board_swap_players(board);
+
 	board_check(board);
 }
 
+#if (MOVE_GENERATOR != MOVE_GENERATOR_AVX) && (MOVE_GENERATOR != MOVE_GENERATOR_AVX512) && (MOVE_GENERATOR != MOVE_GENERATOR_SSE) && (MOVE_GENERATOR != MOVE_GENERATOR_NEON)	// SSE version in board_sse.c
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *
  * @param board board to play the move on.
- * @param x move to play.
+ * @param x move to play (may be PASS).
  * @param next resulting board.
  * @return flipped discs.
  */
 unsigned long long board_next(const Board *board, const int x, Board *next)
 {
-	const unsigned long long flipped = flip[x](board->player, board->opponent);
+	const unsigned long long flipped = board_flip(board, x);
 	const unsigned long long player = board->opponent ^ flipped;
 
-	next->opponent = board->player ^ (flipped | x_to_bit(x));
+	next->opponent = board->player ^ (flipped | X_TO_BIT[x]);
 	next->player = player;
 
 	return flipped;
 }
+#endif
 
-/**
- * @brief Compute a board resulting of an opponent move played on a previous board.
- *
- * Compute the board after passing and playing a move.
- *
- * @param board board to play the move on.
- * @param x opponent move to play.
- * @param next resulting board.
- * @return flipped discs.
- */
-unsigned long long board_pass_next(const Board *board, const int x, Board *next)
-{
-	const unsigned long long flipped = flip[x](board->opponent, board->player);
-
-	next->opponent = board->opponent ^ (flipped | x_to_bit(x));
-	next->player = board->player ^ flipped;
-
-	return flipped;
-}
-
+#if !defined(hasSSE2) && !defined(__ARM_NEON)	// SSE version in board_sse.c
 /**
  * @brief Get a part of the moves.
  *
@@ -531,44 +492,50 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
  * @return some legal moves in a 64-bit unsigned integer.
  */
 static inline unsigned long long get_some_moves(const unsigned long long P, const unsigned long long mask, const int dir)
+// x86 build will use helper for long long shift unless inlined
 {
 
-#if PARALLEL_PREFIX & 1
+#if KOGGE_STONE & 1
+	// kogge-stone algorithm
+ 	// 6 << + 6 >> + 12 & + 7 |
+	// + better instruction independency
+	unsigned long long flip_l, flip_r;
+	unsigned long long mask_l, mask_r;
+	int d;
+
+	flip_l = flip_r = P;
+	mask_l = mask_r = mask;
+	d = dir;
+
+	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
+	mask_l &= (mask_l << d);            mask_r &= (mask_r >> d);
+	d <<= 1;
+	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
+	mask_l &= (mask_l << d);            mask_r &= (mask_r >> d);
+	d <<= 1;
+	flip_l |= mask_l & (flip_l << d);   flip_r |= mask_r & (flip_r >> d);
+
+	return ((flip_l & mask) << dir) | ((flip_r & mask) >> dir);
+
+#elif PARALLEL_PREFIX & 1
 	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
 	// 6 << + 6 >> + 7 | + 10 &
-	register unsigned long long flip_l, flip_r;
-	register unsigned long long mask_l, mask_r;
+	unsigned long long flip_l, flip_r;
+	unsigned long long mask_l, mask_r;
 	const int dir2 = dir + dir;
 
 	flip_l  = mask & (P << dir);          flip_r  = mask & (P >> dir);
 	flip_l |= mask & (flip_l << dir);     flip_r |= mask & (flip_r >> dir);
-	mask_l  = mask & (mask << dir);       mask_r  = mask & (mask >> dir);
+	mask_l  = mask & (mask << dir);       mask_r  = mask_l >> dir;
 	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
 	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
 
 	return (flip_l << dir) | (flip_r >> dir);
 
-#elif KOGGE_STONE & 1
-	// kogge-stone algorithm
- 	// 6 << + 6 >> + 12 & + 7 |
-	// + better instruction independency
-	register unsigned long long flip_l, flip_r;
-	register unsigned long long mask_l, mask_r;
-	const int dir2 = dir << 1;
-	const int dir4 = dir << 2;
-
-	flip_l  = P | (mask & (P << dir));    flip_r  = P | (mask & (P >> dir));
-	mask_l  = mask & (mask << dir);       mask_r  = mask & (mask >> dir);
-	flip_l |= mask_l & (flip_l << dir2);  flip_r |= mask_r & (flip_r >> dir2);
-	mask_l &= (mask_l << dir2);           mask_r &= (mask_r >> dir2);
-	flip_l |= mask_l & (flip_l << dir4);  flip_r |= mask_r & (flip_r >> dir4);
-
-	return ((flip_l & mask) << dir) | ((flip_r & mask) >> dir);
-	
 #else
  	// sequential algorithm
  	// 7 << + 7 >> + 6 & + 12 |
-	register unsigned long long flip;
+	unsigned long long flip;
 
 	flip = (((P << dir) | (P >> dir)) & mask);
 	flip |= (((flip << dir) | (flip >> dir)) & mask);
@@ -592,152 +559,26 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
  */
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
-#if defined(USE_GAS_MMX)
- 			/* mm7: P, mm6: O */
-	const unsigned long long mask_7e = 0x7e7e7e7e7e7e7e7eULL;
+	unsigned long long moves, OM;
 
-  __asm__ volatile(
-	"movl	%3, %%esi\n\t"		"movq	%1, %%mm7\n\t"
-	"movl	%4, %%edi\n\t"		"movq	%2, %%mm6\n\t"
-			/* shift=+1 */			/* shift=+8 */
-	"movl	%%esi, %%eax\n\t"	"movq	%%mm7, %%mm0\n\t"
-	"movq	%5, %%mm5\n\t"
-	"shrl	$1, %%eax\n\t"		"psrlq	$8, %%mm0\n\t"
-	"andl	$2122219134, %%edi\n\t"	"pand	%%mm6, %%mm5\n\t"
-	"andl	%%edi, %%eax\n\t"	"pand	%%mm6, %%mm0\n\t"	/* 0 m7&o6 m6&o5 .. m1&o0 */
-	"movl	%%eax, %%edx\n\t"	"movq	%%mm0, %%mm1\n\t"
-	"shrl	$1, %%eax\n\t"		"psrlq	$8, %%mm0\n\t"
-	"movl	%%edi, %%ecx\n\t"	"movq	%%mm6, %%mm3\n\t"
-	"andl	%%edi, %%eax\n\t"	"pand	%%mm6, %%mm0\n\t"	/* 0 0 m7&o6&o5 .. m2&o1&o0 */
-	"shrl	$1, %%ecx\n\t"		"psrlq	$8, %%mm3\n\t"
-	"orl	%%edx, %%eax\n\t"	"por	%%mm1, %%mm0\n\t"	/* 0 m7&o6 (m6&o5)|(m7&o6&o5) .. (m1&o0) */
-	"andl	%%edi, %%ecx\n\t"	"pand	%%mm6, %%mm3\n\t"	/* 0 o7&o6 o6&o5 o5&o4 o4&o3 .. */
-	"movl	%%eax, %%edx\n\t"	"movq	%%mm0, %%mm4\n\t"
-	"shrl	$2, %%eax\n\t"		"psrlq	$16, %%mm0\n\t"
-	"andl	%%ecx, %%eax\n\t"	"pand	%%mm3, %%mm0\n\t"	/* 0 0 0 m7&o6&o5&o4 (m6&o5&o4&o3)|(m7&o6&o5&o4&o3) .. */
-	"orl	%%eax, %%edx\n\t"	"por	%%mm0, %%mm4\n\t"
-	"shrl	$2, %%eax\n\t"		"psrlq	$16, %%mm0\n\t"
-	"andl	%%ecx, %%eax\n\t"	"pand	%%mm3, %%mm0\n\t"	/* 0 0 0 0 0 m7&o6&..&o2 (m6&o5&..&o1)|(m7&o6&..&o1) .. */
-	"orl	%%edx, %%eax\n\t"	"por	%%mm0, %%mm4\n\t"
-	"shrl	$1, %%eax\n\t"		"psrlq	$8, %%mm4\n\t"		/* result of +8 */
-	/* shift=-1 */				/* shift=-8 */
-	"movq	%%mm7, %%mm0\n\t"
-	"addl	%%esi, %%esi\n\t"	"psllq	$8, %%mm0\n\t"
-	"andl	%%edi, %%esi\n\t"	"pand	%%mm6, %%mm0\n\t"
-	"movl	%%esi, %%edx\n\t"	"movq	%%mm0, %%mm1\n\t"
-	"addl	%%esi, %%esi\n\t"	"psllq	$8, %%mm0\n\t"
-	"andl	%%edi, %%esi\n\t"	"pand	%%mm6, %%mm0\n\t"
-	"orl	%%esi, %%edx\n\t"	"por	%%mm1, %%mm0\n\t"
-	"addl	%%ecx, %%ecx\n\t"	"psllq	$8, %%mm3\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"leal	(,%%edx,4), %%esi\n\t"	"psllq	$16, %%mm0\n\t"
-	"andl	%%ecx, %%esi\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%esi, %%edx\n\t"	"por	%%mm0, %%mm1\n\t"
-	"shll	$2, %%esi\n\t"		"psllq	$16, %%mm0\n\t"
-	"andl	%%ecx, %%esi\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%edx, %%esi\n\t"	"por	%%mm1, %%mm0\n\t"
-	"addl	%%esi, %%esi\n\t"	"psllq	$8, %%mm0\n\t"
-	"orl	%%eax, %%esi\n\t"	"por	%%mm0, %%mm4\n\t"
-	/* Serialize */				/* shift=+7 */
-	"movq	%%mm7, %%mm0\n\t"
-	"movd	%%esi, %%mm1\n\t"
-	"psrlq	$7, %%mm0\n\t"
-	"psllq	$32, %%mm1\n\t"
-	"pand	%%mm5, %%mm0\n\t"
-	"por	%%mm1, %%mm4\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"psrlq	$7, %%mm0\n\t"
-	"pand	%%mm5, %%mm0\n\t"
-	"movq	%%mm5, %%mm3\n\t"
-	"por	%%mm1, %%mm0\n\t"
-	"psrlq	$7, %%mm3\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"pand	%%mm5, %%mm3\n\t"
-	"psrlq	$14, %%mm0\n\t"
-	"pand	%%mm3, %%mm0\n\t"
-	"movl	%1, %%esi\n\t"		"por	%%mm0, %%mm1\n\t"
-	"movl	%2, %%edi\n\t"		"psrlq	$14, %%mm0\n\t"
-	"andl	$2122219134, %%edi\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"movl	%%edi, %%ecx\n\t"	"por	%%mm1, %%mm0\n\t"
-	"shrl	$1, %%ecx\n\t"		"psrlq	$7, %%mm0\n\t"
-	"andl	%%edi, %%ecx\n\t"	"por	%%mm0, %%mm4\n\t"
-			/* shift=+1 */			/* shift=-7 */
-	"movl	%%esi, %%eax\n\t"	"movq	%%mm7, %%mm0\n\t"
-	"shrl	$1, %%eax\n\t"		"psllq	$7, %%mm0\n\t"
-	"andl	%%edi, %%eax\n\t"	"pand	%%mm5, %%mm0\n\t"
-	"movl	%%eax, %%edx\n\t"	"movq	%%mm0, %%mm1\n\t"
-	"shrl	$1, %%eax\n\t"		"psllq	$7, %%mm0\n\t"
-	"andl	%%edi, %%eax\n\t"	"pand	%%mm5, %%mm0\n\t"
-	"orl	%%edx, %%eax\n\t"	"por	%%mm1, %%mm0\n\t"
-					"psllq	$7, %%mm3\n\t"
-	"movl	%%eax, %%edx\n\t"	"movq	%%mm0, %%mm1\n\t"
-	"shrl	$2, %%eax\n\t"		"psllq	$14, %%mm0\n\t"
-	"andl	%%ecx, %%eax\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%eax, %%edx\n\t"	"por	%%mm0, %%mm1\n\t"
-	"shrl	$2, %%eax\n\t"		"psllq	$14, %%mm0\n\t"
-	"andl	%%ecx, %%eax\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%edx, %%eax\n\t"	"por	%%mm1, %%mm0\n\t"
-	"shrl	$1, %%eax\n\t"		"psllq	$7, %%mm0\n\t"
-	"por	%%mm0, %%mm4\n\t"
-	/* shift=-1 */			/* shift=+9 */
-	"movq	%%mm7, %%mm0\n\t"
-	"addl	%%esi, %%esi\n\t"	"psrlq	$9, %%mm0\n\t"
-	"andl	%%edi, %%esi\n\t"	"pand	%%mm5, %%mm0\n\t"
-	"movl	%%esi, %%edx\n\t"	"movq	%%mm0, %%mm1\n\t"
-	"addl	%%esi, %%esi\n\t"	"psrlq	$9, %%mm0\n\t"
-	"andl	%%edi, %%esi\n\t"	"pand	%%mm5, %%mm0\n\t"
-	"movq	%%mm5, %%mm3\n\t"
-	"orl	%%esi, %%edx\n\t"	"por	%%mm1, %%mm0\n\t"
-	"psrlq	$9, %%mm3\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"addl	%%ecx, %%ecx\n\t"	"pand	%%mm5, %%mm3\n\t"
-	"leal	(,%%edx,4), %%esi\n\t"	"psrlq	$18, %%mm0\n\t"
-	"andl	%%ecx, %%esi\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%esi, %%edx\n\t"	"por	%%mm0, %%mm1\n\t"
-	"shll	$2, %%esi\n\t"		"psrlq	$18, %%mm0\n\t"
-	"andl	%%ecx, %%esi\n\t"	"pand	%%mm3, %%mm0\n\t"
-	"orl	%%edx, %%esi\n\t"	"por	%%mm1, %%mm0\n\t"
-	"addl	%%esi, %%esi\n\t"	"psrlq	$9, %%mm0\n\t"
-	"orl	%%eax, %%esi\n\t"	"por	%%mm0, %%mm4\n\t"
-	/* Serialize */			/* shift=-9 */
-	"movq	%%mm7, %%mm0\n\t"
-	"movd	%%esi, %%mm1\n\t"
-	"psllq	$9, %%mm0\n\t"
-	"por	%%mm1, %%mm4\n\t"
-	"pand	%%mm5, %%mm0\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"psllq	$9, %%mm0\n\t"
-	"pand	%%mm5, %%mm0\n\t"
-	"por	%%mm1, %%mm0\n\t"
-	"psllq	$9, %%mm3\n\t"
-	"movq	%%mm0, %%mm1\n\t"
-	"psllq	$18, %%mm0\n\t"
-	"pand	%%mm3, %%mm0\n\t"
-	"por	%%mm0, %%mm1\n\t"
-	"psllq	$18, %%mm0\n\t"
-	"pand	%%mm3, %%mm0\n\t"
-	"por	%%mm1, %%mm0\n\t"
-	"psllq	$9, %%mm0\n\t"
-	"por	%%mm0, %%mm4\n\t"
-	/* mm4 is the pseudo-feasible moves at this point. */
-	/* Let mm7 be the feasible moves, i.e., mm4 restricted to empty squares. */
-	"por	%%mm6, %%mm7\n\t"
-	"pandn	%%mm4, %%mm7\n\t"
-	"movq	%%mm7, %0\n\t"
-	"emms"		/* Reset the FP/MMX unit. */
-    : "=g" (moves) : "m" (P), "m" (O), "g" (P >> 32), "g" (O >> 32), "m" (mask_7e) : "eax", "edx", "ecx", "esi", "edi" );
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
+	if (hasSSE2)
+		return get_moves_sse(P, O);
+	#endif
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+	if (hasMMX)
+		return get_moves_mmx(P, O);
+	#endif
 
-#else
-	const unsigned long long mask = O & 0x7E7E7E7E7E7E7E7Eull;
-
-	return (get_some_moves(P, mask, 1) // horizontal
+	OM = O & 0x7e7e7e7e7e7e7e7e;
+	moves = ( get_some_moves(P, OM, 1) // horizontal
 		| get_some_moves(P, O, 8)   // vertical
-		| get_some_moves(P, mask, 7)   // diagonals
-		| get_some_moves(P, mask, 9))
-		& ~(P|O); // mask with empties
+		| get_some_moves(P, OM, 7)   // diagonals
+		| get_some_moves(P, OM, 9));
 
-#endif
+	return moves & ~(P|O);	// mask with empties
 }
+#endif // hasSSE2/__ARM_NEON
 
 /**
  * @brief Get legal moves on a 6x6 board.
@@ -750,13 +591,9 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
  */
 unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long long O)
 {
-	const unsigned long long E = (~(P|O) & 0x007E7E7E7E7E7E00ull); // empties
-
-	return ((get_some_moves(P, O & 0x003C3C3C3C3C3C00ull, 1) // horizontal
-		| get_some_moves(P, O & 0x00007E7E7E7E0000ull, 8)   // vertical
-		| get_some_moves(P, O & 0x00003C3C3C3C0000ull, 7)   // diagonals
-		| get_some_moves(P, O & 0x00003C3C3C3C0000ull, 9))
-		& E); // mask with empties
+	unsigned long long PM = P & 0x007E7E7E7E7E7E00;
+	unsigned long long OM = O & 0x007E7E7E7E7E7E00;
+	return get_moves(PM, OM) & 0x007E7E7E7E7E7E00;
 }
 
 /**
@@ -768,12 +605,18 @@ unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long
  */
 bool can_move(const unsigned long long P, const unsigned long long O)
 {
-	const unsigned long long E = ~(P|O); // empties
+#if defined(hasMMX) || defined(__ARM_NEON)
+	return get_moves(P, O) != 0;
 
-	return (get_some_moves(P, O & 0x007E7E7E7E7E7E00ull, 7) & E)  // diagonals
-		|| (get_some_moves(P, O & 0x007E7E7E7E7E7E00ull, 9) & E)
-		|| (get_some_moves(P, O & 0x7E7E7E7E7E7E7E7Eull, 1) & E)  // horizontal
-		|| (get_some_moves(P, O & 0x00FFFFFFFFFFFF00ull, 8) & E); // vertical
+#else
+	const unsigned long long E = ~(P|O); // empties
+	const unsigned long long OM = O & 0x7E7E7E7E7E7E7E7E;
+
+	return (get_some_moves(P, OM, 7) & E)  // diagonals
+		|| (get_some_moves(P, OM, 9) & E)
+		|| (get_some_moves(P, OM, 1) & E)  // horizontal
+		|| (get_some_moves(P, O, 8) & E); // vertical
+#endif
 }
 
 /**
@@ -785,12 +628,7 @@ bool can_move(const unsigned long long P, const unsigned long long O)
  */
 bool can_move_6x6(const unsigned long long P, const unsigned long long O)
 {
-	const unsigned long long E = (~(P|O) & 0x007E7E7E7E7E7E00ull); // empties
-
-	return (get_some_moves(P, O & 0x00003C3C3C3C0000ull, 7) & E)  // diagonals
-		|| (get_some_moves(P, O & 0x00003C3C3C3C0000ull, 9) & E)
-		|| (get_some_moves(P, O & 0x003C3C3C3C3C3C00ull, 1) & E)  // horizontal
-		|| (get_some_moves(P, O & 0x00007E7E7E7E0000ull, 8) & E); // vertical
+	return get_moves_6x6(P, O) != 0;
 }
 
 /**
@@ -807,21 +645,17 @@ int get_mobility(const unsigned long long P, const unsigned long long O)
 	return bit_count(get_moves(P, O));
 }
 
-int get_weighted_mobility(const unsigned long long P, const unsigned long long O)
-{
-	return bit_weighted_count(get_moves(P, O));
-}
-
+#ifndef __AVX2__	// AVX2 version in board_sse.c
 /**
  * @brief Get some potential moves.
  *
- * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
  * @param dir flipping direction.
  * @return some potential moves in a 64-bit unsigned integer.
  */
-static inline unsigned long long get_some_potential_moves(const unsigned long long P, const int dir)
+static inline unsigned long long get_some_potential_moves(const unsigned long long O, const int dir)
 {
-	return (P << dir | P >> dir);
+	return (O << dir | O >> dir);
 }
 
 /**
@@ -833,28 +667,15 @@ static inline unsigned long long get_some_potential_moves(const unsigned long lo
  * @param O bitboard with opponent's discs.
  * @return all potential moves in a 64-bit unsigned integer.
  */
-static unsigned long long get_potential_moves(const unsigned long long P, const unsigned long long O)
+unsigned long long get_potential_moves(const unsigned long long P, const unsigned long long O)
 {
-	return (get_some_potential_moves(O & 0x7E7E7E7E7E7E7E7Eull, 1) // horizontal
-		| get_some_potential_moves(O & 0x00FFFFFFFFFFFF00ull, 8)   // vertical
-		| get_some_potential_moves(O & 0x007E7E7E7E7E7E00ull, 7)   // diagonals
-		| get_some_potential_moves(O & 0x007E7E7E7E7E7E00ull, 9))
+	return (get_some_potential_moves(O & 0x7E7E7E7E7E7E7E7E, 1) // horizontal
+		| get_some_potential_moves(O & 0x00FFFFFFFFFFFF00, 8)   // vertical
+		| get_some_potential_moves(O & 0x007E7E7E7E7E7E00, 7)   // diagonals
+		| get_some_potential_moves(O & 0x007E7E7E7E7E7E00, 9))
 		& ~(P|O); // mask with empties
 }
-
-/**
- * @brief Get potential mobility.
- *
- * Count the list of empty squares in contact of a player square.
- *
- * @param P bitboard with player's discs.
- * @param O bitboard with opponent's discs.
- * @return a count of potential moves.
- */
-int get_potential_mobility(const unsigned long long P, const unsigned long long O)
-{
-	return bit_weighted_count(get_potential_moves(P, O));
-}
+#endif // AVX2
 
 /**
  * @brief search stable edge patterns.
@@ -867,53 +688,53 @@ int get_potential_mobility(const unsigned long long P, const unsigned long long 
  */
 static int find_edge_stable(const int old_P, const int old_O, int stable)
 {
-	register int P, O, x, y;
+	int P, O, O2, X, F;
 	const int E = ~(old_P | old_O); // empties
 
 	stable &= old_P; // mask stable squares with remaining player squares.
 	if (!stable || E == 0) return stable;
 
-	for (x = 0; x < 8; ++x) {
-		if (E & x_to_bit(x)) { //is x an empty square ?
+	for (X = 0x01; X <= 0x80; X <<= 1) {
+		if (E & X) { // is x an empty square ?
 			O = old_O;
-			P = old_P | x_to_bit(x); // player plays on it
-			if (x > 1) { // flip left discs
-				for (y = x - 1; y > 0 && (O & x_to_bit(y)); --y) ;
-				if (P & x_to_bit(y)) {
-					for (y = x - 1; y > 0 && (O & x_to_bit(y)); --y) {
-						O ^= x_to_bit(y); P ^= x_to_bit(y);
-					}
-				}
+			P = old_P | X; // player plays on it
+			if (X > 0x02) { // flip left discs (using parallel prefix)
+				F  = O & (X >> 1);
+				F |= O & (F >> 1);
+				O2 = O & (O >> 1);
+				F |= O2 & (F >> 2);
+				F |= O2 & (F >> 2);
+				F &= -(P & (F >> 1));
+				O ^= F;
+				P ^= F;
 			}
-			if (x < 6) { // flip right discs
-				for (y = x + 1; y < 8 && (O & x_to_bit(y)); ++y) ;
-				if (P & x_to_bit(y)) {
-					for (y = x + 1; y < 8 && (O & x_to_bit(y)); ++y) {
-						O ^= x_to_bit(y); P ^= x_to_bit(y);
-					}
-				}
-			}
+			// if (X < 0x40) { // flip right discs (using carry propagation)
+				F = (O + X + X) & P;
+				F -= (X + X) & -(int)(F != 0);
+				O ^= F;
+				P ^= F;
+			// }
 			stable = find_edge_stable(P, O, stable); // next move
 			if (!stable) return stable;
 
 			P = old_P;
-			O = old_O | x_to_bit(x); // opponent plays on it
-			if (x > 1) {
-				for (y = x - 1; y > 0 && (P & x_to_bit(y)); --y) ;
-				if (O & x_to_bit(y)) {
-					for (y = x - 1; y > 0 && (P & x_to_bit(y)); --y) {
-						O ^= x_to_bit(y); P ^= x_to_bit(y);
-					}
-				}
+			O = old_O | X; // opponent plays on it
+			if (X > 0x02) { // flip left discs (using parallel prefix)
+				F  = P & (X >> 1);
+				F |= P & (F >> 1);
+				O2 = P & (P >> 1);
+				F |= O2 & (F >> 2);
+				F |= O2 & (F >> 2);
+				F &= -(O & (F >> 1));
+				O ^= F;
+				P ^= F;
 			}
-			if (x < 6) {
-				for (y = x + 1; y < 8 && (P & x_to_bit(y)); ++y) ;
-				if (O & x_to_bit(y)) {
-					for (y = x + 1; y < 8 && (P & x_to_bit(y)); ++y) {
-						O ^= x_to_bit(y); P ^= x_to_bit(y);
-					}
-				}
-			}
+			// if (X < 0x40) { // flip right discs (using carry propagation)
+	 			F = (P + X + X) & O;
+				F -= (X + X) & -(int)(F != 0);
+				O ^= F;
+				P ^= F;
+			// }
 			stable = find_edge_stable(P, O, stable); // next move
 			if (!stable) return stable;
 		}
@@ -923,147 +744,54 @@ static int find_edge_stable(const int old_P, const int old_O, int stable)
 }
 
 /**
- * @brief Initialize the edge stability tables.
+ * @brief Initialize the edge stability table.
  */
 void edge_stability_init(void)
 {
-	int P, O;
+	int P, O, PO, rPO;
+	// long long t = cpu_clock();
 
-	for (P = 0; P < 256; ++P)
-	for (O = 0; O < 256; ++O) {
+	for (PO = 0; PO < 256 * 256; ++PO) {
+		P = PO >> 8;
+		O = PO & 0xFF;
 		if (P & O) { // illegal positions
-			edge_stability[P][O] = 0;
+			edge_stability[PO] = 0;
 		} else {
-			edge_stability[P][O] = find_edge_stable(P, O, P);
+			rPO = horizontal_mirror_32(PO);
+			if (PO > rPO)
+				edge_stability[PO] = mirror_byte(edge_stability[rPO]);
+			else
+				edge_stability[PO] = find_edge_stable(P, O, P);
 		}
 	}
+	// printf("edge_stability_init: %d\n", (int)(cpu_clock() - t));
 }
 
-/**
- * @brief Get full lines.
- *
- * @param line all discs on a line.
- * @param dir tested direction
- * @return a bitboard with full lines along the tested direction.
- */
-static inline unsigned long long get_full_lines(const unsigned long long line, const int dir)
-{
-#if KOGGE_STONE & 2
-
-	// kogge-stone algorithm
- 	// 5 << + 5 >> + 7 & + 10 |
-	// + better instruction independency
-	register unsigned long long full_l, full_r, edge_l, edge_r;
-	const  unsigned long long edge = 0xff818181818181ffULL;
-	const int dir2 = dir << 1;
-	const int dir4 = dir << 2;
-
-	full_l = line & (edge | (line >> dir)); full_r  = line & (edge | (line << dir));
-	edge_l = edge | (edge >> dir);        edge_r  = edge | (edge << dir);
-	full_l &= edge_l | (full_l >> dir2);  full_r &= edge_r | (full_r << dir2);
-	edge_l |= edge_l >> dir2;             edge_r |= edge_r << dir2;
-	full_l &= edge_l | (full_l >> dir4);  full_r &= edge_r | (full_r << dir4);
-
-	return full_r & full_l;
-
-#elif PARALLEL_PREFIX & 2
-
-	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
-	// 5 << + 5 >> + 7 & + 10 |
-	register unsigned long long full_l, full_r;
-	register unsigned long long edge_l, edge_r;
-	const  unsigned long long edge = 0xff818181818181ffULL;
-	const int dir2 = dir + dir;
-
-	full_l  = edge | (line << dir);       full_r  = edge | (line >> dir);
-	full_l &= edge | (full_l << dir);     full_r &= edge | (full_r >> dir);
-	edge_l  = edge | (edge << dir);       edge_r  = edge | (edge >> dir);
-	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
-	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
-
-	return full_l & full_r;
-
+#ifdef HAS_CPU_64
+#define	packA1A8(X)	((((X) & 0x0101010101010101) * 0x0102040810204080) >> 56)
+#define	packH1H8(X)	((((X) & 0x8080808080808080) * 0x0002040810204081) >> 56)
 #else
-
-	// sequential algorithm
- 	// 6 << + 6 >> + 12 & + 5 |
-	register unsigned long long full;
-	const unsigned long long edge = line & 0xff818181818181ffULL;
-
-	full = (line & (((line >> dir) & (line << dir)) | edge));
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-	full &= (((full >> dir) & (full << dir)) | edge);
-
-	return ((full >> dir) & (full << dir));
-
-#endif
-}
-
-
-#ifdef __X86_64__
-#define	packA1A8(X)	((((X) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56)
-#define	packH1H8(X)	((((X) & 0x8080808080808080ULL) * 0x0002040810204081ULL) >> 56)
-#else
-#define	packA1A8(X)	(((((unsigned int)(X) & 0x01010101u) + (((unsigned int)((X) >> 32) & 0x01010101u) << 4)) * 0x01020408u) >> 24)
-#define	packH1H8(X)	(((((unsigned int)((X) >> 32) & 0x80808080u) + (((unsigned int)(X) & 0x80808080u) >> 4)) * 0x00204081u) >> 24)
+#define	packA1A8(X)	(((((unsigned int)(X) & 0x01010101) + (((unsigned int)((X) >> 32) & 0x01010101) << 4)) * 0x01020408) >> 24)
+#define	packH1H8(X)	(((((unsigned int)((X) >> 32) & 0x80808080) + (((unsigned int)(X) & 0x80808080) >> 4)) * 0x00204081) >> 24)
 #endif
 
+#if !defined(hasSSE2) && !defined(__ARM_NEON)
 /**
  * @brief Get stable edge.
+ *
+ * Compute the exact stable edges from precomputed tables.
  *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
  * @return a bitboard with (some of) player's stable discs.
  *
  */
-static inline unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
-{
-	// compute the exact stable edges (from precomputed tables)
-	return edge_stability[P & 0xff][O & 0xff]
-	    |  ((unsigned long long)edge_stability[P >> 56][O >> 56]) << 56
-	    |  A1_A8[edge_stability[packA1A8(P)][packA1A8(O)]]
-	    |  H1_H8[edge_stability[packH1H8(P)][packH1H8(O)]];
-}
-
-/**
- * @brief Estimate the stability.
- *
- * Count the number (in fact a lower estimate) of stable discs.
- *
- * @param P bitboard with player's discs.
- * @param O bitboard with opponent's discs.
- * @return the number of stable discs.
- */
-int get_stability(const unsigned long long P, const unsigned long long O)
-{
-	const unsigned long long disc = (P | O);
-	const unsigned long long central_mask = (P & 0x007e7e7e7e7e7e00ULL);
-	const unsigned long long full_h = get_full_lines(disc, 1);
-	const unsigned long long full_v = get_full_lines(disc, 8);
-	const unsigned long long full_d7 = get_full_lines(disc, 7);
-	const unsigned long long full_d9 = get_full_lines(disc, 9);
-	register unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, new_stable;
-
-	// compute the exact stable edges (from precomputed tables)
-	new_stable = get_stable_edge(P, O);
-
-	// add full lines
-	new_stable |= (full_h & full_v & full_d7 & full_d9 & central_mask);
-
-	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-	stable = 0;
-	while (new_stable & ~stable) {
-		stable |= new_stable;
-		stable_h = ((stable >> 1) | (stable << 1) | full_h);
-		stable_v = ((stable >> 8) | (stable << 8) | full_v);
-		stable_d7 = ((stable >> 7) | (stable << 7) | full_d7);
-		stable_d9 = ((stable >> 9) | (stable << 9) | full_d9);
-		new_stable = (stable_h & stable_v & stable_d7 & stable_d9 & central_mask);
-	}
-
-	return bit_count(stable);
+unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
+{	// compute the exact stable edges (from precomputed tables)
+	return edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
+	    |  (unsigned long long) edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 56
+	    |  unpackA2A7(edge_stability[packA1A8(P) * 256 + packA1A8(O)])
+	    |  unpackH2H7(edge_stability[packH1H8(P) * 256 + packH1H8(O)]);
 }
 
 /**
@@ -1077,8 +805,160 @@ int get_stability(const unsigned long long P, const unsigned long long O)
  */
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
-	return bit_count(get_stable_edge(P, O));
+	unsigned int packedstable = edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
+	  | edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 8
+	  | edge_stability[packA1A8(P) * 256 + packA1A8(O)] << 16
+	  | edge_stability[packH1H8(P) * 256 + packH1H8(O)] << 24;
+	return bit_count_32(packedstable & 0xffff7e7e);
 }
+#endif
+
+/**
+ * @brief Get full lines.
+ *
+ * @param disc all discs on the board.
+ * @param full all 1 if full line, otherwise all 0.
+ */
+
+#if !defined(__ARM_NEON) && !defined(hasSSE2) && !defined(hasMMX)
+  #ifdef HAS_CPU_64
+
+static unsigned long long get_full_lines_h(unsigned long long full)
+{
+	full &= full >> 1;
+	full &= full >> 2;
+	full &= full >> 4;
+	return (full & 0x0101010101010101) * 0xff;
+}
+
+static unsigned long long get_full_lines_v(unsigned long long full)
+{
+	full &= (full >> 8) | (full << 56);	// ror 8
+	full &= (full >> 16) | (full << 48);	// ror 16
+	full &= (full >> 32) | (full << 32);	// ror 32
+	return full;
+}
+
+  #else
+
+static unsigned int get_full_lines_h_32(unsigned int full)
+{
+	full &= full >> 1;
+	full &= full >> 2;
+	full &= full >> 4;
+	return (full & 0x01010101) * 0xff;
+}
+
+static unsigned long long get_full_lines_h(unsigned long long full)
+{
+	return ((unsigned long long) get_full_lines_h_32(full >> 32) << 32) | get_full_lines_h_32(full);
+}
+
+static unsigned long long get_full_lines_v(unsigned long long full)
+{
+	unsigned int	t = (unsigned int) full & (unsigned int)(full >> 32);
+	t &= (t >> 16) | (t << 16);	// ror 16
+	t &= (t >> 8) | (t << 24);	// ror 8
+	return t | ((unsigned long long) t << 32);
+}
+
+  #endif
+
+void get_full_lines(const unsigned long long disc, unsigned long long full[4])
+{
+	unsigned long long l7, l9, r7, r9;	// full lines
+
+	full[0] = get_full_lines_h(disc);
+	full[1] = get_full_lines_v(disc);
+
+	l7 = r7 = disc;
+	l7 &= 0xff01010101010101 | (l7 >> 7);	r7 &= 0x80808080808080ff | (r7 << 7);
+	l7 &= 0xffff030303030303 | (l7 >> 14);	r7 &= 0xc0c0c0c0c0c0ffff | (r7 << 14);
+	l7 &= 0xffffffff0f0f0f0f | (l7 >> 28);	r7 &= 0xf0f0f0f0ffffffff | (r7 << 28);
+	full[3] = l7 & r7;
+
+	l9 = r9 = disc;
+	l9 &= 0xff80808080808080 | (l9 >> 9);	r9 &= 0x01010101010101ff | (r9 << 9);
+	l9 &= 0xffffc0c0c0c0c0c0 | (l9 >> 18);	r9 &= 0x030303030303ffff | (r9 << 18);
+	full[2] = l9 & r9 & (0x0f0f0f0ff0f0f0f0 | (l9 >> 36) | (r9 << 36));
+}
+#endif // __ARM_NEON/hasSSE2/hasMMX
+
+/**
+ * @brief Estimate the stability.
+ *
+ * Count the number (in fact a lower estimate) of stable discs.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return the number of stable discs.
+ */
+#ifndef __AVX2__	// AVX2 version in board_sse.c
+  #if !(defined(hasMMX) && !defined(hasSSE2))	// MMX version of get_stability in board_mmx.c
+    #if !(defined(hasSSE2) && !defined(HAS_CPU_64))	// 32bit SSE version in board_sse.c
+// compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+int get_spreaded_stability(unsigned long long stable, unsigned long long P_central, unsigned long long full[4])
+{
+	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
+
+	if (stable == 0)	// (2%)
+		return 0;
+
+	do {
+		old_stable = stable;
+		stable_h = ((stable >> 1) | (stable << 1) | full[0]);
+		stable_v = ((stable >> 8) | (stable << 8) | full[1]);
+		stable_d9 = ((stable >> 9) | (stable << 9) | full[2]);
+		stable_d7 = ((stable >> 7) | (stable << 7) | full[3]);
+		stable |= (stable_h & stable_v & stable_d9 & stable_d7 & P_central);
+	} while (stable != old_stable);	// (44%)
+
+	return bit_count(stable);
+}
+    #endif
+
+// returns stability count only
+int get_stability(const unsigned long long P, const unsigned long long O)
+{
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+	unsigned long long full[4];
+
+	get_full_lines(P | O, full);	// add full lines
+	stable |= (P_central & full[0] & full[1] & full[2] & full[3]);
+
+	return get_spreaded_stability(stable, P_central, full);	// compute the other stable discs
+}
+
+// returns all full in full[4] in addition to stability count
+int get_stability_fulls(const unsigned long long P, const unsigned long long O, unsigned long long full[5])
+{
+	unsigned long long stable = get_stable_edge(P, O);	// compute the exact stable edges
+	unsigned long long P_central = P & 0x007e7e7e7e7e7e00;
+
+	get_full_lines(P | O, full);	// add full lines
+	full[4] = full[0] & full[1] & full[2] & full[3];
+	stable |= (P_central & full[4]);
+
+	return get_spreaded_stability(stable, P_central, full);	// compute the other stable discs
+}
+  #endif
+
+/**
+ * @brief Get intersection of full lines.
+ *
+ * Get intersection of full lines.
+ *
+ * @param disc bitboard with occupied discs.
+ * @return the intersection of full lines.
+ */
+unsigned long long get_all_full_lines(const unsigned long long disc)
+{
+	unsigned long long full[4];
+	get_full_lines(disc, full);
+	return full[0] & full[1] & full[2] & full[3];
+}
+#endif // __AVX2__
 
 /**
  * @brief Estimate corner stability.
@@ -1093,8 +973,40 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
  */
 int get_corner_stability(const unsigned long long P)
 {
-	const unsigned long long stable = ((((0x0100000000000001ULL & P) << 1) | ((0x8000000000000080ULL & P) >> 1) | ((0x0000000000000081ULL & P) << 8) | ((0x8100000000000000ULL & P) >> 8) | 0x8100000000000081ULL) & P);
-	return bit_count(stable);
+#ifdef POPCOUNT
+	// stable = (((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P;
+  	unsigned int P2187 = (P >> 48) | (P << 16);	// ror 48
+	unsigned int stable = 0x00818100 & P2187;
+	stable |= ((((stable * 5) >> 1) & 0x00424200) | (stable << 8) | (stable >> 8)) & P2187;	// 1-8 alias does not matter since corner is stable anyway
+	return bit_count_32(stable);
+
+#else	// kindergarten
+	static const char n_stable_h2a2h1g1b1a1[64] = {
+		0, 1, 0, 2, 0, 1, 0, 2, 1, 2, 1, 3, 2, 3, 2, 4,
+		0, 2, 0, 3, 0, 2, 0, 3, 1, 3, 1, 4, 2, 4, 2, 5,
+		0, 1, 0, 2, 0, 1, 0, 2, 2, 3, 2, 4, 3, 4, 3, 5,
+		0, 2, 0, 3, 0, 2, 0, 3, 2, 4, 2, 5, 3, 5, 3, 6
+	};
+
+  #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// BMI2 CPU has POPCOUNT
+	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
+		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
+
+  #else
+	static const char n_stable_h8g8b8a8h7a7[64] = {
+		0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 0, 2, 3, 2, 3,
+		0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 0, 2, 3, 2, 3,
+		1, 1, 2, 2, 2, 3, 3, 4, 1, 1, 2, 2, 3, 4, 4, 5,
+		2, 2, 3, 3, 3, 4, 4, 5, 2, 2, 3, 3, 4, 5, 5, 6
+	};
+
+	int cnt = n_stable_h8g8b8a8h7a7[(((unsigned int) (P >> 32) & 0xc3810000) * 0x00000411) >> 26]
+		+ n_stable_h2a2h1g1b1a1[(((unsigned int) P & 0x000081c3) * 0x04410000) >> 26];
+  #endif
+	// assert(cnt == bit_count((((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P));
+	return cnt;
+
+#endif
 }
 
 /**
@@ -1105,27 +1017,8 @@ int get_corner_stability(const unsigned long long P)
  */
 unsigned long long board_get_hash_code(const Board *board)
 {
-	unsigned long long h1, h2;
-	const unsigned char *p = (const unsigned char*)board;
-
-	h1  = hash_rank[0][p[0]];
-	h2  = hash_rank[1][p[1]];
-	h1 ^= hash_rank[2][p[2]];
-	h2 ^= hash_rank[3][p[3]];
-	h1 ^= hash_rank[4][p[4]];
-	h2 ^= hash_rank[5][p[5]];
-	h1 ^= hash_rank[6][p[6]];
-	h2 ^= hash_rank[7][p[7]];
-	h1 ^= hash_rank[8][p[8]];
-	h2 ^= hash_rank[9][p[9]];
-	h1 ^= hash_rank[10][p[10]];
-	h2 ^= hash_rank[11][p[11]];
-	h1 ^= hash_rank[12][p[12]];
-	h2 ^= hash_rank[13][p[13]];
-	h1 ^= hash_rank[14][p[14]];
-	h2 ^= hash_rank[15][p[15]];
-
-	return h1 ^ h2;
+	unsigned long long crc = crc32c_u64(0, board->player);
+	return (crc << 32) | crc32c_u64(crc, board->opponent);
 }
 
 /**
@@ -1139,7 +1032,8 @@ unsigned long long board_get_hash_code(const Board *board)
  */
 int board_get_square_color(const Board *board, const int x)
 {
-	return 2 - 2 * ((board->player >> x) & 1) - ((board->opponent >> x) & 1);
+	unsigned long long b = x_to_bit(x);
+	return (int) ((board->player & b) == 0) * 2 - (int) ((board->opponent & b) != 0);
 }
 
 /**
@@ -1151,7 +1045,7 @@ int board_get_square_color(const Board *board, const int x)
  */
 bool board_is_occupied(const Board *board, const int x)
 {
-	return (board->player | board->opponent) & x_to_bit(x);
+	return ((board->player | board->opponent) & x_to_bit(x)) != 0;	// omitting != 0 causes bogus code on MSVC19 /GL
 }
 
 /**
@@ -1162,8 +1056,8 @@ bool board_is_occupied(const Board *board, const int x)
  */
 bool board_is_pass(const Board *board)
 {
-	return can_move(board->player, board->opponent) == false &&
-		can_move(board->opponent, board->player) == true;
+	return !can_move(board->player, board->opponent) &&
+		can_move(board->opponent, board->player);
 }
 
 /**
@@ -1174,8 +1068,8 @@ bool board_is_pass(const Board *board)
  */
 bool board_is_game_over(const Board *board)
 {
-	return can_move(board->player, board->opponent) == false &&
-		can_move(board->opponent, board->player) == false;
+	return !can_move(board->player, board->opponent) &&
+		!can_move(board->opponent, board->player);
 }
 
 
@@ -1201,31 +1095,42 @@ int board_count_empties(const Board *board)
  */
 void board_print(const Board *board, const int player, FILE *f)
 {
-	int i, j, square, x;
-	const char *color = "?*O-." + 1;
-	unsigned long long moves = get_moves(board->player, board->opponent);
+	int i, j, square;
+	unsigned long long bk, wh;
+	const char color[5] = "?*O-.";
+	unsigned long long moves = board_get_moves(board);
+
+	if (player == BLACK) {
+		bk = board->player;
+		wh = board->opponent;
+	} else {
+		bk = board->opponent;
+		wh = board->player;
+	}
 
 	fputs("  A B C D E F G H\n", f);
 	for (i = 0; i < 8; ++i) {
 		fputc(i + '1', f);
 		fputc(' ', f);
 		for (j = 0; j < 8; ++j) {
-			x = i * 8 + j;
-			if (player == BLACK) square = 2 - ((board->opponent >> x) & 1) - 2 * ((board->player >> x) & 1);
-			else square = 2 - ((board->player >> x) & 1) - 2 * ((board->opponent >> x) & 1);
-			if (square == EMPTY && (moves & x_to_bit(x))) ++square;
-			fputc(color[square], f);
+			square = 2 - (wh & 1) - 2 * (bk & 1);
+			if ((square == EMPTY) && (moves & 1))
+				square = EMPTY + 1;
+			fputc(color[square + 1], f);
 			fputc(' ', f);
+			bk >>= 1;
+			wh >>= 1;
+			moves >>= 1;
 		}
 		fputc(i + '1', f);
 		if (i == 1)
-			fprintf(f, " %c to move", color[player]);
+			fprintf(f, " %c to move", color[player + 1]);
 		else if (i == 3)
 			fprintf(f, " %c: discs = %2d    moves = %2d",
-				color[player], bit_count(board->player), get_mobility(board->player, board->opponent));
+				color[player + 1], bit_count(board->player), get_mobility(board->player, board->opponent));
 		else if (i == 4)
 			fprintf(f, " %c: discs = %2d    moves = %2d",
-				color[!player], bit_count(board->opponent), get_mobility(board->opponent, board->player));
+				color[2 - player], bit_count(board->opponent), get_mobility(board->opponent, board->player));
 		else if (i == 5)
 			fprintf(f, "  empties = %2d      ply = %2d",
 				64 - bit_count(board->opponent|board->player), bit_count(board->opponent|board->player) - 3);
@@ -1244,12 +1149,22 @@ void board_print(const Board *board, const int player, FILE *f)
 char* board_to_string(const Board *board, const int player, char *s)
 {
 	int square, x;
-	const char *color = "XO-?";
+	unsigned long long bk, wh;
+	static const char color[4] = "XO-?";
+
+	if (player == BLACK) {
+		bk = board->player;
+		wh = board->opponent;
+	} else {
+		bk = board->opponent;
+		wh = board->player;
+	}
 
 	for (x = 0; x < 64; ++x) {
-		if (player == BLACK) square = 2 - ((board->opponent >> x) & 1) - 2 * ((board->player >> x) & 1);
-		else square = 2 - ((board->player >> x) & 1) - 2 * ((board->opponent >> x) & 1);
+		square = 2 - (wh & 1) - 2 * (bk & 1);
 		s[x] = color[square];
+		bk >>= 1;
+		wh >>= 1;
 	}
 	s[64] = ' ';
 	s[65] = color[player];
@@ -1284,45 +1199,48 @@ void board_print_FEN(const Board *board, const int player, FILE *f)
 char* board_to_FEN(const Board *board, const int player, char *string)
 {
 	int square, x, r, c;
-	const char *piece = "pP-?";
-	const char *color = "bw";
+	unsigned long long bk, wh;
+	static const char piece[4] = "pP-?";
+	static const char color[2] = "bw";
 	int n_empties = 0;
 	char *s = string;
 	static char local_string[128];
 
 	if (s == NULL) s = string = local_string;
 
-	for (r = 7; r >= 0; --r)
-	for (c = 0; c < 8; ++c) {
-		if (c == 0 && r < 7) {
-			if (n_empties) {
-				*s++ = n_empties + '0';
-				n_empties = 0;
-			}
-			*s++ = '/';
-		}
-		x = 8 * r + c;
-		if (player == BLACK) square = 2 - ((board->opponent >> x) & 1) - 2 * ((board->player >> x) & 1);
-		else square = 2 - ((board->player >> x) & 1) - 2 * ((board->opponent >> x) & 1);
-
-		if (square == EMPTY) {
-			++n_empties;
-		} else {
-			if (n_empties) {
-				*s++ = n_empties + '0';
-				n_empties = 0;
-			}
-			*s++ = piece[square];
-		}
+	if (player == BLACK) {
+		bk = board->player;
+		wh = board->opponent;
+	} else {
+		bk = board->opponent;
+		wh = board->player;
 	}
-	if (n_empties) {
-		*s++ = n_empties + '0';
-		n_empties = 0;
+
+	for (r = 7; r >= 0; --r) {
+		for (c = 0; c < 8; ++c) {
+			x = 8 * r + c;
+			square = 2 - ((wh >> x) & 1) - 2 * ((bk >> x) & 1);
+
+			if (square == EMPTY) {
+				++n_empties;
+			} else {
+				if (n_empties) {
+					*s++ = n_empties + '0';
+					n_empties = 0;
+				}
+				*s++ = piece[square];
+			}
+		}
+		if (n_empties) {
+			*s++ = n_empties + '0';
+			n_empties = 0;
+		}
+		if (r > 0)
+			*s++ = '/';
 	}
 	*s++ = ' ';
 	*s++ = color[player];
-	*s++ = ' '; *s++ = '-'; *s++ = ' '; *s++ = '-'; 
-	*s++ = ' '; *s++ = '0'; *s++ = ' '; *s++ = '1'; *s = '\0';
+	strcpy(s, " - - 0 1");
 
 	return string;
 }
