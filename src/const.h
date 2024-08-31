@@ -92,10 +92,14 @@ enum {
 	ALL_NODE
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 typedef	unsigned char	NodeType;
 =======
 typedef	char	NodeType;
 >>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
+=======
+typedef	unsigned char	NodeType;
+>>>>>>> 2ea1e4f (Change NodeType to unsigned char to fix gcc warning)
 
 #define VERSION 4
 <<<<<<< HEAD
