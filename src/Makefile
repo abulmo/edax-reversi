@@ -108,11 +108,19 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -mx32 -mtune=generic -DUSE_GAS_X64
 	endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 	ifeq ($(ARCH),x86-sse)
 		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
 =======
 	ifeq ($(ARCH),x86-modern)
 		CFLAGS += -m32 -march=native -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT
+=======
+	ifeq ($(ARCH),x86-sse)
+		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
+		endif
+>>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
 	endif
 	ifeq ($(ARCH),x86)
 <<<<<<< HEAD
@@ -136,6 +144,7 @@ ifeq ($(COMP),gcc)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
+<<<<<<< HEAD
 	ifeq ($(ARCH),armv7)
 		CFLAGS += -march=armv7-a
 		ifeq ($(BUILD),optimize)
@@ -160,6 +169,12 @@ ifeq ($(COMP),gcc)
 =======
 			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
 >>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
+=======
+	ifeq ($(ARCH),ARMv7)
+		CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
+		ifeq ($(BUILD),optimize)
+			CFLAGS += -fomit-frame-pointer
+>>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
 		endif
 	endif
 

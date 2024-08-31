@@ -232,7 +232,7 @@ void board_restore(Board *board, const Move *move)
 		"movq	%%mm1, %1\n\t"
 		"emms"
 	: "=m" (board->player), "=m" (board->opponent)
-	: "m" (move->flipped), "m" (X_TO_BIT[move->x]))
+	: "m" (move->flipped), "m" (X_TO_BIT[move->x])
 	: "mm0", "mm1");
 	board_check(board);
 }
