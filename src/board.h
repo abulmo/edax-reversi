@@ -245,13 +245,13 @@ extern unsigned long long A1_A8[256];
 #elif MOVE_GENERATOR == MOVE_GENERATOR_NEON
 	extern uint64x2_t mm_Flip(uint64x2_t OP, int pos);
 	#define	Flip(x,P,O)	vgetq_lane_u64(mm_Flip(vcombine_u64(vcreate_u64(P), vcreate_u64(O)), (x)), 0)
-	#define	board_flip(board,x)	vgetq_lane_u64(mm_Flip(vld1q_u64((uint64_t *) board), (x)), 0)
+	#define	board_flip(board,x)	vgetq_lane_u64(mm_Flip(vld1q_u64((uint64_t *) (board)), (x)), 0)
 
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 #elif MOVE_GENERATOR == MOVE_GENERATOR_32
 	extern unsigned long long (*flip[BOARD_SIZE + 2])(unsigned int, unsigned int, unsigned int, unsigned int);
 	#define Flip(x,P,O)	flip[x]((unsigned int)(P), (unsigned int)((P) >> 32), (unsigned int)(O), (unsigned int)((O) >> 32))
-	#define	board_flip(board,x)	flip[x]((unsigned int)((board)->player), ((unsigned int *) &board->player)[1], (unsigned int)((board)->opponent), ((unsigned int *) &board->opponent)[1])
+	#define	board_flip(board,x)	flip[x]((unsigned int)((board)->player), ((unsigned int *) &(board)->player)[1], (unsigned int)((board)->opponent), ((unsigned int *) &(board)->opponent)[1])
 	#if defined(USE_GAS_MMX) && !defined(hasSSE2)
 		extern void init_flip_sse(void);
 	#endif

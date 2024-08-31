@@ -52,7 +52,15 @@
 >>>>>>> 1dc032e (Improve visual c compatibility)
 #include <string.h>	// memcpy
 #endif
+
+#ifdef __TURBOC__
+// bcc32 -c -pr -O1 flip_carry_sse_32.c
+#pragma warn -ngu
+#define	UINT64	unsigned __int64
+#else
 #include "bit.h"
+#define	UINT64	unsigned long long
+#endif
 
 #ifdef USE_GAS_MMX
 #define	STATIC	__attribute__((used))
@@ -65,6 +73,7 @@
 #define	STATIC	static
 #endif
 
+<<<<<<< HEAD
 #ifdef __TURBOC__
 // bcc32 -c -pr -O1 flip_carry_sse_32.c
 #pragma warn -ngu
@@ -91,6 +100,8 @@
 #endif
 
 >>>>>>> dd6b636 (Bcc32 friendly and minor improvement on Flip_32.)
+=======
+>>>>>>> 72924b1 (Fix macro expansion; correct comments)
 #define	ULL(H,L)	(((UINT64) (H) << 32) | (L))
 
 /** outflank array (indexed with inner 6 bits) */

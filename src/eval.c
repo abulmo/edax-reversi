@@ -1134,7 +1134,7 @@ void eval_open(const char* file)
 	for (j = 0; j < 81; ++j)
 		(*P)[1].EVAL_S4[j] = (*P)[0].EVAL_S4[OPPONENT_FEATURE[j + 29484]];
 
-	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	 	/* 9 corner squares : 19683 -> 10206 */
+	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	 /* 9 corner squares : 19683 -> 10206 */
 	for (j = 0; j < 19683; ++j)
 		(*P)[1].EVAL_C9[j] = (*P)[0].EVAL_C9[OPPONENT_FEATURE[j + 19683]];
 

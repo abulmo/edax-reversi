@@ -4,8 +4,12 @@
  * @file endgame_sse.c
 =======
 /**
+<<<<<<< HEAD
  * @file endgame_avx.c
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @file endgame_sse.c
+>>>>>>> 72924b1 (Fix macro expansion; correct comments)
  *
  *
  * SSE / AVX optimized version of endgame.c for the last four empties.

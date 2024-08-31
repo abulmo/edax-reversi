@@ -313,14 +313,17 @@ int last_flip(int pos, unsigned long long P)
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 	uint8x16_t	PP;
+	uint16x8_t	II;	// 2 dirs interleaved
 	const uint8x16_t dmask = { 1, 1, 2, 2, 4, 4, 8, 8, 16, 16, 32, 32, 64, 64, 128, 128 };
 
 	PP = vreinterpretq_u8_u64(vdupq_n_u64(P));
 	PP = vzipq_u8(PP, PP).val[0];
-	t = vaddvq_u16(vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0])));
+	II = vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0]));
+	t = vaddvq_u16(II);
 	n_flips  = COUNT_FLIP_X[t >> 8];
 	n_flips += COUNT_FLIP_X[(unsigned char) t];
-	t = vaddvq_u16(vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask)));
+	II = vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask));
+	t = vaddvq_u16(II);
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 

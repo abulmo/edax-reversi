@@ -207,6 +207,7 @@ static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
 	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 	uint8x16_t	PP = vzipq_u8(vreinterpretq_u8_u64(OP), vreinterpretq_u8_u64(OP)).val[0];
+	uint16x8_t	II;	// 2 dirs interleaved
 	const uint8x16_t dmask = { 1, 1, 2, 2, 4, 4, 8, 8, 16, 16, 32, 32, 64, 64, 128, 128 };
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 	static const unsigned short o_mask[64] = {
@@ -274,10 +275,12 @@ static int board_score_sse_1(uint64x2_t OP, const int beta, const int pos)
 	score = SCORE_MAX - 2 - 2 * vaddv_u8(vcnt_u8(vreinterpret_u8_u64(vget_low_u64(OP))));	// 2 * bit_count(O) - SCORE_MAX
 
 	// n_flips = last_flip(pos, P);
-	t0 = vaddvq_u16(vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0])));
+	II = vreinterpretq_u16_u64(vandq_u64(vreinterpretq_u64_u8(PP), mask_dvhd[pos][0]));
+	t0 = vaddvq_u16(II);
 	n_flips  = COUNT_FLIP_X[t0 >> 8];
 	n_flips += COUNT_FLIP_X[(unsigned char) t0];
-	t1 = vaddvq_u16(vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask)));
+	II = vreinterpretq_u16_u8(vandq_u8(vtstq_u8(PP, vreinterpretq_u8_u64(mask_dvhd[pos][1])), dmask));
+	t1 = vaddvq_u16(II);
 	n_flips += COUNT_FLIP_Y[t1 >> 8];
 	n_flips += COUNT_FLIP_Y[(unsigned char) t1];
 	score -= n_flips;
