@@ -8,6 +8,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -20,6 +21,9 @@
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 =======
  * @date 1998 - 2022
+=======
+ * @date 1998 - 2023
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -767,6 +771,7 @@ static int search_solve_4(Search *search, int alpha)
 <<<<<<< HEAD
 <<<<<<< HEAD
 	// stability cutoff (try 12%, cut 7%)
+<<<<<<< HEAD
 	if (search_SC_NWS_4(search, alpha, &score)) return score;
 =======
 	// stability cutoff
@@ -775,6 +780,9 @@ static int search_solve_4(Search *search, int alpha)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+	if (search_SC_NWS(search, alpha, 4, &score)) return score;
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 	OP = vld1q_u64((uint64_t *) &search->board);
 	x1 = search->empties[NOMOVE].next;

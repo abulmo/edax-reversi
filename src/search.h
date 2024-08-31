@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2018
@@ -16,6 +17,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
+=======
+ * @date 1998 - 2023
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -185,6 +189,7 @@ extern const unsigned long long quadrant_mask[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
 <<<<<<< HEAD
+<<<<<<< HEAD
 // extern const signed char NWS_STABILITY_THRESHOLD[];
 extern const signed char PVS_STABILITY_THRESHOLD[];
 =======
@@ -198,6 +203,9 @@ extern const unsigned char PVS_STABILITY_THRESHOLD[];
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
 extern const signed char NWS_STABILITY_THRESHOLD[];
+=======
+// extern const signed char NWS_STABILITY_THRESHOLD[];
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 extern const signed char PVS_STABILITY_THRESHOLD[];
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 extern const unsigned char SQUARE_TYPE[];
@@ -262,6 +270,7 @@ int get_pv_extension(const int, const int);
 void result_print(Result*, FILE*);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
 <<<<<<< HEAD
@@ -280,6 +289,10 @@ bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 =======
 bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
+=======
+// bool search_SC_PVS(Search*, int*, int*, int*);
+bool search_SC_NWS(Search*, const int, const int, int*);
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 // bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
 bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 // bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, int*, int*, int*);

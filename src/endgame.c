@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -13,6 +14,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+ * @date 1998 - 2023
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
 =======
@@ -775,6 +779,7 @@ static int search_solve_4(Search *search, int alpha)
 
 	// stability cutoff (try 12%, cut 7%)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (search_SC_NWS_4(search, alpha, &score)) return score;
 
 	x1 = search->empties[NOMOVE].next;
@@ -784,6 +789,9 @@ static int search_solve_4(Search *search, int alpha)
 =======
 	if (search_SC_NWS(search, alpha, &score)) return score;
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	if (search_SC_NWS(search, alpha, 4, &score)) return score;
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 	x1 = search->empties[NOMOVE].next;
 	x2 = search->empties[x1].next;
@@ -1072,8 +1080,12 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	// stability cutoff (try 8%, cut 7%)
 =======
 	// stability cutoff (try 15%, cut 5%)
+<<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	if (search_SC_NWS(search, alpha, &score)) return score;
+=======
+	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1190,8 +1202,9 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	board0 = search->board;
 	parity0 = search->eval.parity;
 	prioritymoves = moves & quadrant_mask[parity0];
-	if (prioritymoves == 0)
+	if (prioritymoves == 0)	// all even
 		prioritymoves = moves;
+<<<<<<< HEAD
 	--search->eval.n_empties;	// for next depth
 <<<<<<< HEAD
 	do {	// odd first, even second
@@ -1238,31 +1251,63 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 				if (search->eval.n_empties == 4)	// (57%)
-					score = -search_solve_4(search, ~alpha);
-				else	score = -search_shallow(search, ~alpha, false);
+=======
 
+	if (search->eval.n_empties == 5)	// transfer to search_solve_n, no longer uses n_empties, parity
+		do {
+			x = search->empties[prev = NOMOVE].next;	// maintain single link only
+			do {
+				if (prioritymoves & x_to_bit(x)) {
+					search->empties[prev].next = search->empties[x].next;	// remove
+					board_next(&board0, x, &search->board);
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
+					score = -search_solve_4(search, ~alpha);
+					search->empties[prev].next = x;	// restore
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 					search->empties[prev].next = x;	// restore
 >>>>>>> 8ee1734 (Use get_moves in search_shallow)
 =======
 				search->empties[prev].next = x;	// restore
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+					if (score > alpha)
+						return score;
+					else if (score > bestscore)
+						bestscore = score;
+				}
+			} while ((x = search->empties[prev = x].next) != NOMOVE);
+		} while ((prioritymoves = (moves ^= prioritymoves)));
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
-				if (score > alpha) {	// (40%)
-					// search->board = board0;
-					// search->eval.parity = parity0;
-					++search->eval.n_empties;
-					return score;
+	else {
+		--search->eval.n_empties;	// for next depth
+		do {
+			x = search->empties[prev = NOMOVE].next;	// maintain single link only
+			do {
+				if (prioritymoves & x_to_bit(x)) {	// (37%)
+					search->eval.parity = parity0 ^ QUADRANT_ID[x];
+					search->empties[prev].next = search->empties[x].next;	// remove
+					board_next(&board0, x, &search->board);
+					score = -search_shallow(search, ~alpha, false);
+					search->empties[prev].next = x;	// restore
 
-				} else if (score > bestscore)
-					bestscore = score;
-			}
-		} while ((x = search->empties[prev = x].next) != NOMOVE);
-	} while ((prioritymoves = (moves ^= prioritymoves)));
+					if (score > alpha) {	// (40%)
+						// search->board = board0;
+						// search->eval.parity = parity0;
+						++search->eval.n_empties;
+						return score;
 
+					} else if (score > bestscore)
+						bestscore = score;
+				}
+			} while ((x = search->empties[prev = x].next) != NOMOVE);
+		} while ((prioritymoves = (moves ^= prioritymoves)));
+		++search->eval.n_empties;
+	}
 	// search->board = board0;
 	// search->eval.parity = parity0;
-	++search->eval.n_empties;
 
 <<<<<<< HEAD
 	// no move

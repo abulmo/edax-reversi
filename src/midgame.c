@@ -343,13 +343,12 @@ int search_eval_0(Search *search)
 	score = accumlate_eval(&(*EVAL_WEIGHT)[60 - search->eval.n_empties],  &search->eval);
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
-	if (score >= 0) {
-		score = (score + 64) >> 7;
-		if (score > SCORE_MAX - 1) score = SCORE_MAX - 1;
-	} else {
-		score = -((-score + 64) >> 7);
-		if (score < SCORE_MIN + 1) score = SCORE_MIN + 1;
-	}
+	if (score > 0) score += 64;	else score -= 64;
+	score /= 128;
+
+	if (score < SCORE_MIN + 1) score = SCORE_MIN + 1;
+	if (score > SCORE_MAX - 1) score = SCORE_MAX - 1;
+
 	return score;
 }
 
@@ -1061,7 +1060,7 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	hash_prefetch(hash_table, hash_code);
 
 	// stability cutoff
-	if (search_SC_NWS(search, alpha, &score)) return score;
+	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1336,6 +1335,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 		if (score <= alpha) {
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return score;
+<<<<<<< HEAD
 =======
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
 =======
@@ -1345,6 +1345,11 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 
 	// stability cutoff
 	if (search_SC_PVS(search, &alpha, &beta, &score)) return score;
+=======
+		}
+		else if (score < beta) beta = score;
+	}
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 	search_get_movelist(search, &movelist);
 	backup.board = search->board;
@@ -1710,7 +1715,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	hash_prefetch(&search->hash_table, hash_code);
 
 	// stability cutoff
-	if (search_SC_NWS(search, alpha, &score)) return score;
+	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
 
 <<<<<<< HEAD
 	hash_code = board_get_hash_code(&search->board);

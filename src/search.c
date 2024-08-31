@@ -55,6 +55,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -65,6 +66,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
+=======
+ * @date 1998 - 2023
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -146,6 +150,7 @@ const Selectivity selectivity_table [] = {
 // TODO: better values may exist.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 =======
 const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
@@ -155,6 +160,10 @@ const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 =======
 const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99,  4,  8, 10, 12,
+=======
+static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+	 99, 99, 99, 99,  6,  8, 10, 12,
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 	 14, 16, 20, 22, 24, 26, 28, 30,
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	 32, 34, 36, 38, 40, 42, 44, 46,
@@ -1548,11 +1557,13 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  *
  * @param search Current position.
  * @param alpha Alpha bound.
+ * @param n_empties Search stage.
  * @param score Score to return in case of a cutoff is found.
  * @return 'true' if a cutoff is found, false otherwise.
  */
-bool search_SC_NWS(Search *search, const int alpha, int *score)
+bool search_SC_NWS(Search *search, const int alpha, const int n_empties, int *score)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
@@ -1567,6 +1578,9 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[n_empties]) {
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= alpha) {

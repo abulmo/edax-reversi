@@ -1230,6 +1230,7 @@ static int search_solve_4(Search *search, int alpha)
 <<<<<<< HEAD
 <<<<<<< HEAD
 	// stability cutoff (try 12%, cut 7%)
+<<<<<<< HEAD
 	if (search_SC_NWS_4(search, alpha, &score)) return score;
 =======
 	// stability cutoff
@@ -1238,6 +1239,9 @@ static int search_solve_4(Search *search, int alpha)
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	if (search_SC_NWS(search, alpha, 4, &score)) return score;
+>>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 
 	OP = _mm_loadu_si128((__m128i *) &search->board);
 	x1 = search->empties[NOMOVE].next;
