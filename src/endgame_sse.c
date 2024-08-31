@@ -113,10 +113,10 @@ extern const uint8_t COUNT_FLIP[8][256];
     	#define	TEST_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask((X), (Y)))
     	#define	TEST_EPI8_MASK16(X,Y)	_cvtmask16_u32(_mm_test_epi8_mask((X), (Y)))
     	#define	TESTNOT_EPI8_MASK32(X,Y)	_cvtmask32_u32(_mm256_test_epi8_mask(_mm256_xor_si256((X),(Y)), (Y)))
-#else
-	#define	TEST_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256((X),(Y))));
-	#define	TEST_EPI8_MASK16(X,Y)	_mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128((X),(Y))));
-	#define	TESTNOT_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256((X),(Y))));
+#else	// AVX2
+	#define	TEST_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256((X),(Y))))
+	#define	TEST_EPI8_MASK16(X,Y)	_mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128((X),(Y))))
+	#define	TESTNOT_EPI8_MASK32(X,Y)	_mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_andnot_si256((X),(Y))))
 #endif
 
 // in count_last_flip_sse.c
@@ -749,7 +749,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 #elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && !defined(SIMULLASTFLIP)
 // AVX512 lastflip (2.41s icc/icelake)
-extern	const V4DI lmask_v4[66], rmask_v4[66];	// in flip_avx512cd.c
+extern	const V8DI lrmask_v4[66];	// in flip_avx512cd.c
 
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
@@ -759,7 +759,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	__m128i	flip2, p2;
 
 		// left: look for player LS1B
-	lmask = lmask_v4[pos].v4;
+	lmask = lrmask[pos].v4[0];
 	outflank = _mm256_and_si256(PP, lmask);
 		// set below LS1B if P is in lmask
 	// flip = _mm256_andnot_si256(outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)));
@@ -768,7 +768,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		outflank, _mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), lmask, 0x08);
 
 		// right: look for player bit with lzcnt
-	rmask = rmask_v4[pos].v4;
+	rmask = lrmask[pos].v4[1];
 	rmP = _mm256_and_si256(PP, rmask);		rmO = _mm256_andnot_si256(PP, rmask);
 	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
 		// set all bits higher than outflank
@@ -812,7 +812,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 #elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX512) && defined(SIMULLASTFLIP)
 // branchless AVX512 lastflip (2.42s icc/icelake)
-extern	const V4DI lmask_v4[66], rmask_v4[66];	// in flip_avx512cd.c
+extern	const V8DI lrmask[66];	// in flip_avx512cd.c
 
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
@@ -823,7 +823,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	__mmask8 p_pass;
 
 		// left: look for player LS1B
-	mask = lmask_v4[pos].v4;
+	mask = lrmask[pos].v4[0];
 	p_outflank = _mm256_and_si256(PP, mask);	o_outflank = _mm256_andnot_si256(PP, mask);
 		// set below LS1B if P is in lmask
 	// p_flip = _mm256_andnot_si256(p_outflank, _mm256_add_epi64(p_outflank, _mm256_set1_epi64x(-1)));
@@ -838,7 +838,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		o_outflank, _mm256_add_epi64(o_outflank, _mm256_set1_epi64x(-1)), mask, 0x08);
 
 		// right: look for player bit with lzcnt
-	mask = rmask_v4[pos].v4;
+	mask = lrmask[pos].v4[1];
 	rmP = _mm256_and_si256(PP, mask);		rmO = _mm256_andnot_si256(PP, mask);
 	p_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmP));
 	o_outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(rmO));
@@ -865,7 +865,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 #elif (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_AVX_PPFILL)
 // experimental AVX2 lastflip version (a little slower)
-extern	const V4DI lmask_v4[66], rmask_v4[66];	// in flip_avx_ppfill.c
+extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
 {
@@ -874,7 +874,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2, p2;
 
-	rmask = rmask_v4[pos].v4;
+	rmask = lrmask[pos].v4[1];
 		// isolate player MS1B by clearing lower shadow bits
 	outflank = _mm256_and_si256(PP, rmask);
 	eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
@@ -886,7 +886,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		// clear if no player bit, i.e. all opponent
 	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(flip, rmask), flip);
 
-	lmask = lmask_v4[pos].v4;
+	lmask = lrmask[pos].v4[0];
 		// look for player LS1B
 	outflank = _mm256_and_si256(PP, lmask);
 	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
@@ -932,7 +932,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	return score;
 }
 
-#elif defined(AVXLASTFLIP) && defined(SIMULLASTFLIP)
+#elif defined(__AVX2__) && defined(SIMULLASTFLIP)
 // experimental branchless AVX2 MOVMSK version (slower on icc, par on msvc)
 // https://eukaryote.hateblo.jp/entry/2020/05/10/033228
 static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
@@ -960,6 +960,76 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	score2 = score - o_flip - (int)((o_flip > 0) | (score <= 0)) * 2;
 	score += p_flip;
 	return p_flip ? score : score2;	// gcc/icc inserts branch here, since score2 may be wholly skipped.
+}
+
+#elif defined(__AVX2__) && defined(LASTFLIP_HIGHCUT)
+// AVX2 NWS lazy high cut-off version (faster on gcc and msvc)
+// http://www.amy.hi-ho.ne.jp/okuhara/edaxopt.htm#lazycutoff
+// lazy high cut-off idea was in Zebra by Gunnar Anderson (http://radagast.se/othello/zebra.html),
+// but commented out because mobility check was no faster than counting flips.
+// Now using AVX2, mobility check can be faster than counting flips.
+
+extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
+
+static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+{
+	uint_fast8_t	n_flips;
+	unsigned int t;
+	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
+	unsigned long long P = _mm_cvtsi128_si64(P2);
+	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+		// if player can move, final score > score.
+		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
+		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
+  #ifdef __AVX512F__
+	__m512i P8 = _mm512_broadcastq_epi64(P2);
+	__m256i	P4 = _mm512_castsi512_si256(P8);
+
+	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
+		__m512i M = lrmask[pos].v8;
+		__m512i N = _mm512_andnot_epi64(P8, _mm512_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]));	// neighbor O
+		// if (!(_mm512_test_epi64_mask(P8, M) & _mm512_test_epi64_mask(N, M))) {	// https://godbolt.org/z/Tfv1dfn48
+		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), N, M)) {	// !((P in M) & (O in N))
+
+  #else
+	__m256i P4 = _mm256_broadcastq_epi64(P2);
+
+	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
+		__m256i M = lrmask[pos].v4[0];
+		__m256i mO = _mm256_andnot_si256(P4, M);
+		__m256i F = _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO);	// clear if all O
+		M = lrmask[pos].v4[1];
+		mO = _mm256_andnot_si256(P4, M);
+		F = _mm256_or_si256(F, _mm256_andnot_si256(_mm256_cmpeq_epi64(mO, M), mO));
+
+		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass
+  #endif
+			const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+			// n_flips = last_flip(pos, ~P);
+			t = TESTNOT_EPI8_MASK32(P4, mask_dvhd[pos].v4);
+			n_flips  = COUNT_FLIP[pos & 7][(~P >> (pos & 0x38)) & 0xFF];
+			n_flips += COUNT_FLIP_Y[t & 0xFF];
+			n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];
+			n_flips += COUNT_FLIP_Y[t >> 24];
+			score -= n_flips + (int)((n_flips > 0) | (score <= 0)) * 2;
+		} else	score += 2;	// min flip
+
+	} else {	// if player cannot move, low cut-off will occur whether opponent can move.
+		const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+
+		// n_flips = last_flip(pos, P);
+		t = TEST_EPI8_MASK32(P4, mask_dvhd[pos].v4);
+		n_flips  = COUNT_FLIP[pos & 7][(P >> (pos & 0x38)) & 0xFF];
+		n_flips += COUNT_FLIP_Y[t & 0xFF];
+		n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];
+		n_flips += COUNT_FLIP_Y[t >> 24];
+		score += n_flips;
+
+		// if n_flips == 0, score <= alpha so lazy low cut-off
+	}
+
+	return score;
 }
 
 #else	// COUNT_LAST_FLIP_SSE - reasonably fast on all platforms (2.36s icc/icelake)

@@ -22,6 +22,9 @@
 #include "bit.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 const V8DI lrmask[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -89,6 +92,7 @@ const V8DI lrmask[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x7f00000000000000, 0x0080808080808080, 0x0040201008040201, 0x0000000000000000 }},
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
+<<<<<<< HEAD
 =======
 static const V4DI lmask_v4[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000 }},
@@ -227,6 +231,8 @@ static const V4DI rmask_v4[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 };
 
 /**
@@ -266,8 +272,12 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	mOO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55),
 		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
+<<<<<<< HEAD
 	mask = rmask_v4[pos].v4;
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+	mask = lrmask[pos].v4[1];
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	ocontig = _mm256_andnot_si256(mOO, mask);
 		// -1 (CPU)
 	outflank1 = _mm_cvtsi64_si128(0x8000000000000000ULL >> lzcnt_u64(_mm_cvtsi128_si64(_mm256_castsi256_si128(ocontig))));
@@ -281,10 +291,14 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_and_si256(_mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(outflank, outflank)), mask);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mask = lrmask[pos].v4[0];
 =======
 	mask = lmask_v4[pos].v4;
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+	mask = lrmask_v4[pos].v4[0];
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 		// look for non-opponent (or edge) bit
 	ocontig = _mm256_andnot_si256(mOO, mask);
 	ocontig = _mm256_and_si256(ocontig, _mm256_sub_epi64(_mm256_setzero_si256(), ocontig));	// LS1B

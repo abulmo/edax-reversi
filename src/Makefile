@@ -66,6 +66,7 @@ ifeq ($(COMP),gcc)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -88,9 +89,12 @@ ifeq ($(COMP),gcc)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64-avx512)
-		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-popcnt)
 		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
@@ -338,10 +342,14 @@ ifeq ($(COMP),icc)
 	endif
 	ifeq ($(ARCH),x64-avx512)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 =======
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
+=======
+		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64
@@ -419,6 +427,7 @@ ifeq ($(COMP),clang)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
@@ -435,6 +444,9 @@ ifeq ($(COMP),clang)
 =======
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 >>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64-avx512)
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT

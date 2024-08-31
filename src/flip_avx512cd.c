@@ -44,6 +44,9 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 const V8DI lrmask[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -111,6 +114,7 @@ const V8DI lrmask[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x7f00000000000000, 0x0080808080808080, 0x0040201008040201, 0x0000000000000000 }},
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
+<<<<<<< HEAD
 =======
 static const V4DI lmask_v4[66] = {
 =======
@@ -252,6 +256,8 @@ const V4DI rmask_v4[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
 >>>>>>> 393b667 (Experimental AVX512VL/CD version of move generator)
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 };
 
 /**
@@ -325,7 +331,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
 
-	mask = rmask_v4[pos].v4;
+	mask = lrmask[pos].v4[1];
 		// right: look for non-opponent (or edge) bit with lzcnt
 	outflank = _mm256_andnot_si256(OO, mask);
 	outflank = _mm256_srlv_epi64(_mm256_set1_epi64x(0x8000000000000000), _mm256_lzcnt_epi64(outflank));
@@ -339,7 +345,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_ternarylogic_epi64(_mm256_add_epi64(outflank, _mm256_set1_epi64x(-1)), outflank, mask, 0x02);
 #endif
 
-	mask = lmask_v4[pos].v4;
+	mask = lrmask[pos].v4[0];
 		// left: look for non-opponent LS1B
 	outflank = _mm256_andnot_si256(OO, mask);
 #if 0 // cmpeq

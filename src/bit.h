@@ -580,6 +580,16 @@ typedef union {
 	#endif
 } V4DI;
 
+typedef union {
+	unsigned long long	ull[8];
+	#ifdef __AVX512F__
+		__m512i	v8;
+	#endif
+	#ifdef __AVX2__
+		__m256i	v4[2];
+	#endif
+} V8DI;
+
 /* Define function attributes directive when available */
 
 #if defined(_MSC_VER) || defined(__clang__)

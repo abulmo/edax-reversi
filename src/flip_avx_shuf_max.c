@@ -15,6 +15,9 @@
 #include "bit.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 const V8DI lrmask[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -82,6 +85,7 @@ const V8DI lrmask[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x7f00000000000000, 0x0080808080808080, 0x0040201008040201, 0x0000000000000000 }},
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
+<<<<<<< HEAD
 =======
 static const V4DI lmask_v4[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000 }},
@@ -220,6 +224,8 @@ static const V4DI rmask_v4[66] = {
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},	// pass
 	{{ 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }}
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 };
 
 /**
@@ -252,8 +258,12 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 =======
 	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
 
+<<<<<<< HEAD
 	mask = rmask_v4[pos].v4;
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+	mask = lrmask[pos].v4[1];
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 		// look for non-opponent MS1B
 	outflank = _mm256_andnot_si256(OO, mask);
 		// mask to clear low half if high half != 0 in word/dword/qword
@@ -269,10 +279,14 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_and_si256(_mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(outflank, outflank)), mask);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mask = lrmask[pos].v4[0];
 =======
 	mask = lmask_v4[pos].v4;
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+	mask = lrmask[pos].v4[0];
+>>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 		// look for non-opponent LS1B
 	outflank = _mm256_andnot_si256(OO, mask);
 	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
