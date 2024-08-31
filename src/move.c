@@ -429,6 +429,9 @@ static int w_low_parity = 1 << 3;
 static int w_mid_parity = 1 << 2;
 static int w_high_parity = 1 << 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 #else
 enum {
 	w_hash = 1 << 15,
@@ -455,10 +458,18 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 {
 	Move	*move;
 	int	score, parity_weight;
+<<<<<<< HEAD
 
 	// if (search->eval.n_empties < 21)	// mostly true
 		parity_weight = (search->eval.n_empties < 12) ? w_low_parity : w_mid_parity;
 	// else	parity_weight = (search->eval.n_empties < 30) ? w_high_parity : 0;
+=======
+	unsigned long long P, O;
+
+	if (search->eval.n_empties < 21)
+		parity_weight = (search->eval.n_empties < 12) ? w_low_parity : w_mid_parity;
+	else	parity_weight = (search->eval.n_empties < 30) ? w_high_parity : 0;
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 
 	move = movelist->move[0].next;
 	do {
@@ -467,6 +478,7 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 		else if (move->x == hash_data->move[0]) score = (1 << 29);
 		else if (move->x == hash_data->move[1]) score = (1 << 28);
 		else {
+<<<<<<< HEAD
 #ifdef __AVX2__
 			__m128i PO = _mm_xor_si128(*(__m128i *) &search->board,
 				_mm_or_si128(_mm_set1_epi64x(move->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x])));
@@ -495,13 +507,29 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
 			score += SQUARE_VALUE[move->x]; // square type
 			score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0; // parity
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+=======
+			score = SQUARE_VALUE[move->x]; // square type
+			score += (search->eval.parity & QUADRANT_ID[move->x]) ? parity_weight : 0; // parity
+
+			// board_update(&search->board, move);
+			O = search->board.player ^ (move->flipped | x_to_bit(move->x));
+			P = search->board.opponent ^ move->flipped;
+			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
+			score += (36 - get_potential_mobility(P, O)) * w_potential_mobility; // potential mobility
+			score += get_corner_stability(O) * w_corner_stability; // corner stability
+			score += (36 - get_weighted_mobility(P, O)) * w_mobility; // real mobility
+			// board_restore(&search->board, move);
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 		}
 		move->score = score;
 	} while ((move = move->next));
 }
+<<<<<<< HEAD
 =======
 #endif
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 
 /**
  * @brief Evaluate a list of move in order to sort it.
@@ -525,6 +553,7 @@ void movelist_evaluate_fast(MoveList *movelist, Search *search, const HashData *
  */
 void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_data, const int alpha, const int depth)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	static const char min_depth_table[64] = {
 		19, 18, 18, 18, 17, 17, 17, 16,	// (Never for empties < 14)
@@ -556,6 +585,8 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 		w_high_parity = 1 << 1
 	};
 #endif
+=======
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 	static const char min_depth_table[64] = {
 		19, 18, 18, 18, 17, 17, 17, 16,	// (Never for empties < 14)
 		16, 16, 15, 15, 15, 14, 14, 14,
@@ -569,10 +600,10 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	Move *move;
 	int	sort_depth, min_depth, sort_alpha, score, empties, parity_weight;
 	HashData dummy;
-	unsigned long long P, O;
 	Search_Backup backup;
 
 	empties = search->eval.n_empties;
+<<<<<<< HEAD
 <<<<<<< HEAD
 #ifdef TUNE_EDAX
 	parity_weight = (empties < 12) ? w_low_parity : ((empties < 21) ? w_mid_parity : ((empties < 30) ? w_high_parity : 0));
@@ -580,6 +611,8 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 
 	empties = search->eval.n_empties;
+=======
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 	// min_depth = 9;
 	// if (empties <= 27) min_depth += (30 - empties) / 3;
 	min_depth = min_depth_table[empties];
@@ -589,6 +622,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 		if (empties < 21)
 			parity_weight = (empties < 12) ? w_low_parity : w_mid_parity;
 		else	parity_weight = (empties < 30) ? w_high_parity : 0;
+<<<<<<< HEAD
 =======
 	min_depth = 9;
 	if (empties <= 27) min_depth += (30 - empties) / 3;
@@ -619,6 +653,9 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 <<<<<<< HEAD
+=======
+
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 		sort_depth = (depth - 15) / 3;
 		if (hash_data->upper < alpha) sort_depth -= 2;
 		if (empties >= 27) ++sort_depth;
@@ -743,6 +780,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 			move->score = score;
 		} while ((move = move->next));
 
+<<<<<<< HEAD
 	} else {	// sort_depth = -1
 		move = movelist->move[0].next;
 		do {
@@ -768,6 +806,10 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 	}
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	} else	// sort_depth = -1
+		movelist_evaluate_fast(movelist, search, hash_data);
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 }
 
 /**

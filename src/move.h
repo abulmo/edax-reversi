@@ -66,9 +66,12 @@ Move* movelist_sort_bestmove(MoveList*, const int);
 void movelist_evaluate_fast(MoveList*, struct Search*, const struct HashData*);
 void movelist_evaluate(MoveList*, struct Search*, const struct HashData*, const int, const int);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // void movelist_evaluate_fast(MoveList*, struct Search*);
 >>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
+=======
+>>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 
 // bool move_wipeout(const Move*, const struct Board*);	// Check if a move wins 64-0.
 #define	move_wipeout(move,board)	((move)->flipped == (board)->opponent)
