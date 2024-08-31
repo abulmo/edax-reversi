@@ -45,10 +45,14 @@ bool	hasSSE2 = false;
 void init_neon (void)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   #ifdef __arm__
 =======
 #ifdef __arm__
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+  #ifdef __arm__
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	if (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) {
 	#if (MOVE_GENERATOR == MOVE_GENERATOR_BITSCAN)
 		extern unsigned long long (*flip_neon[66])(const unsigned long long, const unsigned long long);
@@ -61,8 +65,12 @@ void init_neon (void)
 =======
 		hasSSE2 = true;
 	}
+<<<<<<< HEAD
 #else	// android x86 w/o SSE2 - uncommon and not tested
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+  #else	// android x86 w/o SSE2 - uncommon and not tested
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	int	cpuid_edx, cpuid_ecx;
 	__asm__ (
 		"movl	$1, %%eax\n\t"
@@ -70,6 +78,7 @@ void init_neon (void)
 	: "=d" (cpuid_edx), "=c" (cpuid_ecx) :: "%eax", "%ebx" );
 	if ((cpuid_edx & 0x04000000u) != 0)
 		hasSSE2 = true;
+<<<<<<< HEAD
 <<<<<<< HEAD
   #endif
 }
@@ -79,6 +88,9 @@ void init_neon (void)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 #endif
+=======
+  #endif
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 }
 #endif
 
@@ -297,7 +309,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
 	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
 	const __m128i mask00F0 = _mm_set1_epi64x(0x00000000F0F0F0F0);
-#if defined(__SSSE3__) || defined(__AVX__)	// pshufb
+  #if defined(__SSSE3__) || defined(__AVX__)	// pshufb
 	const __m128i mbswapll = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
 	const __m128i mbitrev  = _mm_set_epi8(15, 7, 11, 3, 13, 5, 9, 1, 14, 6, 10, 2, 12, 4, 8, 0);
 
@@ -310,7 +322,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		bb = _mm_shuffle_epi8(bb, mbswapll);
 	}
 
-#else
+  #else
 	const __m128i mask5555 = _mm_set1_epi16(0x5555);
 	const __m128i mask3333 = _mm_set1_epi16(0x3333);
 
@@ -324,7 +336,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 		bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
 		bb = _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
 	}
-#endif
+  #endif
 
 	if (s & 4) {	// transpose
 		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 7)), mask00AA);
@@ -348,13 +360,13 @@ void board_symetry(const Board *board, const int s, Board *sym)
 	uint64x2_t tt;
 
 	if (s & 1) {	// horizontal_mirror
-#ifdef HAS_CPU_64
+  #ifdef HAS_CPU_64
 		bb = vreinterpretq_u64_u8(vrbitq_u8(vreinterpretq_u8_u64(bb)));
-#else
+  #else
 		bb = vbslq_u64(vdupq_n_u64(0x5555555555555555), vshrq_n_u64(bb, 1), vshlq_n_u64(bb, 1));
 		bb = vbslq_u64(vdupq_n_u64(0x3333333333333333), vshrq_n_u64(bb, 2), vshlq_n_u64(bb, 2));
 		bb = vreinterpretq_u64_u8(vsliq_n_u8(vshrq_n_u8(vreinterpretq_u8_u64(bb), 4), vreinterpretq_u8_u64(bb), 4));
-#endif
+  #endif
 	}
 
 	if (s & 2) {	// vertical_mirror
@@ -527,6 +539,7 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
 =======
 #if (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
@@ -555,14 +568,21 @@ unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 {
 #else
+=======
+  #if (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
+unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
+{
+  #else
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minGW
 {
 	__m256i	PP = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(P));
 	__m256i OO = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O));
-#endif
+  #endif
 	__m256i	MM, flip_l, flip_r, pre_l, pre_r, shift2;
 	__m128i	M;
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 	const __m256i mflipH = _mm256_set_epi64x(0x7e7e7e7e7e7e7e7e, 0x7e7e7e7e7e7e7e7e, -1, 0x7e7e7e7e7e7e7e7e);
 
@@ -571,6 +591,9 @@ unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minG
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	__m256i	mOO = _mm256_and_si256(OO, _mm256_set_epi64x(0x7e7e7e7e7e7e7e7e, 0x7e7e7e7e7e7e7e7e, -1, 0x7e7e7e7e7e7e7e7e));
+=======
+	__m256i	mOO = _mm256_and_si256(OO, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	__m128i occupied = _mm_or_si128(_mm256_castsi256_si128(PP), _mm256_castsi256_si128(OO));
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 
@@ -586,6 +609,7 @@ unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minG
 	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(pre_l, _mm256_sllv_epi64(flip_l, shift2)));
 	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(pre_r, _mm256_srlv_epi64(flip_r, shift2)));
 <<<<<<< HEAD
+<<<<<<< HEAD
 	MM = _mm256_or_si256(_mm256_sllv_epi64(flip_l, shift1897), _mm256_srlv_epi64(flip_r, shift1897));
 
 	M = _mm_or_si128(_mm256_castsi256_si128(MM), _mm256_extracti128_si256(MM, 1));
@@ -593,6 +617,9 @@ unsigned long long get_moves(unsigned long long P, unsigned long long O)	// minG
 =======
 	MM = _mm256_sllv_epi64(flip_l, shift1897);
 	MM = _mm256_or_si256(MM, _mm256_srlv_epi64(flip_r, shift1897));
+=======
+	MM = _mm256_or_si256(_mm256_sllv_epi64(flip_l, shift1897), _mm256_srlv_epi64(flip_r, shift1897));
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 
 	M = _mm_or_si128(_mm256_castsi256_si128(MM), _mm256_extracti128_si256(MM, 1));
 <<<<<<< HEAD
@@ -677,9 +704,9 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 =======
 #elif defined(__ARM_NEON__)	// 3 Neon, 1 CPU(32)
 
-#ifdef hasNeon
-#define	get_moves_sse	get_moves	// no dispatch
-#endif
+  #ifdef hasNeon
+	#define	get_moves_sse	get_moves	// no dispatch
+  #endif
 
 unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
 {
@@ -728,6 +755,7 @@ unsigned long long get_moves_sse(unsigned long long P, unsigned long long O)
  * @brief SSE optimized get_moves for x86 - 3 SSE, 1 CPU(32)
  *
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 #if defined(hasSSE2) || defined(USE_MSVC_X86)
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
@@ -788,6 +816,10 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
  */
   #if defined(hasSSE2) || defined(USE_MSVC_X86) || defined(ANDROID)
 
+=======
+  #if defined(hasSSE2) || defined(USE_MSVC_X86) || defined(ANDROID)
+
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
     #ifdef hasSSE2
 	#define	get_moves_sse	get_moves	// no dispatch
     #endif
@@ -856,6 +888,9 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
   #else // non-VEX asm
 
 unsigned long long get_moves_sse(const unsigned long long P, const unsigned long long O)
@@ -978,6 +1013,7 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #endif // hasSSE2
 #endif // x86
 
@@ -987,6 +1023,9 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
  * @brief SSE/neon optimized get_stable_edge
 =======
 #endif // hasSSE2
+=======
+  #endif // hasSSE2
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 #endif // x86
 
 #if defined(hasSSE2) || defined(hasNeon)	// no dispatch
@@ -1003,6 +1042,9 @@ unsigned long long get_moves_sse(const unsigned long long P, const unsigned long
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
   #if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
 unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 {	// compute the exact stable edges (from precomputed tables)
@@ -1067,7 +1109,7 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 >>>>>>> 21206f2 (Exclude corners from unpackA2A7/H2H7 to ease CPU_64 kindergarten)
 }
 
-#elif defined(__ARM_NEON__) // Neon kindergarten
+  #elif defined(hasNeon) // Neon kindergarten
 unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 {	// compute the exact stable edges (from precomputed tables)
 	const uint64x2_t kMul  = { 0x1020408001020408, 0x1020408001020408 };
@@ -1087,7 +1129,11 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif defined(__x86_64__) || defined(_M_X64)
+=======
+  #elif defined(hasSSE2)
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 unsigned long long get_stable_edge(const unsigned long long P, const unsigned long long O)
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 =======
@@ -1124,6 +1170,7 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 	return stable_edge;
 }
   #endif
+<<<<<<< HEAD
 
 /**
  * @brief SSE/neon optimized get_edge_stability
@@ -1199,6 +1246,8 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	return stable_edge;
 }
 #endif
+=======
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 
 /**
 <<<<<<< HEAD
@@ -1214,7 +1263,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
  * @return the number of stable discs on the edges.
  *
  */
-#if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
+  #if defined(__aarch64__) || defined(_M_ARM64)	// for vaddvq
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
 	const uint64x2_t shiftv = { 0x0003000200010000, 0x0007000600050004 };
@@ -1226,7 +1275,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	return vaddv_u8(vcnt_u8(packedstable));
 }
 
-#elif defined(__ARM_NEON__) // Neon kindergarten
+  #elif defined(hasNeon) // Neon kindergarten
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
 	const uint64x2_t kMul  = { 0x1020408001020408, 0x1020408001020408 };
@@ -1245,7 +1294,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	return vget_lane_u32(vpaddl_u16(vpaddl_u8(vcnt_u8(packedstable))), 0);
 }
 
-#elif defined(hasSSE2) || defined(USE_MSVC_X86)
+  #elif defined(hasSSE2)
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
 	__m128i	P0 = _mm_cvtsi64_si128(P);
@@ -1256,7 +1305,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 	packedstable |= edge_stability[_mm_movemask_epi8(_mm_slli_epi64(PO, 7))] << 16 | edge_stability[_mm_movemask_epi8(PO)] << 24;
 	return bit_count_32(packedstable & 0xffff7e7e);
 }
-#endif
+  #endif
 
 /**
 >>>>>>> dc7c79c (Omit unpack from get_edge_stability)
@@ -1284,15 +1333,19 @@ static __m256i vectorcall get_full_lines(const unsigned long long disc)
  * @param O bitboard with opponent's discs.
  * @return the number of stable discs.
  */
-#ifdef __AVX2__
+  #ifdef __AVX2__
 
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	__m128i l81, l79, l8;
 	__m256i	v4_disc, lr79;
 	const __m128i kff  = _mm_set1_epi64x(0xffffffffffffffff);
+<<<<<<< HEAD
 #if 0 // PCMPEQQ
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+    #if 0 // PCMPEQQ
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	static const V4DI m791 = {{ 0x0402010000804020, 0x2040800000010204, 0x0804020180402010, 0x1020408001020408 }};	// V8SI
 	static const V4DI m792 = {{ 0x0000008040201008, 0x0000000102040810, 0x1008040201000000, 0x0810204080000000 }};
 	static const V4DI m793 = {{ 0x0000804020100804, 0x0000010204081020, 0x2010080402010000, 0x0408102040800000 }};
@@ -1324,8 +1377,12 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 =======
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
 
+<<<<<<< HEAD
 #elif 0 // PCMPEQD
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+    #elif 0 // PCMPEQD
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	__m256i lm79;
 	static const V4DI m790 = {{ 0x80c0e0f0783c1e0f, 0x0103070f1e3c78f0, 0x70381c0e07030100, 0x0e1c3870e0c08000 }};
 	static const V4DI m791 = {{ 0x0402010000804020, 0x2040800000010204, 0x0804020180402010, 0x1020408001020408 }};	// V8SI
@@ -1359,8 +1416,12 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 =======
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
 
+<<<<<<< HEAD
 #else // Kogge-Stone
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+    #else // Kogge-Stone
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	const __m128i mcpyswap = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0);
 	const __m128i mbswapll = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
 	static const V4DI shiftlr[] = {{{ 9, 7, 7, 9 }}, {{ 18, 14, 14, 18 }}, {{ 36, 28, 28, 36 }}};
@@ -1379,6 +1440,7 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	l8 = _mm_and_si128(l8, _mm_alignr_epi8(l8, l8, 1));	lr79 = _mm256_and_si256(lr79, _mm256_or_si256(e792.v4, _mm256_srlv_epi64(lr79, shiftlr[2].v4)));
 	l8 = _mm_and_si128(l8, _mm_alignr_epi8(l8, l8, 2));	l79 = _mm_shuffle_epi8(_mm256_extracti128_si256(lr79, 1), mbswapll);
 	l8 = _mm_and_si128(l8, _mm_alignr_epi8(l8, l8, 4));	l79 = _mm_and_si128(l79, _mm256_castsi256_si128(lr79));
+<<<<<<< HEAD
 <<<<<<< HEAD
     #endif
 	l81 = _mm_unpacklo_epi64(l81, l8);
@@ -1462,6 +1524,9 @@ static int vectorcall get_spreaded_stability(unsigned long long stable, unsigned
 =======
 >>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
 #endif
+=======
+    #endif
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	l81 = _mm_unpacklo_epi64(l81, l8);
 	_mm256_storeu_si256((__m256i *) full, _mm256_insertf128_si256(_mm256_castsi128_si256(l81), l79, 1));
 	l81 = _mm_and_si128(l81, l79);
@@ -2319,7 +2384,7 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 >>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
 =======
 
-#elif defined(hasNeon)
+  #elif defined(hasNeon)
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
@@ -2343,7 +2408,7 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
-#else	// 1 CPU, 3 SSE
+  #else	// 1 CPU, 3 SSE
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 {
 	unsigned long long l8;
@@ -2367,6 +2432,7 @@ void get_all_full_lines(const unsigned long long disc, unsigned long long full[5
 	full[4] = full[0] & l8 & full[2] & full[3];
 }
 
+<<<<<<< HEAD
 #endif
 <<<<<<< HEAD
 #endif // HAS_CPU_64/ANDROID
@@ -2472,6 +2538,9 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 =======
+=======
+  #endif
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 #endif // hasSSE2/hasNeon
 <<<<<<< HEAD
 >>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
@@ -2494,7 +2563,7 @@ static unsigned long long get_potential_moves(const unsigned long long P, const 
 	__m128i O2;
 
 	O4 = _mm256_and_si256(O4, _mm256_set_epi64x(0x007E7E7E7E7E7E00, 0x007E7E7E7E7E7E00, 0x00FFFFFFFFFFFF00, 0x7E7E7E7E7E7E7E7E));
-	O4 = _mm256_or_si256(O4, _mm256_or_si256(_mm256_srlv_epi64(O4, shift1897), _mm256_sllv_epi64(O4, shift1897)));
+	O4 = _mm256_or_si256(_mm256_srlv_epi64(O4, shift1897), _mm256_sllv_epi64(O4, shift1897));
 	O2 = _mm_or_si128(_mm256_castsi256_si128(O4), _mm256_extracti128_si256(O4, 1));
 	O2 = _mm_or_si128(O2, _mm_unpackhi_epi64(O2, O2));
 	return _mm_cvtsi128_si64(O2) & ~(P|O); // mask with empties

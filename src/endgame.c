@@ -1257,12 +1257,16 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// stability cutoff (try 8%, cut 7%)
 =======
 	// stability cutoff (try 15%, cut 5%)
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
+=======
+	// stability cutoff (try 8%, cut 7%)
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 	if (search_SC_NWS(search, alpha, &score)) return score;
 =======
 	if (search_SC_NWS(search, alpha, search->eval.n_empties, &score)) return score;
@@ -1295,6 +1299,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 		prioritymoves = moves;
 
 	if (search->eval.n_empties == 5)	// transfer to search_solve_n, no longer uses n_empties, parity (53%)
+<<<<<<< HEAD
 		do {
 			moves ^= prioritymoves;
 			x = NOMOVE;
@@ -1450,6 +1455,8 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 
 	if (search->eval.n_empties == 5)	// transfer to search_solve_n, no longer uses n_empties, parity
+=======
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 		do {
 			moves ^= prioritymoves;
 			x = NOMOVE;
@@ -1485,7 +1492,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 				do {
 					x = search->empties[prev = x].next;
-				} while (!(prioritymoves & x_to_bit(x)));
+				} while (!(prioritymoves & x_to_bit(x)));	// (58%)
 
 				prioritymoves &= ~x_to_bit(x);
 				search->empties[prev].next = search->empties[x].next;	// remove - maintain single link only
@@ -1493,13 +1500,18 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 				score = search_solve_4(search, alpha);
 				search->empties[prev].next = x;	// restore
 
-				if (score > alpha)
+				if (score > alpha)	// (49%)
 					return score;
 				else if (score > bestscore)
 					bestscore = score;
+<<<<<<< HEAD
 			} while (prioritymoves);
 		} while ((prioritymoves = moves));
 >>>>>>> 6a63841 (exit search_shallow/search_eval loop when all bits processed)
+=======
+			} while (prioritymoves);	// (34%)
+		} while ((prioritymoves = moves));	// (38%)
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 
 	else {
 		--search->eval.n_empties;	// for next depth
@@ -1509,7 +1521,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 			do {
 				do {
 					x = search->empties[prev = x].next;
-				} while (!(prioritymoves & x_to_bit(x)));
+				} while (!(prioritymoves & x_to_bit(x)));	// (57%)
 
 				prioritymoves &= ~x_to_bit(x);
 				search->eval.parity = parity0 ^ QUADRANT_ID[x];
@@ -1526,8 +1538,8 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 
 				} else if (score > bestscore)
 					bestscore = score;
-			} while (prioritymoves);
-		} while ((prioritymoves = moves));
+			} while (prioritymoves);	// (54%)
+		} while ((prioritymoves = moves));	// (23%)
 		++search->eval.n_empties;
 	}
 	// store_vboard(search->board, board0);
@@ -1637,10 +1649,13 @@ int NWS_endgame(Search *search, const int alpha)
 =======
 	unsigned long long full[5];
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4303b09 (Returns all full lines in full[4])
 =======
 	bool ffull;
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
+=======
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 
 	if (search->stop) return alpha;
 
@@ -1708,7 +1723,8 @@ int NWS_endgame(Search *search, const int alpha)
 
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	// stability cutoff
-	ffull = false;
+	hashboard = search->board;
+	ofssolid = 0;
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (3%)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		score = SCORE_MAX - 2 * get_stability_fulls(search->board.opponent, search->board.player, full);
@@ -1716,23 +1732,23 @@ int NWS_endgame(Search *search, const int alpha)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return score;
 		}
-		ffull = true;
+
+		// Improvement of Serch by Reducing Redundant Information in a Position of Othello
+		// Hidekazu Matsuo, Shuji Narazaki
+		// http://id.nii.ac.jp/1001/00156359/
+		if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (72%)
+			solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
+#ifndef POPCOUNT
+			if (solid_opp)
+#endif
+			{
+				hashboard.player ^= solid_opp;	// normalize solid to player
+				hashboard.opponent ^= solid_opp;
+				ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
+			}
+		}
 	}
 
-	// Improvement of Serch by Reducing Redundant Information in a Position of Othello
-	// Hidekazu Matsuo, Shuji Narazaki
-	// http://id.nii.ac.jp/1001/00156359/
-	// (1-2% improvement)
-	hashboard = search->board;
-	ofssolid = 0;
-	if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (72%)
-		if (!ffull)
-			get_all_full_lines(hashboard.player | hashboard.opponent, full);
-		solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
-		hashboard.player ^= solid_opp;	// normalize solid to player
-		hashboard.opponent ^= solid_opp;
-		ofssolid = bit_count(solid_opp) * 2;	// hash score is ofssolid grater than real
-	}
 	hash_code = board_get_hash_code(&hashboard);
 	hash_prefetch(&search->hash_table, hash_code);
 
@@ -1885,8 +1901,7 @@ int NWS_endgame(Search *search, const int alpha)
 		search_swap_parity(search, move->x);
 		empty_remove(search->empties, move->x);
 		rboard_update(&search->board, board0, move);
-
-		--search->eval.n_empties;	// for next move
+		--search->eval.n_empties;
 		if (search->eval.n_empties <= DEPTH_TO_SHALLOW_SEARCH)
 			bestscore = -search_shallow(search, ~alpha, false);
 		else	bestscore = -NWS_endgame(search, ~alpha);

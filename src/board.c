@@ -1234,7 +1234,7 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
  */
 int get_edge_stability(const unsigned long long P, const unsigned long long O)
 {
-	unsigned int packedstable = edge_stability[((unsigned char) P) * 256 + ((unsigned char) O)]
+	unsigned int packedstable = edge_stability[((unsigned int) P & 0xff) * 256 + ((unsigned int) O & 0xff)]
 	  | edge_stability[(unsigned int) (P >> 56) * 256 + (unsigned int) (O >> 56)] << 8
 	  | edge_stability[packA1A8(P) * 256 + packA1A8(O)] << 16
 	  | edge_stability[packH1H8(P) * 256 + packH1H8(O)] << 24;
@@ -1263,8 +1263,9 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
  * @param full all 1 if full line, otherwise all 0.  full[4] = and of [0] to [3]
  */
 
-#if !defined(__AVX2__) && !defined(hasNeon) && !defined(hasSSE2) && !defined(hasMMX)
-#ifdef HAS_CPU_64
+#if !defined(hasNeon) && !defined(hasSSE2) && !defined(hasMMX)
+  #ifdef HAS_CPU_64
+
 static unsigned long long get_full_lines_h(unsigned long long full)
 {
 	full &= full >> 1;
@@ -1272,7 +1273,17 @@ static unsigned long long get_full_lines_h(unsigned long long full)
 	full &= full >> 4;
 	return (full & 0x0101010101010101) * 0xff;
 }
-#else
+
+static unsigned long long get_full_lines_v(unsigned long long full)
+{
+	full &= (full >> 8) | (full << 56);	// ror 8
+	full &= (full >> 16) | (full << 48);	// ror 16
+	full &= (full >> 32) | (full << 32);	// ror 32
+	return full;
+}
+
+  #else
+
 static unsigned int get_full_lines_h_32(unsigned int full)
 {
 	full &= full >> 1;
@@ -1285,29 +1296,27 @@ static unsigned long long get_full_lines_h(unsigned long long full)
 {
 	return ((unsigned long long) get_full_lines_h_32(full >> 32) << 32) | get_full_lines_h_32(full);
 }
-#endif
 
 static unsigned long long get_full_lines_v(unsigned long long full)
 {
-#ifdef HAS_CPU_64
-	full &= (full >> 8) | (full << 56);	// ror 8
-	full &= (full >> 16) | (full << 48);	// ror 16
-	full &= (full >> 32) | (full << 32);	// ror 32
-#else
 	unsigned int	t = (unsigned int) full & (unsigned int)(full >> 32);
 	t &= (t >> 16) | (t << 16);	// ror 16
 	t &= (t >> 8) | (t << 24);	// ror 8
 	full = t | ((unsigned long long) t << 32);
-#endif
 	return full;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1dc032e (Improve visual c compatibility)
 =======
 unsigned long long get_all_full_lines(const unsigned long long disc, V4DI *full)
 =======
+=======
+  #endif
+
+>>>>>>> 264e827 (calc solid stone only when stability cutoff tried)
 void get_all_full_lines(const unsigned long long disc, unsigned long long full[5])
 >>>>>>> 4303b09 (Returns all full lines in full[4])
 {

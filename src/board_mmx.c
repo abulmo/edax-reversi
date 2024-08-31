@@ -939,10 +939,10 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 	int	count;
 	static const unsigned long long mask_v = 0x00ffffffffffff00ULL;
 	// static const unsigned long long mask_d = 0x007e7e7e7e7e7e00ULL;	// = mask_7e & mask_v
-#ifndef POPCOUNT
+  #ifndef POPCOUNT
 	static const unsigned long long mask_15 = 0x1555555555555515ULL;
 	static const unsigned long long mask_01 = 0x0100000000000001ULL;
-#endif
+  #endif
 
 	__asm__ (
 		"movq	%3, %%mm2\n\t"		"movq	%4, %%mm5\n\t"
@@ -961,7 +961,7 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 		"por	%1, %2\n\t"
 		"pandn	%%mm2, %2\n\t"
 
-#ifdef POPCOUNT
+  #ifdef POPCOUNT
 		"movd	%2, %%ecx\n\t"
 		"popcntl %%ecx, %0\n\t"		"andl	$0x00000081, %%ecx\n\t"
 		"psrlq	$32, %2\n\t"		"popcntl %%ecx, %%ecx\n\t"
@@ -973,7 +973,7 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 	: "=g" (count) : "y" (P), "y" (O), "m" (mask_7e), "m" (mask_v)
 	: "ecx", "edx", "mm2", "mm3", "mm4", "mm5", "mm6");
 
-#else
+  #else
 		"movq	%2, %1\n\t"		"movq	%2, %%mm2\n\t"
 		"psrlq	$1, %2\n\t"
 		"pand	%5, %2\n\t"		"pand	%6, %%mm2\n\t"
@@ -1007,7 +1007,7 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 	: "y" (P), "y" (O), "m" (mask_7e), "m" (mask_v),
 	  "m" (mask_15), "m" (mask_01), "m" (mask_33), "m" (mask_0F)
 	: "mm2", "mm3", "mm4", "mm5", "mm6");
-#endif
+  #endif
 
 	return count;
 }
