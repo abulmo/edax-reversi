@@ -10,6 +10,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b4fb773 (AVX optimized board_unique)
  * @date 2014 - 2024
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -312,6 +315,7 @@ int board_unique(const Board *board, Board *unique)
 }
 #endif
 
+<<<<<<< HEAD
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *
@@ -461,6 +465,8 @@ void board_symetry(const Board *board, const int s, Board *sym)
 
 #endif // hasSSE2/Neon
 
+=======
+>>>>>>> b4fb773 (AVX optimized board_unique)
 /**
  * @brief Compute a board resulting of a move played on a previous board.
  *

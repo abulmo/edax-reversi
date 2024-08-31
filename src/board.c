@@ -17,6 +17,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -36,6 +37,9 @@
 =======
  * @date 1998 - 2023
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
+=======
+ * @date 1998 - 2024
+>>>>>>> b4fb773 (AVX optimized board_unique)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
