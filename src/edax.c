@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file edax.c
  *
  * @brief Edax protocol.

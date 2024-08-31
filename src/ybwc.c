@@ -239,10 +239,14 @@ void node_wait_slaves(Node* node)
 
 		if (node->is_helping) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			assert(node->help.run);
 =======
 			assert(node.help->run);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			assert(node->help.run);
+>>>>>>> 7204cd1 (Small fix on debug build, etc.)
 			task_search(&node->help);
 			task_free(&node->help);
 			node->is_helping = false;

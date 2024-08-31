@@ -1018,11 +1018,16 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 =======
 	const Board * const board = &search->board;
 	unsigned long long moves = get_moves(board->player, board->opponent);
+<<<<<<< HEAD
 	register int x;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	vboard.board = search->board;
 	moves = vboard_get_moves(vboard);
+=======
+	int x;
+
+>>>>>>> 7204cd1 (Small fix on debug build, etc.)
 	movelist->n_moves = 0;
 	foreach_bit(x, moves) {
 		move->x = x;
@@ -1034,6 +1039,7 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 	}
 	previous->next = NULL;
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 
 <<<<<<< HEAD
@@ -1044,6 +1050,8 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 =======
 	movelist->n_moves = move - movelist->move - 1;
 	assert(movelist->n_moves == bit_count(moves));
+=======
+>>>>>>> 7204cd1 (Small fix on debug build, etc.)
 }
 
 #if 0	// inlined

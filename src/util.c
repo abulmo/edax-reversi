@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file util.c
  *
  * @brief Various utilities.
@@ -233,6 +233,7 @@ char* format_scientific(double v, const char *unit, char *f)
 #ifdef UNICODE
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
 	static const char fmt[] = " %5.*f %lc%s";
 #else
@@ -244,10 +245,13 @@ char* format_scientific(double v, const char *unit, char *f)
 	static const wchar_t multiple[] = L"EPTGMK mµnpfa"; //
 =======
 	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; //
+=======
+	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
+>>>>>>> 7204cd1 (Small fix on debug build, etc.)
 	static const char fmt[] = " %5.*f %lc%s";
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #else
-	static const char multiple[] = "EPTGMK mμnpfa"; //
+	static const char multiple[] = "EPTGMK mμnpfa"; // μ:B5@CP1252
 	static const char fmt[] = " %5.*f %c%s";
 #endif
 <<<<<<< HEAD
