@@ -14,7 +14,7 @@
 /**
  * @file bench.c
  *
- * @date 1998 - 2022
+ * @date 1998 - 2023
  * @author Richard Delorme
 <<<<<<< HEAD
  * @version 4.4
@@ -277,6 +277,7 @@ static void bench_board_score_1()
 		for (i = 0; i < N_WARMUP; ++i) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
 =======
 			v += board_score_1(&board, SCORE_MAX, x);
@@ -284,6 +285,9 @@ static void bench_board_score_1()
 =======
 			v += board_score_1(board.player, SCORE_MAX, x);
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
+=======
+			v += board_score_1(board.player, SCORE_MAX - 1, x);
+>>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
 		}
 		c += click();
 
@@ -291,6 +295,7 @@ static void bench_board_score_1()
 		for (i = 0; i < N_REPEAT; ++i) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 			v += board_score_1(board.player, SCORE_MAX - 1, x);
 =======
 			v += board_score_1(&board, SCORE_MAX, x);
@@ -298,6 +303,9 @@ static void bench_board_score_1()
 =======
 			v += board_score_1(board.player, SCORE_MAX, x);
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
+=======
+			v += board_score_1(board.player, SCORE_MAX - 1, x);
+>>>>>>> 9ec6e5d (Negative score in endgame solve 2/3/4; offset beta in score_1)
 		}
 		c += click();
 
