@@ -1723,12 +1723,13 @@ int NWS_endgame(Search *search, const int alpha)
 
 >>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	// stability cutoff
-	hashboard = search->board;
+	board0 = load_rboard(search->board);
+	store_rboard(hashboard, board0);
 	ofssolid = 0;
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (3%)
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {	// (6%)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		score = SCORE_MAX - 2 * get_stability_fulls(search->board.opponent, search->board.player, full);
-		if (score <= alpha) {	// (5%)
+		if (score <= alpha) {	// (3%)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return score;
 		}
@@ -1736,10 +1737,10 @@ int NWS_endgame(Search *search, const int alpha)
 		// Improvement of Serch by Reducing Redundant Information in a Position of Othello
 		// Hidekazu Matsuo, Shuji Narazaki
 		// http://id.nii.ac.jp/1001/00156359/
-		if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (72%)
+		if (search->eval.n_empties <= MASK_SOLID_DEPTH) {	// (99%)
 			solid_opp = full[4] & hashboard.opponent;	// full[4] = all full
-#ifndef POPCOUNT
-			if (solid_opp)
+#ifndef POP_COUNT
+			if (solid_opp)	// (72%)
 #endif
 			{
 				hashboard.player ^= solid_opp;	// normalize solid to player
@@ -1833,7 +1834,6 @@ int NWS_endgame(Search *search, const int alpha)
 		movelist_evaluate_fast(&movelist, search, &hash_data);
 
 		nodes_org = search->n_nodes;
-		board0 = load_rboard(search->board);
 		parity0 = search->eval.parity;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1895,7 +1895,6 @@ int NWS_endgame(Search *search, const int alpha)
 
 	// special cases
 	} else if (movelist.n_moves == 1) {	// (3%)
-		board0 = load_rboard(search->board);
 		parity0 = search->eval.parity;
 		move = movelist.move[0].next;
 		search_swap_parity(search, move->x);

@@ -163,9 +163,13 @@ const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 =======
 static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99,  6,  8, 10, 12,
+<<<<<<< HEAD
 >>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
 	 14, 16, 20, 22, 24, 26, 28, 30,
 >>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
+=======
+	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
+>>>>>>> 22b144f (Tune NWS_stability_thres to work best with solid stone)
 	 32, 34, 36, 38, 40, 42, 44, 46,
 	 48, 48, 50, 50, 52, 52, 54, 54,
 	 56, 56, 58, 58, 60, 60, 62, 62,
