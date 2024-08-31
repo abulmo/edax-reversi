@@ -3,9 +3,9 @@
  *
  * Constants as macros, enums, or global consts.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.5
  */
 
 #ifndef EDAX_CONST_H
@@ -15,7 +15,7 @@
 #define MAX_THREADS 64
 
 /** maximal number of moves */
-#define MAX_MOVE 32
+#define MAX_MOVE 33	// https://eukaryote.hateblo.jp/entry/2023/05/23/145945
 
 /** size of the board */
 #define BOARD_SIZE 64
@@ -44,9 +44,6 @@ enum {
 	EMPTY,
 	OFF_SIDE
 };
-
-extern const unsigned long long X_TO_BIT[];
-extern const unsigned long long NEIGHBOUR[];
 
 /** infinite score: a huge value unreachable as a score and fitting in a char */
 #define SCORE_INF 127
@@ -77,16 +74,17 @@ typedef enum Stop {
 } Stop;
 
 /** node type */
-typedef enum {
+enum {
 	PV_NODE,
 	CUT_NODE,
 	ALL_NODE
-} NodeType;
+};
+typedef	unsigned char	NodeType;
 
 #define VERSION 4
-#define RELEASE 4
-#define VERSION_STRING "4.4"
-#define EDAX_NAME "Edax 4.4"
+#define RELEASE 5
+#define VERSION_STRING "4.5.3"
+#define EDAX_NAME "Edax 4.5.3"
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c
