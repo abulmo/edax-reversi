@@ -359,7 +359,7 @@ int search_bound(const Search*, int);
 		#define	mm_free(p)	_mm_free(p)
 	#elif defined(_MSC_VER)
 		#define	mm_malloc(s)	_aligned_malloc((s), 16)
-		#define	mm_free(p)	free(p)
+		#define	mm_free(p)	_aligned_free(p)
 	#else
 		static inline void *mm_malloc(size_t s) {
 			void *p = malloc(s + 16 + sizeof(void *));

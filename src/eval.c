@@ -1335,6 +1335,7 @@ void eval_open(const char* file)
 			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		for (k = 0; k < 81; k++) {
 =======
 		for (k = 0; k < 91; k++) {
@@ -1411,6 +1412,9 @@ void eval_open(const char* file)
 			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
 		}
 		for (k = 0; k < 91; k++) {
+=======
+		for (k = 0; k < 81; k++) {
+>>>>>>> 2bfbe23 (Correct errors causing heap corrupt on MSVC builds)
 			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
 		}
 <<<<<<< HEAD
