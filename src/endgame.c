@@ -1347,6 +1347,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 
 				if (score > alpha) {	// (40%)
 <<<<<<< HEAD
+<<<<<<< HEAD
 					// search->board = board0.board;
 					// search->eval.parity = parity0;
 					++search->eval.n_empties;
@@ -1543,6 +1544,9 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 =======
 					// search->board = *(Board *) &board0;
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+					// search->board = board0.board;
+>>>>>>> fe6dce7 (consistent vboard usage for eval_1 and eval_2)
 					// search->eval.parity = parity0;
 					++search->eval.n_empties;
 					return score;
@@ -1553,7 +1557,7 @@ static int search_shallow(Search *search, const int alpha, bool pass1)
 		} while ((prioritymoves = moves));	// (23%)
 		++search->eval.n_empties;
 	}
-	// search->board = *(Board *) &board0;
+	// search->board = board0.board;
 	// search->eval.parity = parity0;
 
 <<<<<<< HEAD

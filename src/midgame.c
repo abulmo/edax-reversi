@@ -378,6 +378,7 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int x, score, bestscore, alphathres;
 	unsigned long long flipped;
 	Eval Ev;
@@ -449,10 +450,18 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 =======
 	unsigned long long moves = board_get_moves(&search->board);
 >>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
+=======
+	int x, score, bestscore, betathres;
+	unsigned long long flipped, moves;
+	Eval Ev;
+	V2DI board0;
+>>>>>>> fe6dce7 (consistent vboard usage for eval_1 and eval_2)
 
 	SEARCH_STATS(++statistics.n_search_eval_1);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
+	board0.board = search->board;
+	moves = vboard_get_moves(board0);
 	if (moves) {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -612,7 +621,7 @@ int search_eval_1(Search *search, const int alpha, int beta, bool pass1)
 			} while (!(moves & x_to_bit(x)));
 
 			moves &= ~x_to_bit(x);
-			flipped = board_flip(&search->board, x);
+			flipped = vboard_flip(board0, x);
 			if (flipped == search->board.opponent)
 				return SCORE_MAX;	// wipeout
 
@@ -689,6 +698,7 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int x, bestscore, score;
 	unsigned long long flipped;
 <<<<<<< HEAD
@@ -740,6 +750,12 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 	board0.board = search->board;
 	moves = vboard_get_moves(board0);
 >>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
+=======
+	int x, prev, bestscore, score;
+	unsigned long long flipped, moves;
+	Eval eval0;
+	V2DI board0;
+>>>>>>> fe6dce7 (consistent vboard usage for eval_1 and eval_2)
 
 	SEARCH_STATS(++statistics.n_search_eval_2);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -748,6 +764,8 @@ int search_eval_2(Search *search, int alpha, const int beta, bool pass1)
 	assert(beta <= SCORE_MAX);
 	assert(alpha <= beta);
 
+	board0.board = search->board;
+	moves = vboard_get_moves(board0);
 	if (moves) {
 		bestscore = -SCORE_INF;
 <<<<<<< HEAD
