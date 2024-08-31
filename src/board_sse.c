@@ -968,8 +968,6 @@ __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
 #include "hash.h"
 #include "board.h"
 
-#include <x86intrin.h>
-
 /**
  * @brief SSE2 translation of board_symetry
  *
@@ -977,57 +975,60 @@ __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
  * @param s symetry
  * @param sym symetric output board
  */
-#ifdef __SSE2__
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 
 void board_symetry_sse(const Board *board, const int s, Board *sym)
 {
-	__v2di	bb = _mm_loadu_si128((__v2di *) board);
-	__v2di	tt;
-	static const __v2di mask0F0F = { 0x0F0F0F0F0F0F0F0FULL, 0x0F0F0F0F0F0F0F0FULL };
-	static const __v2di mask00AA = { 0x00AA00AA00AA00AAULL, 0x00AA00AA00AA00AAULL };
-	static const __v2di maskCCCC = { 0x0000CCCC0000CCCCULL, 0x0000CCCC0000CCCCULL };
-	static const __v2di mask00F0 = { 0x00000000F0F0F0F0ULL, 0x00000000F0F0F0F0ULL };
-#ifdef __SSSE3__	// pshufb
-	static const __v2di mbswapll = { 0x0001020304050607ULL, 0x08090A0B0C0D0E0FULL };
-	static const __v2di mbitrev  = { 0x0E060A020C040800ULL, 0x0F070B030D050901ULL };
+	__m128i	bb = _mm_loadu_si128((__m128i *) board);
+	__m128i	tt;
+	static const V2DI mask0F0F = {{ 0x0F0F0F0F0F0F0F0FULL, 0x0F0F0F0F0F0F0F0FULL }};
+	static const V2DI mask00AA = {{ 0x00AA00AA00AA00AAULL, 0x00AA00AA00AA00AAULL }};
+	static const V2DI maskCCCC = {{ 0x0000CCCC0000CCCCULL, 0x0000CCCC0000CCCCULL }};
+	static const V2DI mask00F0 = {{ 0x00000000F0F0F0F0ULL, 0x00000000F0F0F0F0ULL }};
+#if defined(__SSSE3__) || defined(__AVX__)	// pshufb
+	static const V2DI mbswapll = {{ 0x0001020304050607ULL, 0x08090A0B0C0D0E0FULL }};
+	static const V2DI mbitrev  = {{ 0x0E060A020C040800ULL, 0x0F070B030D050901ULL }};
 
 	if (s & 1) {	// horizontal_mirror (cf. http://wm.ite.pl/articles/sse-popcount.html)
-		bb = _mm_shuffle_epi8(mbitrev, _mm_srli_epi64(bb, 4) & mask0F0F)
-			| _mm_slli_epi64(_mm_shuffle_epi8(mbitrev, bb & mask0F0F), 4);
+		bb = _mm_or_si128(_mm_shuffle_epi8(mbitrev.v2, _mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F.v2)),
+			_mm_slli_epi64(_mm_shuffle_epi8(mbitrev.v2, _mm_and_si128(bb, mask0F0F.v2)), 4));
 	}
 
 	if (s & 2) {	// vertical_mirror
-		bb = _mm_shuffle_epi8(bb, mbswapll);
+		bb = _mm_shuffle_epi8(bb, mbswapll.v2);
 	}
 
 #else
-	static const __v2di mask5555 = { 0x5555555555555555ULL, 0x5555555555555555ULL };
-	static const __v2di mask3333 = { 0x3333333333333333ULL, 0x3333333333333333ULL };
+	static const V2DI mask5555 = {{ 0x5555555555555555ULL, 0x5555555555555555ULL }};
+	static const V2DI mask3333 = {{ 0x3333333333333333ULL, 0x3333333333333333ULL }};
 
 	if (s & 1) {	// horizontal_mirror
-		bb = (_mm_srli_epi64(bb, 1) & mask5555) | _mm_slli_epi64(bb & mask5555, 1);
-		bb = (_mm_srli_epi64(bb, 2) & mask3333) | _mm_slli_epi64(bb & mask3333, 2);
-		bb = (_mm_srli_epi64(bb, 4) & mask0F0F) | _mm_slli_epi64(bb & mask0F0F, 4);
+		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 1), mask5555.v2), _mm_slli_epi64(_mm_and_si128(bb, mask5555.v2), 1));
+		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 2), mask3333.v2), _mm_slli_epi64(_mm_and_si128(bb, mask3333.v2), 2));
+		bb = _mm_or_si128(_mm_and_si128(_mm_srli_epi64(bb, 4), mask0F0F.v2), _mm_slli_epi64(_mm_and_si128(bb, mask0F0F.v2), 4));
 	}
 
 	if (s & 2) {	// vertical_mirror
-		bb = _mm_srli_epi16(bb, 8) | _mm_slli_epi16(bb, 8);
+		bb = _mm_or_si128(_mm_srli_epi16(bb, 8), _mm_slli_epi16(bb, 8));
 		bb = _mm_shufflehi_epi16(_mm_shufflelo_epi16(bb, 0x1b), 0x1b);
 	}
 #endif
 
 	if (s & 4) {	// transpose
-		tt = (bb ^ _mm_srli_epi64(bb, 7)) & mask00AA;
-		bb = bb ^ tt ^ _mm_slli_epi64(tt, 7);
-		tt = (bb ^ _mm_srli_epi64(bb, 14)) & maskCCCC;
-		bb = bb ^ tt ^ _mm_slli_epi64(tt, 14);
-		tt = (bb ^ _mm_srli_epi64(bb, 28)) & mask00F0;
-		bb = bb ^ tt ^ _mm_slli_epi64(tt, 28);
+		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 7)), mask00AA.v2);
+		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 7));
+		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 14)), maskCCCC.v2);
+		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 14));
+		tt = _mm_and_si128(_mm_xor_si128(bb, _mm_srli_epi64(bb, 28)), mask00F0.v2);
+		bb = _mm_xor_si128(_mm_xor_si128(bb, tt), _mm_slli_epi64(tt, 28));
 	}
 
-	// _mm_storeu_si128((__v2di *) sym, bb);	// error on clang 3.8
+#ifdef __clang__
 	sym->player = bb[0];
 	sym->opponent = bb[1];
+#else	// error on clang 3.8
+	_mm_storeu_si128((__m128i *) sym, bb);
+#endif
 
 	board_check(sym);
 }
@@ -1036,12 +1037,12 @@ void board_symetry_sse(const Board *board, const int s, Board *sym)
 
 void board_symetry_sse(const Board *board, const int s, Board *sym)
 {
-	static const __v2di mask0F0F = { 0x0F0F0F0F0F0F0F0FULL, 0x0F0F0F0F0F0F0F0FULL };
-	static const __v2di mask00AA = { 0x00AA00AA00AA00AAULL, 0x00AA00AA00AA00AAULL };
-	static const __v2di maskCCCC = { 0x0000CCCC0000CCCCULL, 0x0000CCCC0000CCCCULL };
-	static const __v2di mask00F0 = { 0x00000000F0F0F0F0ULL, 0x00000000F0F0F0F0ULL };
-	static const __v2di mask5555 = { 0x5555555555555555ULL, 0x5555555555555555ULL };
-	static const __v2di mask3333 = { 0x3333333333333333ULL, 0x3333333333333333ULL };
+	static const V2DI mask0F0F = {{ 0x0F0F0F0F0F0F0F0FULL, 0x0F0F0F0F0F0F0F0FULL }};
+	static const V2DI mask00AA = {{ 0x00AA00AA00AA00AAULL, 0x00AA00AA00AA00AAULL }};
+	static const V2DI maskCCCC = {{ 0x0000CCCC0000CCCCULL, 0x0000CCCC0000CCCCULL }};
+	static const V2DI mask00F0 = {{ 0x00000000F0F0F0F0ULL, 0x00000000F0F0F0F0ULL }};
+	static const V2DI mask5555 = {{ 0x5555555555555555ULL, 0x5555555555555555ULL }};
+	static const V2DI mask3333 = {{ 0x3333333333333333ULL, 0x3333333333333333ULL }};
 
 	__asm__ (
 		"movdqu	%0, %%xmm0"
@@ -1108,9 +1109,9 @@ void board_symetry_sse(const Board *board, const int s, Board *sym)
 	board_check(sym);
 }
 
-#endif // __SSE2__
+#endif // hasSSE2
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(_M_X64)
 /**
  * @brief X64 optimized get_moves
  *
@@ -1125,25 +1126,30 @@ void board_symetry_sse(const Board *board, const int s, Board *sym)
 
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
-	__v4di	PP, mOO, MM, flip_l, flip_r, pre_l, pre_r, shift2;
-	__v2di	M;
-	static const __v4di	shift1 = { 1, 7, 9, 8 };
-	static const __v4di	mflipH = { 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL, 0xffffffffffffffffULL };
+	__m256i	PP, mOO, MM, flip_l, flip_r, pre_l, pre_r, shift2;
+	__m128i	M;
+	static const V4DI shift1 = {{ 1, 7, 9, 8 }};
+	static const V4DI mflipH = {{ 0x7e7e7e7e7e7e7e7e, 0x7e7e7e7e7e7e7e7e, 0x7e7e7e7e7e7e7e7e, 0xffffffffffffffff }};
 
 	PP = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(P));
-	mOO = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)) & mflipH;
+	mOO = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)), mflipH.v4);
 
-	flip_l  = mOO & _mm256_sllv_epi64(PP, shift1);		flip_r  = mOO & _mm256_srlv_epi64(PP, shift1);
-	flip_l |= mOO & _mm256_sllv_epi64(flip_l, shift1);	flip_r |= mOO & _mm256_srlv_epi64(flip_r, shift1);
-	pre_l   = mOO & _mm256_sllv_epi64(mOO, shift1);		pre_r   = _mm256_srlv_epi64(pre_l, shift1);
-	shift2 = shift1 + shift1;
-	flip_l |= pre_l & _mm256_sllv_epi64(flip_l, shift2);	flip_r |= pre_r & _mm256_srlv_epi64(flip_r, shift2);
-	flip_l |= pre_l & _mm256_sllv_epi64(flip_l, shift2);	flip_r |= pre_r & _mm256_srlv_epi64(flip_r, shift2);
-	MM = _mm256_sllv_epi64(flip_l, shift1);			MM |= _mm256_srlv_epi64(flip_r, shift1);
+	flip_l = _mm256_and_si256(mOO, _mm256_sllv_epi64(PP, shift1.v4));
+	flip_r = _mm256_and_si256(mOO, _mm256_srlv_epi64(PP, shift1.v4));
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(mOO, _mm256_sllv_epi64(flip_l, shift1.v4)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(mOO, _mm256_srlv_epi64(flip_r, shift1.v4)));
+	pre_l = _mm256_and_si256(mOO, _mm256_sllv_epi64(mOO, shift1.v4));
+	pre_r = _mm256_srlv_epi64(pre_l, shift1.v4);
+	shift2 = _mm256_add_epi64(shift1.v4, shift1.v4);
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(pre_l, _mm256_sllv_epi64(flip_l, shift2)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(pre_r, _mm256_srlv_epi64(flip_r, shift2)));
+	flip_l = _mm256_or_si256(flip_l, _mm256_and_si256(pre_l, _mm256_sllv_epi64(flip_l, shift2)));
+	flip_r = _mm256_or_si256(flip_r, _mm256_and_si256(pre_r, _mm256_srlv_epi64(flip_r, shift2)));
+	MM = _mm256_sllv_epi64(flip_l, shift1.v4);
+	MM = _mm256_or_si256(MM, _mm256_srlv_epi64(flip_r, shift1.v4));
 
-	M = _mm256_castsi256_si128(MM) | _mm256_extracti128_si256(MM, 1);
-	M |= _mm_unpackhi_epi64(M, M);
-	return M[0] & ~(P|O);	// mask with empties
+	M = _mm_or_si128(_mm256_castsi256_si128(MM), _mm256_extracti128_si256(MM, 1));
+	return (_mm_cvtsi128_si64(M) | _mm_extract_epi64(M, 1)) & ~(P|O);	// mask with empties
 }
 
 #elif 1	// 2 SSE, 2 CPU
@@ -1151,27 +1157,27 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long moves, mO, flip1, pre1, flip8, pre8;
-	__v2di	PP, mOO, MM, flip, pre;
+	__m128i	PP, mOO, MM, flip, pre;
 
 	mO = O & 0x7e7e7e7e7e7e7e7eULL;
-	PP  = _mm_set_epi64x(__builtin_bswap64(P), P);
-	mOO = _mm_set_epi64x(__builtin_bswap64(mO), mO);
-		/* shift=-9:+7 */				/* shift=+1 */			/* shift = +8 */
-	flip  = mOO & _mm_slli_epi64(PP, 7);		flip1  = mO & (P << 1);		flip8  = O & (P << 8);
-	flip |= mOO & _mm_slli_epi64(flip, 7);		flip1 |= mO & (flip1 << 1);	flip8 |= O & (flip8 << 8);
-	pre   = mOO & _mm_slli_epi64(mOO, 7);		pre1   = mO & (mO << 1);	pre8   = O & (O << 8);
-	flip |= pre & _mm_slli_epi64(flip, 14);		flip1 |= pre1 & (flip1 << 2);	flip8 |= pre8 & (flip8 << 16);
-	flip |= pre & _mm_slli_epi64(flip, 14);		flip1 |= pre1 & (flip1 << 2);	flip8 |= pre8 & (flip8 << 16);
-	MM = _mm_slli_epi64(flip, 7);			moves = flip1 << 1;		moves |= flip8 << 8;
-		/* shift=-7:+9 */				/* shift=-1 */			/* shift = -8 */
-	flip  = mOO & _mm_slli_epi64(PP, 9);		flip1  = mO & (P >> 1);		flip8  = O & (P >> 8);
-	flip |= mOO & _mm_slli_epi64(flip, 9);		flip1 |= mO & (flip1 >> 1);	flip8 |= O & (flip8 >> 8);
-	pre   = mOO & _mm_slli_epi64(mOO, 9);		pre1 >>= 1;			pre8 >>= 8;
-	flip |= pre & _mm_slli_epi64(flip, 18);		flip1 |= pre1 & (flip1 >> 2);	flip8 |= pre8 & (flip8 >> 16);
-	flip |= pre & _mm_slli_epi64(flip, 18);		flip1 |= pre1 & (flip1 >> 2);	flip8 |= pre8 & (flip8 >> 16);
-	MM |= _mm_slli_epi64(flip, 9);			moves |= flip1 >> 1;		moves |= flip8 >> 8;
+	PP  = _mm_set_epi64x(vertical_mirror(P), P);
+	mOO = _mm_set_epi64x(vertical_mirror(mO), mO);
+		/* shift=-9:+7 */								/* shift=+1 */			/* shift = +8 */
+	flip = _mm_and_si128(mOO, _mm_slli_epi64(PP, 7));				flip1  = mO & (P << 1);		flip8  = O & (P << 8);
+	flip = _mm_or_si128(flip, _mm_and_si128(mOO, _mm_slli_epi64(flip, 7)));		flip1 |= mO & (flip1 << 1);	flip8 |= O & (flip8 << 8);
+	pre  = _mm_and_si128(mOO, _mm_slli_epi64(mOO, 7));				pre1   = mO & (mO << 1);	pre8   = O & (O << 8);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 14)));	flip1 |= pre1 & (flip1 << 2);	flip8 |= pre8 & (flip8 << 16);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 14)));	flip1 |= pre1 & (flip1 << 2);	flip8 |= pre8 & (flip8 << 16);
+	MM = _mm_slli_epi64(flip, 7);							moves = flip1 << 1;		moves |= flip8 << 8;
+		/* shift=-7:+9 */								/* shift=-1 */			/* shift = -8 */
+	flip = _mm_and_si128(mOO, _mm_slli_epi64(PP, 9));				flip1  = mO & (P >> 1);		flip8  = O & (P >> 8);
+	flip = _mm_or_si128(flip, _mm_and_si128(mOO, _mm_slli_epi64(flip, 9)));		flip1 |= mO & (flip1 >> 1);	flip8 |= O & (flip8 >> 8);
+	pre = _mm_and_si128(mOO, _mm_slli_epi64(mOO, 9));				pre1 >>= 1;			pre8 >>= 8;
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 18)));	flip1 |= pre1 & (flip1 >> 2);	flip8 |= pre8 & (flip8 >> 16);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 18)));	flip1 |= pre1 & (flip1 >> 2);	flip8 |= pre8 & (flip8 >> 16);
+	MM = _mm_or_si128(MM, _mm_slli_epi64(flip, 9));					moves |= flip1 >> 1;		moves |= flip8 >> 8;
 
-	moves |= MM[0] | __builtin_bswap64(MM[1]);
+	moves |= _mm_cvtsi128_si64(MM) | vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(MM, MM)));
 	return moves & ~(P|O);	// mask with empties
 }
 
@@ -1206,48 +1212,48 @@ unsigned long long get_moves(const unsigned long long P, const unsigned long lon
  * @brief SSE optimized get_moves for x86 (3 SSE, 1 CPU)
  *
  */
-#ifdef __SSE2__
+#if defined(hasSSE2) || defined(USE_MSVC_X86)
 
 unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned int	mO, movesL, movesH, flip1, pre1;
 	__m128i	OP, rOP, PP, OO, MM, flip, pre;
-	static const __v2di mask7e = { 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL };
+	static const V2DI mask7e = {{ 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL }};
 
 		// vertical_mirror in PP[1], OO[1]
-	OP  = _mm_set_epi32(OH, OL, PH, PL);		mO = OL & 0x7e7e7e7eU;
-	rOP = _mm_shufflelo_epi16(OP, 0x1B);		flip1  = mO & (PL << 1);
-	rOP = _mm_shufflehi_epi16(rOP, 0x1B);		flip1 |= mO & (flip1 << 1);
-							pre1   = mO & (mO << 1);
-	rOP = _mm_srli_epi16(rOP, 8) | _mm_slli_epi16(rOP, 8);
-	    						flip1 |= pre1 & (flip1 << 2);
-	PP  = _mm_unpacklo_epi64(OP, rOP);		flip1 |= pre1 & (flip1 << 2);
-	OO  = _mm_unpackhi_epi64(OP, rOP);		movesL = flip1 << 1;
+	OP  = _mm_set_epi32(OH, OL, PH, PL);						mO = OL & 0x7e7e7e7eU;
+	rOP = _mm_shufflelo_epi16(OP, 0x1B);						flip1  = mO & (PL << 1);
+	rOP = _mm_shufflehi_epi16(rOP, 0x1B);						flip1 |= mO & (flip1 << 1);
+											pre1   = mO & (mO << 1);
+	rOP = _mm_or_si128(_mm_srli_epi16(rOP, 8), _mm_slli_epi16(rOP, 8));
+	    										flip1 |= pre1 & (flip1 << 2);
+	PP  = _mm_unpacklo_epi64(OP, rOP);						flip1 |= pre1 & (flip1 << 2);
+	OO  = _mm_unpackhi_epi64(OP, rOP);						movesL = flip1 << 1;
 
-	flip  =  OO & _mm_slli_epi64(PP, 8);		flip1  = mO & (PL >> 1);
-	flip |=  OO & _mm_slli_epi64(flip, 8);		flip1 |= mO & (flip1 >> 1);
-	pre   =  OO & _mm_slli_epi64(OO, 8);		pre1 >>= 1;
-	flip |= pre & _mm_slli_epi64(flip, 16);		flip1 |= pre1 & (flip1 >> 2);
-	flip |= pre & _mm_slli_epi64(flip, 16);		flip1 |= pre1 & (flip1 >> 2);
-	MM = _mm_slli_epi64(flip, 8);			movesL |= flip1 >> 1;
+	flip = _mm_and_si128(OO, _mm_slli_epi64(PP, 8));				flip1  = mO & (PL >> 1);
+	flip = _mm_or_si128(flip, _mm_and_si128(OO, _mm_slli_epi64(flip, 8)));		flip1 |= mO & (flip1 >> 1);
+	pre = _mm_and_si128(OO, _mm_slli_epi64(OO, 8));					pre1 >>= 1;
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 16)));	flip1 |= pre1 & (flip1 >> 2);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 16)));	flip1 |= pre1 & (flip1 >> 2);
+	MM = _mm_slli_epi64(flip, 8);							movesL |= flip1 >> 1;
 
-	OO &= mask7e;					mO = OH & 0x7e7e7e7eU;
-	flip  =  OO & _mm_slli_epi64(PP, 7);		flip1  = mO & (PH << 1);
-	flip |=  OO & _mm_slli_epi64(flip, 7);		flip1 |= mO & (flip1 << 1);
-	pre   =  OO & _mm_slli_epi64(OO, 7);		pre1   = mO & (mO << 1);
-	flip |= pre & _mm_slli_epi64(flip, 14);		flip1 |= pre1 & (flip1 << 2);
-	flip |= pre & _mm_slli_epi64(flip, 14);		flip1 |= pre1 & (flip1 << 2);
-	MM |= _mm_slli_epi64(flip, 7);			movesH = flip1 << 1;
+	OO = _mm_and_si128(OO, mask7e.v2);						mO = OH & 0x7e7e7e7eU;
+	flip = _mm_and_si128(OO, _mm_slli_epi64(PP, 7));				flip1  = mO & (PH << 1);
+	flip = _mm_or_si128(flip, _mm_and_si128(OO, _mm_slli_epi64(flip, 7)));		flip1 |= mO & (flip1 << 1);
+	pre = _mm_and_si128(OO, _mm_slli_epi64(OO, 7));					pre1   = mO & (mO << 1);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 14)));	flip1 |= pre1 & (flip1 << 2);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 14)));	flip1 |= pre1 & (flip1 << 2);
+	MM = _mm_or_si128(MM, _mm_slli_epi64(flip, 7));					movesH = flip1 << 1;
 
-	flip  =  OO & _mm_slli_epi64(PP, 9);		flip1  = mO & (PH >> 1);
-	flip |=  OO & _mm_slli_epi64(flip, 9);		flip1 |= mO & (flip1 >> 1);
-	pre   =  OO & _mm_slli_epi64(OO, 9);		pre1 >>= 1;
-	flip |= pre & _mm_slli_epi64(flip, 18);		flip1 |= pre1 & (flip1 >> 2);
-	flip |= pre & _mm_slli_epi64(flip, 18);		flip1 |= pre1 & (flip1 >> 2);
-	MM |= _mm_slli_epi64(flip, 9);			movesH |= flip1 >> 1;
+	flip = _mm_and_si128(OO, _mm_slli_epi64(PP, 9));				flip1  = mO & (PH >> 1);
+	flip = _mm_or_si128(flip, _mm_and_si128(OO, _mm_slli_epi64(flip, 9)));		flip1 |= mO & (flip1 >> 1);
+	pre = _mm_and_si128(OO, _mm_slli_epi64(OO, 9));					pre1 >>= 1;
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 18)));	flip1 |= pre1 & (flip1 >> 2);
+	flip = _mm_or_si128(flip, _mm_and_si128(pre, _mm_slli_epi64(flip, 18)));	flip1 |= pre1 & (flip1 >> 2);
+	MM = _mm_or_si128(MM, _mm_slli_epi64(flip, 9));					movesH |= flip1 >> 1;
 
-	movesL |= _mm_cvtsi128_si32(MM) | __builtin_bswap32(_mm_cvtsi128_si32(_mm_srli_si128(MM, 12)));
-	movesH |= _mm_cvtsi128_si32(_mm_srli_si128(MM, 4)) | __builtin_bswap32(_mm_cvtsi128_si32(_mm_srli_si128(MM, 8)));
+	movesL |= _mm_cvtsi128_si32(MM) | bswap_int(_mm_cvtsi128_si32(_mm_srli_si128(MM, 12)));
+	movesH |= _mm_cvtsi128_si32(_mm_srli_si128(MM, 4)) | bswap_int(_mm_cvtsi128_si32(_mm_srli_si128(MM, 8)));
 	movesL &= ~(PL|OL);	// mask with empties
 	movesH &= ~(PH|OH);
 	return movesL | ((unsigned long long) movesH << 32);
@@ -1258,7 +1264,7 @@ unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int 
 unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int OL, unsigned int OH)
 {
 	unsigned long long moves;
-	static const __v2di mask7e = { 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL };
+	static const V2DI mask7e = {{ 0x7e7e7e7e7e7e7e7eULL, 0x7e7e7e7e7e7e7e7eULL }};
 
 	__asm__ (
 		"movl	%1, %%ebx\n\t"
@@ -1365,10 +1371,10 @@ unsigned long long get_moves_sse(unsigned int PL, unsigned int PH, unsigned int 
 	return moves;
 }
 
-#endif // __SSE2__
+#endif // hasSSE2
 #endif // __x86_64__
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(_M_X64)
 /**
  * @brief SSE optimized get_stable_edge
  *
@@ -1383,9 +1389,9 @@ static inline unsigned long long get_stable_edge(const unsigned long long P, con
 	unsigned int a1a8po, h1h8po;
 	unsigned long long stable_edge;
 
-	__v2di	P0 = _mm_cvtsi64_si128(P);
-	__v2di	O0 = _mm_cvtsi64_si128(O);
-	__v2di	PO = _mm_unpacklo_epi8(O0, P0);
+	__m128i	P0 = _mm_cvtsi64_si128(P);
+	__m128i	O0 = _mm_cvtsi64_si128(O);
+	__m128i	PO = _mm_unpacklo_epi8(O0, P0);
 	stable_edge = edge_stability[_mm_extract_epi16(PO, 0)]
 		| ((unsigned long long) edge_stability[_mm_extract_epi16(PO, 7)] << 56);
 
@@ -1418,46 +1424,47 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long disc = (P | O);
 	unsigned long long l8, stable;
-	__v2di	l1, l79, v2_stable, v2_old_stable, v2_P_central;
-	__v4di	lr79, v4_stable, v4_full;
-	static const __v2di kff = { 0xffffffffffffffffULL, 0xffffffffffffffffULL };
-	static const __v4di shift1897 = { 1, 8, 9, 7 };
-	static const __v4di shiftlr[] = {{ 9, 7, 7, 9 }, { 18, 14, 14, 18 }, { 36, 28, 28, 36 }};
-	static const __v4di e0 = { 0xff818181818181ffULL, 0xff818181818181ffULL, 0xff818181818181ffULL, 0xff818181818181ffULL };
-	static const __v4di e791 = { 0xffffc1c1c1c1c1ffULL, 0xffff8383838383ffULL, 0xffff8383838383ffULL, 0xffffc1c1c1c1c1ffULL };
-	static const __v4di e792 = { 0xfffffffff1f1f1ffULL, 0xffffffff8f8f8fffULL, 0xffffffff8f8f8fffULL, 0xfffffffff1f1f1ffULL };
-	static const __v4di mbswap23 = { 0x0706050403020100ULL, 0x0F0E0D0C0B0A0908ULL, 0x0001020304050607ULL, 0x08090A0B0C0D0E0FULL };
+	__m128i	l01, l79, v2_stable, v2_old_stable, v2_P_central;
+	__m256i	lr79, v4_stable, v4_full;
+	static const V2DI kff = {{ 0xffffffffffffffff, 0xffffffffffffffff }};
+	static const V4DI shift1897 = {{ 1, 8, 9, 7 }};
+	static const V4DI shiftlr[] = {{{ 9, 7, 7, 9 }}, {{ 18, 14, 14, 18 }}, {{ 36, 28, 28, 36 }}};
+	static const V4DI e0 = {{ 0xff818181818181ff, 0xff818181818181ff, 0xff818181818181ff, 0xff818181818181ff }};
+	static const V4DI e791 = {{ 0xffffc1c1c1c1c1ff, 0xffff8383838383ff, 0xffff8383838383ff, 0xffffc1c1c1c1c1ff }};
+	static const V4DI e792 = {{ 0xfffffffff1f1f1ff, 0xffffffff8f8f8fff, 0xffffffff8f8f8fff, 0xfffffffff1f1f1ff }};
+	static const V4DI mbswap23 = {{ 0x0706050403020100, 0x0F0E0D0C0B0A0908, 0x0001020304050607, 0x08090A0B0C0D0E0F }};
 
-	l1 = _mm_cvtsi64_si128(disc);		lr79 = _mm256_shuffle_epi8(_mm256_broadcastq_epi64(l1), mbswap23);
-	l1 = _mm_cmpeq_epi8(kff, l1);		lr79 &= e0 | _mm256_srlv_epi64(lr79, shiftlr[0]);
-						lr79 &= e791 | _mm256_srlv_epi64(lr79, shiftlr[1]);
-	l8 = disc;				lr79 &= e792 | _mm256_srlv_epi64(lr79, shiftlr[2]);
-	l8 &= (l8 >> 8) | (l8 << 56);		lr79 = _mm256_shuffle_epi8(lr79, mbswap23);
-	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm256_castsi256_si128(lr79) & _mm256_extracti128_si256(lr79, 1);
+	l01 = _mm_cvtsi64_si128(disc);		lr79 = _mm256_shuffle_epi8(_mm256_broadcastq_epi64(l01), mbswap23.v4);
+	l01 = _mm_cmpeq_epi8(kff.v2, l01);	lr79 = _mm256_and_si256(lr79, _mm256_or_si256(e0.v4, _mm256_srlv_epi64(lr79, shiftlr[0].v4)));
+						lr79 = _mm256_and_si256(lr79, _mm256_or_si256(e791.v4, _mm256_srlv_epi64(lr79, shiftlr[1].v4)));
+	l8 = disc;				lr79 = _mm256_and_si256(lr79, _mm256_or_si256(e792.v4, _mm256_srlv_epi64(lr79, shiftlr[2].v4)));
+	l8 &= (l8 >> 8) | (l8 << 56);		lr79 = _mm256_shuffle_epi8(lr79, mbswap23.v4);
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm256_castsi256_si128(lr79), _mm256_extracti128_si256(lr79, 1));
 	l8 &= (l8 >> 32) | (l8 << 32);
 
 	// compute the exact stable edges (from precomputed tables)
 	stable = get_stable_edge(P, O);
 
 	// add full lines
-	v2_P_central = _mm_andnot_si128(_mm256_castsi256_si128(e0), _mm_cvtsi64_si128(P));
-	stable |= l8 & _mm_cvtsi128_si64(l1 & l79 & _mm_unpackhi_epi64(l79, l79) & v2_P_central);
+	v2_P_central = _mm_andnot_si128(_mm256_castsi256_si128(e0.v4), _mm_cvtsi64_si128(P));
+	stable |= l8 & _mm_extract_epi64(l79, 1) & _mm_cvtsi128_si64(_mm_and_si128(_mm_and_si128(l01, l79), v2_P_central));
 
 	if (stable == 0)
 		return 0;
 
 	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
-	v4_full = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_insert_epi64(l1, l8, 1)), l79, 1);
+	v4_full = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_insert_epi64(l01, l8, 1)), l79, 1);
 	v2_stable = _mm_cvtsi64_si128(stable);
 	do {
 		v2_old_stable = v2_stable;
 		v4_stable = _mm256_broadcastq_epi64(v2_stable);
-		v4_stable = _mm256_srlv_epi64(v4_stable, shift1897) | _mm256_sllv_epi64(v4_stable, shift1897) | v4_full;
-		v2_stable = _mm256_castsi256_si128(v4_stable) & _mm256_extracti128_si256(v4_stable, 1);
-		v2_stable = v2_old_stable | (v2_stable & _mm_unpackhi_epi64(v2_stable, v2_stable) & v2_P_central);
+		v4_stable = _mm256_or_si256(_mm256_or_si256(_mm256_srlv_epi64(v4_stable, shift1897.v4), _mm256_sllv_epi64(v4_stable, shift1897.v4)), v4_full);
+		v2_stable = _mm_and_si128(_mm256_castsi256_si128(v4_stable), _mm256_extracti128_si256(v4_stable, 1));
+		v2_stable = _mm_and_si128(v2_stable, _mm_unpackhi_epi64(v2_stable, v2_stable));
+		v2_stable = _mm_or_si128(v2_old_stable, _mm_and_si128(v2_stable, v2_P_central));
 	} while (!_mm_testc_si128(v2_old_stable, v2_stable));
 
-	return bit_count(v2_stable[0]);
+	return bit_count(_mm_cvtsi128_si64(v2_stable));
 }
 
 #else
@@ -1469,22 +1476,22 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	unsigned long long l8, full_h, full_v, full_d7, full_d9, stable;
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, old_stable;
 #if 1	// 1 CPU, 3 SSE
-	__v2di l1, l79, r79;	// full lines
-	static const __v2di kff = { 0xffffffffffffffffULL, 0xffffffffffffffffULL };
-	static const __v2di e0 = { 0xff818181818181ffULL, 0xff818181818181ffULL };
-	static const __v2di e790 = { 0xffffc1c1c1c1c1ffULL, 0xffffc1c1c1c1c1ffULL };
-	static const __v2di e791 = { 0xff8f8f8ff1f1f1ffULL, 0xff8f8f8ff1f1f1ffULL };
-	static const __v2di e792 = { 0xff8383838383ffffULL, 0xff8383838383ffffULL };
+	__m128i l01, l79, r79;	// full lines
+	static const V2DI kff =  {{ 0xffffffffffffffff, 0xffffffffffffffff }};
+	static const V2DI e0 =   {{ 0xff818181818181ff, 0xff818181818181ff }};
+	static const V2DI e790 = {{ 0xffffc1c1c1c1c1ff, 0xffffc1c1c1c1c1ff }};
+	static const V2DI e791 = {{ 0xff8f8f8ff1f1f1ff, 0xff8f8f8ff1f1f1ff }};
+	static const V2DI e792 = {{ 0xff8383838383ffff, 0xff8383838383ffff }};
 
-	l1 = l79 = _mm_cvtsi64_si128(disc);	r79 = _mm_cvtsi64_si128(__builtin_bswap64(disc));
-	l1 = _mm_cmpeq_epi8(kff, l1);		l79 = r79 = _mm_unpacklo_epi64(l79, r79);
-	full_h = _mm_cvtsi128_si64(l1);		l79 &= e0 | _mm_srli_epi64(l79, 9);
-						r79 &= e0 | _mm_slli_epi64(r79, 9);
-	l8 = disc;				l79 &= e790 | _mm_srli_epi64(l79, 18);
-	l8 &= (l8 >> 8) | (l8 << 56);		r79 &= e792 | _mm_slli_epi64(r79, 18);
-	l8 &= (l8 >> 16) | (l8 << 48);		l79 = l79 & r79 & (e791 | _mm_srli_epi64(l79, 36) | _mm_slli_epi64(r79, 36));
+	l01 = l79 = _mm_cvtsi64_si128(disc);	r79 = _mm_cvtsi64_si128(vertical_mirror(disc));
+	l01 = _mm_cmpeq_epi8(kff.v2, l01);	l79 = r79 = _mm_unpacklo_epi64(l79, r79);
+	full_h = _mm_cvtsi128_si64(l01);	l79 = _mm_and_si128(l79, _mm_or_si128(e0.v2, _mm_srli_epi64(l79, 9)));
+						r79 = _mm_and_si128(r79, _mm_or_si128(e0.v2, _mm_slli_epi64(r79, 9)));
+	l8 = disc;				l79 = _mm_and_si128(l79, _mm_or_si128(e790.v2, _mm_srli_epi64(l79, 18)));
+	l8 &= (l8 >> 8) | (l8 << 56);		r79 = _mm_and_si128(r79, _mm_or_si128(e792.v2, _mm_slli_epi64(r79, 18)));
+	l8 &= (l8 >> 16) | (l8 << 48);		l79 = _mm_and_si128(_mm_and_si128(l79, r79), _mm_or_si128(_mm_or_si128(e791.v2, _mm_srli_epi64(l79, 36)), _mm_slli_epi64(r79, 36)));
 	l8 &= (l8 >> 32) | (l8 << 32);		full_d9 = _mm_cvtsi128_si64(l79);
-	full_v = l8;				full_d7 = __builtin_bswap64(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
+	full_v = l8;				full_d7 = vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(l79, l79)));
 
 #else	// 4 CPU
 	unsigned long long l1, l7, l9, r7, r9;	// full lines
@@ -1547,8 +1554,8 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 unsigned long long board_get_hash_code_sse(const unsigned char *p)
 {
 	unsigned long long h;
-#ifdef __SSE2__
-	__v2di	hh;
+#ifdef hasSSE2
+	__m128i	hh;
 
 	hh  = _mm_set_epi64x(hash_rank[1][p[1]], hash_rank[0][p[0]]);
 	hh ^= _mm_set_epi64x(hash_rank[3][p[3]], hash_rank[2][p[2]]);

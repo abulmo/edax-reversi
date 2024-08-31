@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file edax.c
  *
  * @brief Edax protocol.
@@ -249,6 +249,7 @@ void help_book(void)
  */
 void help_base(void) 
 {
+<<<<<<< HEAD
 	printf(	"\nGame DataBase :\n"
 		"  convert [file_in] [file_out]     convert between different format.\n"
 		"  unique [file_in] [file_out]      remove doublons in the base.\n"
@@ -256,6 +257,15 @@ void help_base(void)
 		"  correct [file_in] [n]            correct error in the last <n> moves.\n"
 		"  complete [file_in]               complete a database by playing the last\n  missing moves.\n"
 		"  problem [file_in] [n] [file_out] build a set of <n> problems from a game\n  database.\n");
+=======
+	printf("\nGame DataBase :\n");
+	printf("  convert [file_in] [file_out]     convert between different format.\n");
+	printf("  unique [file_in] [file_out]      remove doublons in the base.\n");
+	printf("  check [file_in] [n]              check error in the last <n> moves.\n");
+	printf("  correct [file_in] [n]            correct error in the last <n> moves.\n");
+	printf("  complete [file_in]               complete a database by playing the last\n  missing moves.\n");
+	printf("  problem [file_in] [n] [file_out] build a set of <n> problems from a game\n  database.\n");
+>>>>>>> 1dc032e (Improve visual c compatibility)
 }
 
 /**

@@ -71,6 +71,7 @@ const unsigned long long NEIGHBOUR[] = {
   #if 0
 int bit_count(unsigned long long b)
 {
+<<<<<<< HEAD
 	int	c;
 
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
@@ -85,6 +86,32 @@ int bit_count(unsigned long long b)
     #endif
 	return c;
 }
+=======
+	register unsigned long long c;
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+	static const unsigned long long M55 = 0x5555555555555555ULL;
+	static const unsigned long long M33 = 0x3333333333333333ULL;
+	static const unsigned long long M0F = 0x0F0F0F0F0F0F0F0FULL;
+	int count;
+	#endif
+
+// for X64, MMX does not help much here :-(
+	#ifdef USE_MSVC_X86
+	__m64	m;
+
+	if (hasSSE2) {
+		m = *(__m64 *) &b;
+		m = _m_psubd(m, _m_pand(_m_psrlqi(m, 1), *(__m64 *) &M55));
+		m = _m_paddd(_m_pand(m, *(__m64 *) &M33), _m_pand(_m_psrlqi(m, 2), *(__m64 *) &M33));
+		m = _m_pand(_m_paddd(m, _m_psrlqi(m, 4)), *(__m64 *) &M0F);
+		count = _m_to_int(_m_psadbw(m, _mm_setzero_si64()));
+		_mm_empty();
+
+		return count;
+	}
+
+	#elif defined(USE_GAS_MMX)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
   #else
 // https://github.com/official-stockfish/Stockfish/pull/620/files
@@ -239,11 +266,15 @@ int first_bit_32(unsigned int b)
   #elif defined(USE_GCC_ARM)
 	return  __builtin_clz(b & -b) ^ 31;
 
+<<<<<<< HEAD
   #else
 	static const unsigned char magic[32] = {
 		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
 		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 	};
+=======
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM))
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 	return magic[((b & (-b)) * 0x077CB531U) >> 27];
   #endif
@@ -272,10 +303,14 @@ int first_bit(unsigned long long b)
 	return (int) index;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
 =======
 #elif defined(USE_MASM_X86)
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+#elif defined(USE_MSVC_X86)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	__asm {
 		bsf	eax, dword ptr b
 		jnz	l1
@@ -350,7 +385,12 @@ int last_bit(unsigned long long b)
 	__asm__("bsrq	%1, %0" :"=r" (b) :"rm" (b));
 	return b;
 
+<<<<<<< HEAD
   #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+=======
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM))
+
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
@@ -387,7 +427,12 @@ int last_bit(unsigned long long b)
 		return 31 - __builtin_clz((int) b);
 	}
 
+<<<<<<< HEAD
   #elif defined(USE_MSVC_X86)
+=======
+
+#elif defined(USE_MSVC_X86)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	__asm {
 		bsr	eax, dword ptr b+4
 		lea	eax, [eax+32]
@@ -437,16 +482,16 @@ int last_bit(unsigned long long b)
 }
 #endif // last_bit
 
-#if !defined(__x86_64__) && !defined(first_bit_32)
+#if !defined(__x86_64__) && !defined(_M_X64) && !defined(first_bit_32)
 int first_bit_32(unsigned int b)
 {
-#if defined(USE_MSVC_X64)
+#if defined(_MSC_VER)
 
 	unsigned long index;
 	_BitScanForward(&index, b);
 	return (int) index;
 
-#elif defined(USE_MASM_X86)
+#elif defined(USE_MSVC_X86)
 	__asm {
 		bsf eax, word ptr b
 	}
@@ -462,8 +507,8 @@ int first_bit_32(unsigned int b)
 	};
 
 	return magic[((b & (-b)) * 0x077CB531U) >> 27];
-
 #endif
+}
 #endif // first_bit_32
 
 #ifndef bswap_short
@@ -555,6 +600,7 @@ unsigned long long horizontal_mirror(unsigned long long b)
  * @param b An unsigned long long
  * @return The transposed unsigned long long.
  */
+<<<<<<< HEAD
 #ifdef __AVX2__
 <<<<<<< HEAD
 unsigned long long transpose(unsigned long long b)
@@ -571,6 +617,13 @@ unsigned long long transpose(unsigned long long b)
 =======
 	__v4di	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), s3210);
 >>>>>>> dbeab1c (reduce asm and inline which sometimes breaks debug build)
+=======
+#if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
+unsigned long long transpose(unsigned long long b)
+{
+	static const V4DI s3210 = {{ 3, 2, 1, 0 }};
+	__m256i	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), s3210.v4);
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	return ((unsigned long long) _mm256_movemask_epi8(v) << 32)
 		| (unsigned int) _mm256_movemask_epi8(_mm256_slli_epi64(v, 4));
 }

@@ -2040,13 +2040,13 @@ __m128i (vectorcall *mm_flip[])(const __m128i) = {
  * If the OUTFLANK search is in MSB to LSB direction, GCC's __builtin_clz(ll)
  * is used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2018
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.4
  */
 
-#include <x86intrin.h>
+#include "bit.h"
 
 /** outflank array (indexed with inner 6 bits) */
 /* static const unsigned char OUTFLANK_0[64] = {
@@ -2105,31 +2105,7 @@ static const unsigned char OUTFLANK_7[64] = {
 	0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x08, 0x08, 0x08, 0x08, 0x04, 0x04, 0x02, 0x01
 };
 
-/** flip array (indexed with outflank) */
-static const unsigned char FLIPPED_2[130] = {
-	0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x08, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x18, 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x38, 0x3a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x78, 0x7a
-};
-
-static const unsigned char FLIPPED_5[137] = {
-	0x00, 0x1e, 0x1c, 0x00, 0x18, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x40, 0x5e, 0x5c, 0x00, 0x58, 0x00, 0x00, 0x00, 0x50
-};
-
+/** flip array (indexed with outflank, returns inner 6 bits) */
 static const unsigned long long FLIPPED_2_H[130] = {
 	0x0000000000000000ULL, 0x0202020202020202ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL,
 	0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -2271,7 +2247,7 @@ static const unsigned long long FLIPPED_4_V[133] = {
 	0x00ffff0000000000ULL, 0x00ffff00ffffff00ULL, 0x00ffff00ffff0000ULL, 0x0000000000000000ULL, 0x00ffff00ff000000ULL
 };
 
-static const unsigned long long FLIPPED_5_V[137] = {
+static const unsigned long long  FLIPPED_5_V[137] = {
 	0x0000000000000000ULL, 0x000000ffffffff00ULL, 0x000000ffffff0000ULL, 0x0000000000000000ULL, 0x000000ffff000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL,
 	0x000000ff00000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL,
 	0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -2293,27 +2269,28 @@ static const unsigned long long FLIPPED_5_V[137] = {
 };
 
 
-static const __v2di	minusone = { -1LL, -1LL };
+
+static const V2DI	minusone = {{ -1LL, -1LL }};
 
 #define	SWAP64	0x4e	// for _mm_shuffle_epi32
 #define	SWAP32	0xb1
 
-#ifdef USE_MSVC_X64
-#include <intrin.h>
-
-static inline int __builtin_clzll(unsigned long long n) {	// n != 0
+#if defined(_MSC_VER) && defined(_M_X64) && !defined(__AVX2__)
+static inline int lzcnt64(unsigned long long n) {
 	unsigned long i;
-	_BitScanReverse64(&i, n);
-	return (int) i ^ 63;
+	if (_BitScanReverse64(&i, n))
+		return i ^ 63;
+	else
+		return 64;
 }
-
-#define	__builtin_bswap64(x)	_byteswap_uint64(x)
+#else
+#define	lzcnt64(x)	_lzcnt_u64(x)
 #endif
 
-#if defined(__LZCNT__) && defined(__x86_64__)
-	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> __lzcnt64(~(O) & (maskr)))
+#if (defined(__LZCNT__) && defined(__x86_64__)) || (defined(_MSC_VER) && defined(_M_X64))
+	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> lzcnt64(~(O) & (maskr)))
 #elif 1	// bswap to use carry propagation backwards
-	#define	outflank_right(O,maskr,masko)	(__builtin_bswap64(__builtin_bswap64((O) | ~(maskr)) + 1) & (maskr))
+	#define	outflank_right(O,maskr,masko)	(vertical_mirror(vertical_mirror((O) | ~(maskr)) + 1) & (maskr))
 #else	// with guardian bit to avoid __builtin_clz(0)
 	#define	outflank_right(O,maskr,masko)	(0x8000000000000000ULL >> __builtin_clzll(((O) & (masko)) ^ (maskr)))
 #endif
@@ -2325,7 +2302,7 @@ static inline int __builtin_clzll(unsigned long long n) {	// n != 0
  * 0xffffffffffffffffULL (-1) if outflank is 0
  * 0x0000000000000000ULL ( 0) if a 1 is in 64 bit
  */
-static inline __v2di flipmask (__v2di outflank) {
+static inline __m128i flipmask (__m128i outflank) {
 	return _mm_cmpeq_epi32(_mm_shuffle_epi32(outflank, SWAP32), outflank);
 }
 
@@ -2339,17 +2316,16 @@ static inline __v2di flipmask (__v2di outflank) {
 static unsigned long long flip_A1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0101010101010100ULL, ~0x8040201008040200ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0101010101010100, ~0x8040201008040200 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x7e) + 0x02) & P;
 
-	return ((outflank_h - (unsigned int) (outflank_h != 0)) & 0x7e)
-		| outflank_v_d9[0];
+	return ((outflank_h - (unsigned int) (outflank_h != 0)) & 0x7e) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2362,17 +2338,16 @@ static unsigned long long flip_A1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_B1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0202020202020200ULL, ~0x0080402010080400ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0202020202020200, ~0x0080402010080400 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x7c) + 0x04) & P;
 
-	return ((outflank_h - (unsigned int) (outflank_h != 0)) & 0x7c)
-		| outflank_v_d9[0];
+	return ((outflank_h - (unsigned int) (outflank_h != 0)) & 0x7c) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2385,18 +2360,18 @@ static unsigned long long flip_B1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_C1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0404040404040400ULL, ~0x0000804020100800ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0404040404040400, ~0x0000804020100800 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_2[((unsigned int) O >> 1) & 0x3f] & P;
 
-	return FLIPPED_2[outflank_h]
+	return (unsigned char) FLIPPED_2_H[outflank_h]
 		| ((P >> 7) & 0x0000000000000200ULL & O)
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2409,20 +2384,20 @@ static unsigned long long flip_C1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_D1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h, outflank_d7;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0808080808080800ULL, ~0x0000008040201000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0808080808080800, ~0x0000008040201000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_3[((unsigned int) O >> 1) & 0x3f] & P;
 
 	outflank_d7 = ((O | ~0x01020400u) + 1) & P & 0x01020000u;
 
-	return ((unsigned char) FLIPPED_3_H[outflank_h]
-		| ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00020400u))
-		| outflank_v_d9[0];
+	return (unsigned char) FLIPPED_3_H[outflank_h]
+		| ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x00020400u)
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2435,20 +2410,20 @@ static unsigned long long flip_D1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_E1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h, outflank_d9;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x1010101010101000ULL, ~0x0000000102040800ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x1010101010101000, ~0x0000000102040800 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_4[((unsigned int) O >> 1) & 0x3f] & P;
 
 	outflank_d9 = ((O | ~0x80402000u) + 1) & P & 0x80400000u;
 
-	return ((unsigned char) FLIPPED_4_H[outflank_h]
-		| ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00402000u))
-		| outflank_v_d7[0];
+	return (unsigned char) FLIPPED_4_H[outflank_h]
+		| ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x00402000u)
+		|  _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2461,18 +2436,18 @@ static unsigned long long flip_E1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_F1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x2020202020202000ULL, ~0x0000010204081000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x2020202020202000, ~0x0000010204081000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_5[((unsigned int) O >> 1) & 0x3f] & P;
 
-	return FLIPPED_5[outflank_h]
+	return (unsigned char) FLIPPED_5_H[outflank_h]
 		| ((P >> 9) & 0x0000000000004000ULL & O)
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2485,17 +2460,16 @@ static unsigned long long flip_F1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_G1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x4040404040404000ULL, ~0x0001020408102000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x4040404040404000, ~0x0001020408102000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[O & 0x3e] & (P << 1);
 
-	return (((-outflank_h) & 0x3e) << 0)
-		| outflank_v_d7[0];
+	return (((-outflank_h) & 0x3e) << 0) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2508,17 +2482,16 @@ static unsigned long long flip_G1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_H1(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x8080808080808000ULL, ~0x0102040810204000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x8080808080808000, ~0x0102040810204000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[((unsigned int) O >> 1) & 0x3f] & P;
 
-	return (((-outflank_h) & 0x3f) << 1)
-		| outflank_v_d7[0];
+	return (((-outflank_h) & 0x3f) << 1) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2531,17 +2504,16 @@ static unsigned long long flip_H1(const unsigned long long P, const unsigned lon
 static unsigned long long flip_A2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0101010101010000ULL, ~0x4020100804020000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0101010101010000, ~0x4020100804020000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x00007e00u) + 0x00000200u) & P;
 
-	return ((outflank_h - (outflank_h >> 8)) & 0x00007e00u)
-		| outflank_v_d9[0];
+	return ((outflank_h - (outflank_h >> 8)) & 0x00007e00u) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2554,17 +2526,16 @@ static unsigned long long flip_A2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_B2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0202020202020000ULL, ~0x8040201008040000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0202020202020000, ~0x8040201008040000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x00007c00u) + 0x00000400u) & P;
 
-	return ((outflank_h - (outflank_h >> 8)) & 0x00007c00u)
-		| outflank_v_d9[0];
+	return ((outflank_h - (outflank_h >> 8)) & 0x00007c00u) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2577,18 +2548,18 @@ static unsigned long long flip_B2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_C2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0404040404040000ULL, ~0x0080402010080000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0404040404040000, ~0x0080402010080000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_2[((unsigned int) O >> 9) & 0x3f] & ((unsigned int) P >> 8);
 
-	return (FLIPPED_2[outflank_h] << 8)
+	return ((unsigned char) FLIPPED_2_H[outflank_h] << 8)
 		| ((P >> 7) & 0x0000000000020000ULL & O)
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2602,12 +2573,12 @@ static unsigned long long flip_D2(const unsigned long long P, const unsigned lon
 {
 	unsigned int outflank_h;
 	unsigned long long outflank_d7;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0808080808080000ULL, ~0x0000804020100000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0808080808080000, ~0x0000804020100000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_3[((unsigned int) O >> 9) & 0x3f] & ((unsigned int) P >> 8);
 
@@ -2615,7 +2586,7 @@ static unsigned long long flip_D2(const unsigned long long P, const unsigned lon
 
 	return ((unsigned int) FLIPPED_3_H[outflank_h] & 0x0000ff00u)
 		| ((outflank_d7 - (unsigned int) (outflank_d7 != 0)) & 0x0000000002040000ULL)
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2629,12 +2600,12 @@ static unsigned long long flip_E2(const unsigned long long P, const unsigned lon
 {
 	unsigned int outflank_h;
 	unsigned long long outflank_d9;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x1010101010100000ULL, ~0x0000010204080000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x1010101010100000, ~0x0000010204080000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_4[((unsigned int) O >> 9) & 0x3f] & ((unsigned int) P >> 8);
 
@@ -2642,7 +2613,7 @@ static unsigned long long flip_E2(const unsigned long long P, const unsigned lon
 
 	return ((unsigned int) FLIPPED_4_H[outflank_h] & 0x0000ff00u)
 		| ((outflank_d9 - (unsigned int) (outflank_d9 != 0)) & 0x0000000040200000ULL)
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2655,18 +2626,18 @@ static unsigned long long flip_E2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_F2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x2020202020200000ULL, ~0x0001020408100000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x2020202020200000, ~0x0001020408100000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_5[((unsigned int) O >> 9) & 0x3f] & ((unsigned int) P >> 8);
 
-	return (FLIPPED_5[outflank_h] << 8)
+	return ((unsigned char) FLIPPED_5_H[outflank_h] << 8)
 		| ((P >> 9) & 0x0000000000400000ULL & O)
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2679,17 +2650,16 @@ static unsigned long long flip_F2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_G2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x4040404040400000ULL, ~0x0102040810200000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x4040404040400000, ~0x0102040810200000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[((unsigned int) O >> 8) & 0x3e] & ((unsigned int) P >> 7);
 
-	return (((-outflank_h) & 0x3e) << 8)
-		| outflank_v_d7[0];
+	return (((-outflank_h) & 0x3e) << 8) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2702,17 +2672,16 @@ static unsigned long long flip_G2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_H2(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x8080808080800000ULL, ~0x0204081020400000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x8080808080800000, ~0x0204081020400000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[((unsigned int) O >> 9) & 0x3f] & ((unsigned int) P >> 8);
 
-	return (((-outflank_h) & 0x3f) << 9)
-		| outflank_v_d7[0];
+	return (((-outflank_h) & 0x3f) << 9) | _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2725,18 +2694,18 @@ static unsigned long long flip_H2(const unsigned long long P, const unsigned lon
 static unsigned long long flip_A3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0101010101000000ULL, ~0x2010080402000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0101010101000000, ~0x2010080402000000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x007e0000u) + 0x00020000u) & P;
 
 	return ((outflank_h - (outflank_h >> 8)) & 0x007e0000u)
 		| (O & (((P << 8) & 0x0000000000000100ULL) | ((P << 7) & 0x0000000000000200ULL)))
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2749,18 +2718,18 @@ static unsigned long long flip_A3(const unsigned long long P, const unsigned lon
 static unsigned long long flip_B3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0202020202000000ULL, ~0x4020100804000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0202020202000000, ~0x4020100804000000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = ((O & 0x007c0000u) + 0x00040000u) & P;
 
 	return ((outflank_h - (outflank_h >> 8)) & 0x007c0000u)
 		| (O & (((P << 8) & 0x0000000000000200ULL) | ((P << 7) & 0x0000000000000400ULL)))
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2773,20 +2742,20 @@ static unsigned long long flip_B3(const unsigned long long P, const unsigned lon
 static unsigned long long flip_C3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0404040404000000ULL, ~0x8040201008000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0404040404000000, ~0x8040201008000000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_2[((unsigned int) O >> 17) & 0x3f] & ((unsigned int) P >> 16);
 
-	return (FLIPPED_2[outflank_h] << 16)
+	return ((unsigned char) FLIPPED_2_H[outflank_h] << 16)
 		| (O & (((P << 8) & 0x0000000000000400ULL)
 			| ((P << 9) & 0x0000000000000200ULL)
 			| (((P >> 7) | (P << 7)) & 0x0000000002000800ULL)))
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2800,12 +2769,12 @@ static unsigned long long flip_D3(const unsigned long long P, const unsigned lon
 {
 	unsigned int outflank_h;
 	unsigned long long outflank_d7;
-	__v2di	outflank_v_d9;
-	static const __v2di mask = { ~0x0808080808000000ULL, ~0x0080402010000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x0808080808000000, ~0x0080402010000000 }};
 
-	outflank_v_d9 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d9 = ~mask & (outflank_v_d9 - (flipmask(outflank_v_d9) - minusone));
-	outflank_v_d9 |= _mm_shuffle_epi32(outflank_v_d9, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_3[((unsigned int) O >> 17) & 0x3f] & ((unsigned int) P >> 16);
 
@@ -2816,7 +2785,7 @@ static unsigned long long flip_D3(const unsigned long long P, const unsigned lon
 			| ((P << 7) & 0x0000000000001000ULL)
 			| ((P << 9) & 0x0000000000000400ULL)))
 		| ((outflank_d7 - (outflank_d7 >> 24)) & 0x0000010204000000ULL)
-		| outflank_v_d9[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2830,12 +2799,12 @@ static unsigned long long flip_E3(const unsigned long long P, const unsigned lon
 {
 	unsigned int outflank_h;
 	unsigned long long outflank_d9;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x1010101010000000ULL, ~0x0001020408000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x1010101010000000, ~0x0001020408000000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_4[((unsigned int) O >> 17) & 0x3f] & ((unsigned int) P >> 16);
 
@@ -2846,7 +2815,7 @@ static unsigned long long flip_E3(const unsigned long long P, const unsigned lon
 			| ((P << 7) & 0x0000000000002000ULL)
 			| ((P << 9) & 0x00000000000000800ULL)))
 		| ((outflank_d9 - (outflank_d9 >> 24)) & 0x0000804020000000ULL)
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2859,20 +2828,20 @@ static unsigned long long flip_E3(const unsigned long long P, const unsigned lon
 static unsigned long long flip_F3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x2020202020000000ULL, ~0x0102040810000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x2020202020000000, ~0x0102040810000000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_5[((unsigned int) O >> 17) & 0x3f] & ((unsigned int) P >> 16);
 
-	return (FLIPPED_5[outflank_h] << 16)
+	return ((unsigned char) FLIPPED_5_H[outflank_h] << 16)
 		| (O & (((P << 8) & 0x0000000000002000ULL)
 			| ((P << 7) & 0x0000000000004000ULL)
 			| (((P >> 9) | (P << 9)) & 0x0000000040001000ULL)))
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2885,18 +2854,18 @@ static unsigned long long flip_F3(const unsigned long long P, const unsigned lon
 static unsigned long long flip_G3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x4040404040000000ULL, ~0x0204081020000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x4040404040000000, ~0x0204081020000000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[((unsigned int) O >> 16) & 0x3e] & ((unsigned int) P >> 15);
 
 	return (((-outflank_h) & 0x3e) << 16)
 		| (O & (((P << 8) & 0x0000000000004000ULL) | ((P << 9) & 0x0000000000002000ULL)))
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2909,18 +2878,18 @@ static unsigned long long flip_G3(const unsigned long long P, const unsigned lon
 static unsigned long long flip_H3(const unsigned long long P, const unsigned long long O)
 {
 	unsigned int outflank_h;
-	__v2di	outflank_v_d7;
-	static const __v2di mask = { ~0x8080808080000000ULL, ~0x0408102040000000ULL };
+	__m128i	outflank_v_d;
+	static const V2DI mask = {{ ~0x8080808080000000, ~0x0408102040000000 }};
 
-	outflank_v_d7 = ~mask & ((_mm_set1_epi64x(O) | mask) - minusone) & _mm_set1_epi64x(P);
-	outflank_v_d7 = ~mask & (outflank_v_d7 - (flipmask(outflank_v_d7) - minusone));
-	outflank_v_d7 |= _mm_shuffle_epi32(outflank_v_d7, SWAP64);
+	outflank_v_d = _mm_and_si128(_mm_andnot_si128(mask.v2, _mm_sub_epi64(_mm_or_si128(_mm_set1_epi64x(O), mask.v2), minusone.v2)), _mm_set1_epi64x(P));
+	outflank_v_d = _mm_andnot_si128(mask.v2, _mm_sub_epi64(outflank_v_d, _mm_sub_epi64(flipmask(outflank_v_d), minusone.v2)));
+	outflank_v_d = _mm_or_si128(outflank_v_d, _mm_shuffle_epi32(outflank_v_d, SWAP64));
 
 	outflank_h = OUTFLANK_7[((unsigned int) O >> 17) & 0x3f] & ((unsigned int) P >> 16);
 
 	return (((-outflank_h) & 0x3f) << 17)
 		| (O & (((P << 8) & 0x0000000000008000ULL) | ((P << 9) & 0x0000000000004000ULL)))
-		| outflank_v_d7[0];
+		| _mm_cvtsi128_si64(outflank_v_d);
 }
 
 /**
@@ -2941,7 +2910,7 @@ static unsigned long long flip_A4(const unsigned long long P, const unsigned lon
 
 	outflank_a8a4d1 = OUTFLANK_4[((O & 0x0001010101020400ULL) * 0x1010101008040201ULL) >> 57]
 		& (((P & 0x0101010101020408ULL) * 0x1010101008040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_a8a4d1]) & 0x0001010101020400ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_a8a4d1]) & 0x0001010101020400ULL;
 
 	outflank_h = ((O & 0x7e000000u) + 0x02000000u) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x7e000000u;
@@ -2967,7 +2936,7 @@ static unsigned long long flip_B4(const unsigned long long P, const unsigned lon
 
 	outflank_b8b4e1 = OUTFLANK_4[((O & 0x0002020202040800ULL) * 0x1010101008040201ULL) >> 58]
 		& ((((P & 0x0202020202040810ULL) >> 1) * 0x1010101008040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_b8b4e1]) & 0x0002020202040800ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_b8b4e1]) & 0x0002020202040800ULL;
 
 	outflank_h = ((O & 0x7c000000u) + 0x04000000u) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x7c000000u;
@@ -2993,7 +2962,7 @@ static unsigned long long flip_C4(const unsigned long long P, const unsigned lon
 
 	outflank_c8c4f1 = OUTFLANK_4[((O & 0x0004040404081000ULL) * 0x0404040402010080ULL) >> 57]
 		& ((((P & 0x0404040404081020ULL) >> 2) * 0x1010101008040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_c8c4f1]) & 0x0004040404081000ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_c8c4f1]) & 0x0004040404081000ULL;
 
 	outflank_h = OUTFLANK_2[(O >> 25) & 0x3f] & (P >> 24);
 	flipped |= FLIPPED_2_H[outflank_h] & 0x00000000ff000000ULL;
@@ -3081,7 +3050,7 @@ static unsigned long long flip_F4(const unsigned long long P, const unsigned lon
 
 	outflank_b8f4f1 = OUTFLANK_4[((O & 0x0004081020202000ULL) * 0x0804020101010101ULL) >> 58]
 		& ((((P & 0x0204081020202020ULL) >> 1) * 0x0804020101010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_b8f4f1]) & 0x0004081020202000ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_b8f4f1]) & 0x0004081020202000ULL;
 
 	outflank_h = OUTFLANK_5[(O >> 25) & 0x3f] & (P >> 24);
 	flipped |= FLIPPED_5_H[outflank_h] & 0x00000000ff000000ULL;
@@ -3109,7 +3078,7 @@ static unsigned long long flip_G4(const unsigned long long P, const unsigned lon
 
 	outflank_c8g4g1 = OUTFLANK_4[((O & 0x0008102040404000ULL) * 0x0001008040404040ULL) >> 57]
 		& ((((P & 0x0408102040404040ULL) >> 2) * 0x0804020101010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_c8g4g1]) & 0x0008102040404000ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_c8g4g1]) & 0x0008102040404000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 24) & 0x3e] & (P >> 23);
 	flipped |= ((-outflank_h) & 0x3e) << 24;
@@ -3135,7 +3104,7 @@ static unsigned long long flip_H4(const unsigned long long P, const unsigned lon
 
 	outflank_d8h4h1 = OUTFLANK_4[((O & 0x0010204080808000ULL) * 0x0000804020202020ULL) >> 57]
 		& ((((P & 0x0810204080808080ULL) >> 3) * 0x0804020101010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_4_V[outflank_d8h4h1]) & 0x0010204080808000ULL;
+	flipped |= vertical_mirror(FLIPPED_4_V[outflank_d8h4h1]) & 0x0010204080808000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 25) & 0x3f] & (P >> 24);
 	flipped |= ((-outflank_h) & 0x3f) << 25;
@@ -3161,7 +3130,7 @@ static unsigned long long flip_A5(const unsigned long long P, const unsigned lon
 
 	outflank_a8a5e1 = OUTFLANK_3[((O & 0x0001010102040800ULL) * 0x0808080808040201ULL) >> 57]
 		& (((P & 0x0101010102040810ULL) * 0x0808080808040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_a8a5e1]) & 0x0001010102040800ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_a8a5e1]) & 0x0001010102040800ULL;
 
 	outflank_h = ((O & 0x0000007e00000000ULL) + 0x0000000200000000ULL) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x0000007e00000000ULL;
@@ -3187,7 +3156,7 @@ static unsigned long long flip_B5(const unsigned long long P, const unsigned lon
 
 	outflank_b8b5f1 = OUTFLANK_3[((O & 0x0002020204081000ULL) * 0x0808080808040201ULL) >> 58]
 		& ((((P & 0x0202020204081020ULL) >> 1) * 0x0808080808040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_b8b5f1]) & 0x0002020204081000ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_b8b5f1]) & 0x0002020204081000ULL;
 
 	outflank_h = ((O & 0x0000007c00000000ULL) + 0x0000000400000000ULL) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x0000007c00000000ULL;
@@ -3213,7 +3182,7 @@ static unsigned long long flip_C5(const unsigned long long P, const unsigned lon
 
 	outflank_c8c5g1 = OUTFLANK_3[((O & 0x0004040408102000ULL) * 0x0002020202010080ULL) >> 57]
 		& ((((P & 0x0404040408102040ULL) >> 2) * 0x0808080808040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_c8c5g1]) & 0x0004040408102000ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_c8c5g1]) & 0x0004040408102000ULL;
 
 	outflank_h = OUTFLANK_2[(O >> 33) & 0x3f] & (P >> 32);
 	flipped |= FLIPPED_2_H[outflank_h] & 0x000000ff00000000ULL;
@@ -3301,7 +3270,7 @@ static unsigned long long flip_F5(const unsigned long long P, const unsigned lon
 
 	outflank_c8f5f1 = OUTFLANK_3[((O & 0x0008102020202000ULL) * 0x0002010080404040ULL) >> 57]
 		& ((((P & 0x0408102020202020ULL) >> 2) * 0x1008040201010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_c8f5f1]) & 0x0008102020202000ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_c8f5f1]) & 0x0008102020202000ULL;
 
 	outflank_h = OUTFLANK_5[(O >> 33) & 0x3f] & (P >> 32);
 	flipped |= FLIPPED_5_H[outflank_h] & 0x000000ff00000000ULL;
@@ -3329,7 +3298,7 @@ static unsigned long long flip_G5(const unsigned long long P, const unsigned lon
 
 	outflank_d8g5g1 = OUTFLANK_3[((O & 0x0010204040404000ULL) * 0x0001008040202020ULL) >> 57]
 		& ((((P & 0x0810204040404040ULL) >> 3) * 0x1008040201010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_d8g5g1]) & 0x0010204040404000ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_d8g5g1]) & 0x0010204040404000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 32) & 0x3e] & (P >> 31);
 	flipped |= (unsigned long long) ((-outflank_h) & 0x3e) << 32;
@@ -3355,7 +3324,7 @@ static unsigned long long flip_H5(const unsigned long long P, const unsigned lon
 
 	outflank_e8h5h1 = OUTFLANK_3[((O & 0x0020408080808000ULL) * 0x0000804020101010ULL) >> 57]
 		& ((((P & 0x1020408080808080ULL) >> 4) * 0x1008040201010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_3_V[outflank_e8h5h1]) & 0x0020408080808000ULL;
+	flipped |= vertical_mirror(FLIPPED_3_V[outflank_e8h5h1]) & 0x0020408080808000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 33) & 0x3f] & (P >> 32);
 	flipped |= (unsigned long long) ((-outflank_h) & 0x3f) << 33;
@@ -3381,7 +3350,7 @@ static unsigned long long flip_A6(const unsigned long long P, const unsigned lon
 
 	outflank_a8a6f1 = OUTFLANK_2[((O & 0x0001010204081000ULL) * 0x0404040404040201ULL) >> 57]
 		& (((P & 0x0101010204081020ULL) * 0x0404040404040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_2_V[outflank_a8a6f1]) & 0x0001010204081000ULL;
+	flipped |= vertical_mirror(FLIPPED_2_V[outflank_a8a6f1]) & 0x0001010204081000ULL;
 
 	outflank_h = ((O & 0x00007e0000000000ULL) + 0x0000020000000000ULL) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x00007e0000000000ULL;
@@ -3407,7 +3376,7 @@ static unsigned long long flip_B6(const unsigned long long P, const unsigned lon
 
 	outflank_a8a6f1 = OUTFLANK_2[((O & 0x0002020408102000ULL) * 0x0404040404040201ULL) >> 58]
 		& ((((P & 0x0202020408102040ULL) >> 1) * 0x0404040404040201ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_2_V[outflank_a8a6f1]) & 0x0002020408102000ULL;
+	flipped |= vertical_mirror(FLIPPED_2_V[outflank_a8a6f1]) & 0x0002020408102000ULL;
 
 	outflank_h = ((O & 0x00007c0000000000ULL) + 0x0000040000000000ULL) & P;
 	flipped |= (outflank_h - (outflank_h >> 8)) & 0x00007c0000000000ULL;
@@ -3545,7 +3514,7 @@ static unsigned long long flip_G6(const unsigned long long P, const unsigned lon
 
 	outflank_e8g6g1 = OUTFLANK_2[((O & 0x0020404040404000ULL) * 0x0001008040201010ULL) >> 57]
 		& ((((P & 0x1020404040404040ULL) >> 4) * 0x2010080402010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_2_V[outflank_e8g6g1]) & 0x0020404040404000ULL;
+	flipped |= vertical_mirror(FLIPPED_2_V[outflank_e8g6g1]) & 0x0020404040404000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 40) & 0x3e] & (P >> 39);
 	flipped |= (unsigned long long) ((-outflank_h) & 0x3e) << 40;
@@ -3571,7 +3540,7 @@ static unsigned long long flip_H6(const unsigned long long P, const unsigned lon
 
 	outflank_f8h6h1 = OUTFLANK_2[((O & 0x0040808080808000ULL) * 0x0000804020100808ULL) >> 57]
 		& ((((P & 0x2040808080808080ULL) >> 5) * 0x2010080402010101ULL) >> 56);
-	flipped |= __builtin_bswap64(FLIPPED_2_V[outflank_f8h6h1]) & 0x0040808080808000ULL;
+	flipped |= vertical_mirror(FLIPPED_2_V[outflank_f8h6h1]) & 0x0040808080808000ULL;
 
 	outflank_h = OUTFLANK_7[(O >> 41) & 0x3f] & (P >> 40);
 	flipped |= (unsigned long long) ((-outflank_h) & 0x3f) << 41;

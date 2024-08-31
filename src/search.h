@@ -226,6 +226,7 @@ void show_current_move(FILE *f, Search*, const Move*, const int, const int, cons
 int search_bound(const Search*, int);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
   #ifdef __AVX2__
 	#define	mm_malloc(s)	_mm_malloc((s), 32)
@@ -248,6 +249,9 @@ int search_bound(const Search*, int);
   #endif
 =======
 #ifdef __SSE2__
+=======
+#ifdef hasSSE2
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	#ifdef __AVX2__
 		#define	mm_malloc(s)	_mm_malloc((s), 32)
 	#else

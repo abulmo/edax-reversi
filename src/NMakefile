@@ -8,6 +8,7 @@
 #
 
 # Microsoft Visual C++ 2008 or better for Windows (7 or Vista).
+<<<<<<< HEAD
 # VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
 VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /MT
 
@@ -109,6 +110,38 @@ icc-pgo-w64-modern:
 	del book.pgo book.pgo.store
 	cd ..\src
 	icl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT /D LASTFLIP_HIGHCUT /Qprof-use /Qip all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /VERSION:4.5
+=======
+VC_FLAGS = /I"..\include" /O2 /Oi /GL /fp:fast /source-charset:.1252 /execution-charset:.1252\
+           /D "NDEBUG" /D "inline=__inline" /D "__func__=__FUNCTION__"\
+           /MT
+
+vc-w64-modern:
+	cl $(VC_FLAGS) /arch:AVX2 /D "POPCOUNT" all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /machine:x64 /VERSION:4.4
+
+vc-w64:
+	cl $(VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /machine:x64 /VERSION:4.4
+
+vc-w32:
+	cl $(VC_FLAGS) /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-w32.exe
+
+vc-pgo-w64-modern:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /arch:AVX2 /D "POPCOUNT" all.c ws2_32.lib /Fe..\bin\wEdax-w64-modern.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cd ..\bin
+	wEdax-w64-modern -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64-modern -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64-modern.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+
+vc-pgo-w64:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) all.c ws2_32.lib /Fe..\bin\wEdax-w64.exe /link /ltcg:pgi /machine:x64 /VERSION:4.4
+	cd ..\bin
+	wEdax-w64 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-w64 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-w64.exe /ltcg:pgo /machine:x64 /VERSION:4.4
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 clean:
 	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj

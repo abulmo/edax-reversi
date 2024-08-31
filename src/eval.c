@@ -32,10 +32,14 @@
 #include <assert.h>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
 =======
 #ifndef __SSE2__
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+#ifndef hasSSE2
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -884,7 +888,11 @@ void eval_open(const char* file)
 
 	// allocation
 <<<<<<< HEAD
+<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
+=======
+	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
 =======
 	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
@@ -1032,6 +1040,7 @@ void eval_close(void)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -1044,10 +1053,13 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
 #if defined(__SSE2__) || defined(USE_GAS_MMX)
+=======
+#if defined(hasSSE2) || defined(USE_GAS_MMX)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 #include "eval_sse.c"
 #endif
 
-#ifndef __SSE2__
+#ifndef hasSSE2
 
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /**
@@ -1502,6 +1514,7 @@ void eval_pass(Eval *eval)
 	int i;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for (i =  0; i <  4; ++i)	// 9
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
 	for (i =  4; i < 16; ++i)	// 10
@@ -1520,6 +1533,9 @@ void eval_pass(Eval *eval)
 =======
 #endif // __SSE2__
 >>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
+=======
+#endif // hasSSE2
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 /**
  * @brief Compute the error-type of the evaluation function according to the

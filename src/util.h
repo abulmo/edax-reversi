@@ -3,7 +3,11 @@
  *
  * @brief Miscellaneous utilities header.
  *
+<<<<<<< HEAD
  * @date 1998 - 2020
+=======
+ * @date 1998 - 2018
+>>>>>>> 1dc032e (Improve visual c compatibility)
  * @author Richard Delorme
  * @version 4.4
  */
@@ -252,7 +256,11 @@ typedef CRITICAL_SECTION Lock;
 typedef CRITICAL_SECTION SpinLock;
 
 /** Some buggy compilers need the following declarations */
+<<<<<<< HEAD
 #if defined __MINGW32__ && (_WIN32_WINNT < 0x0600)
+=======
+#if defined(_WIN64) && !defined(_MSC_VER)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 #if (__MINGW64_VERSION_MAJOR < 3)
 typedef DWORD CONDITION_VARIABLE;

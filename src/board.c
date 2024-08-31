@@ -12,10 +12,14 @@
  * possible, while remaining readable.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
 >>>>>>> b3f048d (copyright changes)
+=======
+ * @date 1998 - 2018
+>>>>>>> 1dc032e (Improve visual c compatibility)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -89,11 +93,55 @@
 /** edge stability global data */
 unsigned char edge_stability[256 * 256];
 
+<<<<<<< HEAD
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	#include "board_mmx.c"
 #endif
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2) || defined(__ARM_NEON)) && !defined(ANDROID)
 	#include "board_sse.c"
+=======
+/** conversion from an 8-bit line to the A1-A8 line */
+const unsigned long long A1_A8[256] = {
+	0x0000000000000000ULL, 0x0000000000000001ULL, 0x0000000000000100ULL, 0x0000000000000101ULL, 0x0000000000010000ULL, 0x0000000000010001ULL, 0x0000000000010100ULL, 0x0000000000010101ULL,
+	0x0000000001000000ULL, 0x0000000001000001ULL, 0x0000000001000100ULL, 0x0000000001000101ULL, 0x0000000001010000ULL, 0x0000000001010001ULL, 0x0000000001010100ULL, 0x0000000001010101ULL,
+	0x0000000100000000ULL, 0x0000000100000001ULL, 0x0000000100000100ULL, 0x0000000100000101ULL, 0x0000000100010000ULL, 0x0000000100010001ULL, 0x0000000100010100ULL, 0x0000000100010101ULL,
+	0x0000000101000000ULL, 0x0000000101000001ULL, 0x0000000101000100ULL, 0x0000000101000101ULL, 0x0000000101010000ULL, 0x0000000101010001ULL, 0x0000000101010100ULL, 0x0000000101010101ULL,
+	0x0000010000000000ULL, 0x0000010000000001ULL, 0x0000010000000100ULL, 0x0000010000000101ULL, 0x0000010000010000ULL, 0x0000010000010001ULL, 0x0000010000010100ULL, 0x0000010000010101ULL,
+	0x0000010001000000ULL, 0x0000010001000001ULL, 0x0000010001000100ULL, 0x0000010001000101ULL, 0x0000010001010000ULL, 0x0000010001010001ULL, 0x0000010001010100ULL, 0x0000010001010101ULL,
+	0x0000010100000000ULL, 0x0000010100000001ULL, 0x0000010100000100ULL, 0x0000010100000101ULL, 0x0000010100010000ULL, 0x0000010100010001ULL, 0x0000010100010100ULL, 0x0000010100010101ULL,
+	0x0000010101000000ULL, 0x0000010101000001ULL, 0x0000010101000100ULL, 0x0000010101000101ULL, 0x0000010101010000ULL, 0x0000010101010001ULL, 0x0000010101010100ULL, 0x0000010101010101ULL,
+	0x0001000000000000ULL, 0x0001000000000001ULL, 0x0001000000000100ULL, 0x0001000000000101ULL, 0x0001000000010000ULL, 0x0001000000010001ULL, 0x0001000000010100ULL, 0x0001000000010101ULL,
+	0x0001000001000000ULL, 0x0001000001000001ULL, 0x0001000001000100ULL, 0x0001000001000101ULL, 0x0001000001010000ULL, 0x0001000001010001ULL, 0x0001000001010100ULL, 0x0001000001010101ULL,
+	0x0001000100000000ULL, 0x0001000100000001ULL, 0x0001000100000100ULL, 0x0001000100000101ULL, 0x0001000100010000ULL, 0x0001000100010001ULL, 0x0001000100010100ULL, 0x0001000100010101ULL,
+	0x0001000101000000ULL, 0x0001000101000001ULL, 0x0001000101000100ULL, 0x0001000101000101ULL, 0x0001000101010000ULL, 0x0001000101010001ULL, 0x0001000101010100ULL, 0x0001000101010101ULL,
+	0x0001010000000000ULL, 0x0001010000000001ULL, 0x0001010000000100ULL, 0x0001010000000101ULL, 0x0001010000010000ULL, 0x0001010000010001ULL, 0x0001010000010100ULL, 0x0001010000010101ULL,
+	0x0001010001000000ULL, 0x0001010001000001ULL, 0x0001010001000100ULL, 0x0001010001000101ULL, 0x0001010001010000ULL, 0x0001010001010001ULL, 0x0001010001010100ULL, 0x0001010001010101ULL,
+	0x0001010100000000ULL, 0x0001010100000001ULL, 0x0001010100000100ULL, 0x0001010100000101ULL, 0x0001010100010000ULL, 0x0001010100010001ULL, 0x0001010100010100ULL, 0x0001010100010101ULL,
+	0x0001010101000000ULL, 0x0001010101000001ULL, 0x0001010101000100ULL, 0x0001010101000101ULL, 0x0001010101010000ULL, 0x0001010101010001ULL, 0x0001010101010100ULL, 0x0001010101010101ULL,
+	0x0100000000000000ULL, 0x0100000000000001ULL, 0x0100000000000100ULL, 0x0100000000000101ULL, 0x0100000000010000ULL, 0x0100000000010001ULL, 0x0100000000010100ULL, 0x0100000000010101ULL,
+	0x0100000001000000ULL, 0x0100000001000001ULL, 0x0100000001000100ULL, 0x0100000001000101ULL, 0x0100000001010000ULL, 0x0100000001010001ULL, 0x0100000001010100ULL, 0x0100000001010101ULL,
+	0x0100000100000000ULL, 0x0100000100000001ULL, 0x0100000100000100ULL, 0x0100000100000101ULL, 0x0100000100010000ULL, 0x0100000100010001ULL, 0x0100000100010100ULL, 0x0100000100010101ULL,
+	0x0100000101000000ULL, 0x0100000101000001ULL, 0x0100000101000100ULL, 0x0100000101000101ULL, 0x0100000101010000ULL, 0x0100000101010001ULL, 0x0100000101010100ULL, 0x0100000101010101ULL,
+	0x0100010000000000ULL, 0x0100010000000001ULL, 0x0100010000000100ULL, 0x0100010000000101ULL, 0x0100010000010000ULL, 0x0100010000010001ULL, 0x0100010000010100ULL, 0x0100010000010101ULL,
+	0x0100010001000000ULL, 0x0100010001000001ULL, 0x0100010001000100ULL, 0x0100010001000101ULL, 0x0100010001010000ULL, 0x0100010001010001ULL, 0x0100010001010100ULL, 0x0100010001010101ULL,
+	0x0100010100000000ULL, 0x0100010100000001ULL, 0x0100010100000100ULL, 0x0100010100000101ULL, 0x0100010100010000ULL, 0x0100010100010001ULL, 0x0100010100010100ULL, 0x0100010100010101ULL,
+	0x0100010101000000ULL, 0x0100010101000001ULL, 0x0100010101000100ULL, 0x0100010101000101ULL, 0x0100010101010000ULL, 0x0100010101010001ULL, 0x0100010101010100ULL, 0x0100010101010101ULL,
+	0x0101000000000000ULL, 0x0101000000000001ULL, 0x0101000000000100ULL, 0x0101000000000101ULL, 0x0101000000010000ULL, 0x0101000000010001ULL, 0x0101000000010100ULL, 0x0101000000010101ULL,
+	0x0101000001000000ULL, 0x0101000001000001ULL, 0x0101000001000100ULL, 0x0101000001000101ULL, 0x0101000001010000ULL, 0x0101000001010001ULL, 0x0101000001010100ULL, 0x0101000001010101ULL,
+	0x0101000100000000ULL, 0x0101000100000001ULL, 0x0101000100000100ULL, 0x0101000100000101ULL, 0x0101000100010000ULL, 0x0101000100010001ULL, 0x0101000100010100ULL, 0x0101000100010101ULL,
+	0x0101000101000000ULL, 0x0101000101000001ULL, 0x0101000101000100ULL, 0x0101000101000101ULL, 0x0101000101010000ULL, 0x0101000101010001ULL, 0x0101000101010100ULL, 0x0101000101010101ULL,
+	0x0101010000000000ULL, 0x0101010000000001ULL, 0x0101010000000100ULL, 0x0101010000000101ULL, 0x0101010000010000ULL, 0x0101010000010001ULL, 0x0101010000010100ULL, 0x0101010000010101ULL,
+	0x0101010001000000ULL, 0x0101010001000001ULL, 0x0101010001000100ULL, 0x0101010001000101ULL, 0x0101010001010000ULL, 0x0101010001010001ULL, 0x0101010001010100ULL, 0x0101010001010101ULL,
+	0x0101010100000000ULL, 0x0101010100000001ULL, 0x0101010100000100ULL, 0x0101010100000101ULL, 0x0101010100010000ULL, 0x0101010100010001ULL, 0x0101010100010100ULL, 0x0101010100010101ULL,
+	0x0101010101000000ULL, 0x0101010101000001ULL, 0x0101010101000100ULL, 0x0101010101000101ULL, 0x0101010101010000ULL, 0x0101010101010001ULL, 0x0101010101010100ULL, 0x0101010101010101ULL,
+};
+
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+#include "board_mmx.c"
+#endif
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(hasSSE2)
+#include "board_sse.c"
+>>>>>>> 1dc032e (Improve visual c compatibility)
 #endif
 
 
@@ -303,7 +351,7 @@ void board_symetry(const Board *board, const int s, Board *sym)
 =======
 	register unsigned long long player, opponent;
 
-#if (defined(USE_GAS_MMX) || defined(__x86_64__)) && !defined(DEBUG)	// crashes debug build on GCC5.1
+#if (defined(USE_GAS_MMX) || defined(hasSSE2)) && !defined(DEBUG)	// crashes debug build on GCC5.1
 	if (hasSSE2) {
 		board_symetry_sse(board, s, sym);
 		return;
@@ -434,6 +482,10 @@ bool board_check_move(const Board *board, Move *move)
 	else return true;
 }
 
+<<<<<<< HEAD
+=======
+#if !(defined(hasMMX) && (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)))
+>>>>>>> 1dc032e (Improve visual c compatibility)
 /**
  * @brief Update a board.
  *
@@ -497,6 +549,10 @@ void board_restore(Board *board, const Move *move)
 #endif
 	board_check(board);
 }
+<<<<<<< HEAD
+=======
+#endif // hasMMX
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 /**
  * @brief Passing move
@@ -613,11 +669,19 @@ static inline unsigned long long get_some_moves(const unsigned long long P, cons
  * @param O bitboard with opponent's discs.
  * @return all legal moves in a 64-bit unsigned integer.
  */
+<<<<<<< HEAD
+=======
+#if !defined(__x86_64__) && !defined(_M_X64)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 unsigned long long get_moves(const unsigned long long P, const unsigned long long O)
 {
 	unsigned long long moves, OM;
 
+<<<<<<< HEAD
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
+=======
+	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	if (hasSSE2)
 		return get_moves_sse(P, O);
 	#endif
@@ -661,7 +725,11 @@ unsigned long long get_moves_6x6(const unsigned long long P, const unsigned long
  */
 bool can_move(const unsigned long long P, const unsigned long long O)
 {
+<<<<<<< HEAD
 #if defined(hasMMX) || defined(__ARM_NEON)
+=======
+#if defined(USE_GAS_MMX) || defined(__x86_64__) || defined(USE_MSVC_X86)
+>>>>>>> 1dc032e (Improve visual c compatibility)
 	return get_moves(P, O) != 0;
 
 #else
@@ -731,7 +799,28 @@ unsigned long long get_potential_moves(const unsigned long long P, const unsigne
 		| get_some_potential_moves(O & 0x007E7E7E7E7E7E00, 9))
 		& ~(P|O); // mask with empties
 }
+<<<<<<< HEAD
 #endif // AVX2
+=======
+
+/**
+ * @brief Get potential mobility.
+ *
+ * Count the list of empty squares in contact of a player square.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return a count of potential moves.
+ */
+int get_potential_mobility(const unsigned long long P, const unsigned long long O)
+{
+#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
+	if (hasMMX)
+		return get_potential_mobility_mmx(P, O);
+#endif
+	return bit_weighted_count(get_potential_moves(P, O));
+}
+>>>>>>> 1dc032e (Improve visual c compatibility)
 
 /**
  * @brief search stable edge patterns.
@@ -876,7 +965,7 @@ void edge_stability_init(void)
 <<<<<<< HEAD
 =======
 
-#if defined(USE_GAS_MMX) && !defined(hasSSE2)
+#if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	init_mmx();
 #endif
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
@@ -890,7 +979,98 @@ void edge_stability_init(void)
 #define	packH1H8(X)	(((((unsigned int)((X) >> 32) & 0x80808080) + (((unsigned int)(X) & 0x80808080) >> 4)) * 0x00204081) >> 24)
 #endif
 
+<<<<<<< HEAD
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
+=======
+#if !defined(__x86_64__) && !defined(_M_X64)
+/**
+ * @brief Get full lines.
+ *
+ * @param line all discs on a line.
+ * @param dir tested direction
+ * @return a bitboard with full lines along the tested direction.
+ */
+static inline unsigned long long get_full_lines(const unsigned long long line, const int dir)
+{
+#if KOGGE_STONE & 2
+
+	// kogge-stone algorithm
+ 	// 5 << + 5 >> + 7 & + 10 |
+	// + better instruction independency
+	register unsigned long long full_l, full_r, edge_l, edge_r;
+	const  unsigned long long edge = 0xff818181818181ffULL;
+	const int dir2 = dir << 1;
+	const int dir4 = dir << 2;
+
+	full_l = line & (edge | (line >> dir)); full_r  = line & (edge | (line << dir));
+	edge_l = edge | (edge >> dir);        edge_r  = edge | (edge << dir);
+	full_l &= edge_l | (full_l >> dir2);  full_r &= edge_r | (full_r << dir2);
+	edge_l |= edge_l >> dir2;             edge_r |= edge_r << dir2;
+	full_l &= edge_l | (full_l >> dir4);  full_r &= edge_r | (full_r << dir4);
+
+	return full_r & full_l;
+
+#elif PARALLEL_PREFIX & 2
+
+	// 1-stage Parallel Prefix (intermediate between kogge stone & sequential) 
+	// 5 << + 5 >> + 7 & + 10 |
+	register unsigned long long full_l, full_r;
+	register unsigned long long edge_l, edge_r;
+	const  unsigned long long edge = 0xff818181818181ffULL;
+	const int dir2 = dir + dir;
+
+	full_l  = edge | (line << dir);       full_r  = edge | (line >> dir);
+	full_l &= edge | (full_l << dir);     full_r &= edge | (full_r >> dir);
+	edge_l  = edge | (edge << dir);       edge_r  = edge | (edge >> dir);
+	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
+	full_l &= edge_l | (full_l << dir2);  full_r &= edge_r | (full_r >> dir2);
+
+	return full_l & full_r;
+
+#else
+
+	// sequential algorithm
+ 	// 6 << + 6 >> + 12 & + 5 |
+	register unsigned long long full;
+	const unsigned long long edge = line & 0xff818181818181ffULL;
+
+	full = (line & (((line >> dir) & (line << dir)) | edge));
+	full &= (((full >> dir) & (full << dir)) | edge);
+	full &= (((full >> dir) & (full << dir)) | edge);
+	full &= (((full >> dir) & (full << dir)) | edge);
+	full &= (((full >> dir) & (full << dir)) | edge);
+
+	return ((full >> dir) & (full << dir));
+
+#endif
+}
+
+static inline unsigned long long get_full_lines_h(const unsigned long long line)
+{
+	unsigned long long full;
+
+	full = line;
+	full &= full >> 1;
+	full &= full >> 2;
+	full &= full >> 4;
+	full = (full & 0x0101010101010101ULL) * 0xff;
+
+	return full;
+}
+
+static inline unsigned long long get_full_lines_v(const unsigned long long line)
+{
+	unsigned long long full;
+
+	full = line;
+	full &= (full >> 8) | (full << 56);	// ror 8
+	full &= (full >> 16) | (full << 48);	// ror 16
+	full &= (full >> 32) | (full << 32);	// ror 32
+
+	return full;
+}
+
+>>>>>>> 1dc032e (Improve visual c compatibility)
 /**
  * @brief Get stable edge.
  *
@@ -925,7 +1105,7 @@ int get_stability(const unsigned long long P, const unsigned long long O)
 	unsigned long long P_central, disc, full_h, full_v, full_d7, full_d9;
 	unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, old_stable;
 
-#if defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))
+#if (defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))) || defined(USE_MSVC_X86)
 	if (hasMMX)
 		return get_stability_mmx((unsigned int) P, (unsigned int) (P >> 32), (unsigned int) O, (unsigned int) (O >> 32));
 #endif

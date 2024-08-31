@@ -188,7 +188,7 @@ int last_flip(int pos, unsigned long long P)
  * 
  */
 
-#include <x86intrin.h>
+#include "bit.h"
 
 /** precomputed count flip array */
 static const unsigned char COUNT_FLIP[8][256] = {

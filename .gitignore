@@ -17,6 +17,7 @@ all.gc*
 generate_flip.*
 generate_count_flip.*
 bcnttest.*
+*.utf8.c
 bin/
 doc/
 <<<<<<< HEAD
