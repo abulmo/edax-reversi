@@ -345,10 +345,10 @@ unsigned long long flip(const unsigned long long P, const unsigned long long O, 
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.3
+ * @version 4.4
  */
 
 #include "bit.h"
@@ -557,20 +557,8 @@ static const unsigned long long maskr[64][4] = {
 	0x7f00000000000000, 0x0000000000000000, 0x0080808080808080, 0x0040201008040201
 };
 
-#if defined(_MSC_VER) && defined(_M_X64) && !(defined(__AVX2__) || defined(__LZCNT__))
-static inline int lzcnt64(unsigned long long n) {
-	unsigned long i;
-	if (_BitScanReverse64(&i, n))
-		return i ^ 63;
-	else
-		return 64;
-}
-#else
-#define	lzcnt64(x)	_lzcnt_u64(x)
-#endif
-
-#if (defined(__LZCNT__) && defined(__x86_64__)) || (defined(_MSC_VER) && defined(_M_X64))
-#define	count_opp_reverse(O,masko,maskr)	lzcnt64(~(O) & (maskr))
+#if ((defined(__x86_64__) || defined(USE_GAS_X86)) && defined(__LZCNT__)) || defined(_MSC_VER)
+#define	count_opp_reverse(O,masko,maskr)	lzcnt_u64(~(O) & (maskr))
 #else
 // with guardian bit to avoid __builtin_clz(0)
 #define	count_opp_reverse(O,masko,maskr)	__builtin_clzll(((O) & (masko)) ^ (maskr))
@@ -585,7 +573,7 @@ static inline int lzcnt64(unsigned long long n) {
  * 0xffffffffffffffffULL (-1) if outflank is 0
  * 0x0000000000000000ULL ( 0) if a 1 is in 64 bit
  */
-static inline __v2di flipmask (__v2di outflank) {
+static inline __m128i flipmask (__m128i outflank) {
 	return _mm_cmpeq_epi32(_mm_shuffle_epi32(outflank, SWAP32), outflank);
 }
 
@@ -597,11 +585,11 @@ static inline __v2di flipmask (__v2di outflank) {
  * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
-unsigned long long flip(int pos, const unsigned long long P, const unsigned long long O)
+unsigned long long flip(const unsigned long long P, const unsigned long long O, int pos)
 {
-	__v2di	outflank17, outflank89, PP, OO;
+	__m128i	outflank17, outflank89, PP, OO;
 	unsigned long long flipped, outflankr1, outflankr7, outflankr8, outflankr9;
-	static const V2DI minusone = { -1LL, -1LL };
+	const __m128i minusone = _mm_set1_epi32(-1);
 
 	outflankr1 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[pos][0], maskr[pos][0])) & P;
 	flipped  = (-outflankr1 * 2) & maskr[pos][0];
@@ -613,14 +601,15 @@ unsigned long long flip(int pos, const unsigned long long P, const unsigned long
 	flipped |= (-outflankr9 * 2) & maskr[pos][3];
 
 	PP = _mm_set1_epi64x(P);
-	OO = _mm_set1_epi64x(O);
-	outflank17 = ~maskl[pos][0].v2 & ((OO | maskl[pos][0].v2) - minusone.v2) & PP;
-	outflank89 = ~maskl[pos][1].v2 & ((OO | maskl[pos][1].v2) - minusone.v2) & PP;
-	outflank17 = ~maskl[pos][0].v2 & (outflank17 - (flipmask(outflank17) - minusone.v2));
-	outflank89 = ~maskl[pos][1].v2 & (outflank89 - (flipmask(outflank89) - minusone.v2));
-	outflank17 |= outflank89;
-	outflank17 |= _mm_shuffle_epi32(outflank17, SWAP64);
+	OO = _mm_and_si128(_mm_set1_epi64x(O), _mm_set_epi32(0x7e7e7e7e, 0x7e7e7e7e, -1, -1));
+	outflank89 = _mm_and_si128(_mm_andnot_si128(maskl[pos][1].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[pos][1].v2), minusone)), PP);
+	OO = _mm_unpackhi_epi64(OO, OO);
+	outflank17 = _mm_and_si128(_mm_andnot_si128(maskl[pos][0].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[pos][0].v2), minusone)), PP);
+	outflank89 = _mm_andnot_si128(maskl[pos][1].v2, _mm_sub_epi64(outflank89, _mm_sub_epi64(flipmask(outflank89), minusone)));
+	outflank17 = _mm_andnot_si128(maskl[pos][0].v2, _mm_sub_epi64(outflank17, _mm_sub_epi64(flipmask(outflank17), minusone)));
+	outflank17 = _mm_or_si128(outflank17, outflank89);
+	outflank17 = _mm_or_si128(outflank17, _mm_shuffle_epi32(outflank17, SWAP64));
 
-	return flipped | outflank17[0];
+	return flipped | _mm_cvtsi128_si64(outflank17);
 }
 >>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)

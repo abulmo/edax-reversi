@@ -63,6 +63,7 @@ int get_rand_bit(unsigned long long, struct Random*);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined(__AVX2__) && defined(hasSSE2) && !defined(POPCOUNT)
 	__m128i bit_weighted_count_sse(unsigned long long, unsigned long long);
 #elif defined (__ARM_NEON)
@@ -82,6 +83,14 @@ unsigned int bswap_int(unsigned int);
 unsigned long long vertical_mirror(unsigned long long);
 =======
 =======
+=======
+extern const unsigned long long X_TO_BIT[];
+/** Return a bitboard with bit x set. */
+#define x_to_bit(x) X_TO_BIT[x]
+
+//#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
+
+>>>>>>> b1eae0d (Reduce flip table by rotated outflank; revise lzcnt & rol8 defs)
 // http://graphics.stanford.edu/~seander/bithacks.html
 #ifdef HAS_CPU_64
 #define mirror_byte(b)	(unsigned char)((((b) * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32)
@@ -93,6 +102,16 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 #ifndef __has_builtin
 	#define __has_builtin(x) 0  // Compatibility with non-clang compilers.
 >>>>>>> ea39994 (Improve clang compatibility)
+#endif
+
+#if __has_builtin(__builtin_rotateleft8)
+	#define rotl8(x,y)	__builtin_rotateleft8((x),(y))
+#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
+	#define rotl8(x,y)	__builtin_ia32_rolqi((x),(y))
+#elif defined(_MSC_VER)
+	#define	rotl8(x,y)	_rotl8((x),(y))
+#else	// may not compile into 8-bit rotate
+	#define	rotl8(x,y)	((unsigned char)(((x)<<(y))|((unsigned)(x)>>(8-(y)))))
 #endif
 
 #ifdef _MSC_VER
@@ -136,12 +155,6 @@ static inline unsigned char mirror_byte(unsigned int b) { return ((((b * 0x20080
 	#endif
 	#define foreach_bit_32(i, b)	for (i = first_bit_32(b); b; i = first_bit_32(b &= (b - 1)))
 #endif
-
-extern const unsigned long long X_TO_BIT[];
-/** Return a bitboard with bit x set. */
-#define x_to_bit(x) X_TO_BIT[x]
-
-//#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
 
 #ifdef POPCOUNT
 	/*
@@ -459,7 +472,7 @@ static inline unsigned long long _mm_cvtsi128_si64(__m128i x) {
 #endif
 
 #ifdef USE_GAS_X86
-#ifdef __LNCNT__
+#ifdef __LZCNT__
 static inline int _lzcnt_u64(unsigned long long x) {
 	int	y;
 	__asm__ (
@@ -483,7 +496,7 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	return y;
 }
 #endif
-#elif defined(USE_MSVC_X86) && defined(__AVX2__)
+#elif defined(USE_MSVC_X86) && (defined(__AVX2__) || defined(__LZCNT__))
 static inline int _lzcnt_u64(unsigned long long x) {
 	__asm {
 		lzcnt	eax, dword ptr x
@@ -501,6 +514,41 @@ static inline int _tzcnt_u64(unsigned long long x) {
 		cmovnc	eax, edx
 	}
 }
+#endif
+
+#if defined(__AVX2__) || defined(__LZCNT__)
+	#define	lzcnt_u32(x)	_lzcnt_u32(x)
+	#define	lzcnt_u64(x)	_lzcnt_u64(x)
+
+#elif defined(_MSC_VER)
+	static inline int lzcnt_u32(unsigned long n) {
+		unsigned long i;
+		if (!_BitScanReverse(&i, n))
+			i = 32 ^ 31;
+		return i ^ 31;
+	}
+
+	#ifdef _M_X64
+		static inline int lzcnt_u64(unsigned long long n) {
+			unsigned long i;
+			if (!_BitScanReverse64(&i, n))
+				i = 64 ^ 63;
+			return i ^ 63;
+		}
+	#else
+		static inline int lzcnt_u64(unsigned long long n) {
+			unsigned long i;
+			if (_BitScanReverse(&i, n >> 32))
+				return i ^ 31;
+			if (!_BitScanReverse(&i, (unsigned int) n))
+				i = 64 ^ 63;
+			return i ^ 63;
+		}
+	#endif
+
+#else
+	static inline int lzcnt_u32(unsigned long x) { return (x ? __builtin_clz(x) : 32); }
+	static inline int lzcnt_u64(unsigned long x) { return (x ? __builtin_clzll(x) : 64); }
 #endif
 
 #endif // EDAX_BIT_H

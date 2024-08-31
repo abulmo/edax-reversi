@@ -249,12 +249,12 @@
 
 #define MOVE_GENERATOR_CARRY 1		// 32.6Mnps
 #define MOVE_GENERATOR_KINDERGARTEN 2	// 31.1Mnps
-#define MOVE_GENERATOR_SSE 3		// 34.4Mnps
-#define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps
+#define MOVE_GENERATOR_SSE 3		// 34.4Mnps	// best for generic X64
+#define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX
 #define MOVE_GENERATOR_ROXANE 5		// 29.0Mnps
-#define MOVE_GENERATOR_32 6		// 31.3Mnps
+#define MOVE_GENERATOR_32 6		// 31.3Mnps	// best for 32bit X86
 #define MOVE_GENERATOR_SSE_BSWAP 7	// 30.6Mnps
-#define MOVE_GENERATOR_AVX 8		// 34.7Mnps
+#define MOVE_GENERATOR_AVX 8		// 34.7Mnps	// best for modern X64
 
 #define	COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
 #define COUNT_LAST_FLIP_KINDERGARTEN 2	// 33.5Mnps
