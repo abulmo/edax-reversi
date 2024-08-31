@@ -221,6 +221,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 54adf17 (Fall down to SSE board_score_1 for AVX512 lazy LC w/o DEFs)
 	#if (defined(__AVX512VL__) || defined(__AVX10_1__)) && (defined(SIMULLASTFLIP512) || defined(SIMULLASTFLIP) || defined(LASTFLIP_HIGHCUT))
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
 	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
