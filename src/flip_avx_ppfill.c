@@ -278,7 +278,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 
 	PP = _mm256_broadcastq_epi64(OP);
-	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
+	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
 
 <<<<<<< HEAD
 	mask = rmask_v4[pos].v4;

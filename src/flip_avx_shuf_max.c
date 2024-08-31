@@ -255,6 +255,9 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	PP = _mm256_broadcastq_epi64(OP);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b675196 (Replace VPERMQ due to MSVC's code and for Zen)
 	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
 
 	mask = lrmask[pos].v4[1];

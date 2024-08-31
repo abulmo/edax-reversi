@@ -262,6 +262,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	PP = _mm256_broadcastq_epi64(OP);
 	mOO = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP)),
+<<<<<<< HEAD
 		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
 	mask = lrmask[pos].v4[1];
@@ -274,6 +275,8 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	PP = _mm256_broadcastq_epi64(OP);
 	mOO = _mm256_and_si256(_mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55),
+=======
+>>>>>>> b675196 (Replace VPERMQ due to MSVC's code and for Zen)
 		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
 <<<<<<< HEAD
