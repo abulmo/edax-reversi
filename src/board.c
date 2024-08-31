@@ -873,6 +873,59 @@ unsigned long long get_stable_edge(const unsigned long long P, const unsigned lo
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * @brief Estimate the stability.
+ *
+ * Count the number (in fact a lower estimate) of stable discs.
+ *
+ * @param P bitboard with player's discs.
+ * @param O bitboard with opponent's discs.
+ * @return the number of stable discs.
+ */
+int get_stability(const unsigned long long P, const unsigned long long O)
+{
+	unsigned long long P_central, disc, full_h, full_v, full_d7, full_d9;
+	unsigned long long stable_h, stable_v, stable_d7, stable_d9, stable, old_stable;
+
+#if defined(USE_GAS_MMX) && !(defined(__clang__) && (__clang__major__ < 3))
+	if (hasMMX)
+		return get_stability_mmx((unsigned int) P, (unsigned int) (P >> 32), (unsigned int) O, (unsigned int) (O >> 32));
+#endif
+
+	disc = (P | O);
+	P_central = (P & 0x007e7e7e7e7e7e00ULL);
+
+	full_h = get_full_lines_h(disc);
+	full_v = get_full_lines_v(disc);
+	full_d7 = get_full_lines(disc, 7);
+	full_d9 = get_full_lines(disc, 9);
+
+	// compute the exact stable edges (from precomputed tables)
+	stable = get_stable_edge(P, O);
+
+	// add full lines
+	stable |= (full_h & full_v & full_d7 & full_d9 & P_central);
+
+	if (stable == 0)
+		return 0;
+
+	// now compute the other stable discs (ie discs touching another stable disc in each flipping direction).
+	do {
+		old_stable = stable;
+		stable_h = ((stable >> 1) | (stable << 1) | full_h);
+		stable_v = ((stable >> 8) | (stable << 8) | full_v);
+		stable_d7 = ((stable >> 7) | (stable << 7) | full_d7);
+		stable_d9 = ((stable >> 9) | (stable << 9) | full_d9);
+		stable |= (stable_h & stable_v & stable_d7 & stable_d9 & P_central);
+	} while (stable != old_stable);
+
+	return bit_count(stable);
+}
+#endif // __x86_64__
+
+/**
+>>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
  * @brief Estimate the stability of edges.
  *
  * Count the number (in fact a lower estimate) of stable discs on the edges.
@@ -1066,6 +1119,7 @@ int get_corner_stability(const unsigned long long P)
 		0, 2, 0, 3, 0, 2, 0, 3, 2, 4, 2, 5, 3, 5, 3, 6
 	};
 
+<<<<<<< HEAD
   #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// BMI2 CPU has POPCOUNT
 	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
@@ -1082,6 +1136,16 @@ int get_corner_stability(const unsigned long long P)
 		+ n_stable_h2a2h1g1b1a1[(((unsigned int) P & 0x000081c3) * 0x04410000) >> 26];
   #endif
 	// assert(cnt == bit_count((((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P));
+=======
+#if defined(__BMI2__) && defined(__x86_64__)
+	int cnt = n_stable_h8g8b8a8h7a7[_pext_u64(P, 0xc381000000000000ULL)]
+		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3U)];
+#else
+	int cnt = n_stable_h8g8b8a8h7a7[(((unsigned int) (P >> 32) & 0xc3810000U) * 0x00000411U) >> 26]
+		+ n_stable_h2a2h1g1b1a1[(((unsigned int) P & 0x000081c3U) * 0x04410000U) >> 26];
+#endif
+	// assert(cnt == bit_count((((0x0100000000000001ULL & P) << 1) | ((0x8000000000000080ULL & P) >> 1) | ((0x0000000000000081ULL & P) << 8) | ((0x8100000000000000ULL & P) >> 8) | 0x8100000000000081ULL) & P));
+>>>>>>> 1a7b0ed (flip_bmi2 added; bmi2 version of stability and corner_stability)
 	return cnt;
 
 #endif
