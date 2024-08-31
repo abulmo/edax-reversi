@@ -711,10 +711,14 @@ static void position_search(Position *position, Book *book)
 	if (position->n_link < n_moves || (position->n_link == 0 && n_moves == 0 && position->score.value == -SCORE_INF)) {
 		search_set_board(search, &position->board, BLACK);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		search_set_level(search, position->level, search->eval.n_empties);
 =======
 		search_set_level(search, position->level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		search_set_level(search, position->level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 		foreach_link (l, position) {
 			movelist_exclude(&search->movelist, l->move);

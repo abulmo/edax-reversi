@@ -114,12 +114,16 @@ int search_eval_0(Search *search)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	const short *w = EVAL_WEIGHT[search->eval->player][60 - search->n_empties];
 	unsigned short int *f = search->eval->feature.us;
 >>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
 =======
 	const short *w = EVAL_WEIGHT[search->eval.player][60 - search->n_empties];
+=======
+	const short *w = EVAL_WEIGHT[search->eval.player][60 - search->eval.n_empties];
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	unsigned short int *f = search->eval.feature.us;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	int score;
@@ -226,6 +230,7 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 	if (moves) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bestscore = SCORE_INF * 128;	// min stage
 		if (alpha < SCORE_MIN + 1) alphathres = ((SCORE_MIN + 1) * 128) + 64;
 		else alphathres = (alpha * 128) + 63 + (int) (alpha < 0);	// highest score rounded to alpha
@@ -233,6 +238,9 @@ int search_eval_1(Search *search, const int alpha, int beta, unsigned long long 
 =======
 		w = EVAL_WEIGHT[search->eval.player ^ 1][61 - search->n_empties];
 >>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
+=======
+		w = EVAL_WEIGHT[search->eval.player ^ 1][61 - search->eval.n_empties];
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		bestscore = -SCORE_INF;
 		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
 		foreach_empty (x, search->empties) {
@@ -422,7 +430,7 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 		Ev0.player = search->eval.player;
 		eval_swap(&search->eval);
 		board0 = search->board;
-		--search->n_empties;
+		--search->eval.n_empties;
 
 <<<<<<< HEAD
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
@@ -470,7 +478,7 @@ int search_eval_2(Search *search, int alpha, const int beta, unsigned long long 
 		search->eval.feature = Ev0.feature;
 		search->eval.player = Ev0.player;
 		search->board = board0;
-		++search->n_empties;
+		++search->eval.n_empties;
 
 	} else {
 		moves = get_moves(search->board.opponent, search->board.player);
@@ -662,10 +670,14 @@ static int NWS_shallow(Search *search, const int alpha, int depth, HashTable *ha
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
 =======
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 	assert(depth > 2);
 	assert(hash_table != NULL);
@@ -853,6 +865,7 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 
@@ -865,6 +878,9 @@ int PVS_shallow(Search *search, int alpha, int beta, int depth)
 			return score;
 =======
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
+=======
+	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 
 	// stability cutoff
@@ -1072,16 +1088,22 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert((2 <= depth && depth < search->eval.n_empties) || depth == search->eval.n_empties);
 =======
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert((2 <= depth && depth < search->n_empties) || depth == search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
+	assert((2 <= depth && depth < search->eval.n_empties) || depth == search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
 	assert(parent != NULL);
 
 	search_check_timeout(search);
+<<<<<<< HEAD
 	if (search->stop)
 		return alpha;
 
@@ -1094,6 +1116,12 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 		if (depth < DEPTH_MIDGAME_TO_ENDGAME)
 			return NWS_endgame(search, alpha);
 	}
+=======
+	if (search->stop) return alpha;
+	else if (search->eval.n_empties == 0) return search_solve_0(search);
+	else if (depth <= 3 && depth < search->eval.n_empties) return NWS_shallow(search, alpha, depth, hash_table);
+	else if (search->eval.n_empties <= depth && depth < DEPTH_MIDGAME_TO_ENDGAME) return NWS_endgame(search, alpha);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 	SEARCH_STATS(++statistics.n_NWS_midgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
@@ -1200,6 +1228,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (depth <= ((search->eval.n_empties <= depth) ? DEPTH_MIDGAME_TO_ENDGAME : 4))
 			hash_data.data.wl.c.selectivity = NO_SELECTIVITY; // hack
 		else hash_data.data.wl.c.selectivity = search->selectivity;
@@ -1233,6 +1262,9 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 		hash_store_data.data.cost = last_bit(search->n_nodes + search->child_nodes - nodes_org);
 =======
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY; // hack
+=======
+		if (search->eval.n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY; // hack
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		else hash_store_data.data.wl.c.selectivity = search->selectivity;
 		hash_store_data.data.wl.c.depth = depth;
 		hash_store_data.data.wl.c.cost = last_bit(search->n_nodes + search->child_nodes - nodes_org);
@@ -1247,8 +1279,8 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		SQUARE_STATS(foreach_move(move, &movelist))
-		SQUARE_STATS(++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];)
-		SQUARE_STATS(if (node.bestscore > alpha) ++statistics.n_good_square[search->n_empties][SQUARE_TYPE[node->bestmove]];)
+		SQUARE_STATS(++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];)
+		SQUARE_STATS(if (node.bestscore > alpha) ++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[node->bestmove]];)
 
 	 	assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
@@ -1315,12 +1347,17 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	SEARCH_STATS(++statistics.n_PVS_midgame);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert(depth <= search->eval.n_empties);
 =======
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert(depth <= search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	assert(search->eval.n_empties == bit_count(~(search->board.player | search->board.opponent)));
+	assert(depth <= search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	assert((-SCORE_MAX <= alpha && alpha <= SCORE_MAX) || printf("alpha = %d\n", alpha));
 	assert((-SCORE_MAX <= beta && beta <= SCORE_MAX) || printf("beta = %d\n", beta));
 	assert(alpha <= beta);
@@ -1328,6 +1365,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	// end of search ?
 	search_check_timeout(search);
 	if (search->stop) return alpha;
+<<<<<<< HEAD
 <<<<<<< HEAD
 	else if (search->eval.n_empties == 0)
 		return search_solve_0(search);
@@ -1337,10 +1375,13 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		return search_eval_2(search, alpha, beta, board_get_moves(&search->board));
 =======
 	else if (search->n_empties == 0)
+=======
+	else if (search->eval.n_empties == 0)
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		return search_solve_0(search);
-	else if (USE_PV_EXTENSION && depth < search->n_empties && search->n_empties <= search->depth_pv_extension)
-		return PVS_midgame(search, alpha, beta, search->n_empties, parent);
-	else if (depth == 2 && search->n_empties > 2)
+	else if (USE_PV_EXTENSION && depth < search->eval.n_empties && search->eval.n_empties <= search->depth_pv_extension)
+		return PVS_midgame(search, alpha, beta, search->eval.n_empties, parent);
+	else if (depth == 2 && search->eval.n_empties > 2)
 		return search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 
@@ -1392,8 +1433,12 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 =======
 			if (!hash_get(pv_table, &search->board, hash_code, &hash_data)) hash_get(hash_table, &search->board, hash_code, &hash_data);
 			if (USE_IID && hash_data.move[0] == NOMOVE) {
+<<<<<<< HEAD
 				if (depth == search->n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+				if (depth == search->eval.n_empties) reduced_depth = depth - ITERATIVE_MIN_EMPTIES;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 				else reduced_depth = depth - 2;
 				if (reduced_depth >= 3) {
 					saved_selectivity = search->selectivity; search->selectivity = 0;
@@ -1495,6 +1540,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (depth <= ((search->eval.n_empties <= depth) ? DEPTH_MIDGAME_TO_ENDGAME : 4))
 			hash_data.data.wl.c.selectivity = NO_SELECTIVITY;
 		else	hash_data.data.wl.c.selectivity = search->selectivity;
@@ -1539,6 +1585,9 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 		hash_store_data.data.cost = last_bit(search_count_nodes(search) - nodes_org);
 =======
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
+=======
+		if (search->eval.n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_store_data.data.wl.c.selectivity = NO_SELECTIVITY;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		else hash_store_data.data.wl.c.selectivity = search->selectivity;
 		hash_store_data.data.wl.c.depth = depth;
 		hash_store_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
@@ -1553,9 +1602,14 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 >>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 
 		SQUARE_STATS(foreach_move(move, movelist))
+<<<<<<< HEAD
 		SQUARE_STATS(++statistics.n_played_square[search->n_empties][SQUARE_TYPE[move->x]];)
 		SQUARE_STATS(if (node.bestscore > alpha) ++statistics.n_good_square[search->n_empties][SQUARE_TYPE[node.bestmove]];)
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		SQUARE_STATS(++statistics.n_played_square[search->eval.n_empties][SQUARE_TYPE[move->x]];)
+		SQUARE_STATS(if (node.bestscore > alpha) ++statistics.n_good_square[search->eval.n_empties][SQUARE_TYPE[node.bestmove]];)
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 	 	assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
 

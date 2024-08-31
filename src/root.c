@@ -170,10 +170,14 @@ static int guess_move(Search *search, Board *board)
 	search->board = *board; search_setup(search);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
 =======
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->n_empties, 6));
+=======
+	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	hash_get(&search->shallow_table, board, board_get_hash_code(board), &hash_data);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
 
@@ -337,10 +341,14 @@ static int search_route_PVS(Search *search, int alpha, int beta, const int depth
 	assert(SCORE_MIN <= alpha);
 	assert(beta <= SCORE_MAX);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	assert(depth >= 0 && depth <= search->eval.n_empties);
 =======
 	assert(depth >= 0 && depth <= search->n_empties);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+	assert(depth >= 0 && depth <= search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 	if (depth == search->eval.n_empties) {
 		if (depth == 0) score = search_solve_0(search);
@@ -645,8 +653,13 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	log_print(xboard_log, "edax (search)> search [%d, %d] %d (%d)\n", alpha, beta, depth, score);
 
 	if (is_depth_solving(depth, search->eval.n_empties)) {
+<<<<<<< HEAD
 		alpha -= (alpha & 1);
 		beta += (beta & 1);
+=======
+		if (alpha & 1) --alpha;
+		if (beta & 1) ++beta;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	}
 
 	// at shallow depths always use a large window, for better move ordering
@@ -670,7 +683,11 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 
 	width = 10 - depth; if (width < 1) width = 1;
 	if ((width & 1) && depth == search->eval.n_empties) ++width;
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	for (i = 0; i < 10; ++i) {
 		old_score = score;
 
@@ -942,7 +959,11 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	if (start > search->options.depth) start = search->options.depth;
 	if (start > search->eval.n_empties) start = search->eval.n_empties;
 	if (start < search->eval.n_empties) {
+<<<<<<< HEAD
 		start += ((start ^ end) & 1);
+=======
+		if ((start & 1) != (end & 1)) ++start;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		if (start <= 0) start = 2 - (end & 1);
 		if (start > end) start = end;
 	}
@@ -998,7 +1019,11 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	// midgame : iterative depth
 	for (search->depth = start; search->depth < end; search->depth += 2) {
 		search->depth_pv_extension = get_pv_extension(search->depth, search->eval.n_empties);
+<<<<<<< HEAD
 		score = aspiration_search(search, SCORE_MIN, SCORE_MAX/*alpha, beta*/, search->depth, score);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
+=======
+		score = aspiration_search(search, alpha, beta, search->depth, score);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		if (!search_continue(search)) return;
 		if (abs(score) >= SCORE_MAX - 1 && search->depth > end - ITERATIVE_MIN_EMPTIES && search->options.depth >= search->eval.n_empties) break;
 	}
@@ -1059,10 +1084,14 @@ void* search_run(void *v)
 	search->height = 0;
 	search->node_type[search->height] = PV_NODE;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search->depth_pv_extension = get_pv_extension(0, search->eval.n_empties);
 =======
 	search->depth_pv_extension = get_pv_extension(0, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	search->depth_pv_extension = get_pv_extension(0, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	search->stability_bound.upper = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 	search->stability_bound.lower = 2 * get_stability(search->board.player, search->board.opponent) - SCORE_MAX;
 	search->result->score = search_bound(search, search_eval_0(search));

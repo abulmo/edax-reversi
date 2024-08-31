@@ -160,12 +160,17 @@ static void obf_search(Search *search, OBF *obf, int n)
 	search_cleanup(search);
 	search_set_board(search, &obf->board, obf->player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_set_level(search, options.level, search->eval.n_empties);
 	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->eval.n_empties);
 =======
 	search_set_level(search, options.level, search->n_empties);
 	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	search_set_level(search, options.level, search->eval.n_empties);
+	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	if (options.selectivity >= 0) search->options.selectivity = options.selectivity;
 
 	if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
@@ -228,10 +233,14 @@ static void obf_build(Search *search, OBF *obf, int n)
 	search_cleanup(search);
 	search_set_board(search, &obf->board, obf->player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_set_level(search, options.level, search->eval.n_empties);
 =======
 	search_set_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	search_set_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	if (options.depth >= 0) {
 		search->options.depth = MAX(options.depth, search->eval.n_empties);
 		search->options.selectivity = 0;

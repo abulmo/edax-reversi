@@ -332,10 +332,14 @@ void play_go(Play *play, const bool update)
 		}
 		search_set_board(search, &play->board, play->player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		search_set_level(search, options.level, search->eval.n_empties);
 =======
 		search_set_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		search_set_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 		else search_set_game_time(search, play->time[play->player].left);
 
@@ -405,10 +409,14 @@ void play_hint(Play *play, int n)
 	}
 	search_set_board(search, &play->board, play->player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	search_set_level(search, options.level, search->eval.n_empties);
 =======
 	search_set_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	search_set_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	if (n > search->movelist.n_moves) n = search->movelist.n_moves;
 	info("<hint %d moves>\n", n);
 
@@ -496,10 +504,14 @@ void* play_ponder_run(void *v)
 				play->ponder.board = board;
 				search_set_board(search, &board, player ^ 1);
 <<<<<<< HEAD
+<<<<<<< HEAD
 				search_set_level(search, options.level, search->eval.n_empties);
 =======
 				search_set_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+				search_set_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 				search_run(search);
 				if (options.info && play->state == IS_PONDERING) {
 					printf("[ponder after %s id.%d: ", move_to_string(move.x, player, m), search->id);
@@ -511,10 +523,14 @@ void* play_ponder_run(void *v)
 			play->ponder.board = board;
 			search_set_board(search, &board, player);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			search_set_ponder_level(search, options.level, search->eval.n_empties);
 =======
 			search_set_ponder_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+			search_set_ponder_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 			log_print(xboard_log, "edax (ponder)> start search\n");
 			search_run(search);
 			log_print(xboard_log, "edax (ponder)> search ended\n");
@@ -767,10 +783,14 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 	}
 	if (search->movelist.n_moves >= 1 || played->x == NOMOVE) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		search_set_level(search, options.level, search->eval.n_empties);
 =======
 		search_set_level(search, options.level, search->n_empties);
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+		search_set_level(search, options.level, search->eval.n_empties);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		search->options.verbosity = 0;
 		search_run(search);
 		search->options.verbosity = options.verbosity;

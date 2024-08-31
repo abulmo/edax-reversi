@@ -573,11 +573,15 @@ void search_setup(Search *search)
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 
 	// init empties, parity
+<<<<<<< HEAD
 	search->n_empties = 0;
 <<<<<<< HEAD
 	search->parity = 0;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 =======
+=======
+	search->eval.n_empties = 0;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	search->eval.parity = 0;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
@@ -595,6 +599,7 @@ void search_setup(Search *search)
 			search->empties[x].previous = prev;
 			prev = x;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			++search->eval.n_empties;
 =======
 		B = x_to_bit(x);
@@ -611,6 +616,9 @@ void search_setup(Search *search)
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 			++search->n_empties;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+			++search->eval.n_empties;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		}
 	}
 	search->empties[prev].next = NOMOVE;	/* sentinel */
@@ -640,10 +648,14 @@ void search_setup(Search *search)
 
 	// init the evaluation function
 <<<<<<< HEAD
+<<<<<<< HEAD
 	eval_set(&search->eval, &search->board);
 =======
 	eval_set(&search->eval, board);
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	eval_set(search);
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 }
 
 /**
@@ -1046,6 +1058,7 @@ void search_update_endgame(Search *search, const Move *move)
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	--search->eval.n_empties;
+<<<<<<< HEAD
 =======
 	empty_remove(search->x_to_empties[move->x]);
 =======
@@ -1054,6 +1067,8 @@ void search_update_endgame(Search *search, const Move *move)
 	board_update(&search->board, move);
 	--search->n_empties;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 }
 
@@ -1071,6 +1086,7 @@ void search_restore_endgame(Search *search, const Move *move)
 	empty_restore(search->empties, move->x);
 	board_restore(&search->board, move);
 	++search->eval.n_empties;
+<<<<<<< HEAD
 =======
 	empty_restore(search->x_to_empties[move->x]);
 =======
@@ -1079,6 +1095,8 @@ void search_restore_endgame(Search *search, const Move *move)
 	board_restore(&search->board, move);
 	++search->n_empties;
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 }
 #endif
 
@@ -1131,6 +1149,7 @@ void search_update_midgame(Search *search, const Move *move)
 >>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	board_update(&search->board, move);
 	eval_update(&search->eval, move);
+<<<<<<< HEAD
 	assert(search->n_empties > 0);
 	--search->n_empties;
 <<<<<<< HEAD
@@ -1138,6 +1157,10 @@ void search_update_midgame(Search *search, const Move *move)
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
 =======
+=======
+	assert(search->eval.n_empties > 0);
+	--search->eval.n_empties;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	search_update_midgame_tail(search);
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 }
@@ -1186,8 +1209,12 @@ void search_restore_midgame(Search *search, const Move *move, const Eval *eval_t
 	// eval_restore(search->eval, move);
 	search->eval.feature = eval_to_restore->feature;
 	eval_swap(&search->eval);
+<<<<<<< HEAD
 	++search->n_empties;
 >>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
+=======
+	++search->eval.n_empties;
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	assert(search->height > 0);
 	--search->height;
 }
@@ -1394,8 +1421,12 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 =======
 	const Board * const board = &search->board;
 
+<<<<<<< HEAD
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->n_empties]) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= *alpha) {
@@ -1423,8 +1454,12 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 =======
 	const Board * const board = &search->board;
 
+<<<<<<< HEAD
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= alpha) {
@@ -1583,6 +1618,7 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
 
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+<<<<<<< HEAD
 				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
 				if (*score > alpha) {
 					hash_data.score = *score;
@@ -1590,6 +1626,8 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
 =======
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
+=======
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
 				if (*score > alpha) {
 <<<<<<< HEAD

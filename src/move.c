@@ -196,9 +196,9 @@ static void move_evaluate(Move *move, Search *search, const HashData *hash_data,
 	else {
 
 		move->score = SQUARE_VALUE[move->x]; // square type
-		if (search->n_empties < 12 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_low_parity; // parity
-		else if (search->n_empties < 21 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_mid_parity; // parity
-		else if (search->n_empties < 30 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_high_parity; // parity
+		if (search->eval.n_empties < 12 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_low_parity; // parity
+		else if (search->eval.n_empties < 21 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_mid_parity; // parity
+		else if (search->eval.n_empties < 30 && search->eval.parity & QUADRANT_ID[move->x]) move->score += w_high_parity; // parity
 
 		if (sort_depth < 0) {
 			board_update(&search->board, move);
@@ -507,10 +507,23 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 	// if (empties <= 27) min_depth += (30 - empties) / 3;
 	min_depth = min_depth_table[empties];
 
+<<<<<<< HEAD
 	if (depth >= min_depth) {
 		if (empties < 21)
 			parity_weight = (empties < 12) ? w_low_parity : w_mid_parity;
 		else	parity_weight = (empties < 30) ? w_high_parity : 0;
+=======
+	min_depth = 9;
+	if (search->eval.n_empties <= 27) min_depth += (30 - search->eval.n_empties) / 3;
+	if (depth >= min_depth) {
+		sort_depth = (depth - 15) / 3;
+		if (hash_data && hash_data->upper < alpha) sort_depth -= 2; 
+		if (search->eval.n_empties >= 27) ++sort_depth;
+		if (sort_depth < 0) sort_depth = 0; else if (sort_depth > 6) sort_depth = 6;
+	} else {
+		sort_depth = -1;
+	}
+>>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 <<<<<<< HEAD
 		sort_depth = (depth - 15) / 3;
