@@ -1124,6 +1124,7 @@ int get_corner_stability(const unsigned long long P)
 	};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__)	// BMI2 CPU has POPCOUNT
 	int cnt = n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) vertical_mirror(P), 0x000081c3)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3)];
@@ -1142,6 +1143,9 @@ int get_corner_stability(const unsigned long long P)
 	// assert(cnt == bit_count((((0x0100000000000001 & P) << 1) | ((0x8000000000000080 & P) >> 1) | ((0x0000000000000081 & P) << 8) | ((0x8100000000000000 & P) >> 8) | 0x8100000000000081) & P));
 =======
 #if defined(__BMI2__) && defined(__x86_64__)
+=======
+#if 0 // defined(__BMI2__) && defined(__x86_64__) // pext is slow on AMD
+>>>>>>> f24cc06 (avoid BMI2 for AMD; more lzcnt/tzcnt in count_last_flip_bitscan)
 	int cnt = n_stable_h8g8b8a8h7a7[_pext_u64(P, 0xc381000000000000ULL)]
 		+ n_stable_h2a2h1g1b1a1[_pext_u32((unsigned int) P, 0x000081c3U)];
 #else

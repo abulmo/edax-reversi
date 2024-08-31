@@ -1457,7 +1457,7 @@ static inline unsigned long long get_stable_edge(const unsigned long long P, con
 	PO = _mm_unpacklo_epi64(O0, P0);
 	a1a8po = _mm_movemask_epi8(_mm_slli_epi64(PO, 7));
 	h1h8po = _mm_movemask_epi8(PO);
-#ifdef __BMI2__
+#if 0 // def __BMI2__ // pdep is slow on AMD
 	stable_edge |= _pdep_u64(edge_stability[a1a8po], 0x0101010101010101ULL)
 		| _pdep_u64(edge_stability[h1h8po], 0x8080808080808080ULL);
 #else

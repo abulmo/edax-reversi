@@ -82,7 +82,7 @@
 		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BITSCAN
 =======
 	#ifdef __x86_64__
-		#ifdef __BMI2__
+		#if defined(__BMI2__) && !defined(__BDVER4__) && !defined(__ZNVER1__)	// BMI2 is slow on AMD
 			#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BMI2
 		#else
 			#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BITSCAN
