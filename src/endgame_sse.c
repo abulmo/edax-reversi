@@ -731,11 +731,11 @@ static int vectorcall board_solve_sse(__m128i OP, int n_empties)
 // PEXT count last flip (2.60s on skylake, 2.35 on icelake, 2.16s on Zen4), very slow on Zen1/2
 extern const unsigned long long mask_x[64][4];
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	uint_fast8_t	n_flips;
 	unsigned int	th, tv;
-	unsigned long long P = EXTRACT_O(PO);
+	unsigned long long P = _mm_cvtsi128_si64(OP);
 	unsigned long long mP;
 	int	score, score2;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
@@ -776,14 +776,13 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 extern	const V8DI lrmask[66];	// in flip_avx512cd.c
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	int	score;
 	__m512i	op_outflank, op_flip, op_eraser, mask;
 	__m256i	o_flip, opop_flip;
-	__m128i	OP;
 	__mmask8 op_pass;
-	__m512i	O4P4 = _mm512_xor_si512(_mm512_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO)),
+	__m512i	O4P4 = _mm512_xor_si512(_mm512_broadcastq_epi64(OP),
 		 _mm512_set_epi64(-1, -1, -1, -1, 0, 0, 0, 0));
 
 		// left: look for player LS1B
@@ -823,13 +822,12 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 extern	const V8DI lrmask[66];	// in flip_avx512cd.c
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	int	score;
 	__m256i	p_flip, o_flip, p_outflank, o_outflank, p_eraser, o_eraser, mask, opop_flip;
-	__m128i	OP;
 	__mmask8 op_pass;
-	__m256i	P4 = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
+	__m256i	P4 = _mm256_broadcastq_epi64(OP);
 
 		// left: look for player LS1B
 	mask = lrmask[pos].v4[0];
@@ -873,14 +871,13 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
-	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	int score = 2 * bit_count(_mm_cvtsi128_si64(P2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	int score = 2 * bit_count(_mm_cvtsi128_si64(OP)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
-	__m256i P4 = _mm256_broadcastq_epi64(P2);
+	__m256i P4 = _mm256_broadcastq_epi64(OP);
 	__m256i lmask = lrmask[pos].v4[0];
 	__m256i rmask = lrmask[pos].v4[1];
 	__mmask16 lp = _mm256_test_epi64_mask(P4, lmask);	// P exists on mask
@@ -939,18 +936,17 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 // experimental AVX2 lastflip with lazy high cut-off version (a little slower)
 extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
-	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	int score = 2 * bit_count(_mm_cvtsi128_si64(P2)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	int score = 2 * bit_count(_mm_cvtsi128_si64(OP)) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
 		// if both pass, score - 1 (cancel P) - 1 (empty for O) <= final score <= score (empty for P).
-	__m256i P4, F4, lmask, rmask, outflank, eraser, lmO, rmO, lp, rp;
+	__m256i P4 = _mm256_broadcastq_epi64(OP);
+	__m256i F4, lmask, rmask, outflank, eraser, lmO, rmO, lp, rp;
 	__m128i F2;
 	int nflip;
 
-	P4 = _mm256_broadcastq_epi64(P2);
 	lmask = lrmask[pos].v4[0];			rmask = lrmask[pos].v4[1];
 	lmO = _mm256_andnot_si256(P4, lmask);		rmO = _mm256_andnot_si256(P4, rmask);
 	lp = _mm256_cmpeq_epi64(lmO, lmask);		rp = _mm256_cmpeq_epi64(rmO, rmask);	// 0 if P exists on mask
@@ -1012,20 +1008,19 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 #elif defined(__AVX2__) && defined(SIMULLASTFLIP)
 // experimental branchless AVX2 MOVMSK version (slower on icc, par on msvc)
 // https://eukaryote.hateblo.jp/entry/2020/05/10/033228
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	int_fast8_t	p_flip, o_flip;
 	unsigned int	tP, tO, h;
-	unsigned long long P;
+	unsigned long long P = _mm_cvtsi128_si64(OP);
 	int	score, score2;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
 	__m256i M = mask_dvhd[pos].v4;
-	__m256i PP = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(PO, PO));
+	__m256i PP = _mm256_broadcastq_epi64(OP);
 
 	(void) alpha;	// no lazy cut-off
-	P = _mm_cvtsi128_si64(_mm256_castsi256_si128(PP));
 	h = (P >> (pos & 0x38)) & 0xFF;
 	tP = TEST_EPI8_MASK32(PP, M);			tO = TESTNOT_EPI8_MASK32(PP, M);
 	p_flip  = COUNT_FLIP_X[h];			o_flip = -COUNT_FLIP_X[h ^ 0xFF];
@@ -1048,12 +1043,11 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 extern	const V8DI lrmask[66];	// in flip_avx_ppfill.c
 
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	int_fast8_t n_flips;
 	uint32_t t;
-	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
-	unsigned long long P = _mm_cvtsi128_si64(P2);
+	unsigned long long P = _mm_cvtsi128_si64(OP);
 	int score = 2 * bit_count(P) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 		// if player can move, final score > this score.
 		// if player pass then opponent play, final score < score - 1 (cancel P) - 1 (last O).
@@ -1061,7 +1055,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
   #if 0 // def __AVX512VL__	// may trigger license base downclocking, wrong fingerprint on MSVC
-		__m512i P8 = _mm512_broadcastq_epi64(P2);
+		__m512i P8 = _mm512_broadcastq_epi64(OP);
 		__m512i M = lrmask[pos].v8;
 		__m512i mO = _mm512_andnot_epi64(P8, M);
 		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), mO, _mm512_set1_epi64(NEIGHBOUR[pos]))) {	// pass (16%)
@@ -1069,7 +1063,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			t = _cvtmask32_u32(_mm256_cmpneq_epi8_mask(_mm512_castsi512_si256(mO), _mm512_extracti64x4_epi64(mO, 1)));	// eq only if l = r = 0
 
   #elif defined(__AVX512VL__) || defined(__AVX10_1__)	// 256bit AVX512 (2.61s on skylake, 2.37 on icelake, 2.16s on Zen4)
-		__m256i P4 = _mm256_broadcastq_epi64(P2);
+		__m256i P4 = _mm256_broadcastq_epi64(OP);
 		__m256i M = lrmask[pos].v4[0];
 		__m256i F = _mm256_maskz_andnot_epi64(_mm256_test_epi64_mask(P4, M), P4, M);	// clear if all O
 		M = lrmask[pos].v4[1];
@@ -1081,7 +1075,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 			t = _cvtmask32_u32(_mm256_test_epi8_mask(F, F));	// all O = all P = 0 flip
 
   #else	// AVX2
-		__m256i P4 = _mm256_broadcastq_epi64(P2);
+		__m256i P4 = _mm256_broadcastq_epi64(OP);
 		__m256i M = lrmask[pos].v4[0];
 		__m256i lmO = _mm256_andnot_si256(P4, M);
 		__m256i F = _mm256_andnot_si256(_mm256_cmpeq_epi64(lmO, M), lmO);	// clear if all O
@@ -1106,7 +1100,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 
 		// n_flips = last_flip(pos, P);
-		t = TEST_EPI8_MASK32(_mm256_broadcastq_epi64(P2), mask_dvhd[pos].v4);
+		t = TEST_EPI8_MASK32(_mm256_broadcastq_epi64(OP), mask_dvhd[pos].v4);
 		n_flips  = COUNT_FLIP[pos & 7][(P >> (pos & 0x38)) & 0xFF];	// h
 		n_flips += COUNT_FLIP_Y[t & 0xFF];	// d
 		n_flips += COUNT_FLIP_Y[(t >> 16) & 0xFF];	// v
@@ -1120,20 +1114,19 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 }
 
 #else	// COUNT_LAST_FLIP_SSE - reasonably fast on all platforms (2.61s on skylake, 2.16s on Zen4)
-static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, const int pos)
+static inline int vectorcall board_score_sse_1(__m128i OP, const int alpha, const int pos)
 {
 	uint_fast8_t	n_flips;
 	unsigned int	t;
 	int	score, score2;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
 	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-	__m128i P2 = _mm_unpackhi_epi64(PO, PO);
 
 	// n_flips = last_flip(pos, P);
   #ifdef AVXLASTFLIP	// no gain
 	__m256i M = mask_dvhd[pos].v4;
-	__m256i P4 = _mm256_broadcastq_epi64(P2);
-	unsigned int h = (_mm_cvtsi128_si64(P2) >> (pos & 0x38)) & 0xFF;
+	__m256i P4 = _mm256_broadcastq_epi64(OP);
+	unsigned int h = (_mm_cvtsi128_si64(OP) >> (pos & 0x38)) & 0xFF;
 
 	t = TEST_EPI8_MASK32(P4, M);
 	n_flips  = COUNT_FLIP_X[h];
@@ -1143,6 +1136,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
   #else
 	__m128i M0 = mask_dvhd[pos].v2[0];
 	__m128i M1 = mask_dvhd[pos].v2[1];
+	__m128i P2 = _mm_unpacklo_epi64(OP, OP);
 	__m128i II = _mm_sad_epu8(_mm_and_si128(P2, M0), _mm_setzero_si128());
 
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
@@ -1152,7 +1146,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	n_flips += COUNT_FLIP_Y[t >> 8];
 	n_flips += COUNT_FLIP_Y[t & 0xFF];
 
-	score = 2 * bit_count_si64(P2) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
+	score = 2 * bit_count_si64(OP) - SCORE_MAX + 2;	// = (bit_count(P) + 1) - (SCORE_MAX - 1 - bit_count(P))
 	score += n_flips;
 
 	if (n_flips == 0) {
@@ -1188,7 +1182,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 // from bench.c
 int board_score_1(const unsigned long long player, const int alpha, const int x)
 {
-	return board_score_sse_1(_mm_shuffle_epi32(_mm_cvtsi64_si128(player), SWAP64), alpha, x);
+	return board_score_sse_1(_mm_cvtsi64_si128(player), alpha, x);
 }
 
 /**
@@ -1204,6 +1198,7 @@ int board_score_1(const unsigned long long player, const int alpha, const int x)
  */
 static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned long long *n_nodes, __m128i empties)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1225,6 +1220,9 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
 =======
 	__m128i PO, flipped;
 >>>>>>> 4b387c1 (Revert AVX Flip results to __m128i, keeping reduce_vflip partially)
+=======
+	__m128i flipped;
+>>>>>>> 6c10ed6 (Replace board_score_sse_1 param PO with OP)
 	int score, bestscore, nodes;
 	int x1 = _mm_extract_epi16(empties, 1);
 	int x2 = _mm_extract_epi16(empties, 0);
@@ -1243,6 +1241,7 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
 	opponent = EXTRACT_O(OP);
 	if ((NEIGHBOUR[x1] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x1))) {
 		bestscore = board_score_sse_1(_mm_xor_si128(_mm_shuffle_epi32(OP, SWAP64), reduce_vflip(flipped)), alpha, x2);
+<<<<<<< HEAD
 
 		if ((bestscore > alpha) && (NEIGHBOUR[x2] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
 			score = board_score_sse_1(_mm_xor_si128(_mm_shuffle_epi32(OP, SWAP64), reduce_vflip(flipped)), alpha, x1);
@@ -1289,37 +1288,38 @@ static int vectorcall board_solve_2(__m128i OP, int alpha, volatile unsigned lon
 =======
 		bestscore = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x2);
 >>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
+=======
+>>>>>>> 6c10ed6 (Replace board_score_sse_1 param PO with OP)
 
 		if ((bestscore > alpha) && (NEIGHBOUR[x2] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-			score = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x1);
+			score = board_score_sse_1(_mm_xor_si128(_mm_shuffle_epi32(OP, SWAP64), reduce_vflip(flipped)), alpha, x1);
 			if (score < bestscore)
 				bestscore = score;
 			nodes = 3;
 		} else	nodes = 2;
 
 	} else if ((NEIGHBOUR[x2] & opponent) && !TESTZ_FLIP(flipped = mm_Flip(OP, x2))) {
-		bestscore = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x1);
+		bestscore = board_score_sse_1(_mm_xor_si128(_mm_shuffle_epi32(OP, SWAP64), reduce_vflip(flipped)), alpha, x1);
 		nodes = 2;
 
 	} else {	// pass - NEIGHBOUR test is almost 100% true
 		alpha = ~alpha;	// = -alpha - 1
-		PO = _mm_shuffle_epi32(OP, SWAP64);
-		if (!TESTZ_FLIP(flipped = mm_Flip(PO, x1))) {
-			bestscore = board_score_sse_1(_mm_xor_si128(PO, reduce_vflip(flipped)), alpha, x2);
+		if (!TESTZ_FLIP(flipped = mm_Flip(_mm_shuffle_epi32(OP, SWAP64), x1))) {
+			bestscore = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x2);
 
-			if ((bestscore > alpha) && !TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-				score = board_score_sse_1(_mm_xor_si128(PO, reduce_vflip(flipped)), alpha, x1);
+			if ((bestscore > alpha) && !TESTZ_FLIP(flipped = mm_Flip(_mm_shuffle_epi32(OP, SWAP64), x2))) {
+				score = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x1);
 				if (score < bestscore)
 					bestscore = score;
 				nodes = 3;
 			} else	nodes = 2;
 
-		} else if (!TESTZ_FLIP(flipped = mm_Flip(PO, x2))) {
-			bestscore = board_score_sse_1(_mm_xor_si128(PO, reduce_vflip(flipped)), alpha, x1);
+		} else if (!TESTZ_FLIP(flipped = mm_Flip(_mm_shuffle_epi32(OP, SWAP64), x2))) {
+			bestscore = board_score_sse_1(_mm_xor_si128(OP, reduce_vflip(flipped)), alpha, x1);
 			nodes = 2;
 
 		} else {	// gameover
-			bestscore = board_solve(EXTRACT_O(PO), 2);
+			bestscore = board_solve(_mm_cvtsi128_si64(OP), 2);
 			nodes = 1;
 		}
 <<<<<<< HEAD
