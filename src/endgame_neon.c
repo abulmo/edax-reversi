@@ -350,11 +350,11 @@ static int board_score_neon_1(uint64x1_t P, int beta, int pos)
 	I0 = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
 	t0 = vaddvq_u16(vreinterpretq_u16_u64(I0));
 	n_flips  = COUNT_FLIP_X[t0 >> 8];
-	n_flips += COUNT_FLIP_X[(unsigned char) t0];
+	n_flips += COUNT_FLIP_X[t0 & 0xFF];
 	I1 = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
 	t1 = vaddvq_u16(vreinterpretq_u16_u64(I1));
 	n_flips += COUNT_FLIP_Y[t1 >> 8];
-	n_flips += COUNT_FLIP_Y[(unsigned char) t1];
+	n_flips += COUNT_FLIP_Y[t1 & 0xFF];
 
 #else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
@@ -378,15 +378,15 @@ static int board_score_neon_1(uint64x1_t P, int beta, int pos)
 			// n_flips = last_flip(pos, O);
 			m = o_mask[pos];	// valid diagonal bits
 #ifdef HAS_CPU_64
-			n_flips  = COUNT_FLIP_X[(t0 >> 8) ^ 0xff];
-			n_flips += COUNT_FLIP_X[(unsigned char) (t0 ^ m)];
+			n_flips  = COUNT_FLIP_X[(t0 >> 8) ^ 0xFF];
+			n_flips += COUNT_FLIP_X[(t0 ^ m) & 0xFF];
 			n_flips += COUNT_FLIP_Y[(t1 ^ m) >> 8];
-			n_flips += COUNT_FLIP_Y[(unsigned char) ~t1];
+			n_flips += COUNT_FLIP_Y[(~t1) & 0xFF];
 #else
-			n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2) ^ 0xff];
-			n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0) ^ (unsigned char) m];
+			n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 2) ^ 0xFF];
+			n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(I0), 0) ^ (m & 0xFF)];
 			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 11) ^ (m >> 8)];
-			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3) ^ 0xff];
+			n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(I1), 3) ^ 0xFF];
 #endif
 			if (n_flips != 0)
 				score = score2 + n_flips;

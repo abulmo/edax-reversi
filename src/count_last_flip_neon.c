@@ -342,11 +342,11 @@ int last_flip(int pos, unsigned long long P)
 	II = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
 	t = vaddvq_u16(vreinterpretq_u16_u64(II));
 	n_flips  = COUNT_FLIP_X[t >> 8];
-	n_flips += COUNT_FLIP_X[(unsigned char) t];
+	n_flips += COUNT_FLIP_X[t & 0xFF];
 	II = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
 	t = vaddvq_u16(vreinterpretq_u16_u64(II));
 	n_flips += COUNT_FLIP_Y[t >> 8];
-	n_flips += COUNT_FLIP_Y[(unsigned char) t];
+	n_flips += COUNT_FLIP_Y[t & 0xFF];
 
 <<<<<<< HEAD
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)

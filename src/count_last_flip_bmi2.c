@@ -22,6 +22,7 @@
  * disc, to facilitate the computation of disc difference.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -32,10 +33,17 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 1998 - 2023
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
  * 
  */
 
 #include "bit.h"
+<<<<<<< HEAD
 <<<<<<< HEAD
 #include <stdint.h>
 
@@ -46,6 +54,12 @@ const uint8_t COUNT_FLIP[8][256] = {
 /** precomputed count flip array */
 const unsigned char COUNT_FLIP[8][256] = {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+#include <stdint.h>
+
+/** precomputed count flip array */
+const uint8_t COUNT_FLIP[8][256] = {
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -207,20 +221,28 @@ const unsigned long long mask_x[64][4] = {
 inline int last_flip(int pos, unsigned long long P)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	uint_fast8_t	n_flipped;
 =======
 	unsigned char	n_flipped;
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	uint_fast8_t	n_flipped;
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 	int	x = pos & 7;
 	int	y = pos >> 3;
 
 	P &= mask_x[pos][3];	// mask out unrelated bits to make dummy 0 bits for outside
 	// n_flipped  = COUNT_FLIP[x][_bextr_u64(P, pos & 0x38, 8)];
 <<<<<<< HEAD
+<<<<<<< HEAD
 	n_flipped  = COUNT_FLIP[x][(P >> (pos & 0x38)) & 0xFF];
 =======
 	n_flipped  = COUNT_FLIP[x][(unsigned char) (P >> (pos & 0x38))];
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	n_flipped  = COUNT_FLIP[x][(P >> (pos & 0x38)) & 0xFF];
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 	n_flipped += COUNT_FLIP[y][_pext_u64(P, mask_x[pos][0])];
 	n_flipped += COUNT_FLIP[y][_pext_u64(P, mask_x[pos][1])];
 	n_flipped += COUNT_FLIP[y][_pext_u64(P, mask_x[pos][2])];

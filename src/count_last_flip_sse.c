@@ -22,6 +22,7 @@
  * disc, to facilitate the computation of disc difference.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
@@ -32,22 +33,36 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 1998 - 2023
+ * @author Richard Delorme
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
  * 
  */
 
 #include "bit.h"
+<<<<<<< HEAD
 <<<<<<< HEAD
 #include <stdint.h>
 
 /** precomputed count flip array */
 const uint8_t COUNT_FLIP[8][256] = {
 =======
+=======
+#include <stdint.h>
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 
 #define	DUPLO	0x44
 
 /** precomputed count flip array */
+<<<<<<< HEAD
 const unsigned char COUNT_FLIP[8][256] = {
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+const uint8_t COUNT_FLIP[8][256] = {
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -209,6 +224,7 @@ const V4DI mask_dvhd[64] = {
 int last_flip(int pos, unsigned long long P)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	uint_fast8_t	n_flips;
 	unsigned int	t;
 	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
@@ -241,26 +257,30 @@ int last_flip(int pos, unsigned long long P)
 	n_flips += COUNT_FLIP_Y[t & 0xFF];
 =======
 	unsigned char	n_flips;
+=======
+	uint_fast8_t	n_flips;
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 	unsigned int	t;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[(unsigned int) pos >> 3];	// cast to reduce movslq
-  #ifdef AVXLASTFLIP
+	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
+	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
+  #ifdef AVXLASTFLIP	// no gain
 	__m256i PP = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(P));
 
-	n_flips  = COUNT_FLIP_X[(P >> (pos & 0x38)) & 0xff];
+	n_flips  = COUNT_FLIP_X[(P >> (pos & 0x38)) & 0xFF];
     #ifdef __AVX512VL__
     	t = _cvtmask32_u32(_mm256_test_epi8_mask(PP, mask_dvhd[pos].v4));
     #else
 	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, mask_dvhd[pos].v4)));
     #endif
-	n_flips += COUNT_FLIP_Y[t & 0xff];
+	n_flips += COUNT_FLIP_Y[t & 0xFF];
 	t >>= 16;
+
   #else
 	__m128i PP = _mm_shuffle_epi32(_mm_cvtsi64_si128(P), DUPLO);
 	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
 
 	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
-	n_flips += COUNT_FLIP_X[(unsigned int) _mm_cvtsi128_si32(II)];
+	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
     #ifdef __AVX512VL__
     	t = _cvtmask16_u32(_mm_test_epi8_mask(PP, mask_dvhd[pos].v2[1]));
     #else
@@ -269,11 +289,15 @@ int last_flip(int pos, unsigned long long P)
   #endif
 	n_flips += COUNT_FLIP_Y[t >> 8];
 <<<<<<< HEAD
+<<<<<<< HEAD
 	n_flips += COUNT_FLIP_Y[(unsigned char) t];
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 =======
 	n_flips += COUNT_FLIP_Y[t & 0xff];
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
+=======
+	n_flips += COUNT_FLIP_Y[t & 0xFF];
+>>>>>>> c54de3f (uint_fast8_t to acc last flip; unsigned char cast to 0xFF mask)
 
 	return n_flips;
 }
