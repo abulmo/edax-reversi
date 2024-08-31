@@ -446,14 +446,14 @@ unsigned long long board_next_neon(uint64x2_t OP, const int x, Board *next)
 unsigned long long vboard_next(uint64x2_t OP, const int x, Board *next)
 {
 	uint64x2_t flipped = mm_Flip(OP, x);
-#ifdef HAS_CPU_64	// vld1q_lane_u64
+  #if !defined(_MSC_VER) && !defined(__clang__)	// MSVC-arm32 does not have vld1q_lane_u64
+	// arm64-gcc-13: 21, armv8a-clang-16: 23, msvc-arm64-19: 22, gcc-arm-13: 18, clang-armv7-11: 29 // https://godbolt.org/z/cvhns39rK
 	OP = veorq_u64(OP, vorrq_u64(flipped, vld1q_lane_u64((uint64_t *) &X_TO_BIT[x], flipped, 0)));
 	vst1q_u64((uint64_t *) next, vextq_u64(OP, OP, 1));
-#else
+  #else	// arm64-gcc-13: 21, armv8a-clang-16: 22, msvc-arm64-19: 21, gcc-arm-13: 23, clang-armv7-11: 27
 	OP = veorq_u64(OP, flipped);
-	OP = vcombine_u64(vget_high_u64(OP), vorr_u64(vget_low_u64(OP), vld1_u64(&X_TO_BIT[x])));
-	vst1q_u64((uint64_t *) next, OP);
-#endif
+	vst1q_u64((uint64_t *) next, vcombine_u64(vget_high_u64(OP), vorr_u64(vget_low_u64(OP), vld1_u64((uint64_t *) &X_TO_BIT[x]))));
+  #endif
 	return vgetq_lane_u64(flipped, 0);
 }
 #endif
@@ -522,7 +522,11 @@ unsigned long long board_pass_next(const Board *board, const int x, Board *next)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   #if defined(_MSC_VER) || defined(__linux__)	// vectorcall and SYSV-ABI passes __m256i in registers
+=======
+#if (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))	// vectorcall and SYSV-ABI passes __m256i in registers
+>>>>>>> 78ce5d7 (more precise rboard/vboard opt; reexamine neon vboard_next)
 unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO)
 {
   #else

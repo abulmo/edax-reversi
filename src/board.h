@@ -391,7 +391,25 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #endif
 
-// Keep Board backup in a vector register if available
+// Keep Board backup in a non-volatile vector register if available
+#ifdef hasSSE2
+	#define	rBoard	__m128i
+	#define	load_rboard(board)	_mm_loadu_si128((__m128i *) &(board))
+	#define	store_rboard(dst,board)	_mm_storeu_si128((__m128i *) &(dst), (board))
+	#define	rboard_update(pboard,board0,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((board0), _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_cvtsi64_si128(X_TO_BIT[(move)->x]))), 0x4e));
+#elif defined(hasNeon)
+	#define	rBoard	uint64x2_t
+	#define	load_rboard(board)	vld1q_u64((uint64_t *) &(board))
+	#define	store_rboard(dst,board)	vst1q_u64((uint64_t *) &(dst), (board))
+	#define	rboard_update(pboard,board0,move)	board_update((pboard), (move))
+#else
+	#define	rBoard	Board
+	#define	load_rboard(board)	(board)
+	#define	store_rboard(dst,board)	((dst) = (board))
+	#define	rboard_update(pboard,board0,move)	board_update((pboard), (move))
+#endif
+
+// Pass Board in a vector register to Flip
 #if (MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)
 	#define	vBoard	__m128i
 	unsigned long long vectorcall vboard_next(__m128i OP, const int x, Board *next);
@@ -413,7 +431,8 @@ extern unsigned long long A1_A8[256];
 	#define	store_vboard(dst,board)	((dst) = (board))
 #endif
 
-#if defined(__AVX2__) && (defined(_MSC_VER) || defined(__linux__))
+// Pass vboard to get_moves if vectorcall available, otherwise board
+#if defined(__AVX2__) && (vBoard == __m128i) && (defined(_MSC_VER) || defined(__linux__))
 	unsigned long long vectorcall get_moves_avx(__m256i PP, __m256i OO);
 	#define	get_moves(P,O)	get_moves_avx(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(P)), _mm256_broadcastq_epi64(_mm_cvtsi64_si128(O)))
 	#define	vboard_get_moves(vboard,board)	get_moves_avx(_mm256_broadcastq_epi64(vboard), _mm256_permute4x64_epi64(_mm256_castsi128_si256(vboard), 0x55))
