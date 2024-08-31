@@ -608,6 +608,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 >>>>>>> 11a54a6 (Revise get_corner_stability and hash_cleanup)
 	if (depth >= min_depth) {
 		sort_depth = (depth - 15) / 3;
+<<<<<<< HEAD
 		if (hash_data && hash_data->upper < alpha) sort_depth -= 2; 
 <<<<<<< HEAD
 		if (search->eval.n_empties >= 27) ++sort_depth;
@@ -627,6 +628,9 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 		board0 = search->board;
 		eval0 = search->eval;
 =======
+=======
+		if (hash_data->upper < alpha) sort_depth -= 2;
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		if (empties >= 27) ++sort_depth;
 		if (sort_depth < 0) sort_depth = 0;
 		else if (sort_depth > 6) sort_depth = 6;

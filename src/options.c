@@ -25,10 +25,14 @@
 /** global options with default value */
 Options options = {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	22, // hash table size (2^22 * 24 * 1.125 = 113MB)
 =======
 	21, // hash table size (2^21 * 24 * 2.0625 = 104MB)
 >>>>>>> 44fd278 (Rearrange PVS_shallow loop)
+=======
+	22, // hash table size (2^22 * 24 * 1.125 = 113MB)
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 
 	{0,-2,-3}, // inc_sort_depth
 

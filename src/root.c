@@ -703,12 +703,17 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 
 	if (is_depth_solving(depth, search->eval.n_empties)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		alpha -= (alpha & 1);
 		beta += (beta & 1);
 =======
 		if (alpha & 1) --alpha;
 		if (beta & 1) ++beta;
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		alpha -= (alpha & 1);
+		beta += (beta & 1);
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 	}
 
 	// at shallow depths always use a large window, for better move ordering
@@ -733,10 +738,14 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	width = 10 - depth; if (width < 1) width = 1;
 	if ((width & 1) && depth == search->eval.n_empties) ++width;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 	
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 	for (i = 0; i < 10; ++i) {
 		old_score = score;
 
@@ -874,8 +883,12 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 =======
 		board_get_move(&board, x, &move);
 		board_update(&board, &move);
+<<<<<<< HEAD
 		
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		if (x == PASS) --i;
 	}
 
@@ -1022,10 +1035,14 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	if (start > search->eval.n_empties) start = search->eval.n_empties;
 	if (start < search->eval.n_empties) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		start += ((start ^ end) & 1);
 =======
 		if ((start & 1) != (end & 1)) ++start;
 >>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
+=======
+		start += ((start ^ end) & 1);
+>>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		if (start <= 0) start = 2 - (end & 1);
 		if (start > end) start = end;
 	}
