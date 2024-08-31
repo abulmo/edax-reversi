@@ -192,12 +192,16 @@ extern unsigned long long A1_A8[256];
 =======
 >>>>>>> 9e2bbc5 (split get_all_full_lines from get_stability)
 
+// a1/a8/h1/h8 are already stable in horizontal line, so omit them in vertical line to ease kindergarten for CPU_64
 #if 0 // defined(__BMI2__) && !defined(__bdver4__) && !defined(__znver1__) && !defined(__znver2__) // pdep is slow on AMD before Zen3
-#define	unpackA1A8(x)	_pdep_u64((x), 0x0101010101010101)
-#define	unpackH1H8(x)	_pdep_u64((x), 0x8080808080808080)
+#define	unpackA2A7(x)	_pdep_u64((x), 0x0101010101010101)
+#define	unpackH2H7(x)	_pdep_u64((x), 0x8080808080808080)
+#elif defined(HAS_CPU_64)
+#define	unpackA2A7(x)	((((x) & 0x7e) * 0x0000040810204080ULL) & 0x0001010101010100ULL)
+#define	unpackH2H7(x)	((((x) & 0x7e) * 0x0002040810204000ULL) & 0x0080808080808000ULL)
 #else
-#define	unpackA1A8(x)	(((unsigned long long)((((x) >> 4) * 0x00204081) & 0x01010101) << 32) | ((((x) & 0x0f) * 0x00204081) & 0x01010101))
-#define	unpackH1H8(x)	(((unsigned long long)((((x) >> 4) * 0x10204080) & 0x80808080) << 32) | ((((x) & 0x0f) * 0x10204080) & 0x80808080))
+#define	unpackA2A7(x)	(((unsigned long long)((((x) >> 4) * 0x00204081) & 0x01010101) << 32) | ((((x) & 0x0f) * 0x00204081) & 0x01010101))
+#define	unpackH2H7(x)	(((unsigned long long)((((x) >> 4) * 0x10204080) & 0x80808080) << 32) | ((((x) & 0x0f) * 0x10204080) & 0x80808080))
 #endif
 
 #if (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_PLAIN) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_BMI2)

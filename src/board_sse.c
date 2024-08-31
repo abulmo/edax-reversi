@@ -1002,6 +1002,7 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
 	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
 	    |  unpackA2A7(a1a8) | unpackH2H7(h1h8);
+<<<<<<< HEAD
 }
 
   #elif defined(__ARM_NEON)	// Neon kindergarten
@@ -1050,6 +1051,8 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
 	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
 	    |  unpackA1A8(a1a8) | unpackH1H8(h1h8);
+=======
+>>>>>>> 21206f2 (Exclude corners from unpackA2A7/H2H7 to ease CPU_64 kindergarten)
 }
 
 #elif defined(__ARM_NEON__) // Neon kindergarten
@@ -1068,7 +1071,7 @@ unsigned long long get_stable_edge(unsigned long long P, unsigned long long O)
 	uint8x16_t PO = vzipq_u8(vreinterpretq_u8_u64(OO), vreinterpretq_u8_u64(PP)).val[1];
 	return edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 0)]
 	    |  (unsigned long long) edge_stability[vgetq_lane_u16(vreinterpretq_u16_u8(PO), 7)] << 56
-	    |  unpackA1A8(a1a8) | unpackH1H8(h1h8);
+	    |  unpackA2A7(a1a8) | unpackH2H7(h1h8);
 }
 
 <<<<<<< HEAD
@@ -1178,7 +1181,7 @@ int get_edge_stability(const unsigned long long P, const unsigned long long O)
 =======
 	a1a8 = edge_stability[_mm_movemask_epi8(_mm_slli_epi64(PO, 7))];
 	h1h8 = edge_stability[_mm_movemask_epi8(PO)];
-	stable_edge |= unpackA1A8(a1a8) | unpackH1H8(h1h8);
+	stable_edge |= unpackA2A7(a1a8) | unpackH2H7(h1h8);
 
 >>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
 	return stable_edge;
