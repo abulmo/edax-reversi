@@ -252,9 +252,10 @@ static const V4DI rmask_v4[66] = {
 #define _mm256_broadcastsi128_si256(x) _mm_broadcastsi128_si256(x)
 #endif
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m256i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, mOO, flip, outflank, mask, ocontig;
+<<<<<<< HEAD
 <<<<<<< HEAD
 	__m128i	outflank1;
 	const __m256i mbswapll = _mm256_broadcastsi128_si256(_mm_set_epi64x(0x08090a0b0c0d0e0f, 0x0001020304050607));
@@ -266,6 +267,9 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	mask = lrmask[pos].v4[1];
 =======
 	__m128i	flip2, outflank1;
+=======
+	__m128i	outflank1;
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 	const __m256i mbswapll = _mm256_broadcastsi128_si256(_mm_set_epi64x(0x08090a0b0c0d0e0f, 0x0001020304050607));
 
 	PP = _mm256_broadcastq_epi64(OP);
@@ -308,6 +312,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 =======
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
@@ -315,5 +320,8 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	return flip2;
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+	return flip;
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 }
 

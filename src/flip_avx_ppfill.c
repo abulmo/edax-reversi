@@ -256,11 +256,12 @@ const V4DI rmask_v4[66] = {
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
  */
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m256i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
 	__m256i	PP, OO, flip, outflank, eraser, mask;
+<<<<<<< HEAD
 
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
@@ -273,6 +274,8 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	__m256i	PP, OO, flip, outflank, eraser, mask;
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 	__m128i	flip2;
+=======
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
@@ -348,10 +351,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	eraser = _mm256_sub_epi64(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), outflank);
 	flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, mask));
 
-	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
-
-	return flip2;
+	return flip;
 }
 <<<<<<< HEAD
 

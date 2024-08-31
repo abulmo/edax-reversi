@@ -245,8 +245,11 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, outflank, eraser, mask;
+<<<<<<< HEAD
 	__m128i	flip2;
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 	const __m256i mask0F0F = _mm256_set1_epi16(0x0F0F);
 	const __m256i ms1bL = _mm256_broadcastsi128_si256(_mm_set_epi64x(0x0808080808080808, 0x0404040402020100));
 
@@ -296,6 +299,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, mask));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return flip;
 =======
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
@@ -303,5 +307,8 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	return flip2;
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
+=======
+	return flip;
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 }
 

@@ -411,8 +411,12 @@ unsigned long long board_next(const Board *board, const int x, Board *next)
 unsigned long long vectorcall vboard_next(__m128i OP, const int x, Board *next)
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 {
+<<<<<<< HEAD
 	__m128i flipped = mm_Flip(OP, x);
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+	__m128i flipped = reduce_vflip(mm_Flip(OP, x));
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 
 	OP = _mm_xor_si128(OP, _mm_or_si128(flipped, _mm_loadl_epi64((__m128i *) &X_TO_BIT[x])));
 	_mm_storeu_si128((__m128i *) next, _mm_shuffle_epi32(OP, 0x4e));

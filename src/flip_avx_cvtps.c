@@ -247,13 +247,16 @@ static const V4DI rmask_v4[66] = {
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
  */
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m256i vectorcall mm_Flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, outflank, mask;
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 	__m128i	flip2;
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 	const __m256 exp_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0xff800000));
 	const __m256i minusone = _mm256_set1_epi64x(-1);
 
@@ -303,6 +306,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 =======
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
@@ -310,5 +314,8 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	return flip2;
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+	return flip;
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 }
 

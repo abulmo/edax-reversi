@@ -325,8 +325,11 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	__m256i	PP, OO, flip, outflank, mask, minusone;
 =======
 	__m256i	PP, OO, flip, outflank, mask;
+<<<<<<< HEAD
 >>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
 	__m128i	flip2;
+=======
+>>>>>>> a2d40bc (AVX flip reduction after TESTZ in endgame_sse.c)
 
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_permute4x64_epi64(_mm256_castsi128_si256(OP), 0x55);
@@ -365,10 +368,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	flip = _mm256_mask_ternarylogic_epi64(flip, _mm256_test_epi64_mask(outflank, PP), outflank, OO, 0xf8);
 #endif
 
-	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
-	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));	// SWAP64
-
-	return flip2;
+	return flip;
 }
 <<<<<<< HEAD
 
