@@ -9,6 +9,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -19,6 +20,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 22be102 (table lookup bit_count for non-POPCOUNT from stockfish)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -27,15 +31,21 @@
 #include "util.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 /** Table for a 32-bits-at-a-time software CRC-32C calculation.
  * This tablehas built into it the pre and post bit inversion of the CRC. */
 #ifndef crc32c_u64
 static unsigned int crc32c_table[4][256];
 #endif
+<<<<<<< HEAD
 =======
 /** coordinate to bit table converter */
 unsigned long long X_TO_BIT[66];
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 
 /** coordinate to bit table converter */
 unsigned long long X_TO_BIT[66];
@@ -108,6 +118,7 @@ int bit_count(unsigned long long b)
 	#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 =======
 	int	c;
+<<<<<<< HEAD
 	#if 0 // defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	static const unsigned long long M55 = 0x5555555555555555ULL;
@@ -204,6 +215,8 @@ void bit_init(void)
 		PopCnt16[n] = bit_count_32_SWAR(n);
 =======
 	#endif
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 
 	b  = b - ((b >> 1) & 0x5555555555555555ULL);
 	b  = ((b >> 2) & 0x3333333333333333ULL) + (b & 0x3333333333333333ULL);
@@ -247,19 +260,41 @@ static int bit_count_32(unsigned int b)
  */
 void bit_init(void)
 {
-	unsigned int	i;
+	unsigned int	n;
 	unsigned long long	ll;
+#ifndef crc32c_u64
+	unsigned int	k, crc;
+
+	// http://stackoverflow.com/a/17646775/1821055
+	// https://github.com/baruch/crcbench
+	// Generate byte-wise table.
+	for (n = 0; n < 256; n++) {
+		crc = ~n;
+		for (k = 0; k < 8; k++)
+			crc = (crc >> 1) ^ (-(int)(crc & 1) & 0x82f63b78);
+		crc32c_table[0][n] = ~crc;
+	}
+	// Use byte-wise table to generate word-wise table.
+	for (n = 0; n < 256; n++) {
+		crc = ~crc32c_table[0][n];
+		for (k = 1; k < 4; k++) {
+			crc = crc32c_table[0][crc & 0xff] ^ (crc >> 8);
+			crc32c_table[k][n] = ~crc;
+		}
+	}
+#endif
 
 	ll = 1;
-	for (i = 0; i < 66; ++i) {	// X_TO_BIT[64] = X_TO_BIT[65] = 0 for passing move & nomove
-		X_TO_BIT[i] = ll;
+	for (n = 0; n < 66; ++n) {	// X_TO_BIT[64] = X_TO_BIT[65] = 0 for passing move & nomove
+		X_TO_BIT[n] = ll;
 		ll <<= 1;
 	}
 
 #ifndef POPCOUNT
-	for (i = 0; i < (1 << 16); ++i)
-		PopCnt16[i] = bit_count_32(i);
+	for (n = 0; n < (1 << 16); ++n)
+		PopCnt16[n] = bit_count_32(n);
 #endif
+
 #if (defined(USE_GAS_MMX) || defined(USE_MSVC_X86)) && !defined(hasSSE2)
 	init_mmx();
 #endif
@@ -711,6 +746,7 @@ int last_bit(unsigned long long b)
 }
 #endif // last_bit
 
+<<<<<<< HEAD
 #ifndef bswap_short
 /**
  * @brief Swap bytes of a short (little <-> big endian).
@@ -728,6 +764,8 @@ unsigned short bswap_short(unsigned short s)
 #endif
 >>>>>>> ea39994 (Improve clang compatibility)
 
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 #ifndef bswap_int
 /**
  * @brief Mirror the unsigned int (little <-> big endian).
@@ -749,6 +787,7 @@ unsigned int bswap_int(unsigned int i)
 unsigned long long vertical_mirror(unsigned long long b)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return bswap_int((unsigned int)(b >> 32)) | ((unsigned long long) bswap_int((unsigned int) b) << 32);
 }
 #endif // bswap_int
@@ -757,6 +796,9 @@ unsigned long long vertical_mirror(unsigned long long b)
 	b = ((b >> 16) & 0x0000FFFF0000FFFFULL) | ((b & 0x0000FFFF0000FFFFULL) << 16);
 	b = (b >> 32) | (b << 32);
 	return b;
+=======
+	return bswap_int((unsigned int)(b >> 32)) | ((unsigned long long) bswap_int((unsigned int) b) << 32);
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 }
 <<<<<<< HEAD
 #endif
@@ -911,6 +953,28 @@ unsigned int crc32c_u8(unsigned int crc, unsigned int data)
 =======
 #endif // __AVX2__
 >>>>>>> ea39994 (Improve clang compatibility)
+
+/**
+ * @brief Caliculate crc32c checksum for 8 bytes data
+ * @param crc Initial crc from previous data.
+ * @param data Data to accumulate.
+ * @return Resulting crc.
+ */
+#ifndef crc32c_u64
+unsigned int crc32c_u64(unsigned int crc, unsigned long long data)
+{
+	crc ^= (unsigned int) data;
+	crc =	crc32c_table[3][crc & 0xff] ^
+		crc32c_table[2][(crc >> 8) & 0xff] ^
+		crc32c_table[1][(crc >> 16) & 0xff] ^
+		crc32c_table[0][crc >> 24];
+	crc ^= (unsigned int) (data >> 32);
+	return	crc32c_table[3][crc & 0xff] ^
+		crc32c_table[2][(crc >> 8) & 0xff] ^
+		crc32c_table[1][(crc >> 16) & 0xff] ^
+		crc32c_table[0][crc >> 24];
+}
+#endif
 
 /**
  * @brief Get a random set bit index.

@@ -3,7 +3,11 @@
  *
  * Board management header file.
  *
+<<<<<<< HEAD
  * @date 1998 - 2024
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -116,6 +120,7 @@ unsigned long long get_moves_sse(unsigned long long, unsigned long long);
 int get_stability_sse(const unsigned long long P, const unsigned long long O);
 #endif
 
+<<<<<<< HEAD
 #if defined(USE_GAS_MMX) && defined(__3dNOW__)
 unsigned long long board_get_hash_code_mmx(const unsigned char *p);
 #elif defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -123,6 +128,8 @@ unsigned long long board_get_hash_code_sse(const unsigned char *p);
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 #endif
 
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 extern unsigned char edge_stability[256 * 256];
 <<<<<<< HEAD
 
@@ -226,7 +233,7 @@ extern unsigned long long A1_A8[256];
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_Flip(_mm_loadu_si128((__m128i *) (board)), (x))))
 
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SSE
-	extern __m128i (vectorcall *mm_flip[])(const __m128i);
+	extern __m128i (vectorcall *mm_flip[BOARD_SIZE + 2])(const __m128i);
 	#define	Flip(x,P,O)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_unpacklo_epi64(_mm_cvtsi64_si128(P), _mm_cvtsi64_si128(O)))))
 	#define mm_Flip(OP,x)	mm_flip[x](OP)
 	#define	board_flip(board,x)	((unsigned long long) _mm_cvtsi128_si64(mm_flip[x](_mm_loadu_si128((__m128i *) (board)))))
@@ -319,7 +326,7 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 6506166 (More SSE optimizations)
 =======
 #else
-	#if (MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP) || (MOVE_GENERATOR == MOVE_GENERATOR_NEON)
+	#if MOVE_GENERATOR == MOVE_GENERATOR_SSE_BSWAP
 		extern unsigned long long Flip(int, unsigned long long, unsigned long long);
 	#else
 		extern unsigned long long (*flip[BOARD_SIZE + 2])(const unsigned long long, const unsigned long long);

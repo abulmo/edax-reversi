@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -101,7 +105,10 @@ typedef struct HashStoreData {
 } HashStoreData;
 
 /* declaration */
+<<<<<<< HEAD
 
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 void hash_move_init(void);
 void hash_init(HashTable*, const unsigned long long);
 void hash_cleanup(HashTable*);

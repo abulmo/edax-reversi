@@ -25,11 +25,15 @@
  * Bitboard and empty list is kept in SSE registers, but performance gain
  * is limited for GCC minGW build since vectorcall is not supported.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2021
  * @author Richard Delorme
  * @author Toshihiko Okuhara
+<<<<<<< HEAD
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @version 4.5
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * 
  */
 
@@ -47,6 +51,7 @@
 #define	DUPHI	0xee
 
 #if defined(__AVX__) && (defined(__x86_64__) || defined(_M_X64))
+<<<<<<< HEAD
 <<<<<<< HEAD
 	#define	EXTRACT_O(OP)	_mm_extract_epi64(OP, 1)
 #else
@@ -75,21 +80,24 @@
 extern const uint8_t COUNT_FLIP[8][256];
 =======
 #define	EXTRACT_O(OP)	_mm_extract_epi64(OP, 1)
+=======
+	#define	EXTRACT_O(OP)	_mm_extract_epi64(OP, 1)
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 #else
-#define	EXTRACT_O(OP)	_mm_cvtsi128_si64(_mm_shuffle_epi32(OP, DUPHI))
+	#define	EXTRACT_O(OP)	_mm_cvtsi128_si64(_mm_shuffle_epi32(OP, DUPHI))
 #endif
 
 #ifdef __AVX__
-#define	EXTRACT_B3(X)	_mm_extract_epi8(X, 3)
-static inline int TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
+	#define	EXTRACT_B3(X)	_mm_extract_epi8(X, 3)
+	static inline int TESTZ_FLIP(__m128i X) { return _mm_testz_si128(X, X); }
 #else
-#define	EXTRACT_B3(X)	(_mm_cvtsi128_si32(X) >> 24)
-#if defined(__x86_64__) || defined(_M_X64)
-#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
-#else
-static inline int TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
-#endif
-#define _mm_cvtepu8_epi16(X)	_mm_unpacklo_epi8((X), _mm_setzero_si128())
+	#define	EXTRACT_B3(X)	(_mm_cvtsi128_si32(X) >> 24)
+	#if defined(__x86_64__) || defined(_M_X64)
+		#define TESTZ_FLIP(X)	(!_mm_cvtsi128_si64(X))
+	#else
+		static inline int TESTZ_FLIP(__m128i X) { return !_mm_cvtsi128_si32(_mm_packs_epi16(X, X)); }
+	#endif
+	#define _mm_cvtepu8_epi16(X)	_mm_unpacklo_epi8((X), _mm_setzero_si128())
 #endif
 
 // in count_last_flip_sse.c

@@ -15,10 +15,14 @@
  * avoid concurrency collisions.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2020
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -35,28 +39,16 @@
 #include <stdio.h>
 #include <assert.h>
 
+<<<<<<< HEAD
+=======
+/** hashing global data */
+unsigned long long hash_move[64][60];
+
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 /** HashData init value */
 const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMOVE, NOMOVE }};
 <<<<<<< HEAD
 =======
-
-/**
- * @brief Initialize global hash code data.
- */
-void hash_code_init(void)
-{
-	int i, j;
-	Random r;
-
-	random_seed(&r, 0x5DEECE66Dull);
-	for (i = 0; i < 16; ++i)
-	for (j = 0; j < 256; ++j) {
-		do {
-			hash_rank[i][j] = random_get(&r);
-		} while (bit_count(hash_rank[i][j]) < 8); 
-	}
-}
-
 
 /**
  * @brief Initialize global hash move data.

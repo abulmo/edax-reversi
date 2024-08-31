@@ -2184,6 +2184,7 @@ int get_stability_sse(const unsigned long long P, const unsigned long long O)
 
 #endif // __AVX2__
 #endif // HAS_CPU_64/ANDROID
+<<<<<<< HEAD
 
 /**
  * @brief SSE translation of board_get_hash_code.
@@ -2282,3 +2283,5 @@ unsigned long long board_get_hash_code_avx2(const unsigned char *p)
 
 #endif
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)

@@ -5,6 +5,7 @@
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2018
@@ -12,6 +13,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 0a166fd (Remove 1 element array coding style)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -132,6 +136,10 @@ int main(int argc, char **argv)
 	// initialize
 	bit_init();
 	edge_stability_init();
+<<<<<<< HEAD
+=======
+	hash_move_init();
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 	statistics_init();
 	eval_open(options.eval_file);
 	search_global_init();

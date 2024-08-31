@@ -4,10 +4,14 @@
  * Constants as macros, enums, or global consts.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2020
 >>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -95,6 +99,7 @@ typedef	unsigned char	NodeType;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define VERSION_STRING "4.4.5"
 #define EDAX_NAME "Edax 4.4.5"
 >>>>>>> 5124720 (-eval-file options added as documented; minor fix on console output)
@@ -110,6 +115,10 @@ typedef	unsigned char	NodeType;
 #define VERSION_STRING "4.4.8"
 #define EDAX_NAME "Edax 4.4.8"
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
+=======
+#define VERSION_STRING "4.5.0"
+#define EDAX_NAME "Edax 4.5.0"
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

@@ -226,10 +226,10 @@ static inline int _tzcnt_u64(unsigned long long x) {
  *
  * CPU dependent bit operation intrinsics.
  *
- * @date 2020
+ * @date 2020 - 2021
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.4
+ * @version 4.5
  */
 
 #ifndef EDAX_BIT_INTRINSICS_H
@@ -420,6 +420,18 @@ static inline int _tzcnt_u64(unsigned long long x) {
 	// #elif defined(__GNUC__)
 	//	#define	tzcnt_u32(x)	__builtin_ctz(x)	// '& 0x07' optimized out assuming x != 0
 	#endif
+#endif
+
+#if defined(__SSE4_2__) || defined(__AVX__)
+	#ifdef HAS_CPU_64
+		#define	crc32c_u64(crc,d)	_mm_crc32_u64((crc),(d))
+	#else
+		#define	crc32c_u64(crc,d)	_mm_crc32_u32(_mm_crc32_u32((crc),(d)),((d)>>32))
+	#endif
+#elif defined(__ARM_FEATURE_CRC32)
+	#define	crc32c_u64(crc,d)	__crc32cd((crc),(d))
+#else
+	unsigned int crc32c_u64(unsigned int crc, unsigned long long data);
 #endif
 
 #endif // EDAX_BIT_INTRINSICS_H

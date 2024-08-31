@@ -109,7 +109,7 @@ Kindergarten version eliminates bit_count call.
 ### 2.5 find_edge_stable
 Loop optimization and flip using carry propagation. One time execution but affect total solving time.
 
-## 3. eval.c
+## 3. eval.c (4.4.5)
 Eval feature calculation using SSE2 / AVX2 (now in eval_sse.c) improves midgame by 15-30% and endgame by 8-12%.
 Restoring eval from backup instead of rewinding.
 eval_open (one time execution) is also optimized.
@@ -120,7 +120,13 @@ I think hash->data.move[0] on line 677 should be hash->data.move[1].
 ## 5. board_symetry, board_unique (board.c, board_sse.c)
 SSE optimization and mirroring reduction. (Not used in solving game)
 
-## 6. AVX2 versions (x64-modern build only)
+## 6. endgame_sse.c (4.4.7)
+Keep more variables in SSE registers.  SSE optimized count_last_flip.  Parity sort by shuffle.
+
+## 7. board_get_hash_code (4.5.0)
+Changed to use CRC32c.  This enables hardware acceleration on modern build.
+
+## 8. AVX2 versions (x64-modern build only)
 In many cases AVX2 version is simplest, thanks to variable shift instructions (although they are 3 micro-op instructions).
 
 Benchmarks are on Core i5-4260U (Haswell) 1.4GHz (TB 2.7GHz) single thread.
@@ -136,6 +142,6 @@ Benchmarks are on Core i5-4260U (Haswell) 1.4GHz (TB 2.7GHz) single thread.
     +count_last_flip_sse.c
     problem/fforum-20-39.obf: 111349635 nodes in 0:04.906 (22696624 nodes/s).
 
-## 7. makefile
+## 9. makefile
 gcc-old, x86 build should be -m32, not -m64. Some flags and defines added for optimization.
 >>>>>>> b9d48c1 (Create README.md)

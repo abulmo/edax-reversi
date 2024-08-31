@@ -11,6 +11,7 @@
  * will be generated.  (This setting requires VC or GCC 4.4+)
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 2014 - 2023
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -19,6 +20,11 @@
  * @author Toshihiko Okuhara
  * @version 4.4
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
+=======
+ * @date 2014 - 2021
+ * @author Toshihiko Okuhara
+ * @version 4.5
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  */
 
 #include "bit.h"
@@ -953,6 +959,7 @@ int get_potential_mobility_mmx(unsigned long long P, unsigned long long O)
 }
 #endif
 
+<<<<<<< HEAD
 /**
  * @brief MMX translation of board_get_hash_code.
  *
@@ -1004,6 +1011,8 @@ unsigned long long board_get_hash_code_mmx(const unsigned char *p)
 #endif // __3dNOW
 >>>>>>> 3e1ed4f (fix cr/lf in repository to lf)
 
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 #if !defined(hasMMX) && defined(USE_GAS_MMX)
 	#pragma GCC pop_options
 #endif

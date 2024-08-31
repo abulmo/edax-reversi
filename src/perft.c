@@ -3,7 +3,11 @@
  *
  * @brief Move generator test.
  *
+<<<<<<< HEAD
  * @date 1998 - 2023
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -875,6 +879,7 @@ unsigned long long shape_unique(unsigned long long shape)
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
  * @brief Compute a hash code.
  *
@@ -901,6 +906,8 @@ unsigned long long shape_get_hash_code(const unsigned long long shape)
 
 /**
 >>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
+=======
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * Array of shape.
  */
 typedef struct {

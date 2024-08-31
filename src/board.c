@@ -14,6 +14,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -24,6 +25,9 @@
 =======
  * @date 1998 - 2020
 >>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
+=======
+ * @date 1998 - 2021
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
@@ -1581,6 +1585,7 @@ unsigned long long board_get_hash_code(const Board *board)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned long long crc = crc32c_u64(0, board->player);
 	return (crc << 32) | crc32c_u64(crc, board->opponent);
 =======
@@ -1611,6 +1616,12 @@ unsigned long long board_get_hash_code(const Board *board)
 
 	return h1 ^ h2;
 >>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
+=======
+	unsigned long long	crc;
+
+	crc = crc32c_u64(0, board->player);
+	return (crc << 32) | crc32c_u64(crc, board->opponent);
+>>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 }
 
 /**
