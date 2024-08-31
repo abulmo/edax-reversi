@@ -26,7 +26,7 @@
 
 /** OBF structure: Othello Board File */
 typedef struct OBF {
-	Board board[1];   /**<! Othello board */
+	Board board;      /**<! Othello board */
 	int player;       /**<! Player on turn */
 	struct {
 		int x;        /**<! Move coordinate */
@@ -64,8 +64,8 @@ static void obf_write(OBF *obf, FILE *f)
 	char s[80];
 	int i;
 
-	if ((obf->board->player | obf->board->opponent) != 0) {
-		board_to_string(obf->board, obf->player, s);
+	if ((obf->board.player | obf->board.opponent) != 0) {
+		board_to_string(&obf->board, obf->player, s);
 		fprintf(f, "%s;", s);
 		for (i = 0; i < obf->n_moves; ++i) {
 			putc(' ', f);
@@ -89,12 +89,12 @@ static void obf_write(OBF *obf, FILE *f)
 static int obf_read(OBF *obf, FILE *f)
 {
 	char *string, *line, *next;
-	Move move[1];
+	Move move;
 	int parse_ok;
 
 	obf->n_moves = 0;
 	obf->best_score = -SCORE_INF;
-	obf->board->player = obf->board->opponent = 0;
+	obf->board.player = obf->board.opponent = 0;
 	obf->comments = NULL;
 
 	line = string_read_line(f);
@@ -107,36 +107,36 @@ static int obf_read(OBF *obf, FILE *f)
 		} else if (*string == '\n' || *string == '\r' || *string == '\0') {
 			parse_ok = OBF_PARSE_SKIP;
 		} else {
-			next = parse_board(string, obf->board, &obf->player);
+			next = parse_board(string, &obf->board, &obf->player);
 			parse_ok = (next > string) ? OBF_PARSE_OK : OBF_PARSE_SKIP;
 		}
 
 		while (parse_ok == OBF_PARSE_OK && *(string = parse_find(next, ';')) == ';') {
-			next = parse_move(++string, obf->board, move);
+			next = parse_move(++string, &obf->board, &move);
 			if (next != string) {
 				string = parse_find(next, ':');
 				if (*string == ':') ++string;
 				else {
-					warn("missing score in %s (%d) %s %s\n", line, move->x, next, string);
+					warn("missing score in %s (%d) %s %s\n", line, move.x, next, string);
 					printf("read>"); obf_write(obf, stdout);
 					parse_ok = OBF_PARSE_SKIP;
 					break;
 				}
 			}
-			move->score = -SCORE_INF;
-			next = parse_int(string, &move->score);
+			move.score = -SCORE_INF;
+			next = parse_int(string, &move.score);
 			if (next == string && obf->best_score == -SCORE_INF) {
 				warn("missing best score in %s\n", line);
 				break;
 			}
 
-			if (move->x == NOMOVE && move->score == -SCORE_INF) {
+			if (move.x == NOMOVE && move.score == -SCORE_INF) {
 				break;
 			}
 
-			if (move->score > obf->best_score) obf->best_score = move->score;
-			obf->move[obf->n_moves].x = move->x;
-			obf->move[obf->n_moves].score = move->score;
+			if (move.score > obf->best_score) obf->best_score = move.score;
+			obf->move[obf->n_moves].x = move.x;
+			obf->move[obf->n_moves].score = move.score;
 			++obf->n_moves;
 		}
 
@@ -158,9 +158,9 @@ static void obf_search(Search *search, OBF *obf, int n)
 	int i, j;
 
 	search_cleanup(search);
-	search_set_board(search, obf->board, obf->player);
-	search_set_level(search, options.level, search->n_empties);
-	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->n_empties);
+	search_set_board(search, &obf->board, obf->player);
+	search_set_level(search, options.level, search->eval.n_empties);
+	if (options.depth >= 0) search->options.depth = MIN(options.depth, search->eval.n_empties);
 	if (options.selectivity >= 0) search->options.selectivity = options.selectivity;
 
 	if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
@@ -168,7 +168,7 @@ static void obf_search(Search *search, OBF *obf, int n)
 
 	if (options.verbosity >= 2) {
 		printf("\n*** problem # %d ***\n\n", n);
-		board_print(search->board, search->player, stdout);
+		board_print(&search->board, search->player, stdout);
 		putchar('\n');
 		puts(search->options.header);
 		puts(search->options.separator);
@@ -218,12 +218,13 @@ static void obf_search(Search *search, OBF *obf, int n)
 static void obf_build(Search *search, OBF *obf, int n)
 {
 	int n_moves;
-	
+	unsigned long long hash_code;
+
 	search_cleanup(search);
-	search_set_board(search, obf->board, obf->player);
-	search_set_level(search, options.level, search->n_empties);
+	search_set_board(search, &obf->board, obf->player);
+	search_set_level(search, options.level, search->eval.n_empties);
 	if (options.depth >= 0) {
-		search->options.depth = MAX(options.depth, search->n_empties);
+		search->options.depth = MAX(options.depth, search->eval.n_empties);
 		search->options.selectivity = 0;
 	}
 	if (options.selectivity >= 0) search->options.selectivity = options.selectivity;
@@ -235,7 +236,7 @@ static void obf_build(Search *search, OBF *obf, int n)
 	if (options.verbosity >= 2) {
 		printf("\n*** problem # %d ***\n\n", n);
 		if (obf->comments) printf("* %s *\n\n", obf->comments);
-		board_print(search->board, search->player, stdout);
+		board_print(&search->board, search->player, stdout);
 		putchar('\n');
 		puts(search->options.header);
 		puts(search->options.separator);
@@ -245,7 +246,7 @@ static void obf_build(Search *search, OBF *obf, int n)
 	obf->n_moves = 0;
 	obf->best_score = -SCORE_INF;
 	search->result->score = -SCORE_INF;
-	n_moves = search->movelist->n_moves;
+	n_moves = search->movelist.n_moves;
 
 	if (n_moves == 0) {
 		if (options.verbosity == 1) printf("%3d|", n);
@@ -270,9 +271,10 @@ static void obf_build(Search *search, OBF *obf, int n)
 		if (obf->best_score < search->result->score) obf->best_score = search->result->score;
 		++obf->n_moves;
 
-		hash_exclude_move(search->pv_table, search->board, board_get_hash_code(search->board), search->result->move);
-		hash_exclude_move(search->hash_table,  search->board, board_get_hash_code(search->board), search->result->move);
-		movelist_exclude(search->movelist, search->result->move);
+		hash_code = board_get_hash_code(&search->board);
+		hash_exclude_move(&search->pv_table, &search->board, hash_code, search->result->move);
+		hash_exclude_move(&search->hash_table, &search->board, hash_code, search->result->move);
+		movelist_exclude(&search->movelist, search->result->move);
 	}
 
 	if (options.verbosity) {
@@ -291,7 +293,7 @@ static void obf_build(Search *search, OBF *obf, int n)
 void obf_test(Search *search, const char *obf_file, const char *wrong_file)
 {
 	FILE *f, *w = NULL;
-	OBF obf[1];
+	OBF obf;
 	unsigned long long T = 0, n_nodes = 0;
 	int n = 0, n_bad_score = 0, n_bad_move = 0;
 	double score_error = 0.0, move_error = 0.0;
@@ -323,28 +325,28 @@ void obf_test(Search *search, const char *obf_file, const char *wrong_file)
 		if (search->options.separator) printf("---+%s\n", search->options.separator);
 	}
 
-	while ((ok = obf_read(obf, f)) != OBF_PARSE_END) {
+	while ((ok = obf_read(&obf, f)) != OBF_PARSE_END) {
 		if (ok == OBF_PARSE_OK) {
-			obf_search(search, obf, ++n);
+			obf_search(search, &obf, ++n);
 		
 			T += search_time(search);
 			n_nodes += search_count_nodes(search);
-			for (i = 0; i < obf->n_moves; ++i) {
-				if (obf->move[i].x == search->result->move) break;
+			for (i = 0; i < obf.n_moves; ++i) {
+				if (obf.move[i].x == search->result->move) break;
 			}
-			if (i < obf->n_moves) {
-				if (obf->move[i].score < obf->best_score) ++n_bad_move;
-				if (obf->move[i].score != search->result->score) ++n_bad_score;
-				move_error += abs(obf->best_score - obf->move[i].score);
-				if (w && obf->move[i].score < obf->best_score) obf_write(obf, w);
+			if (i < obf.n_moves) {
+				if (obf.move[i].score < obf.best_score) ++n_bad_move;
+				if (obf.move[i].score != search->result->score) ++n_bad_score;
+				move_error += abs(obf.best_score - obf.move[i].score);
+				if (w && obf.move[i].score < obf.best_score) obf_write(&obf, w);
 			} 
-			if (obf->best_score > -SCORE_INF) score_error += abs(obf->best_score - search->result->score);
+			if (obf.best_score > -SCORE_INF) score_error += abs(obf.best_score - search->result->score);
 			else print_summary = true;
 		}
-		obf_free(obf);			
+		obf_free(&obf);			
 	}
 
-	if (options.verbosity == 1 && search->options.separator) puts(search->options.separator);
+	if (options.verbosity == 1 && search->options.separator) printf("---+%s\n", search->options.separator);
 	printf("%.30s: ", obf_file);
 	if (n_nodes) printf("%llu nodes in ", n_nodes);
 	time_print(T, false, stdout);
@@ -376,7 +378,7 @@ void script_to_obf(Search *search, const char *script_file, const char *obf_file
 {
 	
 	FILE *i, *o;
-	OBF obf[1];
+	OBF obf;
 	int n = 0, ok;
 
 	// add observers
@@ -410,15 +412,15 @@ void script_to_obf(Search *search, const char *script_file, const char *obf_file
 		if (search->options.separator) printf("---+%s\n", search->options.separator);
 	}
 
-	while ((ok = obf_read(obf, i)) != OBF_PARSE_END) {
+	while ((ok = obf_read(&obf, i)) != OBF_PARSE_END) {
 		if (ok == OBF_PARSE_OK) {
-			obf_build(search, obf, ++n);
+			obf_build(search, &obf, ++n);
 		}
-		obf_write(obf, o);
-		obf_free(obf);			
+		obf_write(&obf, o);
+		obf_free(&obf);			
 	}
 
-	if (options.verbosity == 1 && search->options.separator) puts(search->options.separator);
+	if (options.verbosity == 1 && search->options.separator) printf("---+%s\n", search->options.separator);
 	putchar('\n');
 
 	fclose(o);
@@ -436,7 +438,7 @@ void obf_filter(const char *input_file, const char *output_file)
 	FILE *in, *out;
 	int i, n, f, ok;
 	int n_best, second_best;
-	OBF obf[1];
+	OBF obf;
 
 	// open script file with problems
 	in = fopen(input_file, "r");
@@ -451,21 +453,21 @@ void obf_filter(const char *input_file, const char *output_file)
 	}
 	
 	n = f = 0;
-	while ((ok = obf_read(obf, in)) != OBF_PARSE_END) {
+	while ((ok = obf_read(&obf, in)) != OBF_PARSE_END) {
 		if (ok == OBF_PARSE_OK) {
 			++n;
 			n_best = 0;
-			second_best = obf->best_score - 4;
-			for (i = 0; i < obf->n_moves; ++i) {
-				if (obf->move[i].score == obf->best_score) ++n_best;
-				else if (obf->move[i].score > second_best) second_best = obf->move[i].score;
+			second_best = obf.best_score - 4;
+			for (i = 0; i < obf.n_moves; ++i) {
+				if (obf.move[i].score == obf.best_score) ++n_best;
+				else if (obf.move[i].score > second_best) second_best = obf.move[i].score;
 			}
-			if (n_best == 1 && second_best == obf->best_score - 2) {
+			if (n_best == 1 && second_best == obf.best_score - 2) {
 				++f;
-				obf_write(obf, out);
+				obf_write(&obf, out);
 			}
 		}
-		obf_free(obf);			
+		obf_free(&obf);
 	}
 
 	printf("OBF filter: %d selected out of %d positions\n", f, n);
@@ -484,13 +486,13 @@ void obf_speed(Search *search, const int n)
 	unsigned long long t = real_clock();
 	unsigned long long T = 0, n_nodes = 0;
 	const int level = options.level;
-	Random r[1];
+	Random r;
 	OBF obf;
 	
 	obf.n_moves = 0;
 	obf.best_score = -SCORE_INF;
 	
-	random_seed(r, 42);
+	random_seed(&r, 42);
 	options.level = 60;
 	search_set_observer(search, search_observer);
 	search->options.verbosity = (options.verbosity == 1 ? 0 : options.verbosity);
@@ -504,11 +506,13 @@ void obf_speed(Search *search, const int n)
 	for (i = 0; n == - 1 ? real_clock() - t < 60000 : i < n; ++i) {
 		const int ply = MAX(30, 40 - i / 5);
 		obf.player = ply & 1;
-		board_rand(obf.board, ply, r);
+		board_rand(&obf.board, ply, &r);
 		obf_search(search, &obf, i + 1);
 		T += search_time(search);
 		n_nodes += search_count_nodes(search);
 	}
+
+	if (options.verbosity == 1 && search->options.separator) printf("---+%s\n", search->options.separator);
 	printf("%d positions solved: ", i);
 	if (n_nodes) printf("%llu nodes in ", n_nodes);
 	time_print(T, false, stdout);
