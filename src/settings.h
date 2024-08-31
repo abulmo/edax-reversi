@@ -12,6 +12,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2017
@@ -19,6 +20,9 @@
 =======
  * @date 1998 - 2018
 >>>>>>> 1dc032e (Improve visual c compatibility)
+=======
+ * @date 1998 - 2024
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
  * @author Richard Delorme
  * @version 4.5
 =======

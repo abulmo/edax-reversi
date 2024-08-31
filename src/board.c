@@ -107,6 +107,7 @@
 	#include "flip_neon_lzcnt.c"
   #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 #elif MOVE_GENERATOR == MOVE_GENERATOR_SVE
 	#include "flip_sve_lzcnt.c"
 =======
@@ -128,6 +129,10 @@
 >>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
 =======
 >>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
+=======
+#elif MOVE_GENERATOR == MOVE_GENERATOR_SVE
+	#include "flip_sve_lzcnt.c"
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 #else // MOVE_GENERATOR == MOVE_GENERATOR_KINDERGARTEN
 	#include "flip_kindergarten.c"
 #endif

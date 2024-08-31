@@ -5,7 +5,11 @@
  *
  * For LSB to MSB directions, isolate LS1B can be used to determine
  * contiguous opponent discs.
+<<<<<<< HEAD
  * For MSB to LSB directions, CLZ is used to isolate MS1B.
+=======
+ * For MSB to LSB directions, LZCNT is used to isolate MS1B.
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
  *
  * @date 2024
  * @author Toshihiko Okuhara
@@ -15,7 +19,11 @@
 #include "arm_sve.h"
 #include "arm_neon.h"
 
+<<<<<<< HEAD
 const uint64_t lrmask[66][8] = {
+=======
+static const uint64_t lrmask[66][8] = {
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 	{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 },
 	{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 },
 	{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200, 0x0000000000000003, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 },

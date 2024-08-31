@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2024
 =======
  * @date 1998 - 2021
@@ -16,6 +17,9 @@
 =======
  * @date 1998 - 2023
 >>>>>>> 8566ed0 (vector call version of board_next & get_moves)
+=======
+ * @date 1998 - 2024
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -489,6 +493,10 @@ extern unsigned long long A1_A8[256];
 >>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
 #endif
 
+#ifndef vboard_flip
+	#define	vboard_flip(vboard,x)	board_flip(&(vboard).board, (x))
+#endif
+
 // Use backup copy of search->board in a vector register if available (assume *pboard == vboard on entry)
 #ifdef hasSSE2
 	#define	vboard_update(pboard,vboard,move)	_mm_storeu_si128((__m128i *) (pboard), _mm_shuffle_epi32(_mm_xor_si128((vboard).v2, _mm_or_si128(_mm_set1_epi64x((move)->flipped), _mm_loadl_epi64((__m128i *) &X_TO_BIT[move->x]))), 0x4e))
@@ -508,7 +516,6 @@ extern unsigned long long A1_A8[256];
 #else
 	unsigned long long board_next(const Board *board, const int x, Board *next);
 	#define	vboard_next(vboard,x,next)	board_next(&(vboard).board, (x), (next))
-	#define	vboard_flip(vboard,x)	board_flip(&(vboard).board, (x))
 #endif
 
 // Pass vboard to get_moves if vectorcall available, otherwise board

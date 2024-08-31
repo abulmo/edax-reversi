@@ -5,6 +5,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright 1998 - 2024
 =======
 # Copyright 1998 - 2018
@@ -18,6 +19,9 @@
 =======
 # Copyright 1998 - 2023
 >>>>>>> 4087529 (Revise board0 usage; fix unused flips)
+=======
+# Copyright 1998 - 2024
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 # Richard Delorme
 # Version 4.5
 #
@@ -189,6 +193,7 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -march=armv8.2-a+sve
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
+<<<<<<< HEAD
 =======
 			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon
 >>>>>>> f2da03e (Refine arm builds adding neon support.)
@@ -203,6 +208,8 @@ ifeq ($(COMP),gcc)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 >>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
+=======
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 		endif
 	endif
 

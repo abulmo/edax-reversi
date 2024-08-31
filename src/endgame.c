@@ -201,6 +201,7 @@ int search_solve_0(const Search *search)
 <<<<<<< HEAD
 #if ((MOVE_GENERATOR == MOVE_GENERATOR_AVX) || (MOVE_GENERATOR == MOVE_GENERATOR_AVX512) || (MOVE_GENERATOR == MOVE_GENERATOR_SSE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE) || (LAST_FLIP_COUNTER >= COUNT_LAST_FLIP_BMI2))
 	#include "endgame_sse.c"	// vectorcall version
+<<<<<<< HEAD
 #elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_NEON) || ((LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SVE) && defined(SIMULLASTFLIP)))
 	#include "endgame_neon.c"
 #else
@@ -220,6 +221,9 @@ int search_solve_0(const Search *search)
 >>>>>>> 52949e1 (Add build options and files for new count_last_flips)
 	#include "endgame_sse.c"	// vectorcall version
 #elif (MOVE_GENERATOR == MOVE_GENERATOR_NEON) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+=======
+#elif ((MOVE_GENERATOR == MOVE_GENERATOR_NEON) || (MOVE_GENERATOR == MOVE_GENERATOR_SVE)) && (LAST_FLIP_COUNTER == COUNT_LAST_FLIP_SSE)
+>>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 	#include "endgame_neon.c"
 #else
 >>>>>>> 26dad03 (Use player bits only in board_score_1)
