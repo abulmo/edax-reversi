@@ -109,6 +109,7 @@ typedef struct HashStoreData {
 <<<<<<< HEAD
 <<<<<<< HEAD
 
+<<<<<<< HEAD
 =======
 >>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
 =======
@@ -131,6 +132,8 @@ typedef struct HashStoreData {
 
 >>>>>>> e88638e (add vectorcall interface to hash functions)
 void hash_move_init(void);
+=======
+>>>>>>> a9633d5 (Initial 4.5.2; some reformats)
 void hash_init(HashTable*, const unsigned long long);
 void hash_cleanup(HashTable*);
 void hash_clear(HashTable*);

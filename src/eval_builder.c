@@ -14,12 +14,16 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 enum { MAX_N_GAMES = 3200000 };
 
 =======
 >>>>>>> 6336a36 (Ad hoc restore of eval_builder)
 =======
 enum { MAX_N_GAMES = 2500000 };
+=======
+enum { MAX_N_GAMES = 3200000 };
+>>>>>>> a9633d5 (Initial 4.5.2; some reformats)
 
 >>>>>>> 52d06c1 (pass flag in gamebase; increase MAX_N_GAMES in eval_builder)
 #define _CRT_SECURE_NO_WARNINGS

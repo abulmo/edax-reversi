@@ -11,6 +11,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @date 1998 - 2023
 =======
  * @date 1998 - 2017
@@ -27,6 +28,9 @@
 =======
  * @date 1998 - 2022
 >>>>>>> dc7c79c (Omit unpack from get_edge_stability)
+=======
+ * @date 1998 - 2023
+>>>>>>> a9633d5 (Initial 4.5.2; some reformats)
  * @author Richard Delorme
  * @version 4.5
  */
