@@ -133,6 +133,7 @@ ifeq ($(COMP),gcc)
 	ifeq ($(OS),windows)
 		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x0501
 <<<<<<< HEAD
+<<<<<<< HEAD
 		ifneq (,$(findstring x86,$(ARCH)))
 =======
 		ifeq ($(ARCH),x86-modern)
@@ -140,6 +141,9 @@ ifeq ($(COMP),gcc)
 		endif
 		ifeq ($(ARCH),x86)
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
+=======
+		ifneq (,$(findstring x86,$(ARCH)))
+>>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
 			CFLAGS += -DUSE_PTHREAD
 		endif
 	endif
@@ -303,10 +307,14 @@ ifeq ($(COMP),clang)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
+<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
 	endif
 	ifeq ($(ARCH),x64-avx512)
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
+=======
+		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
+>>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64 
@@ -338,6 +346,7 @@ ifeq ($(OS),windows)
 	EXE = wEdax-$(ARCH).exe
 	LIBS += -lws2_32
 <<<<<<< HEAD
+<<<<<<< HEAD
 	ifneq (,$(findstring x86,$(ARCH)))
 		LIBS += -Bstatic -Wl,-Bstatic,-lpthread
 =======
@@ -345,6 +354,9 @@ ifeq ($(OS),windows)
 		LIBS += -lpthread
 	endif
 	ifeq ($(ARCH),x86)
+=======
+	ifneq (,$(findstring x86,$(ARCH)))
+>>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
 		LIBS += -lpthread
 >>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
