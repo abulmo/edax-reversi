@@ -366,6 +366,7 @@ ifeq ($(OS),windows)
 endif
 ifeq ($(OS),osx)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	EXE = mEdax-$(ARCH)
 =======
 	ifeq ($(ARCH),x64)
@@ -374,6 +375,9 @@ ifeq ($(OS),osx)
 		EXE = mEdax-$(ARCH)
 	endif
 >>>>>>> e558fdb (Some cleanups for clang / android build)
+=======
+	EXE = mEdax-$(ARCH)
+>>>>>>> ffdc063 (makefile for macuniversal)
 	LIBS += -lpthread
 endif
 
@@ -477,6 +481,12 @@ macuniversal:
 	$(MAKE) build ARCH=x86 OS=osx COMP=clang
 	$(MAKE) build ARCH=x64 OS=osx COMP=clang
 	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -arch arm64 ../bin/mEdax-arm -output ../bin/mEdax
+	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
+
+macuniversal:
+	$(MAKE) build ARCH=x86 OS=osx COMP=clang
+	$(MAKE) build ARCH=x64 OS=osx COMP=clang
+	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -output ../bin/mEdax
 	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
 
 clean:
