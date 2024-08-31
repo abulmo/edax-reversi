@@ -3,7 +3,7 @@
  *
  * List of empty squares.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2020
  * @author Richard Delorme
  * @version 4.4
  */
@@ -13,11 +13,8 @@
 
 /** double linked list of squares */
 typedef struct SquareList {
-	unsigned long long b;         /*!< bit representation of the square location */
-	int x;                        /*!< square location */
-	int quadrant;                 /*!< parity quadrant */
-	struct SquareList *previous;  /*!< link to previous square */
-	struct SquareList *next;      /*!< link to next square */
+	unsigned char previous;	/*!< link to previous square */
+	unsigned char next;	/*!< link to next square */
 } SquareList;
 
 /**
@@ -25,10 +22,12 @@ typedef struct SquareList {
  *
  * @param empty  empty square.
  */
-static inline void empty_remove(SquareList *empty)
+static inline void empty_remove(SquareList *empty, int index)
 {
-	empty->previous->next = empty->next;
-	empty->next->previous = empty->previous;
+	int	next = empty[index].next;
+	int	prev = empty[index].previous;
+	empty[prev].next = next;
+	empty[next].previous = prev;
 }
 
 /**
@@ -36,23 +35,15 @@ static inline void empty_remove(SquareList *empty)
  *
  * @param empty  empty square.
  */
-static inline void empty_restore(SquareList *empty)
+static inline void empty_restore(SquareList *empty, int index)
 {
-	empty->previous->next = empty;
-	empty->next->previous = empty;
+	empty[empty[index].previous].next = index;
+	empty[empty[index].next].previous = index;
 }
 
 /** Loop over all empty squares */
-#define foreach_empty(empty, list)\
-	for ((empty) = (list)->next; (empty)->next; (empty) = (empty)->next)
-
-/** Loop over all empty squares on even quadrants */
-#define foreach_even_empty(empty, list, parity)\
-	for ((empty) = (list)->next; (empty)->next; (empty) = (empty)->next) if ((parity & empty->quadrant) == 0)
-
-/** Loop over all empty squares on odd quadrants */
-#define foreach_odd_empty(empty, list, parity)\
-	for ((empty) = (list)->next; (empty)->next; (empty) = (empty)->next) if (parity & empty->quadrant)
+#define foreach_empty(index, empty)\
+	for ((index) = (empty)[NOMOVE].next; index != NOMOVE; (index) = (empty)[index].next)
 
 #endif
 
