@@ -125,8 +125,12 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 	mOO = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP)),
 		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
+<<<<<<< HEAD
 	ocontig = _mm256_broadcastq_epi64(*(__m128i *) &X_TO_BIT[pos]);
 >>>>>>> cb149ab (Faster flip_avx (ppfill) and variants added)
+=======
+	ocontig = _mm256_set1_epi64x(X_TO_BIT[pos]);
+>>>>>>> 88b2057 (Replace broadcast from memory with set1)
 	ocontig = _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift1897));
 	ocontig = _mm256_or_si256(ocontig, _mm256_and_si256(mOO, _mm256_srlv_epi64(ocontig, shift1897)));
 	pre = _mm256_and_si256(mOO, _mm256_srlv_epi64(mOO, shift1897));	// parallel prefix

@@ -791,10 +791,14 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 <<<<<<< HEAD
 #ifdef __AVX2__
 <<<<<<< HEAD
+<<<<<<< HEAD
 				__m128i MM =  get_moves_and_potential(_mm256_set1_epi64x(search->board.player), _mm256_set1_epi64x(search->board.opponent));
 =======
 				__m128i MM =  get_moves_and_potential(_mm256_broadcastq_epi64(*(__m128i *) &search->board.player), _mm256_broadcastq_epi64(*(__m128i *) &search->board.opponent));
 >>>>>>> bcc211a (Add _mm_extract_epi64 to x86 sim)
+=======
+				__m128i MM =  get_moves_and_potential(_mm256_set1_epi64x(search->board.player), _mm256_set1_epi64x(search->board.opponent));
+>>>>>>> 88b2057 (Replace broadcast from memory with set1)
 				score += (36 - bit_weighted_count(_mm_extract_epi64(MM, 1))) * w_potential_mobility; // potential mobility
 				score += (36 - bit_weighted_count(moves = _mm_cvtsi128_si64(MM))) * w_mobility; // real mobility
 #else

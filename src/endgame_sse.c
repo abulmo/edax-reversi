@@ -887,7 +887,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
 		lmO = _mm256_maskz_andnot_epi64(lp, P4, lmask);	// masked O, clear if all O
 		rmO = _mm256_maskz_andnot_epi64(rp, P4, rmask);	// (all O = all P = 0 flip)
-		if (_mm256_testz_si256(_mm256_or_si256(lmO, rmO), _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {
+		if (_mm256_testz_si256(_mm256_or_si256(lmO, rmO), _mm256_set1_epi64x(NEIGHBOUR[pos]))) {
 			// nflip = last_flip(pos, ~P);
 				// left: set below LS1B if O is in lmask
 			// F4 = _mm256_andnot_si256(lmO, _mm256_add_epi64(lmO, _mm256_set1_epi64x(-1)));
@@ -954,7 +954,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 
 	if (score > alpha) {	// if player can move, high cut-off will occur regardress of n_flips.
 		F4 = _mm256_or_si256(_mm256_andnot_si256(lp, lmO), _mm256_andnot_si256(rp, rmO));	// clear if all O
-		if (_mm256_testz_si256(F4, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass (16%)
+		if (_mm256_testz_si256(F4, _mm256_set1_epi64x(NEIGHBOUR[pos]))) {	// pass (16%)
 			// n_flips = last_flip(pos, ~P);
 				// right: isolate opponent MS1B by clearing lower shadow bits
 			eraser = _mm256_srlv_epi64(rmO, _mm256_set_epi64x(7, 9, 8, 1));
@@ -1060,7 +1060,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		__m512i P8 = _mm512_broadcastq_epi64(P2);
 		__m512i M = lrmask[pos].v8;
 		__m512i mO = _mm512_andnot_epi64(P8, M);
-		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), mO, _mm512_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass (16%)
+		if (!_mm512_mask_test_epi64_mask(_mm512_test_epi64_mask(P8, M), mO, _mm512_set1_epi64(NEIGHBOUR[pos]))) {	// pass (16%)
 			// n_flips = last_flip(pos, ~P);
 			t = _cvtmask32_u32(_mm256_cmpneq_epi8_mask(_mm512_castsi512_si256(mO), _mm512_extracti64x4_epi64(mO, 1)));	// eq only if l = r = 0
 
@@ -1071,7 +1071,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		M = lrmask[pos].v4[1];
 		// F = _mm256_mask_or_epi64(F, _mm256_test_epi64_mask(P4, M), F, _mm256_andnot_si256(P4, M));
 		F = _mm256_mask_ternarylogic_epi64(F, _mm256_test_epi64_mask(P4, M), P4, M, 0xF2);
-		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass (16%)
+		if (_mm256_testz_si256(F, _mm256_set1_epi64x(NEIGHBOUR[pos]))) {	// pass (16%)
 			// n_flips = last_flip(pos, ~P);
 			// t = _cvtmask32_u32(_mm256_cmpneq_epi8_mask(_mm256_andnot_si256(P4, lM), _mm256_andnot_si256(P4, rM)));
 			t = _cvtmask32_u32(_mm256_test_epi8_mask(F, F));	// all O = all P = 0 flip
@@ -1084,7 +1084,7 @@ static inline int vectorcall board_score_sse_1(__m128i PO, const int alpha, cons
 		M = lrmask[pos].v4[1];
 		__m256i rmO = _mm256_andnot_si256(P4, M);
 		F = _mm256_or_si256(F, _mm256_andnot_si256(_mm256_cmpeq_epi64(rmO, M), rmO));
-		if (_mm256_testz_si256(F, _mm256_broadcastq_epi64(*(__m128i *) &NEIGHBOUR[pos]))) {	// pass (16%)
+		if (_mm256_testz_si256(F, _mm256_set1_epi64x(NEIGHBOUR[pos]))) {	// pass (16%)
 			// n_flips = last_flip(pos, ~P);
 			t = ~_mm256_movemask_epi8(_mm256_cmpeq_epi8(lmO, rmO));	// eq only if l = r = 0
   #endif
