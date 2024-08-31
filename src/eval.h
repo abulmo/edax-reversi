@@ -192,6 +192,7 @@ void eval_close(void);
 void eval_set(Eval*, const struct Board*);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 void eval_update(Eval*, const struct Move*);
 void eval_update_leaf(Eval*, const Eval*, const struct Move*);
@@ -200,20 +201,34 @@ void eval_update_leaf(Eval*, const Eval*, const struct Move*);
 void eval_update(int, unsigned long long, Eval*);
 void eval_update_leaf(int, unsigned long long, Eval*, const Eval*);
 >>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
+=======
+>>>>>>> 6820748 (Unify eval_update_sse 0 & 1)
 void eval_restore(Eval*, const struct Move*);
 void eval_pass(Eval*);
 double eval_sigma(const int, const int, const int);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_MSVC_X86) || defined(ANDROID)
 void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
 #endif
 #if defined(hasSSE2) || defined(__ARM_NEON)
+=======
+#if defined(hasSSE2) || defined(__ARM_NEON__) || defined(USE_MSVC_X86)
+void eval_update_sse(int, unsigned long long, Eval *, const Eval *);
+#endif
+#if defined(hasSSE2) || defined(hasNeon)
+>>>>>>> 6820748 (Unify eval_update_sse 0 & 1)
 #define	eval_update(x, f, eval)	eval_update_sse(x, f, eval, eval)
 #define	eval_update_leaf(x, f, eval_out, eval_in)	eval_update_sse(x, f, eval_out, eval_in)
 #else
 void eval_update(int, unsigned long long, Eval*);
 void eval_update_leaf(int, unsigned long long, Eval*, const Eval*);
+<<<<<<< HEAD
+=======
+#endif
+
+>>>>>>> 6820748 (Unify eval_update_sse 0 & 1)
 #endif
 
 #endif

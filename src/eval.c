@@ -1999,10 +1999,7 @@ void eval_update(int x, unsigned long long f, Eval *eval)
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
 >>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 	if (hasSSE2) {
-		if (eval->n_empties & 1)
-			eval_update_sse_1(x, f, eval, eval);
-		else
-			eval_update_sse_0(x, f, eval, eval);
+		eval_update_sse(x, f, eval, eval);
 		return;
 	}
   #endif
@@ -2037,10 +2034,7 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 {
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
 	if (hasSSE2) {
-		if (eval_in->n_empties & 1)
-			eval_update_sse_1(x, f, eval_out, eval_in);
-		else
-			eval_update_sse_0(x, f, eval_out, eval_in);
+		eval_update_sse(x, f, eval_out, eval_in);
 		return;
 	}
   #endif
