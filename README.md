@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 # Edax
 
 Edax is a very strong othello program. Its main features are:
