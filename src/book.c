@@ -197,15 +197,7 @@ static bool position_is_ok(const Position *position)
 		} else {
 			if (/*l->move < A1 ||*/ l->move > H8
 			 || board_is_occupied(&board, l->move)
-<<<<<<< HEAD
-<<<<<<< HEAD
 			 || board_get_move_flip(&board, l->move, &move) == 0) {
-=======
-			 || board_get_move(&board, l->move, &move) == 0) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			 || board_get_move_flip(&board, l->move, &move) == 0) {
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 				warn("link %s is wrong\n", move_to_string(l->move, WHITE, s));
 				position_print(position, &position->board, stdout);
 				return false;
@@ -230,15 +222,7 @@ static bool position_is_ok(const Position *position)
 		}
 	} else if (/*l->move < A1 ||*/ l->move > H8
 		 || board_is_occupied(&board, l->move)
-<<<<<<< HEAD
-<<<<<<< HEAD
 		 || board_get_move_flip(&board, l->move, &move) == 0) {
-=======
-		 || board_get_move(&board, l->move, &move) == 0) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		 || board_get_move_flip(&board, l->move, &move) == 0) {
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			warn("leaf %s is wrong\n", move_to_string(l->move, WHITE, s));
 			position_print(position, &position->board, stdout);
 			return false;
@@ -718,15 +702,7 @@ static void position_search(Position *position, Book *book)
 
 	if (position->n_link < n_moves || (position->n_link == 0 && n_moves == 0 && position->score.value == -SCORE_INF)) {
 		search_set_board(search, &position->board, BLACK);
-<<<<<<< HEAD
-<<<<<<< HEAD
 		search_set_level(search, position->level, search->eval.n_empties);
-=======
-		search_set_level(search, position->level, search->n_empties);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		search_set_level(search, position->level, search->eval.n_empties);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 		foreach_link (l, position) {
 			movelist_exclude(&search->movelist, l->move);
@@ -768,15 +744,7 @@ static void position_search(Position *position, Book *book)
 static void position_link(Position *position, Book *book)
 {
 	int x;
-<<<<<<< HEAD
-<<<<<<< HEAD
 	unsigned long long moves = board_get_moves(&position->board);
-=======
-	unsigned long long moves = get_moves(position->board.player, position->board.opponent);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	unsigned long long moves = board_get_moves(&position->board);
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 	Board next;
 	Link link;
 	Position *child;
@@ -1075,42 +1043,17 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 	const unsigned long long hash_code = board_get_hash_code(board);
 	MoveList movelist;
 	Move *m;
-<<<<<<< HEAD
-<<<<<<< HEAD
 	HashStoreData hash_data;
-=======
-	HashStoreData hash_store_data;
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
-	HashStoreData hash_data;
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 
 	position = book_probe(book, board);
 	if (position) {
 		const int n_empties = board_count_empties(&position->board);
-<<<<<<< HEAD
-<<<<<<< HEAD
 		const int score = position->score.value;
 		int move = NOMOVE;
 
 		hash_data.data.wl.c.depth = LEVEL[position->level][n_empties].depth;
 		hash_data.data.wl.c.selectivity = LEVEL[position->level][n_empties].selectivity;
 
-=======
-		const int depth = LEVEL[position->level][n_empties].depth;
-		const int selectivity = LEVEL[position->level][n_empties].selectivity;
-		const int score = position->score.value;
-		int move = NOMOVE;
-
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		const int score = position->score.value;
-		int move = NOMOVE;
-
-		hash_data.data.wl.c.depth = LEVEL[position->level][n_empties].depth;
-		hash_data.data.wl.c.selectivity = LEVEL[position->level][n_empties].selectivity;
-
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
 		position_get_moves(position, board, &movelist);
 		foreach_move(m, movelist) {
 			if (move == NOMOVE) move = m->x;
@@ -1118,41 +1061,11 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 		hash_data.data.lower = hash_data.data.upper = score;
 		hash_data.data.move[0] = move;
-<<<<<<< HEAD
-<<<<<<< HEAD
 		hash_feed(&search->hash_table, board, hash_code, &hash_data);
 		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_data);
-=======
-		hash_feed(&search->hash_table, board, hash_code, depth, selectivity, score, score, move);
-		if (is_pv) hash_feed(&search->pv_table, board, hash_code, depth, selectivity, score, score, move);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-
-<<<<<<< HEAD
-		hash_store_data.data.lower = hash_store_data.data.upper = score;
-		hash_store_data.data.move[0] = move;
-		hash_feed(&search->hash_table, board, hash_code, &hash_store_data);
-		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_store_data);
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
-		hash_data.data.lower = hash_data.data.upper = score;
-		hash_data.data.move[0] = move;
-		hash_feed(&search->hash_table, board, hash_code, &hash_data);
-		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_data);
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-=======
-		hash_feed(&search->hash_table, HBOARD_P(board), hash_code, &hash_data);
-		if (is_pv) hash_feed(&search->pv_table, HBOARD_P(board), hash_code, &hash_data);
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-		hash_feed(&search->hash_table, board, hash_code, &hash_data);
-		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 	}
 }
 
@@ -2384,15 +2297,7 @@ void book_add_game(Book *book, const Game *game)
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
-=======
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {
@@ -2472,15 +2377,7 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
-=======
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {

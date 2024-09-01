@@ -3,19 +3,7 @@
  *
  * @brief Move generator test.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2021
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
-=======
- * @date 1998 - 2022
->>>>>>> 8a7e354 (Exclude hash init time from count games; other minor size opts)
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -886,36 +874,6 @@ unsigned long long shape_unique(unsigned long long shape)
 }
 
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
- * @brief Compute a hash code.
- *
- * @param shape Board shape.
- * @return The hash code of the bitboard.
- */
-unsigned long long shape_get_hash_code(const unsigned long long shape)
-{
-	unsigned long long h;
-	const unsigned char *p = (const unsigned char*)&shape;
-
-	h  = hash_rank[0][p[0]];
-	h ^= hash_rank[1][p[1]];
-	h ^= hash_rank[2][p[2]];
-	h ^= hash_rank[3][p[3]];
-	h ^= hash_rank[4][p[4]];
-	h ^= hash_rank[5][p[5]];
-	h ^= hash_rank[6][p[6]];
-	h ^= hash_rank[7][p[7]];
-	// h ^= hash_rank[8][p[8]];	// gcc9: outside array bounds
-
-	return h;
-}
-
-/**
->>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
-=======
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
  * Array of shape.
  */
 typedef struct {
@@ -1132,10 +1090,6 @@ void count_shapes(const Board *board, const int depth, const int size)
  * @param line line to reach the target position
  */
 bool seek_position(const Board *target, const Board *board, Line *line) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	const unsigned long long mask = target->opponent | target->player;
 	unsigned long long moves;
 	int x;
@@ -1144,23 +1098,6 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
 	if (board_equal(board, target)) return true;
 
 	moves = board_get_moves(board);
-<<<<<<< HEAD
-=======
- 	const unsigned long long mask = target->opponent | target->player;
- 	unsigned long long moves;
- 	int x;
- 	Board next;
- 	
- 	if (board_equal(board, target)) return true;
- 		
-<<<<<<< HEAD
- 	moves = get_moves(board->player, board->opponent);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
- 	moves = board_get_moves(board);
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
-=======
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	if (moves) {
 		moves &= mask;
 		foreach_bit (x, moves) {

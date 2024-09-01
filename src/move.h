@@ -3,15 +3,7 @@
  *
  * @brief Move & list of moves management - header file.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2022
->>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -35,13 +27,6 @@ typedef struct Move {
 
 /** (simple) list of a legal moves */
 typedef struct MoveList {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	Move move[MAX_MOVE + 1];   /**< array of legal moves */
->>>>>>> 4b74548 (Fix MAX_MOVE)
-=======
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 	int n_moves;
 	Move move[MAX_MOVE + 1];   /**< array of legal moves */
 } MoveList;
@@ -76,13 +61,6 @@ void movelist_print(const MoveList*, const int, FILE*);
 Move* movelist_sort_bestmove(MoveList*, const int);
 void movelist_evaluate_fast(MoveList*, struct Search*, const struct HashData*);
 void movelist_evaluate(MoveList*, struct Search*, const struct HashData*, const int, const int);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// void movelist_evaluate_fast(MoveList*, struct Search*);
->>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
-=======
->>>>>>> 31ff745 (Split movelist_evaluate_fast from movelist_evaluate)
 
 // bool move_wipeout(const Move*, const struct Board*);	// Check if a move wins 64-0.
 #define	move_wipeout(move,board)	((move)->flipped == (board)->opponent)
@@ -104,29 +82,12 @@ bool movelist_is_single(const MoveList*);
 
 /** macro to iterate over the movelist */
 #define foreach_move(iter, movelist) \
-<<<<<<< HEAD
-<<<<<<< HEAD
 	for ((iter) = (movelist).move[0].next; (iter); (iter) = (iter)->next)
 
 /** macro to iterate over the movelist from best to worst move */
 #define foreach_best_move(iter, movelist) \
 	(iter) = &(movelist).move[0];\
 	while (((iter) = move_next_best(iter)))
-=======
-	for ((iter) = (movelist).move->next; (iter); (iter) = (iter)->next)
-
-/** macro to iterate over the movelist from best to worst move */
-#define foreach_best_move(iter, movelist) \
-	for ((iter) = movelist_best(&movelist); (iter); (iter) = move_next_best(iter))
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	for ((iter) = (movelist).move[0].next; (iter); (iter) = (iter)->next)
-
-/** macro to iterate over the movelist from best to worst move */
-#define foreach_best_move(iter, movelist) \
-	(iter) = &(movelist).move[0];\
-	while (((iter) = move_next_best(iter)))
->>>>>>> e832f60 (Inlining move_evaluate; skip movelist_evaluate if empty = 1)
 
 void line_init(Line*, const int);
 void line_push(Line*, const int);

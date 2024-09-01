@@ -3,31 +3,7 @@
  *
  * @brief Main file.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2024
-=======
- * @date 1998 - 2018
->>>>>>> 0451a79 (Fix AVX eval alignment in UI)
-=======
- * @date 1998 - 2020
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
- * @date 1998 - 2021
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
-=======
- * @date 1998 - 2022
->>>>>>> 3030e39 (Fix android build; revise copyright in title)
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
-=======
- * @date 1998 - 2024
->>>>>>> a09308f (Renew version string and copyright year)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -58,28 +34,7 @@ void version(void)
 #elif defined(__APPLE__)
 		" for Apple"
 #endif
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
-=======
-
-	fprintf(stderr, "copyright 1998 - 2018 Richard Delorme\n\n");
->>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
-=======
-		"\ncopyright 1998 - 2018 Richard Delorme\n\n");
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 22 Toshihiko Okuhara\n\n");
->>>>>>> 3030e39 (Fix android build; revise copyright in title)
-=======
-		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 23 Toshihiko Okuhara\n\n");
->>>>>>> f87d2a3 (flip_avx_shuf_max.c added; small improvements in other flip's)
-=======
-		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
->>>>>>> a09308f (Renew version string and copyright year)
 }
 
 
@@ -160,13 +115,6 @@ int main(int argc, char **argv)
 	// initialize
 	bit_init();
 	edge_stability_init();
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	hash_move_init();
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
-=======
->>>>>>> f33d573 (Fix 'nboard pass not parsed' bug, crc32c for game hash too)
 	statistics_init();
 	eval_open(options.eval_file);
 	search_global_init();

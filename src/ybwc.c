@@ -22,23 +22,7 @@
  * ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  * -# Feldmann R. (1993) Game-Tree Search on Massively Parallel System - PhD Thesis, Paderborn (English version).
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2018
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
- * @date 1998 - 2020
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
- * @date 1998 - 2022
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -246,15 +230,7 @@ void node_wait_slaves(Node* node)
 		condition_wait(node);
 
 		if (node->is_helping) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 			assert(node->help.run);
-=======
-			assert(node.help->run);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			assert(node->help.run);
->>>>>>> 7204cd1 (Small fix on debug build, etc.)
 			task_search(&node->help);
 			task_free(&node->help);
 			node->is_helping = false;
@@ -293,15 +269,7 @@ void node_update(Node* node, Move *move)
 		node->bestscore = score;
 		node->bestmove = move->x;
 		if (node->height == 0) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 			record_best_move(search, move, node->alpha, node->beta, node->depth);
-=======
-			record_best_move(search, &search->board, move, node->alpha, node->beta, node->depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			record_best_move(search, move, node->alpha, node->beta, node->depth);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 			search->result->n_moves_left--;
 		}
 		if (score > node->alpha) node->alpha = score;
@@ -397,21 +365,8 @@ void task_search(Task *task)
 	Node *node = task->node;
 	Search *search = task->search;
 	Move *move = task->move;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	Eval eval0;
 	Board board0;
-=======
-	Eval Ev0;
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-	Search_Backup backup;
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
-	Eval eval0;
-	Board board0;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	int i;
 
 	search_set_state(search, node->search->stop);
@@ -422,47 +377,16 @@ void task_search(Task *task)
 		const int alpha = node->alpha;
 		if (alpha >= node->beta) break;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		board0 = search->board;
 		eval0 = search->eval;
-=======
-		Ev0 = search->eval;
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-		Ev0.feature = search->eval.feature;
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-=======
-		backup.board = search->board;
-		backup.eval = search->eval;
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
-		board0 = search->board;
-		eval0 = search->eval;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {
 				move->score = -PVS_midgame(search, -node->beta, -alpha, node->depth - 1, node);
 				assert(node->pv_node == true);
 			}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		search_restore_midgame(search, move->x, &eval0);
 		search->board = board0;
-=======
-		search_restore_midgame(search, move, &Ev0);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-		search_restore_midgame(search, move->x, &backup);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
-		search_restore_midgame(search, move->x, &eval0);
-		search->board = board0;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		if (node->height == 0) {
 			move->cost = search_get_pv_cost(search);
 			move->score = search_bound(search, move->score);
@@ -474,15 +398,7 @@ void task_search(Task *task)
 			node->bestscore = move->score;
 			node->bestmove = move->x;
 			if (node->height == 0) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 				record_best_move(search, move, alpha, node->beta, node->depth);
-=======
-				record_best_move(search, &search->board, move, alpha, node->beta, node->depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-				record_best_move(search, move, alpha, node->beta, node->depth);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 				search->result->n_moves_left--;
 				if (search->options.verbosity == 4) pv_debug(search, move, stdout);
 			}

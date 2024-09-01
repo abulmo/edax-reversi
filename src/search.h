@@ -3,23 +3,7 @@
  *
  * Search's header file.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2018
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
- * @date 1998 - 2020
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
- * @date 1998 - 2022
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
- * @date 1998 - 2023
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -79,55 +63,21 @@ extern struct Level {
 
 /** search stare */
 typedef struct Search {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7167fe4 (Fill struct Search AVX alignment hole)
 	Board board;                                  /**< othello board (16) */
 
 	volatile unsigned long long n_nodes;          /**< node counter (8) */
 	volatile unsigned long long child_nodes;      /**< node counter (8) */
 
-<<<<<<< HEAD
-=======
-	Board board[1];                               /**< othello board */
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-	Board board;                                  /**< othello board */
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> 7167fe4 (Fill struct Search AVX alignment hole)
 	Eval eval;                                    /**< eval */
 
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	int n_empties;                                /**< number of empty squares */
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	int player;                                   /**< player color */
 	int id;                                       /**< search id */
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0a166fd (Remove 1 element array coding style)
 	HashTable hash_table;                         /**< hashtable */
 	HashTable pv_table;                           /**< hashtable for the pv */
 	HashTable shallow_table;                      /**< hashtable for short search */
 	Random random;                                /**< random generator */
-<<<<<<< HEAD
-=======
-	HashTable hash_table[1];                      /**< hashtable */
-	HashTable pv_table[1];                        /**< hashtable for the pv */
-	HashTable shallow_table[1];                   /**< hashtable for short search */
-	Random random[1];                             /**< random generator */
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
->>>>>>> 0a166fd (Remove 1 element array coding style)
 
 	struct TaskStack *tasks;                      /**< available task queue */
 	struct Task *task;                            /**< search task */
@@ -178,31 +128,11 @@ typedef struct Search {
 struct Node;
 
 extern const unsigned char QUADRANT_ID[];
-<<<<<<< HEAD
-<<<<<<< HEAD
 extern const unsigned long long quadrant_mask[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
-<<<<<<< HEAD
-<<<<<<< HEAD
 // extern const signed char NWS_STABILITY_THRESHOLD[];
 extern const signed char PVS_STABILITY_THRESHOLD[];
-=======
-=======
-extern const unsigned long long quadrant_mask[];
->>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
-extern const Selectivity selectivity_table[];
-extern const int NO_SELECTIVITY;
-extern const unsigned char NWS_STABILITY_THRESHOLD[];
-extern const unsigned char PVS_STABILITY_THRESHOLD[];
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-extern const signed char NWS_STABILITY_THRESHOLD[];
-=======
-// extern const signed char NWS_STABILITY_THRESHOLD[];
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
-extern const signed char PVS_STABILITY_THRESHOLD[];
->>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 extern const unsigned char SQUARE_TYPE[];
 
 /* function definition */
@@ -231,37 +161,11 @@ void search_swap_parity(Search*, const int);
 void search_get_movelist(const Search*, MoveList*);
 // void search_update_endgame(Search*, const Move*);
 // void search_restore_endgame(Search*, const Move*);
-<<<<<<< HEAD
-<<<<<<< HEAD
 // void search_pass_endgame(Search*);
-=======
-void search_pass_endgame(Search*);
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-// void search_pass_endgame(Search*);
->>>>>>> 8566ed0 (vector call version of board_next & get_moves)
 void search_update_midgame(Search*, const Move*);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 void search_restore_midgame(Search*, int, const Eval*);
 void search_update_pass_midgame(Search*, Eval*);
 void search_restore_pass_midgame(Search*, const Eval*);
-=======
-void search_restore_midgame(Search*, const Move*, const Eval*);
-=======
-void search_restore_midgame(Search*, int, const Search_Backup*);
-<<<<<<< HEAD
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-void search_update_pass_midgame(Search*);
-void search_restore_pass_midgame(Search*);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-void search_update_pass_midgame(Search*, Eval*);
-void search_restore_pass_midgame(Search*, const Eval*);
->>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 long long search_clock(Search*);
 long long search_time(Search*);
 unsigned long long search_count_nodes(Search*);
@@ -271,39 +175,12 @@ int get_pv_extension(const int, const int);
 
 void result_print(Result*, FILE*);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
-<<<<<<< HEAD
 bool search_SC_NWS_4(Search*, const int, int*);
-// bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
-=======
-bool search_SC_NWS_fulls_given(Search *, const int, int *, unsigned long long, V4DI *);
-bool search_TC_PVS(HashData*, const int, const int, volatile int*, volatile int*, int*);
->>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
-bool search_TC_NWS(HashData*, const int, const int, const int, int*);
-<<<<<<< HEAD
-// bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, int*, int*, int*);
-=======
-// bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, volatile int*, volatile int*, int*);
->>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
-=======
-bool search_SC_PVS(Search*, int*, int*, int*);
-bool search_SC_NWS(Search*, const int, int*);
-=======
-// bool search_SC_PVS(Search*, int*, int*, int*);
-<<<<<<< HEAD
-bool search_SC_NWS(Search*, const int, const int, int*);
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
-=======
-bool search_SC_NWS(Search*, const int, int*);
-bool search_SC_NWS_4(Search*, const int, int*);
->>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 // bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
 bool search_TC_NWS(HashData*, const int, const int, const int, int*);
 // bool search_ETC_PVS(Search*, MoveList*, unsigned long long, const int, const int, int*, int*, int*);
->>>>>>> 4303b09 (Returns all full lines in full[4])
 bool search_ETC_NWS(Search*, MoveList*, unsigned long long, const int, const int, const int, int*);
 
 NodeType next_node_type(const NodeType parent, const bool first_move);
@@ -314,23 +191,8 @@ extern int board_score_1(const unsigned long long, const int, const int);
 int NWS_endgame(Search*, const int);
 
 int search_eval_0(Search*);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 int search_eval_1(Search*, int, int, unsigned long long);
 int search_eval_2(Search*, int, int, unsigned long long);
-=======
-int search_eval_1(Search*, const int, int, unsigned long long);
-int search_eval_2(Search*, int, const int, unsigned long long);
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-int search_eval_1(Search*, const int, int, bool);
-int search_eval_2(Search*, int, const int, bool);
->>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
-=======
-int search_eval_1(Search*, int, int, unsigned long long);
-int search_eval_2(Search*, int, int, unsigned long long);
->>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 int NWS_midgame(Search*, const int, int, struct Node*);
 int PVS_midgame(Search*, const int, const int, int, struct Node*);
 // static int NWS_shallow(Search*, const int, int, HashTable*);
@@ -359,13 +221,6 @@ int search_get_pv_cost(Search*);
 void show_current_move(FILE *f, Search*, const Move*, const int, const int, const bool);
 int search_bound(const Search*, int);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #if defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
   #ifdef __AVX2__
 	#define	mm_malloc(s)	_mm_malloc((s), 32)
@@ -386,63 +241,16 @@ int search_bound(const Search*, int);
 	}
 	#define mm_free(p)	free(*((void **)(p) - 1));
   #endif
-<<<<<<< HEAD
-=======
-#ifdef __SSE2__
-=======
-#ifdef hasSSE2
->>>>>>> 1dc032e (Improve visual c compatibility)
-=======
-#if defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-#if defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-	#ifdef __AVX2__
-		#define	mm_malloc(s)	_mm_malloc((s), 32)
-		#define	mm_free(p)	_mm_free(p)
-	#elif defined(hasSSE2) && !defined(ANDROID)
-		#define	mm_malloc(s)	_mm_malloc((s), 16)
-		#define	mm_free(p)	_mm_free(p)
-	#elif defined(_MSC_VER)
-		#define	mm_malloc(s)	_aligned_malloc((s), 16)
-		#define	mm_free(p)	_aligned_free(p)
-	#else
-		static inline void *mm_malloc(size_t s) {
-			void *p = malloc(s + 16 + sizeof(void *));
-			if (!p) return p;
-			void **q = (void **)(((size_t) p + 15 + sizeof(void *)) & -16);
-			*(q - 1) = p;
-			return (void *) q;
-		}
-		#define mm_free(p)	free(*((void **)(p) - 1));
-	#endif
-<<<<<<< HEAD
-	#define	mm_free(p)	_mm_free(p)
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 #else
 	#define	mm_malloc(s)	malloc(s)
 	#define	mm_free(p)	free(p)
 #endif
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b612999 (SSE optimized search_pass)
 #ifdef hasSSE2	// search->board is aligned
 	#define	search_pass(search)	_mm_store_si128((__m128i *) &(search)->board, _mm_shuffle_epi32(*(__m128i *) &(search)->board, 0x4e))
 #else
 	#define	search_pass(search)	board_pass(&(search)->board)
 #endif
 
-<<<<<<< HEAD
-=======
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
->>>>>>> b612999 (SSE optimized search_pass)
 #endif
 

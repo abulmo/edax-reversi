@@ -6,23 +6,7 @@
  * This should be the only file with linux/windows
  * dedicated code.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2018
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
- * @date 1998 - 2020
->>>>>>> 3848d16 (Satisfy msys2 and gcc 9 warnings)
-=======
- * @date 1998 - 2022
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -239,9 +223,6 @@ void relax(int t)
 char* format_scientific(double v, const char *unit, char *f)
 {
 #ifdef UNICODE
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
 	static const char fmt[] = " %5.*f %lc%s";
 #else
@@ -249,25 +230,6 @@ char* format_scientific(double v, const char *unit, char *f)
 	static const char fmt[] = " %5.*f %c%s";
 #endif
 	int u, d;
-=======
-	static const wchar_t multiple[] = L"EPTGMK mµnpfa"; //
-=======
-	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; //
-=======
-	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
->>>>>>> 7204cd1 (Small fix on debug build, etc.)
-	static const char fmt[] = " %5.*f %lc%s";
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-#else
-	static const char multiple[] = "EPTGMK mμnpfa"; // μ:B5@CP1252
-	static const char fmt[] = " %5.*f %c%s";
-#endif
-<<<<<<< HEAD
-	int u;
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
-	int u, d;
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	if (fabs(v) < 1e-24) {
 		u = 0;
@@ -277,31 +239,11 @@ char* format_scientific(double v, const char *unit, char *f)
 		v /= pow(10, 3 * u);
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	if (fabs(v) - floor(fabs(v)) < 0.01) d = 1;
 	else if (fabs(v + 0.05) < 10.0) d = 3;
 	else if (fabs(v + 0.5) < 100.0) d = 2;
 	else d = 1;
 	sprintf(f, fmt, d, v, multiple[6 - u], unit);
-<<<<<<< HEAD
-=======
-#ifdef UNICODE
-	if (fabs(v) - floor(fabs(v)) < 0.01) sprintf(f, " %5.1f %lc%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.05) < 10.0) sprintf(f, " %5.3f %lc%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.5) < 100.0) sprintf(f, " %5.2f %lc%s", v, multiple[6 - u], unit);
-	else sprintf(f, " %5.1f %lc%s", v, multiple[6 - u], unit);
-#else
-	if (fabs(v) - floor(fabs(v)) < 0.01) sprintf(f, " %5.1f %c%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.05) < 10.0) sprintf(f, " %5.3f %c%s", v, multiple[6 - u], unit);
-	else if (fabs(v + 0.5) < 100.0) sprintf(f, " %5.2f %c%s", v, multiple[6 - u], unit);
-	else sprintf(f, " %5.1f %c%s", v, multiple[6 - u], unit);
-#endif
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 	return f;
 }
@@ -698,15 +640,7 @@ char* parse_move(const char *string, const Board *board, Move *move)
 		char *word = parse_skip_spaces(string);
 		int x = string_to_coordinate(word);
 		move->x = x;
-<<<<<<< HEAD
-<<<<<<< HEAD
 		move->flipped = board_flip(board, x);
-=======
-		move->flipped = Flip(x, board->player, board->opponent);
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
-=======
-		move->flipped = board_flip(board, x);
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		if (move->flipped && !board_is_occupied(board, x)) {
 			return word + 2;
 		} else if (board_is_pass(board)) {

@@ -52,23 +52,7 @@
  * -# Reinsfeld A. (1983) An Improvement Of the Scout Tree-Search Algorithm. ICCA
  *     journal, 6(4), pp. 4-14.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2017
->>>>>>> b3f048d (copyright changes)
-=======
- * @date 1998 - 2020
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
- * @date 1998 - 2022
->>>>>>> 9794cc1 (Store solid-normalized hash in PVS_midgame)
-=======
- * @date 1998 - 2023
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -95,10 +79,6 @@ Log search_log[1];
 
 /** a quadrant id for each square */
 const unsigned char QUADRANT_ID[] = {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
@@ -117,21 +97,6 @@ const unsigned long long quadrant_mask[] = {
 	0xF0F0F0F000000000, 0xF0F0F0F00F0F0F0F, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0FFFFFFFF,
 	0xFFFFFFFF00000000, 0xFFFFFFFF0F0F0F0F, 0xFFFFFFFFF0F0F0F0, 0xFFFFFFFFFFFFFFFF
 };
-<<<<<<< HEAD
-=======
-		1, 1, 1, 1, 2, 2, 2, 2,
-		1, 1, 1, 1, 2, 2, 2, 2,
-		1, 1, 1, 1, 2, 2, 2, 2,
-		1, 1, 1, 1, 2, 2, 2, 2,
-		4, 4, 4, 4, 8, 8, 8, 8,
-		4, 4, 4, 4, 8, 8, 8, 8,
-		4, 4, 4, 4, 8, 8, 8, 8,
-		4, 4, 4, 4, 8, 8, 8, 8,
-		0, 0
-	};
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
->>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
 
 /** level with no selectivity */
 const int NO_SELECTIVITY = 5;
@@ -148,28 +113,9 @@ const Selectivity selectivity_table [] = {
 
 /** threshold values to try stability cutoff during NWS search */
 // TODO: better values may exist.
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
-=======
-const unsigned char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-	 99, 99, 99, 99,  6,  8, 10, 12,
-	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
-=======
-const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
-	 99, 99, 99, 99,  4,  8, 10, 12,
-=======
 static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99,  6,  8, 10, 12,
-<<<<<<< HEAD
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
-	 14, 16, 20, 22, 24, 26, 28, 30,
->>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
-=======
 	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
->>>>>>> 22b144f (Tune NWS_stability_thres to work best with solid stone)
 	 32, 34, 36, 38, 40, 42, 44, 46,
 	 48, 48, 50, 50, 52, 52, 54, 54,
 	 56, 56, 58, 58, 60, 60, 62, 62,
@@ -180,15 +126,7 @@ static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 
 /** threshold values to try stability cutoff during PVS search */
 // TODO: better values may exist.
-<<<<<<< HEAD
-<<<<<<< HEAD
 const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
-=======
-const unsigned char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
->>>>>>> 867c81c (Omit restore board/parity in search_shallow; tweak NWS_STABILITY)
 	 99, 99, 99, 99, -2,  0,  2,  4,
 	  6,  8, 12, 14, 16, 18, 20, 22,
 	 24, 26, 28, 30, 32, 34, 36, 38,
@@ -410,28 +348,11 @@ void search_global_init(void)
 void search_resize_hashtable(Search *search) {
 	if (search->options.hash_size != options.hash_table_size) {
 		const int hash_size = 1u << options.hash_table_size;
-<<<<<<< HEAD
-<<<<<<< HEAD
-		const int pv_shallow_size = hash_size > 16 ? hash_size >> 4 : 1;
-=======
-		const int pv_size = hash_size > 16 ? hash_size >> 4 : 1;
->>>>>>> 44fd278 (Rearrange PVS_shallow loop)
-
-		hash_init(&search->hash_table, hash_size);
-<<<<<<< HEAD
-		hash_init(&search->pv_table, pv_shallow_size);
-		hash_init(&search->shallow_table, pv_shallow_size);
-=======
-		hash_init(&search->pv_table, pv_size);
-		hash_init(&search->shallow_table, hash_size);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
 		const int pv_shallow_size = hash_size > 16 ? hash_size >> 4 : 1;
 
 		hash_init(&search->hash_table, hash_size);
 		hash_init(&search->pv_table, pv_shallow_size);
 		hash_init(&search->shallow_table, pv_shallow_size);
->>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		search->options.hash_size = options.hash_table_size;
 	}
 }
@@ -535,27 +456,10 @@ void search_init(Search *search)
 void search_free(Search *search)
 {
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	hash_free(&search->hash_table);
-	hash_free(&search->pv_table);
-	hash_free(&search->shallow_table);
-=======
-	hash_free(search->hash_table);
-	hash_free(search->pv_table);
-	hash_free(search->shallow_table);
-<<<<<<< HEAD
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-	// eval_free(search->eval);
-=======
-	// eval_free(&search->eval);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
 	hash_free(&search->hash_table);
 	hash_free(&search->pv_table);
 	hash_free(&search->shallow_table);
 	// eval_free(search->eval);
->>>>>>> 0a166fd (Remove 1 element array coding style)
 	
 	task_stack_free(search->tasks);
 	free(search->tasks);
@@ -576,16 +480,7 @@ void search_free(Search *search)
  */
 void search_setup(Search *search)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	int i, x, prev;
-=======
-	int i, x;
-	SquareList *empty;
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-	int i, x, prev;
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 	static const unsigned char presorted_x[] = {
 		A1, A8, H1, H8,                    /* Corner */
 		C4, C5, D3, D6, E3, E6, F4, F5,    /* E */
@@ -599,112 +494,33 @@ void search_setup(Search *search)
 		D4, E4, D5, E5,                    /* center */
 	};
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	const Board * const board = &search->board;
 	unsigned long long E;
-<<<<<<< HEAD
 
 	// init empties, parity
 	search->eval.n_empties = 0;
 	search->eval.parity = 0;
-=======
-	Board *board = search->board;
-=======
-	const Board * const board = &search->board;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-	unsigned long long E, B;
-=======
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-
-	// init empties, parity
-<<<<<<< HEAD
-	search->n_empties = 0;
-<<<<<<< HEAD
-	search->parity = 0;
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-=======
-	search->eval.n_empties = 0;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-	search->eval.parity = 0;
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 
 	prev = NOMOVE;
 	E = ~(board->player | board->opponent);
 	for (i = 0; i < BOARD_SIZE; ++i) {    /* add empty squares */
 		x = presorted_x[i];
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 		if (E & x_to_bit(x)) {
 			search->eval.parity ^= QUADRANT_ID[x];
 			search->empties[prev].next = x;
 			search->empties[x].previous = prev;
 			prev = x;
-<<<<<<< HEAD
-<<<<<<< HEAD
 			++search->eval.n_empties;
-=======
-		B = x_to_bit(x);
-		if (E & B) {
-			empty->x = x;
-			empty->b = B;
-			empty->quadrant = QUADRANT_ID[x];
-			search->eval.parity ^= empty->quadrant;
-			empty->previous = empty - 1;
-			empty->next = empty + 1;
-			search->x_to_empties[x] = empty;
-			empty = empty->next;
-=======
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-			++search->n_empties;
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-			++search->eval.n_empties;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		}
 	}
 	search->empties[prev].next = NOMOVE;	/* sentinel */
 	search->empties[NOMOVE].previous = prev;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	search->empties[PASS].next = NOMOVE;
 	search->empties[PASS].previous = NOMOVE;
-=======
-	empty = search->empties + PASS;
-	empty->x = PASS;
-	empty->b = 0;
-	empty->previous = empty->next = empty;
-	search->x_to_empties[PASS] = empty;
-
-	empty = search->empties + NOMOVE;
-	empty->x = NOMOVE;
-	empty->b = 0;
-	empty->previous = empty->next = empty;
-	search->x_to_empties[NOMOVE] = empty;
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-	search->empties[PASS].next = NOMOVE;
-	search->empties[PASS].previous = NOMOVE;
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 
 	// init the evaluation function
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	eval_set(&search->eval, &search->board);
-=======
-	eval_set(&search->eval, board);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-	eval_set(search);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-	eval_set(&search->eval, &search->board);
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
 }
 
 /**
@@ -721,15 +537,7 @@ void search_clone(Search *search, Search *master)
 	search_setup(search);
 	search->hash_table = master->hash_table; // share the hashtable
 	search->pv_table = master->pv_table; // share the pvtable
-<<<<<<< HEAD
-<<<<<<< HEAD
 	search->shallow_table = master->shallow_table; // share the shallowtable
-=======
-	search->shallow_table = master->shallow_table; // share the pvtable
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	search->shallow_table = master->shallow_table; // share the shallowtable
->>>>>>> 44fd278 (Rearrange PVS_shallow loop)
 	search->tasks = master->tasks;
 	search->observer = master->observer;
 
@@ -1060,93 +868,25 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 {
 	Move *previous = movelist->move;
 	Move *move = movelist->move + 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-	V2DI vboard;
-	unsigned long long moves;
-	int x;
-=======
-	const Board * const board = &search->board;
-	unsigned long long moves = get_moves(board->player, board->opponent);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-	register int x;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-
-	vboard.board = search->board;
-	moves = vboard_get_moves(vboard);
-=======
-=======
-	vBoard board = load_vboard(search->board);
-	unsigned long long moves = vboard_get_moves(board, search->board);
->>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
-	int x;
-
->>>>>>> 7204cd1 (Small fix on debug build, etc.)
-=======
 	V2DI vboard;
 	unsigned long long moves;
 	int x;
 
 	vboard.board = search->board;
 	moves = vboard_get_moves(vboard);
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	movelist->n_moves = 0;
 	foreach_bit(x, moves) {
 		move->x = x;
 		move->flipped = vboard_flip(vboard, x);
-<<<<<<< HEAD
-=======
-	int x, j;
-	widest_register	b;
-=======
-	int x;
->>>>>>> 8d39e74 (Loop out rounding score)
-
-	movelist->n_moves = 0;
-	foreach_bit(x, moves) {
-<<<<<<< HEAD
-		board_get_move(board, x, move);
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-=======
-		move->x = x;
-		move->flipped = vboard_flip(board, x);
->>>>>>> 3a92d84 (minor AVX512/SSE optimizations)
-=======
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		move->cost = 0;
 		previous = previous->next = move;
 		++move;
 		++(movelist->n_moves);
 	}
 	previous->next = NULL;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-}
-
-<<<<<<< HEAD
-#if 0	// inlined
-=======
-#if 0
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-	movelist->n_moves = move - movelist->move - 1;
-	assert(movelist->n_moves == bit_count(moves));
-=======
->>>>>>> 7204cd1 (Small fix on debug build, etc.)
-=======
-	movelist->n_moves = move - movelist->move - 1;
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-=======
->>>>>>> 8d39e74 (Loop out rounding score)
 }
 
 #if 0	// inlined
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
 /**
  * @brief Update the search state after a move.
  *
@@ -1156,22 +896,9 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 void search_update_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
-<<<<<<< HEAD
-<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	--search->eval.n_empties;
-<<<<<<< HEAD
-=======
-	empty_remove(search->x_to_empties[move->x]);
-=======
-	empty_remove(search->empties, move->x);
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-	board_update(&search->board, move);
-	--search->n_empties;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 }
 
@@ -1184,22 +911,9 @@ void search_update_endgame(Search *search, const Move *move)
 void search_restore_endgame(Search *search, const Move *move)
 {
 	search_swap_parity(search, move->x);
-<<<<<<< HEAD
-<<<<<<< HEAD
 	empty_restore(search->empties, move->x);
 	board_restore(&search->board, move);
 	++search->eval.n_empties;
-<<<<<<< HEAD
-=======
-	empty_restore(search->x_to_empties[move->x]);
-=======
-	empty_restore(search->empties, move->x);
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-	board_restore(&search->board, move);
-	++search->n_empties;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 }
 
 /**
@@ -1221,134 +935,38 @@ void search_pass_endgame(Search *search)
  * @param search  search.
  * @param move    played move.
  */
-<<<<<<< HEAD
-static void search_update_midgame_tail(Search *search)
-{
-<<<<<<< HEAD
-=======
-	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
-
-	++search->height;
-	search->node_type[search->height] = next_node_type[search->node_type[search->height - 1]];
-}
-
-=======
->>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 void search_update_midgame(Search *search, const Move *move)
 {
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
 //	line_push(&debug_line, move->x);
 
 	search_swap_parity(search, move->x);
-<<<<<<< HEAD
-<<<<<<< HEAD
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
 	eval_update(move->x, move->flipped, &search->eval);
 	assert(search->eval.n_empties > 0);
 	--search->eval.n_empties;
-<<<<<<< HEAD
-=======
-	empty_remove(search->x_to_empties[move->x]);
-=======
-	empty_remove(search->empties, move->x);
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-	board_update(&search->board, move);
-	eval_update(&search->eval, move);
-<<<<<<< HEAD
-	assert(search->n_empties > 0);
-	--search->n_empties;
-<<<<<<< HEAD
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
-=======
-=======
-	assert(search->eval.n_empties > 0);
-	--search->eval.n_empties;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-	search_update_midgame_tail(search);
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-	++search->height;
-	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
->>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 }
 
 /**
  * @brief Restore the search state as before a move.
  *
  * @param search  search.
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @param x       played move.
  * @param backup  board/eval to restore.
  */
 void search_restore_midgame(Search *search, int x, const Eval *eval0)
-=======
- * @param move    played move.
- * @param Ev	  eval to restore.
- */
-<<<<<<< HEAD
-void search_restore_midgame(Search *search, const Move *move, const Eval *Ev)
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-void search_restore_midgame(Search *search, const Move *move, const Eval *eval_to_restore)
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-=======
- * @param x       played move.
- * @param backup  board/eval to restore.
- */
-<<<<<<< HEAD
-void search_restore_midgame(Search *search, int x, const Search_Backup *backup)
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
-void search_restore_midgame(Search *search, int x, const Eval *eval0)
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// search_swap_parity(search, move->x);
 	// ++search->eval.n_empties;
 	// eval_restore(search->eval, move);
 	search->eval = *eval0;
 	// board_restore(&search->board, move);
 	empty_restore(search->empties, x);
-=======
-=======
-	search_swap_parity(search, move->x);
-<<<<<<< HEAD
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-	empty_restore(search->x_to_empties[move->x]);
-=======
-	empty_restore(search->empties, move->x);
->>>>>>> 5e86fd6 (Change pointer-linked empty list to index-linked)
-	board_restore(&search->board, move);
-	++search->eval.n_empties;
-	// eval_restore(search->eval, move);
-	search->eval.feature = eval_to_restore->feature;
-<<<<<<< HEAD
-	eval_swap(&search->eval);
-<<<<<<< HEAD
-	++search->n_empties;
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-	++search->eval.n_empties;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-	// search_swap_parity(search, move->x);
-	// ++search->eval.n_empties;
-	// eval_restore(search->eval, move);
-	search->eval = *eval0;
-	// board_restore(&search->board, move);
-	empty_restore(search->empties, x);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	assert(search->height > 0);
 	--search->height;
 }
@@ -1360,40 +978,11 @@ void search_restore_midgame(Search *search, int x, const Eval *eval0)
  */
 void search_update_pass_midgame(Search *search, Eval *backup)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b612999 (SSE optimized search_pass)
 	search_pass(search);
 	backup->feature = search->eval.feature;
-=======
-	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
-
-<<<<<<< HEAD
-	board_pass(search->board);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-=======
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-	board_pass(&search->board);
-<<<<<<< HEAD
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	backup->feature = search->eval.feature;
->>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
 	eval_pass(&search->eval);
-<<<<<<< HEAD
-<<<<<<< HEAD
 	++search->height;
 	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
-=======
-	search_update_midgame_tail(search);
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-	++search->height;
-	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
->>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
 }
 
 /**
@@ -1401,40 +990,11 @@ void search_update_pass_midgame(Search *search, Eval *backup)
  *
  * @param search  search.
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
 void search_restore_pass_midgame(Search *search, const Eval *eval0)
-=======
-void search_restore_pass_midgame(Search *search, const Eval *backup)
->>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
-=======
-void search_restore_pass_midgame(Search *search, const Eval *eval0)
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	search_pass(search);
 	// eval_pass(&search->eval);
 	search->eval.feature = eval0->feature;
-<<<<<<< HEAD
-=======
-	board_pass(search->board);
-=======
-	board_pass(&search->board);
-<<<<<<< HEAD
->>>>>>> 0a166fd (Remove 1 element array coding style)
-	eval_pass(&search->eval);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-=======
-	search_pass(search);
->>>>>>> b612999 (SSE optimized search_pass)
-	// eval_pass(&search->eval);
-	search->eval.feature = backup->feature;
->>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
-=======
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 	assert(search->height > 0);
 	--search->height;
 }
@@ -1582,20 +1142,7 @@ void result_print(Result *result, FILE *f)
  */
 bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
-=======
-	const Board * const board = &search->board;
-
-<<<<<<< HEAD
-	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->n_empties]) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-=======
->>>>>>> 26dad03 (Use player bits only in board_score_1)
-	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= *alpha) {
@@ -1618,28 +1165,7 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  */
 bool search_SC_NWS(Search *search, const int alpha, int *score)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
-=======
-	const Board * const board = &search->board;
-
-<<<<<<< HEAD
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-=======
->>>>>>> 26dad03 (Use player bits only in board_score_1)
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[n_empties]) {
->>>>>>> bb98132 (Split 5 empties search_shallow loop; tune stabiliby cutoff)
-=======
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
->>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 		if (*score <= alpha) {
@@ -1650,12 +1176,6 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 	return false;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 // for 4 empties (min stage)
 bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 {
@@ -1663,20 +1183,6 @@ bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 		CUTOFF_STATS(++statistics.n_stability_try;)
 		*score = 2 * get_stability(search->board.opponent, search->board.player) - SCORE_MAX;
 		if (*score > alpha) {
-<<<<<<< HEAD
-=======
-bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, unsigned long long allfull, V4DI *full)
-=======
-bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, const unsigned long long full[5])
->>>>>>> 4303b09 (Returns all full lines in full[4])
-{
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
-		CUTOFF_STATS(++statistics.n_stability_try;)
-		*score = SCORE_MAX - 2 * get_stability_fulls_given(search->board.opponent, search->board.player, full);
-		if (*score <= alpha) {
->>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
-=======
->>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return true;
 		}
@@ -1684,19 +1190,7 @@ bool search_SC_NWS_fulls_given(Search *search, const int alpha, int *score, cons
 	return false;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> dd57cbd (add hash_prefetch; revise AVX flip & full_lines)
-=======
->>>>>>> 266ad5a (minimax from 5 empties and swap min/max stages)
 #if 0	// unused
-=======
->>>>>>> 21f8809 (Share all full lines between get_stability and Dogaishi hash reduction)
-=======
-#if 0	// unused
->>>>>>> 4303b09 (Returns all full lines in full[4])
 /**
  * @brief Transposition Cutoff (TC).
  *
@@ -1784,43 +1278,12 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 		Move *move;
 		Board next;
 		HashData etc;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		HashStoreData hash_data;
-=======
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		HashStoreData hash_store_data;
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
-		HashStoreData hash_data;
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
 		unsigned long long etc_hash_code;
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
 		const int beta = alpha + 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	
-=======
 
-		hash_data.data.wl.c.depth = depth;
-		hash_data.data.wl.c.selectivity = selectivity;
-		hash_data.data.wl.c.cost = 0;
-		hash_data.alpha = alpha;
-		hash_data.beta = beta;
-
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-		CUTOFF_STATS(++statistics.n_etc_try;)
-		foreach_move (move, *movelist) {
-			next.opponent = search->board.player ^ (move->flipped | x_to_bit(move->x));
-			next.player = search->board.opponent ^ move->flipped;
-			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-
-<<<<<<< HEAD
 		hash_data.data.wl.c.depth = depth;
 		hash_data.data.wl.c.selectivity = selectivity;
 		hash_data.data.wl.c.cost = 0;
@@ -1834,85 +1297,23 @@ bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
 
 			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
-<<<<<<< HEAD
 				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
 				if (*score > alpha) {
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
-<<<<<<< HEAD
-<<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
-<<<<<<< HEAD
-=======
-			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
-				if (*score > alpha) {
-<<<<<<< HEAD
-					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-					hash_store_data.score = *score;
-					hash_store_data.data.move[0] = move->x;
-					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-=======
-					hash_store(hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-					hash_store(hash_table, &search->board, hash_code, &hash_data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
 			}
 
 			etc_hash_code = board_get_hash_code(&next);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
-=======
-			if (USE_TC && hash_get(hash_table, HBOARD_P(&next), etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 				*score = -etc.upper;
 				if (*score > alpha) {
 					hash_data.score = *score;
 					hash_data.data.move[0] = move->x;
-<<<<<<< HEAD
-<<<<<<< HEAD
 					hash_store(hash_table, &search->board, hash_code, &hash_data);
-<<<<<<< HEAD
-=======
-			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.selectivity >= selectivity && etc.depth >= etc_depth) {
-=======
-			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
-				*score = -etc.upper;
-				if (*score > alpha) {
-<<<<<<< HEAD
-					hash_store(hash_table, &search->board, hash_code, depth, selectivity, 0, alpha, beta, *score, move->x);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-					hash_store_data.score = *score;
-					hash_store_data.data.move[0] = move->x;
-					hash_store(hash_table, &search->board, hash_code, &hash_store_data);
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-=======
-					hash_store(hash_table, HBOARD_P(&search->board), hash_code, &hash_data);
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-					hash_store(hash_table, &search->board, hash_code, &hash_data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}

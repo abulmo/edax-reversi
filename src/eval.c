@@ -3,36 +3,10 @@
  *
  * Evaluation function.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2017
->>>>>>> b3f048d (copyright changes)
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
-=======
- * @date 1998 - 2018
-=======
- * @date 1998 - 2020
->>>>>>> bb33695 (Cleaner eval_open unpacking)
- * @author Richard Delorme
- * @author Toshihiko Okuhara
- * @version 4.4
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
- * @date 1998 - 2022
-=======
- * @date 1998 - 2023
->>>>>>> 6de3ab1 (Omit eval_weight table for ply > 53)
- * @author Richard Delorme
- * @author Toshihiko Okuhara
- * @version 4.5
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
  */
 
 #include "eval.h"
@@ -46,23 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
-=======
-#ifndef __SSE2__
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
-#ifndef hasSSE2
->>>>>>> 1dc032e (Improve visual c compatibility)
-=======
-#if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(hasNeon)
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-#if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -210,283 +168,6 @@ static const CoordinateToFeature EVAL_X2F[] = {
 	{7, {{ 3,  6561}, { 7,   243}, { 9,     3}, {11,     3}, {13,     1}, {15,     1}, {28,     1}}},  /* h8 */
 	{4, {{ 0,     0}, { 0,     0}, { 0,     0}, { 0,     0}}} // <- PASS
 };
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-#endif
-#if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
-
-const EVAL_FEATURE_V EVAL_FEATURE[65] = {
-	{{ // a1
-		 6561,     0,     0,     0,   243,     0,     0,     0,  6561,     0,  6561,     0, 19683,     0, 19683,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b1
-		 2187,     0,     0,     0,    27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c1
-		   81,     0,     0,     0,     9,     0,     0,     0,   729,     0,     0,     0,  6561,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d1
-		    0,     0,     0,     0,     3,     1,     0,     0,   243,     0,     0,     0,  2187,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,    81,     0,     0,     0,    27,     0,     0,     0,     0,     0
-	}}, {{ // e1
-		    0,     0,     0,     0,     1,     3,     0,     0,    81,     0,     0,     0,     9,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     0,    27,     0,     0,     0
-	}}, {{ // f1
-		    0,    81,     0,     0,     0,     9,     0,     0,    27,     0,     0,     0,     3,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // g1
-		    0,  2187,     0,     0,     0,    27,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // h1
-		    0,  6561,     0,     0,     0,   243,     0,     0,     3,     0,     0,  6561,     1,     0,     0, 19683,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // a2
-		  729,     0,     0,     0,   729,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,
-		 2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		  729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b2
-		  243,     0,     0,     0,    81,     0,     0,     0, 19683,     0, 19683,     0,     0,     0,     0,     0,
-		  729,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c2
-		    9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,
-		  243,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,   243,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0
-	}}, {{ // d2
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,     0,     0,
-		   81,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,
-		    0,     0,    81,     0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e2
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     0,
-		   27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,
-		    0,     0,     0,     0,    81,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // f2
-		    0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,     0,
-		    9,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0
-	}}, {{ // g2
-		    0,   243,     0,     0,     0,    81,     0,     0,     1,     0,     0, 19683,     0,     0,     0,     0,
-		    3,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // h2
-		    0,   729,     0,     0,     0,   729,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,
-		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // a3
-		   27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,   729,     0,     0,     0,  6561,     0,
-		    0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b3
-		    3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,
-		    0,     0,   243,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		  243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0
-	}}, {{ // c3
-		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,   243,     0,   243,     0,     0,     0,     0,     0,   243,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d3
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,    81,     0,     0,     0,     0,     0,   243,     0,     0,     0,    81,     0,
-		    0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e3
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,   243,     0,     0,     0,     0,
-		    0,    81,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // f3
-		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     9,     0,     0,   243,     0,     0,     0,     0,     0,     9,     0,     0,
-		    0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // g3
-		    0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,
-		    0,     0,     0,   243,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0
-	}}, {{ // h3
-		    0,    27,     0,     0,     0,  2187,     0,     0,     0,     0,     0,   729,     0,     0,     0,  6561,
-		    0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,   243,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // a4
-		    0,     0,     0,     0,  6561,     0, 19683,     0,     0,     0,   243,     0,     0,     0,  2187,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     1,     0,     0,     0,     0,     0
-	}}, {{ // b4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,
-		    0,     0,    81,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,    81,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,    81,     0,   243,     0,     0,     0,     0,     0,     0,     0,
-		   81,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,    81,     0,    81,     0,    81,     0,     0,     0,
-		    0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,    81,     0,    27,    27,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // f4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,    81,     9,     0,     0,     0,     0,     0,     0,    81,
-		    0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // g4
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,
-		    0,     0,     0,    81,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,    81,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // h4
-		    0,     0,     0,     0,     0,  6561,     0, 19683,     0,     0,     0,   243,     0,     0,     0,  2187,
-		    0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,     1,     0,     0,     0
-	}}, {{ // a5
-		    0,     0,     0,     0, 19683,     0,  6561,     0,     0,     0,    81,     0,     0,     0,     9,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,    27,     0,     0,     0,     0
-	}}, {{ // b5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,
-		    0,     0,    27,     0,     0,     0,     0,     0,     0,   729,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     3,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,    27,     0,     0,   243,     0,     0,     0,     0,     0,     0,
-		    0,     9,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,    81,    27,     0,     0,    81,     0,     0,
-		   27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,    27,    27,     0,     0,    27,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // f5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,    27,     0,     9,     0,     0,     0,     0,     9,     0,
-		    0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // g5
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,
-		    0,     0,     0,    27,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,
-		    0,     0,     3,     0,     0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     0
-	}}, {{ // h5
-		    0,     0,     0,     0,     0, 19683,     0,  6561,     0,     0,     0,    81,     0,     0,     0,     9,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,    27,     0,     0
-	}}, {{ // a6
-		    0,     0,    81,     0,     0,     0,  2187,     0,     0,     0,    27,     0,     0,     0,     3,     0,
-		    0,     0,     0,     0,     0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b6
-		    0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,
-		    0,     0,     9,     0,     0,   729,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0
-	}}, {{ // c6
-		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,   243,     9,     0,     0,     0,     0,     0,     0,   243,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d6
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,    81,     0,     0,     0,     0,     9,     0,     0,     0,     0,     9,
-		    0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e6
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,    27,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,
-		    9,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // f6
-		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     9,     0,     9,     0,     0,     0,     0,     9,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0,     0,     0,     0,     0
-	}}, {{ // g6
-		    0,     0,     0,     9,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,
-		    0,     0,     0,     9,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     9,     0,     0
-	}}, {{ // h6
-		    0,     0,     0,    81,     0,     0,     0,  2187,     0,     0,     0,    27,     0,     0,     0,     3,
-		    0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // a7
-		    0,     0,  2187,     0,     0,     0,   729,     0,     0,     0,     9,     0,     0,     0,     0,     0,
-		    0,  2187,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b7
-		    0,     0,   243,     0,     0,     0,    81,     0,     0, 19683,     1,     0,     0,     0,     0,     0,
-		    0,   729,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c7
-		    0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   729,     0,     0,
-		    0,   243,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0
-	}}, {{ // d7
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,   243,     0,     0,
-		    0,    81,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     3,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // e7
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,    81,     0,     0,
-		    0,    27,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,
-		    0,     0,     0,     3,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0
-	}}, {{ // f7
-		    0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     0,    27,     0,     0,
-		    0,     9,     0,     0,     0,     0,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,
-		    3,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0
-	}}, {{ // g7
-		    0,     0,     0,   243,     0,     0,     0,    81,     0,     1,     0,     1,     0,     0,     0,     0,
-		    0,     3,     0,     3,     0,     0,     0,     0,     0,     0,     0,     0,     3,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // h7
-		    0,     0,     0,  2187,     0,     0,     0,   729,     0,     0,     0,     9,     0,     0,     0,     0,
-		    0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // a8
-		    0,     0,  6561,     0,     0,     0,   243,     0,     0,  6561,     3,     0,     0, 19683,     1,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // b8
-		    0,     0,   729,     0,     0,     0,    27,     0,     0,  2187,     0,     0,     0,     0,     0,     0,
-		    0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // c8
-		    0,     0,    27,     0,     0,     0,     9,     0,     0,   729,     0,     0,     0,  6561,     0,     0,
-		    0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // d8
-		    0,     0,     0,     0,     0,     0,     3,     1,     0,   243,     0,     0,     0,  2187,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     1,     0,     0,     0,     0
-	}}, {{ // e8
-		    0,     0,     0,     0,     0,     0,     1,     3,     0,    81,     0,     0,     0,     9,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     1,     0,     0
-	}}, {{ // f8
-		    0,     0,     0,    27,     0,     0,     0,     9,     0,    27,     0,     0,     0,     3,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // g8
-		    0,     0,     0,   729,     0,     0,     0,    27,     0,     9,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    1,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // h8
-		    0,     0,     0,  6561,     0,     0,     0,   243,     0,     3,     0,     3,     0,     1,     0,     1,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     1,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}, {{ // PASS
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0
-	}}
-};
-
-const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
-	 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
-//	11111111(3)                 +3^8                       +3^8*2                      +3^8*3         1111111(3)
-	 3280,  3280,  3280,  3280,  9841,  9841,  9841,  9841, 16402, 16402, 16402, 16402, 22963, 22963,  1093,  1093,
-//	              364(=111111(3))+2187        121(=11111(3))+2187+729     40(=1111(3))+2187+729+243
-	 1093,  1093,  2551,  2551,  2551,  2551,  3037,  3037,  3037,  3037,  3199,  3199,  3199,  3199,     0,     0
-}};
 
 #endif
 #if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -768,75 +449,18 @@ const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
 /** feature offset/size */
 // static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
 // static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 static const unsigned short EVAL_OFFSET[] = {
 	    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
 	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
 	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-#endif
-
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-/** feature offset/size */
-// static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
-static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
-=======
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
-=======
 };
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
-};
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 
 /** packed feature offset/size */
 static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
 // static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-#ifdef DEBUG
-static const int EVAL_MAX_VALUE[] = {
-	 19682,  19682,  19682,  19682,
-	 59048,  59048,  59048,  59048,	//  78731,  78731,  78731,  78731,
-	 59048,  59048,  59048,  59048,	// 137780, 137780, 137780, 137780,
-	 59048,  59048,  59048,  59048,	// 196829, 196829, 196829, 196829,
-	  6560,   6560,   6560,   6560,	// 203390, 203390, 203390, 203390,
-	  6560,   6560,   6560,   6560,	// 209951, 209951, 209951, 209951,
-	  6560,   6560,   6560,   6560, // 216512, 216512, X 223073, X 223073,
-	  6560,   6560,			// 223073, 223073,
-	  2186,   2186,   2186,   2186, // 225260, 225260, 225260, 225260,
-	   728,    728,    728,    728, // 225989, 225989, 225989, 225989,
-	   242,    242,    242,    242, // 226232, 226232, 226232, 226232,
-	    80,     80,     80,     80, // 226313, 226313, 226313, 226313,
-	     0				// 226314
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-};
-#endif
-
-/** packed feature offset/size */
-static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
-// static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
-
-=======
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 /** feature symetry packing */
 typedef struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	short EVAL_C10[59049];
 	short EVAL_S10[59049];
 	short EVAL_C9[19683];
@@ -845,41 +469,13 @@ typedef struct {
 	short EVAL_S6[729];
 	short EVAL_S5[243];
 	short EVAL_S4[81];
-<<<<<<< HEAD
-=======
-	short EVAL_C10[2][59049];
-	short EVAL_S10[2][59049];
-	short EVAL_C9[2][19683];
-	short EVAL_S8[2][6561];
-	short EVAL_S7[2][2187];
-	short EVAL_S6[2][729];
-	short EVAL_S5[2][243];
-	short EVAL_S4[2][81];
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 } SymetryPacking;
 
 /** eval weight load status */
 static int EVAL_LOADED = 0;
 
 /** eval weights */
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
-
-/** opponent feature */
-static unsigned short *OPPONENT_FEATURE;
-=======
-short (*EVAL_WEIGHT)[EVAL_N_PLY][EVAL_N_WEIGHT];
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY];
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
-=======
-Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
->>>>>>> 6de3ab1 (Omit eval_weight table for ply > 53)
 
 /** opponent feature */
 static unsigned short *OPPONENT_FEATURE;
@@ -891,87 +487,7 @@ static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
  * @brief Opponent feature.
  *
  * Compute a feature from the opponent point of view.
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @param p opponent feature pointer.
- * @param o opponent feature base to next depth.
- * @param d feature size.
- * @return updated opponent feature pointer
- */
-<<<<<<< HEAD
-// #define OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
-static unsigned short *set_opponent_feature(unsigned short *p, int o, int d)
-{
-	if (--d) {
-		p = set_opponent_feature(p, (o + 1) * 3, d);
-		p = set_opponent_feature(p, o * 3, d);
-		p = set_opponent_feature(p, (o + 2) * 3, d);
-	} else {
-		*p++ = o + 1;
-		*p++ = o;
-		*p++ = o + 2;
-	}
-	return p;
-}
-
-/**
- * @brief Create eval packing index.
- *
- * Create an index array to reduce mirror positions.
- * @param pe pointer to array to set result.
- * @param T internally used array to check mirror positions.
- * @param kd feature increment at each depth for the mirror position.
- * @param l feature index.
- * @param k feature index for the mirror position.
- * @param n packed count so far.
- * @param d feature size, >= 4.
- * @return updated packed count.
- */
-static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int n, int d)
-{
-	int	i, q0, q1, q2, q3;
-
-	if (--d > 3) {
-		l *= 3;
-		n = set_eval_packing(pe, T, kd, l, k, n, d);
-		k += kd[d];
-		n = set_eval_packing(pe, T, kd, l + 3, k, n, d);
-		k += kd[d];
-		n = set_eval_packing(pe, T, kd, l + 6, k, n, d);
-	} else {
-		l *= 27;
-		for (q3 = 0; q3 < 3; ++q3) {
-			for (q2 = 0; q2 < 3; ++q2) {
-				for (q1 = 0; q1 < 3; ++q1) {
-					for (q0 = 0; q0 < 3; ++q0) {
-						if (k < l) i = T[k];
-						else T[l] = i = n++;
-						pe[l++] = i;
-						k += kd[0];
-					}
-					k += (kd[1] - kd[0] * 3);
-				}
-				k += (kd[2] - kd[1] * 3);
-			}
-			k += (kd[3] - kd[2] * 3);
-		}
-	}
-	return n;
-=======
-#define	OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
-
-static int opponent_feature(int q[], int d)
-{
-	int f = 0;
-	while (--d >= 0)
-		f = f * 3 + OPPONENT(q[d]);
-	return f;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
- * @param p opponent feature array to set.
-=======
- * @param p opponent feature pointer.
->>>>>>> bb33695 (Cleaner eval_open unpacking)
  * @param o opponent feature base to next depth.
  * @param d feature size.
  * @return updated opponent feature pointer
@@ -1034,7 +550,6 @@ static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int 
 		}
 	}
 	return n;
->>>>>>> 48873fa (calc opponent_feature once in eval_open)
 }
 
 /**
@@ -1054,16 +569,9 @@ void eval_open(const char* file)
 	double date;
 	const int n_w = 114364;
 	int *T;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	int ply, i, j, k;
 	int r;
 	FILE* f;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 	short *w;
 	Eval_weight *pe;
 	SymetryPacking (*P)[2];
@@ -1071,35 +579,6 @@ void eval_open(const char* file)
 	static const int kd_S10[] = { 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1 };
 	static const int kd_C10[] = { 19683, 6561, 2187, 729, 81, 243, 27, 9, 3, 1 };
 	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
-=======
-	int ply, i, j, k, kc, l, l4, l5, l6, l7, n, n4, n5, n6, n7, nc, o4, o5, o6, o7;
-=======
-	int ply, i, j, k, l, n, l4, l5, l6, l7, n4, n5, n6, n7;
-	int kc, nc, c10ofs;
->>>>>>> 48873fa (calc opponent_feature once in eval_open)
-=======
-	int ply, i, j, k;
->>>>>>> bb33695 (Cleaner eval_open unpacking)
-	int r;
-	FILE* f;
-	short *w;
-	int *O;
-	SymetryPacking *P;
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-=======
-=======
-	short *w, *pe;
-	SymetryPacking (*P)[2];
-	SymetryPacking *pp;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-	static const int kd_S10[] = { 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1 };
-	static const int kd_C10[] = { 19683, 6561, 2187, 729, 81, 243, 27, 9, 3, 1 };
->>>>>>> bb33695 (Cleaner eval_open unpacking)
-	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
->>>>>>> 48873fa (calc opponent_feature once in eval_open)
 
 	if (EVAL_LOADED++) return;
 
@@ -1110,12 +589,6 @@ void eval_open(const char* file)
 	if (sizeof (short) != 2) fatal_error("short size is not compatible with Edax.\n");
 
 	// create unpacking tables
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));	// 3^10
 	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
 	T = (int *) malloc(2 * 59049 * sizeof(*T));
@@ -1127,7 +600,6 @@ void eval_open(const char* file)
 	set_eval_packing((*P)[0].EVAL_S8, T, kd_S10 + 2, 0, 0, 0, 8);	/* 8 squares : 6561 -> 3321 */
 	for (j = 0; j < 6561; ++j)
 		(*P)[1].EVAL_S8[j] = (*P)[0].EVAL_S8[OPPONENT_FEATURE[j + 26244]];	// 1100000000(3)
-<<<<<<< HEAD
 
 	set_eval_packing((*P)[0].EVAL_S7, T, kd_S10 + 3, 0, 0, 0, 7);	/* 7 squares : 2187 -> 1134 */
 	for (j = 0; j < 2187; ++j)
@@ -1154,137 +626,13 @@ void eval_open(const char* file)
 	for (j = 0; j < 59049; ++j) {
 		(*P)[1].EVAL_S10[j] = (*P)[0].EVAL_S10[OPPONENT_FEATURE[j]];
 		(*P)[1].EVAL_C10[j] = (*P)[0].EVAL_C10[OPPONENT_FEATURE[j]];
-=======
-	P = (SymetryPacking *) malloc(sizeof(*P));
-=======
-	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(*OPPONENT_FEATURE));
-=======
-	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-	T = (int *) malloc(2 * 59049 * sizeof(*T));
-	if ((OPPONENT_FEATURE == NULL) || (P == NULL) || (T == NULL))
-		fatal_error("Cannot allocate temporary table variable.\n");
-
-	set_opponent_feature(OPPONENT_FEATURE, 0, 10);
-
-	set_eval_packing((*P)[0].EVAL_S8, T, kd_S10 + 2, 0, 0, 0, 8);	/* 8 squares : 6561 -> 3321 */
-	for (j = 0; j < 6561; ++j)
-		(*P)[1].EVAL_S8[j] = (*P)[0].EVAL_S8[OPPONENT_FEATURE[j + 26244]];
-=======
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
-
-	set_eval_packing((*P)[0].EVAL_S7, T, kd_S10 + 3, 0, 0, 0, 7);	/* 7 squares : 2187 -> 1134 */
-	for (j = 0; j < 2187; ++j)
-		(*P)[1].EVAL_S7[j] = (*P)[0].EVAL_S7[OPPONENT_FEATURE[j + 28431]];	// 1110000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S6, T, kd_S10 + 4, 0, 0, 0, 6);	/* 6 squares : 729 -> 378 */
-	for (j = 0; j < 729; ++j)
-		(*P)[1].EVAL_S6[j] = (*P)[0].EVAL_S6[OPPONENT_FEATURE[j + 29160]];	// 1111000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S5, T, kd_S10 + 5, 0, 0, 0, 5);	/* 5 squares : 243 -> 135 */
-	for (j = 0; j < 243; ++j)
-		(*P)[1].EVAL_S5[j] = (*P)[0].EVAL_S5[OPPONENT_FEATURE[j + 29403]];	// 1111100000(3)
-
-	set_eval_packing((*P)[0].EVAL_S4, T, kd_S10 + 6, 0, 0, 0, 4);	/* 4 squares : 81 -> 45 */
-	for (j = 0; j < 81; ++j)
-		(*P)[1].EVAL_S4[j] = (*P)[0].EVAL_S4[OPPONENT_FEATURE[j + 29484]];	// 1111110000(3)
-
-	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	/* 9 corner squares : 19683 -> 10206 */
-	for (j = 0; j < 19683; ++j)
-		(*P)[1].EVAL_C9[j] = (*P)[0].EVAL_C9[OPPONENT_FEATURE[j + 19683]];	// 1000000000(3)
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-	k = l = n = 0;	/* 10 squares (edge + X) : 59049 -> 29646 */
-	nc = 0;		/* 10 squares (angle + X) : 59049 -> 29889 */
-	for (q9 = 0; q9 < 3; ++q9, k += (1 - 3 * 3))
-	for (q8 = 0; q8 < 3; ++q8, k += (3 - 9 * 3))
-	for (q7 = 0; q7 < 3; ++q7, k += (9 - 27 * 3))
-	for (q6 = 0; q6 < 3; ++q6, k += (27 - 81 * 3))
-	for (q5 = 0; q5 < 3; ++q5, k += (81 - 243 * 3))
-	for (q4 = 0; q4 < 3; ++q4, k += (243 - 729 * 3)) {
-		c10ofs = q5 * (243 - 81) + q4 * (81 - 243);
-		for (q3 = 0; q3 < 3; ++q3, k += (729 - 2187 * 3))
-		for (q2 = 0; q2 < 3; ++q2, k += (2187 - 6561 * 3))
-		for (q1 = 0; q1 < 3; ++q1, k += (6561 - 19683 * 3))
-		for (q0 = 0; q0 < 3; ++q0, k += 19683) {
-			// k = q9 + q8 * 3 + q7 * 9 + q6 * 27 + q5 * 81 + q4 * 243 + q3 * 729 + q2 * 2187 + q1 * 6561 + q0 * 19683;
-			if (k < l) i = T[k];
-			else T[l] = i = n++;
-			P->EVAL_S10[0][l] = i;
-			P->EVAL_S10[1][O[l]] = i;
-
-<<<<<<< HEAD
-		// k = q[9] + q[8] * 3 + q[7] * 9 + q[6] * 27 + q[5] * 243 + q[4] * 81 + q[3] * 729 + q[2] * 2187 + q[1] * 6561 + q[0] * 19683;
-		kc = k + q[5] * (243 - 81) + q[4] * (81 - 243);
-		if (kc < l) i = T[kc + 59049];
-		else T[l + 59049] = i = nc++;
-		P->EVAL_C10[0][l] = i;
-		P->EVAL_C10[1][j] = i;
-		++l;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-			// k = q9 + q8 * 3 + q7 * 9 + q6 * 27 + q5 * 243 + q4 * 81 + q3 * 729 + q2 * 2187 + q1 * 6561 + q0 * 19683;
-			kc = k + c10ofs;
-			if (kc < l) i = T[kc + 59049];
-			else T[l + 59049] = i = nc++;
-			P->EVAL_C10[0][l] = i;
-			P->EVAL_C10[1][O[l]] = i;
-			++l;
-		}
->>>>>>> 48873fa (calc opponent_feature once in eval_open)
-=======
-	set_eval_packing(P->EVAL_S10[0], T, kd_S10, 0, 0, 0, 10);	/* 10 squares (edge + X) : 59049 -> 29646 */
-	set_eval_packing(P->EVAL_C10[0], T, kd_C10, 0, 0, 0, 10);	/* 10 squares (angle + X) : 59049 -> 29889 */
-	for (j = 0; j < 59049; ++j) {
-		P->EVAL_S10[1][j] = P->EVAL_S10[0][O[j]];
-		P->EVAL_C10[1][j] = P->EVAL_C10[0][O[j]];
->>>>>>> bb33695 (Cleaner eval_open unpacking)
-=======
-	set_eval_packing((*P)[0].EVAL_S10, T, kd_S10, 0, 0, 0, 10);	/* 10 squares (edge + X) : 59049 -> 29646 */
-	set_eval_packing((*P)[0].EVAL_C10, T, kd_C10, 0, 0, 0, 10);	/* 10 squares (angle + X) : 59049 -> 29889 */
-	for (j = 0; j < 59049; ++j) {
-		(*P)[1].EVAL_S10[j] = (*P)[0].EVAL_S10[OPPONENT_FEATURE[j]];
-		(*P)[1].EVAL_C10[j] = (*P)[0].EVAL_C10[OPPONENT_FEATURE[j]];
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	}
 
 	free(T);
 
 	// allocation
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
-=======
-	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
->>>>>>> 1dc032e (Improve visual c compatibility)
-=======
-	EVAL_WEIGHT = (short (*)[61][EVAL_N_WEIGHT]) malloc(sizeof (*EVAL_WEIGHT));
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof (*EVAL_WEIGHT));
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
-=======
-	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof(*EVAL_WEIGHT));
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
-	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY]) malloc(sizeof(*EVAL_WEIGHT));
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
-=======
-	EVAL_WEIGHT = (short (*)[][EVAL_N_WEIGHT]) malloc(2 * sizeof (*EVAL_WEIGHT));
-<<<<<<< HEAD
-	if (EVAL_WEIGHT == NULL) fatal_error("Cannot evaluation weights.\n");
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
->>>>>>> 48873fa (calc opponent_feature once in eval_open)
 
 	// data reading
 	w = (short*) malloc(n_w * sizeof (*w)); // a temporary to read packed weights
@@ -1316,9 +664,6 @@ void eval_open(const char* file)
 
 		if (edax_header == XADE) for (i = 0; i < n_w; ++i) w[i] = bswap_short(w[i]);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		pe = *EVAL_WEIGHT + ply - 2;
 		pp = *P + (ply & 1);
 		for (k = 0; k < 19683; k++) {
@@ -1346,95 +691,10 @@ void eval_open(const char* file)
 		for (k = 0; k < 243; k++) {
 			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		for (k = 0; k < 81; k++) {
-=======
-		for (k = 0; k < 91; k++) {
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
 		}
 		pe->S0 = w[EVAL_PACKED_OFS[12]];
-=======
-		for (j = 0; j <= 1; ++j) {
-			pe = EVAL_WEIGHT[j][ply];
-			pp = *P + j;
-			for (k = 0; k < EVAL_SIZE[0]; k++) {
-				pe[k] = w[pp->EVAL_C9[k] + EVAL_PACKED_OFS[0]];
-			}
-			for (k = 0; k < EVAL_SIZE[1]; k++) {
-				pe[k + 19683] = w[pp->EVAL_C10[k] + EVAL_PACKED_OFS[1]];
-			}
-			for (k = 0; k < EVAL_SIZE[2]; k++) {
-				i = pp->EVAL_S10[k];
-				pe[k + 78732] = w[i + EVAL_PACKED_OFS[2]];
-				pe[k + 137781] = w[i + EVAL_PACKED_OFS[3]];
-			}
-			for (k = 0; k < EVAL_SIZE[4]; k++) {
-				i = pp->EVAL_S8[k];
-				pe[k + 196830] = w[i + EVAL_PACKED_OFS[4]];
-				pe[k + 203391] = w[i + EVAL_PACKED_OFS[5]];
-				pe[k + 209952] = w[i + EVAL_PACKED_OFS[6]];
-				pe[k + 216513] = w[i + EVAL_PACKED_OFS[7]];
-			}
-			for (k = 0; k < EVAL_SIZE[8]; k++) {
-				pe[k + 223074] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
-			}
-			for (k = 0; k < EVAL_SIZE[9]; k++) {
-				pe[k + 225261] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
-			}
-			for (k = 0; k < EVAL_SIZE[10]; k++) {
-				pe[k + 225990] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
-			}
-			for (k = 0; k < EVAL_SIZE[11]; k++) {
-				pe[k + 226233] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
-			}
-			pe[226314] = w[EVAL_PACKED_OFS[12]];
-		}
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-		pe = (*EVAL_WEIGHT)[ply];
-=======
-		pe = *EVAL_WEIGHT + ply;
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
-		pp = *P + (ply & 1);
-		for (k = 0; k < 19683; k++) {
-			pe->C9[k] = w[pp->EVAL_C9[k] + EVAL_PACKED_OFS[0]];
-		}
-		for (k = 0; k < 59049; k++) {
-			pe->C10[k] = w[pp->EVAL_C10[k] + EVAL_PACKED_OFS[1]];
-			i = pp->EVAL_S10[k];
-			pe->S100[k] = w[i + EVAL_PACKED_OFS[2]];
-			pe->S101[k] = w[i + EVAL_PACKED_OFS[3]];
-		}
-		for (k = 0; k < 6561; k++) {
-			i = pp->EVAL_S8[k];
-			pe->S8x4[k] = w[i + EVAL_PACKED_OFS[4]];
-			pe->S8x4[k + 6561] = w[i + EVAL_PACKED_OFS[5]];
-			pe->S8x4[k + 13122] = w[i + EVAL_PACKED_OFS[6]];
-			pe->S8x4[k + 19683] = w[i + EVAL_PACKED_OFS[7]];
-		}
-		for (k = 0; k < 2187; k++) {
-			pe->S7654[k] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
-		}
-		for (k = 0; k < 729; k++) {
-			pe->S7654[k + 2187] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
-		}
-		for (k = 0; k < 243; k++) {
-			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
-		}
-		for (k = 0; k < 91; k++) {
-=======
-		for (k = 0; k < 81; k++) {
->>>>>>> 2bfbe23 (Correct errors causing heap corrupt on MSVC builds)
-			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
-		}
-<<<<<<< HEAD
-		pe[226314] = w[EVAL_PACKED_OFS[12]];
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-		pe->S0 = w[EVAL_PACKED_OFS[12]];
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 	}
 
 	fclose(f);
@@ -1449,24 +709,7 @@ void eval_open(const char* file)
 	info("<Evaluation function weights version %u.%u.%u loaded>\n", version, release, build);
 
 	// f = fopen("eval.bin", "wb");
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// fwrite(*EVAL_WEIGHT, sizeof(Eval_weight), EVAL_N_PLY, f);
-=======
-	// for (i = 0; i < 2; ++i)
-	//	for (ply = 0; ply < EVAL_N_PLY; ply++) {
-	//		fwrite(EVAL_WEIGHT[i][ply], sizeof(short), EVAL_N_WEIGHT, f);
-	//	}
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-	// for (ply = 0; ply < EVAL_N_PLY; ply++) {
-	//	fwrite(EVAL_WEIGHT[ply], sizeof(short), EVAL_N_WEIGHT, f);
-	// }
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-	// fwrite(*EVAL_WEIGHT, sizeof(Eval_weight), EVAL_N_PLY, f);
->>>>>>> 1e01a49 (Change EVAL_FEATURE to struct for readability; decrease EVAL_N_PLY)
 	// fclose(f);
 }
 
@@ -1475,26 +718,11 @@ void eval_open(const char* file)
  */
 void eval_close(void)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	free(OPPONENT_FEATURE);
-=======
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-	free(OPPONENT_FEATURE);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	free(EVAL_WEIGHT);
 	EVAL_WEIGHT = NULL;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #ifdef ANDROID
 extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
 #elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
@@ -1503,48 +731,6 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
 
 #if !defined(hasSSE2) && !defined(__ARM_NEON)
 
-=======
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-#if defined(__SSE2__) || defined(USE_GAS_MMX)
-=======
-#if defined(hasSSE2) || defined(USE_GAS_MMX)
->>>>>>> 1dc032e (Improve visual c compatibility)
-=======
-=======
-/**
- * @brief Swap player's feature.
- *
- * @param eval  Evaluation function.
- */
-void eval_swap(Eval *eval)
-{
-	eval->player ^= 1;
-}
-
->>>>>>> 6b942ef (Make eval_swap public and inline some)
-=======
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-#if defined(hasSSE2) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-#if defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-#ifdef ANDROID
-extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
-<<<<<<< HEAD
-#elif defined(hasSSE2) || defined(hasNeon) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
-#elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
-#include "eval_sse.c"
-#endif
-
-#if !defined(hasSSE2) && !defined(__ARM_NEON)
-
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 /**
  * @brief Set up evaluation features from a board.
  *
@@ -1553,10 +739,6 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
  */
 void eval_set(Eval *eval, const Board *board)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	int	i, x;
   #ifdef VECTOR_EVAL_UPDATE
 	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
@@ -1573,43 +755,6 @@ void eval_set(Eval *eval, const Board *board)
 
   #else
 	int	j;
-=======
-=======
-#ifdef VECTOR_EVAL_UPDATE
-	int i, x;
-=======
-	int	i, j, x;
-  #ifdef VECTOR_EVAL_UPDATE
-	widest_register	r;
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-=======
-	int	i, x;
-  #ifdef VECTOR_EVAL_UPDATE
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
-	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
-
-	eval->feature = EVAL_FEATURE_all_opponent;
-	foreach_bit (x, b)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
-
-	b = ~(board->opponent | board->player);
-	foreach_bit (x, b)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
-
-<<<<<<< HEAD
-#else
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-	int i, j, x;
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-  #else
-<<<<<<< HEAD
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-=======
-	int	j;
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 	Board	b;
 
 	if (eval->n_empties & 1) {
@@ -1618,74 +763,16 @@ void eval_set(Eval *eval, const Board *board)
 	} else	b = *board;
 
 	for (i = 0; i < EVAL_N_FEATURE; ++i) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		x = 0;
 		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
 			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
 		}
 		eval->feature.us[i] = x + EVAL_OFFSET[i];
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-		eval->feature.us[i] = 0;
-=======
-		search->eval.feature.us[i] = 0;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-		x = 0;
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
-			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
-		}
-<<<<<<< HEAD
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
   #endif
-=======
-	search->eval.player = 0;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-		eval->feature.us[i] = x;
-=======
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-	}
-<<<<<<< HEAD
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-=======
-#endif
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-  #endif
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
- * @brief Swap player's feature.
- *
- * @param x     Move position.
- * @param f     Flipped bitboard.
- * @param eval  Evaluation function.
- */
-<<<<<<< HEAD
-static void eval_swap(Eval *eval)
-{
-<<<<<<< HEAD
-	eval->player ^= 1;
-}
-
-/**
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
->>>>>>> 6b942ef (Make eval_swap public and inline some)
  * @brief Update the features after a player's move.
  *
  * @param x     Move position.
@@ -1694,10 +781,6 @@ static void eval_swap(Eval *eval)
  */
 static void eval_update_0(int x, unsigned long long f, Eval *eval)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
 
@@ -1705,82 +788,17 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
 
 	foreach_bit (x, f)
-<<<<<<< HEAD
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
-=======
-	const CoordinateToFeature *s = EVAL_X2F + move->x;
-	int x;
-=======
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-	unsigned long long f = move->flipped;
-	int	j, x;
-=======
-static void eval_update_0(int x, unsigned long long f, Eval *eval)
-{
-	int	j;
-<<<<<<< HEAD
->>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
-	widest_register	b;
-#ifdef VECTOR_EVAL_UPDATE
-=======
-	widest_register	r;
-  #ifdef VECTOR_EVAL_UPDATE
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-	int	i;
-
-	for (i = 0; i < 12; ++i)
-		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
-
-<<<<<<< HEAD
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b)
-			for (i = 0; i < 12; ++i)
-				eval->feature.ull[i] -= EVAL_FEATURE[x + j].ull[i];
-	}
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-
-<<<<<<< HEAD
-=======
-	foreach_bit_r (x, f, j, r)
-=======
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		for (i = 0; i < 12; ++i)
 			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
 
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
   #else
 	const CoordinateToFeature *s = EVAL_X2F + x;
 
-=======
-#else
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
-	const CoordinateToFeature *s = EVAL_X2F + move->x;
-=======
-	const CoordinateToFeature *s = EVAL_X2F + x;
->>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
-
->>>>>>> f2da03e (Refine arm builds adding neon support.)
 	switch (s->n_feature) {
 	default:
-<<<<<<< HEAD
-<<<<<<< HEAD
 		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
 	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
-=======
-		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;
-	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;
-	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
-	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
-	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
->>>>>>> bc93772 (Avoid modern compliler warnings)
 	case 4:	eval->feature.us[s->feature[3].i] -= 2 * s->feature[3].x;
 		eval->feature.us[s->feature[2].i] -= 2 * s->feature[2].x;
 		eval->feature.us[s->feature[1].i] -= 2 * s->feature[1].x;
@@ -1788,71 +806,21 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
 		break;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-<<<<<<< HEAD
-			eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
-		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
-		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
-=======
-			eval->feature.us[s->feature[6].i] -= s->feature[6].x;
-		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
-		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-	foreach_bit_r (x, f, j, r) {
-=======
-	foreach_bit (x, f) {
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
 			eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
 		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
 		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 			eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 			eval->feature.us[s->feature[1].i] -= s->feature[1].x;
 			eval->feature.us[s->feature[0].i] -= s->feature[0].x;
 			break;
-<<<<<<< HEAD
-		}
-	}
-<<<<<<< HEAD
-  #endif
-=======
-
-=======
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b) {
-			s = EVAL_X2F + x + j;
-			switch (s->n_feature) {
-			default:
-				eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
-			case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
-			case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
-			case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
-				eval->feature.us[s->feature[2].i] -= s->feature[2].x;
-				eval->feature.us[s->feature[1].i] -= s->feature[1].x;
-				eval->feature.us[s->feature[0].i] -= s->feature[0].x;
-				break;
-			}
-		}
-	}
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-#endif
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
 		}
 	}
   #endif
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 /**
@@ -1864,60 +832,8 @@ static void eval_update_0(int x, unsigned long long f, Eval *eval)
  */
 static void eval_update_1(int x, unsigned long long f, Eval *eval)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
   #ifdef VECTOR_EVAL_UPDATE
 	int	i;
-=======
-	const CoordinateToFeature *s = EVAL_X2F + move->x;
-	int x;
-	unsigned long long f = move->flipped;
-<<<<<<< HEAD
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-
-<<<<<<< HEAD
-	for (i = 0; i < 12; ++i)
-		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
-
-<<<<<<< HEAD
-	foreach_bit (x, f)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
-
-  #else
-	const CoordinateToFeature *s = EVAL_X2F + x;
-
-	switch (s->n_feature) {
-	default:
-	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
-	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
-	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
-=======
-=======
-=======
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-#ifdef DEBUG
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-	int i, j;
-=======
-	unsigned long long f = move->flipped;
-	int	j, x;
-=======
-	int	j;
-<<<<<<< HEAD
->>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
-	widest_register	b;
-#ifdef VECTOR_EVAL_UPDATE
-=======
-	widest_register	r;
-  #ifdef VECTOR_EVAL_UPDATE
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-	int	i;
->>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 	for (i = 0; i < 12; ++i)
 		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
@@ -1931,16 +847,9 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 
 	switch (s->n_feature) {
 	default:
-<<<<<<< HEAD
-	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
-	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
-	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
 	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
 	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
 	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
->>>>>>> bc93772 (Avoid modern compliler warnings)
 	case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
 	       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
 	       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
@@ -1948,80 +857,27 @@ static void eval_update_1(int x, unsigned long long f, Eval *eval)
 	       	break;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-<<<<<<< HEAD
-		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
-		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
-		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
-=======
-		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
-		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
-		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-=======
-	foreach_bit_r (x, f, j, r) {
-=======
-	foreach_bit (x, f) {
->>>>>>> be2ba1c (add AVX get_potential_mobility; revise foreach_bit for CPU32/C99)
 		s = EVAL_X2F + x;
 		switch (s->n_feature) {
 		default:
 		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
 		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
 		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
 		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
 		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
 		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
 		       	break;
-<<<<<<< HEAD
-=======
-	for (j = 0; j < 64; j += sizeof(widest_register) * CHAR_BIT) {
-		foreach_bit_r (x, f, b) {
-			s = EVAL_X2F + x + j;
-			switch (s->n_feature) {
-			default:
-			       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
-			case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
-			case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
-			case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
-			       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
-			       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
-			       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
-			       	break;
-			}
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-		}
-	}
-<<<<<<< HEAD
-  #endif
-=======
-#endif
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-=======
 		}
 	}
   #endif
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
 }
 
 void eval_update(int x, unsigned long long f, Eval *eval)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	assert(f);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
 		eval_update_sse(x, f, eval, eval);
@@ -2032,49 +888,9 @@ void eval_update(int x, unsigned long long f, Eval *eval)
 		eval_update_1(x, f, eval);
 	else
 		eval_update_0(x, f, eval);
-=======
-	assert(move->flipped);
-=======
-	assert(f);
->>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
-
-#if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
-=======
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(ANDROID)
->>>>>>> 534241b (Revise foreach_bit_r and first_bit_32)
-	if (hasSSE2) {
-		eval_update_sse(x, f, eval, eval);
-		return;
-	}
-  #endif
-	if (eval->n_empties & 1)
-		eval_update_1(x, f, eval);
-	else
-<<<<<<< HEAD
-		eval_update_0(eval, move);
-<<<<<<< HEAD
-<<<<<<< HEAD
-	eval_swap(eval);
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
-	}
->>>>>>> 6b942ef (Make eval_swap public and inline some)
-=======
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-}
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
-=======
-=======
-void eval_update_leaf(Eval *eval_out, const Eval *eval_in, const Move *move)
-=======
-		eval_update_0(x, f, eval);
 }
 
 void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
->>>>>>> 9b4cd06 (Optimize search_shallow in endgame.c; revise eval_update parameters)
 {
   #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
 	if (hasSSE2) {
@@ -2089,168 +905,7 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
 		eval_update_0(x, f, eval_out);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-#if 0 // replaced with simple save-restore
-
-/**
- * @brief Restore the features as before a player's move.
- *
- * @param eval  Evaluation function.
- * @param move  Move.
- */
-static void eval_restore_0(Eval *eval, const Move *move)
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-{
-<<<<<<< HEAD
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
-	if (hasSSE2) {
-		eval_update_sse(x, f, eval_out, eval_in);
-		return;
-	}
-  #endif
-	eval_out->feature = eval_in->feature;
-	if (eval_in->n_empties & 1)
-		eval_update_1(x, f, eval_out);
-	else
-		eval_update_0(x, f, eval_out);
-}
-
 #endif // !defined(hasSSE2) && !defined(__ARM_NEON)
-=======
-	const CoordinateToFeature *s = EVAL_X2F + move->x;
-	int x;
-	unsigned long long f = move->flipped;
-#ifdef DEBUG
-	int i, j;
-
-	for (i = 0; i < s->n_feature; ++i) {
-		j = s->feature[i].i;
-		assert(0 <= j && j < EVAL_N_FEATURE);
-		eval->feature.us[j] += 2 * s->feature[i].x;
-		assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-	}
-
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		for (i = 0; i < s->n_feature; ++i) {
-			j = s->feature[i].i;
-			assert(0 <= j && j < EVAL_N_FEATURE);
-			eval->feature.us[j] += s->feature[i].x;
-			assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-		}
-	}
-
-#else
-	switch (s->n_feature) {
-	default:
-	       	eval->feature.us[s->feature[6].i] += 2 * s->feature[6].x;
-	case 6:	eval->feature.us[s->feature[5].i] += 2 * s->feature[5].x;
-	case 5:	eval->feature.us[s->feature[4].i] += 2 * s->feature[4].x;
-	case 4:	eval->feature.us[s->feature[3].i] += 2 * s->feature[3].x;
-	       	eval->feature.us[s->feature[2].i] += 2 * s->feature[2].x;
-	       	eval->feature.us[s->feature[1].i] += 2 * s->feature[1].x;
-	       	eval->feature.us[s->feature[0].i] += 2 * s->feature[0].x;
-	       	break;
-	}
-
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
-		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
-		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
-		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
-		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
-		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
-		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
-		       	break;
-		}
-	}
-#endif
-}
-
-static void eval_restore_1(Eval *eval, const Move *move)
-{
-	const CoordinateToFeature *s = EVAL_X2F + move->x;
-	int x;
-	unsigned long long f = move->flipped;
-#ifdef DEBUG
-	int i, j;
-
-	for (i = 0; i < s->n_feature; ++i) {
-		j = s->feature[i].i;
-		assert(0 <= j && j < EVAL_N_FEATURE);
-		eval->feature.us[j] += s->feature[i].x;
-		assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-	}
-
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		for (i = 0; i < s->n_feature; ++i) {
-			j = s->feature[i].i;
-			assert(0 <= j && j < EVAL_N_FEATURE);
-			eval->feature.us[j] -= s->feature[i].x;
-			assert(eval->feature.us[j] <= EVAL_MAX_VALUE[j]);
-		}
-	}
-
-#else
-	switch (s->n_feature) {
-	default:
-	       	eval->feature.us[s->feature[6].i] += s->feature[6].x;
-	case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;
-	case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;
-	case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
-	       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
-	       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
-	       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
-	       	break;
-	}
-
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-		       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;
-		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;
-		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;
-		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
-		       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
-		       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
-		       	eval->feature.us[s->feature[0].i] -= s->feature[0].x;
-		       	break;
-		}
-	}
-#endif
-}
-
-void eval_restore(Eval *eval, const Move *move)
-{
-	assert(move->flipped);
-	eval_swap(eval);
-	assert(WHITE == eval->player || BLACK == eval->player);
-
-	if (eval->player)
-		eval_restore_1(eval, move);
-	else
-		eval_restore_0(eval, move);
-}
->>>>>>> 4a049b7 (Rewrite eval_open; Free SymetryPacking after init; short int feature)
-
-#endif // if 0
-=======
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-#endif // hasSSE2
-=======
-#endif // !defined(hasSSE2) && !defined(hasNeon)
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
-#endif // !defined(hasSSE2) && !defined(__ARM_NEON)
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 
 /**
  * @brief Update/Restore the features after a passing move.
@@ -2260,33 +915,7 @@ void eval_restore(Eval *eval, const Move *move)
 void eval_pass(Eval *eval)
 {
 	int i;
-<<<<<<< HEAD
-=======
 
-	for (i =  0; i <  4; ++i)	// 9
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
-	for (i =  4; i < 16; ++i)	// 10
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i]];
-	for (i = 16; i < 30; ++i)	// 8
-<<<<<<< HEAD
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244] + EVAL_OFFSET[i];
-=======
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244]+ EVAL_OFFSET[i];
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
-	for (i = 30; i < 34; ++i)	// 7
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 28431];
-	for (i = 34; i < 38; ++i)	// 6
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2187 + 29160] + 2187;
-	for (i = 38; i < 42; ++i)	// 5
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2916 + 29403] + 2916;
-	for (i = 42; i < 46; ++i)	// 4
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 3159 + 29484] + 3159;
-}
->>>>>>> e966183 (Halves EVAL_WEIGHT table by n_empties parity instead of eval.player.)
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	for (i =  0; i <  4; ++i)	// 9
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
 	for (i =  4; i < 16; ++i)	// 10
@@ -2302,15 +931,7 @@ void eval_pass(Eval *eval)
 	for (i = 42; i < 46; ++i)	// 4
 		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 3159 + 29484] + 3159;
 }
-=======
-#endif // __SSE2__
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
-#endif // hasSSE2
->>>>>>> 1dc032e (Improve visual c compatibility)
 
-=======
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
 /**
  * @brief Compute the error-type of the evaluation function according to the
  * depths.

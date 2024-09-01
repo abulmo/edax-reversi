@@ -3,19 +3,7 @@
  *
  * Search near the end of the game.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
-=======
- * @date 1998 - 2020
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
- * @date 1998 - 2022
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -61,59 +49,21 @@ void pv_debug(Search *search, const Move *bestmove, FILE *f)
 
 	x = bestmove->x;
 	fprintf(f, "pv = %s ", move_to_string(x, player, s));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
-=======
-	if (hash_get_from_board(&search->pv_table, HBOARD_P(&board), &hash_data)) {
->>>>>>> 0b8fa13 (More HBOARD hash functions)
-=======
-	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 	}
 	while (x != NOMOVE) {
 		board_get_move_flip(&board, x, &move);
-<<<<<<< HEAD
-=======
-	hash_code = board_get_hash_code(&board);
-	if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
-=======
-	if (hash_get_from_board(&search->pv_table, &board, &hash_data)) {
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
-		fprintf(f, ":%02d@%d%%[%+03d,%+03d]; ", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
-	}
-	while (x != NOMOVE) {
-		board_get_move(&board, x, &move);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_update(&board, &move);
 		player ^= 1;
 
 		hash_code = board_get_hash_code(&board);
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
-<<<<<<< HEAD
-<<<<<<< HEAD
 			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
 		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
 			x = hash_data.move[0];
 			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
-=======
-			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.depth, selectivity_table[hash_data.selectivity].percent, hash_data.lower, hash_data.upper);
-		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
-			x = hash_data.move[0];
-			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.depth, selectivity_table[hash_data.selectivity].percent, hash_data.lower, hash_data.upper);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			fprintf(f, "%s:%02d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
-		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
-			x = hash_data.move[0];
-			fprintf(f, "{%s}:%2d@%d%%[%+03d,%+03d]; ", move_to_string(x, player, s), hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, hash_data.lower, hash_data.upper);
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 		} else x = NOMOVE;
 	}
 	fputc('\n', f);
@@ -142,10 +92,6 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 	x = bestmove;
 	while (search_depth > 0 && x != NOMOVE) {
 		if (x != PASS) --search_depth;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 
@@ -155,21 +101,6 @@ bool is_pv_ok(Search *search, int bestmove, int search_depth)
 			x = hash_data.move[0];
 		} else break;
 		if (hash_data.wl.c.depth < search_depth || hash_data.wl.c.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
-=======
-		board_get_move(&board, x, &move);
-		board_update(&board, &move);
-
-		hash_code = board_get_hash_code(&board);
-		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
-		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
-			x = hash_data.move[0];
-		} else break;
-<<<<<<< HEAD
-		if (hash_data.depth < search_depth || hash_data.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		if (hash_data.wl.c.depth < search_depth || hash_data.wl.c.selectivity < search->selectivity || hash_data.lower != hash_data.upper) return false;
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 		if (x == NOMOVE && !board_is_game_over(&board)) return false;
 	}
 	return true;
@@ -194,28 +125,8 @@ static int guess_move(Search *search, Board *board)
 
 	search->board = *board; search_setup(search);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
-<<<<<<< HEAD
-<<<<<<< HEAD
 	hash_get_from_board(&search->shallow_table, board, &hash_data);
-<<<<<<< HEAD
-=======
-	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->n_empties, 6));
-=======
-	PVS_shallow(search, SCORE_MIN, SCORE_MAX, MIN(search->eval.n_empties, 6));
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-	hash_get(&search->shallow_table, board, board_get_hash_code(board), &hash_data);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
-=======
-	hash_get_from_board(&search->shallow_table, HBOARD_P(board), &hash_data);
->>>>>>> 0b8fa13 (More HBOARD hash functions)
-=======
-	hash_get_from_board(&search->shallow_table, board, &hash_data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 
 	search->board = saved; search_setup(search);
 
@@ -248,15 +159,7 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 	int expected_depth, expected_selectivity, tmp;
 	Bound expected_bound;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	board = search->board;
-=======
-	board = *init_board;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	board = search->board;
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 
 	spin_lock(result);
 
@@ -285,15 +188,7 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 	fail_low = (bestmove->score <= alpha);
 
 	while (x != NOMOVE) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		board_get_move_flip(&board, x, &move);
-=======
-		board_get_move(&board, x, &move);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		board_get_move_flip(&board, x, &move);
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		if (board_check_move(&board, &move)) {
 			board_update(&board, &move);
 			--expected_depth; 
@@ -302,24 +197,8 @@ void record_best_move(Search *search, const Move *bestmove, const int alpha, con
 			line_push(&result->pv, move.x);
 
 			hash_code = board_get_hash_code(&board);
-<<<<<<< HEAD
-<<<<<<< HEAD
 			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-			if ((hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data) || hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) 
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			 && (hash_data.wl.c.depth >= expected_depth && hash_data.wl.c.selectivity >= expected_selectivity)
-=======
-			 && (hash_data.depth >= expected_depth && hash_data.selectivity >= expected_selectivity)
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			 && (hash_data.wl.c.depth >= expected_depth && hash_data.wl.c.selectivity >= expected_selectivity)
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 			 && (hash_data.upper <= expected_bound.upper && hash_data.lower >= expected_bound.lower)) {
 				x = hash_data.move[0];
 			} else x = NOMOVE;
@@ -392,38 +271,15 @@ static int search_route_PVS(Search *search, int alpha, int beta, const int depth
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha);
 	assert(beta <= SCORE_MAX);
-<<<<<<< HEAD
-<<<<<<< HEAD
 	assert(depth >= 0 && depth <= search->eval.n_empties);
-=======
-	assert(depth >= 0 && depth <= search->n_empties);
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-	assert(depth >= 0 && depth <= search->eval.n_empties);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 
 	if (depth == search->eval.n_empties) {
 		if (depth == 0) score = search_solve_0(search);
 		else score = PVS_midgame(search, alpha, beta, depth, node);
 	} else {
 		if (depth == 0) score = search_eval_0(search);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		else if (depth == 1) score = -search_eval_1(search, -beta, -alpha, board_get_moves(&search->board));
 		else if (depth == 2) score = search_eval_2(search, alpha, beta, board_get_moves(&search->board));
-=======
-		else if (depth == 1) score = search_eval_1(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
-		else if (depth == 2) score = search_eval_2(search, alpha, beta, get_moves(search->board.player, search->board.opponent));
->>>>>>> 4b9f204 (minor optimize in search_eval_1/2 and search_shallow)
-=======
-		else if (depth == 1) score = search_eval_1(search, alpha, beta, false);
-		else if (depth == 2) score = search_eval_2(search, alpha, beta, false);
->>>>>>> 9f982ee (Revise PASS handling; prioritymoves in shallow; optimize Neighbour test)
-=======
-		else if (depth == 1) score = -search_eval_1(search, -beta, -alpha, board_get_moves(&search->board));
-		else if (depth == 2) score = search_eval_2(search, alpha, beta, board_get_moves(&search->board));
->>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 		else score = PVS_midgame(search, alpha, beta, depth, node);
 	}
 
@@ -470,59 +326,13 @@ int search_get_pv_cost(Search *search)
  */
 int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	HashData hash_data[1];
-	MoveList *movelist = search->movelist;
-	Board *board = search->board;
-=======
-=======
-	unsigned long long hash_code;
-<<<<<<< HEAD
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-	HashData hash_data;
-	HashStoreData hash_store_data;
-=======
-	HashStoreData hash_data;
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-	MoveList *const movelist = &search->movelist;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-	Move *move;
-	Node node;
-<<<<<<< HEAD
-	Eval Ev0;
-<<<<<<< HEAD
-	long long cost = -search_count_nodes(search);
-<<<<<<< HEAD
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-	int cost_bits;
->>>>>>> 0a166fd (Remove 1 element array coding style)
 	unsigned long long hash_code;
 	HashStoreData hash_data;
 	MoveList *const movelist = &search->movelist;
 	Move *move;
 	Node node;
 	Eval eval0;
-<<<<<<< HEAD
-<<<<<<< HEAD
 	Board board0;
-<<<<<<< HEAD
-=======
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
-	Search_Backup backup;
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
-=======
-	V2DI board0;
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-	Board board0;
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 	long long nodes_org = search_count_nodes(search);
 	assert(alpha < beta);
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -537,15 +347,6 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	SEARCH_STATS(++statistics.n_PVS_root);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	// transposition cutoff
-	hash_code = board_get_hash_code(&search->board);
-
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
 	node_init(&node, search, alpha, beta, depth, movelist->n_moves, NULL);
 	node.pv_node = true;
 	search->node_type[0] = PV_NODE;
@@ -556,27 +357,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 		move = movelist->move->next = movelist->move + 1;
 		move->flipped = 0;
 		if (can_move(search->board.opponent, search->board.player)) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 			search_update_pass_midgame(search, &eval0);
 			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
 			search_restore_pass_midgame(search, &eval0);
-=======
-			search_update_pass_midgame(search);
-				node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
-			search_restore_pass_midgame(search);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			search_update_pass_midgame(search, &backup.eval);
-			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
-			search_restore_pass_midgame(search, &backup.eval);
->>>>>>> e970433 (Restore eval by copy in search_restore_pass_midgame)
-=======
-			search_update_pass_midgame(search, &eval0);
-			node.bestscore = move->score = -search_route_PVS(search, -node.beta, -node.alpha, depth, &node);
-			search_restore_pass_midgame(search, &eval0);
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 			node.bestmove =  move->x = PASS;
 		} else  { // game over
 			node.bestscore =  move->score = search_solve(search);
@@ -585,70 +368,17 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 
 	} else {
 		// first move
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-		board0 = search->board;
-=======
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-		board0 = search->board;
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
-		eval0 = search->eval;
-=======
-		Ev0.feature = search->eval.feature;
->>>>>>> 037f46e (New eval_update_leaf updates eval on copy; save-restore eval.feature only)
-=======
-		backup.board = search->board;
-		backup.eval = search->eval;
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
 		board0 = search->board;
 		eval0 = search->eval;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
 		if ((move = node_first_move(&node, movelist))) {
 			assert(board_check_move(&search->board, move));
-=======
-		Ev0 = search->eval;
-<<<<<<< HEAD
-		if ((move = node_first_move(node, movelist))) {
-			assert(board_check_move(board, move));
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-		if ((move = node_first_move(&node, movelist))) {
-			assert(board_check_move(&search->board, move));
->>>>>>> 0a166fd (Remove 1 element array coding style)
 			search_update_midgame(search, move); search->node_type[search->height] = PV_NODE;
 				move->score = -search_route_PVS(search, -beta, -alpha, depth - 1, &node);
 				move->cost = search_get_pv_cost(search);
 				assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
 				assert(search->stability_bound.lower <= move->score && move->score <= search->stability_bound.upper);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-			search_restore_midgame(search, move->x, &eval0);
-<<<<<<< HEAD
-<<<<<<< HEAD
-			search->board = board0;
-=======
-			search_restore_midgame(search, move, &Ev0);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-			search_restore_midgame(search, move->x, &backup);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
 			search_restore_midgame(search, move->x, &eval0);
 			search->board = board0;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
-=======
-			search->board = board0.board;
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-			search->board = board0;
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 			node_update(&node, move);
 			if (search->options.verbosity == 4) pv_debug(search, move, stdout);
@@ -670,29 +400,8 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 						}
 						move->cost = search_get_pv_cost(search);
 					assert(SCORE_MIN <= move->score && move->score <= SCORE_MAX);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-					search_restore_midgame(search, move->x, &eval0);
-<<<<<<< HEAD
-<<<<<<< HEAD
-					search->board = board0;
-=======
-					search_restore_midgame(search, move, &Ev0);
->>>>>>> f1d221c (Replace eval_restore with simple save-restore, as well as parity)
-=======
-					search_restore_midgame(search, move->x, &backup);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-=======
 					search_restore_midgame(search, move->x, &eval0);
 					search->board = board0;
->>>>>>> 7bd8076 (vboard opt using union V2DI; MSVC can assign it to XMM)
-=======
-					search->board = board0.board;
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-					search->board = board0;
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 					if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, beta, false);
 					node_update(&node, move);
 					assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -705,26 +414,8 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 	}
 
 	if (!search->stop) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		hash_code = board_get_hash_code(&search->board);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cbf92ce (Fix occasional freezes)
-=======
-		hash_get(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data.data);
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-		hash_get(&search->pv_table, &board0, hash_code, &hash_data.data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
-=======
-		hash_get(&search->pv_table, &search->board, hash_code, &hash_data.data);
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		if (movelist->n_moves) {	// 4.5.1
 			if (depth < search->options.multipv_depth) movelist_sort(movelist);
 			else movelist_sort_cost(movelist, &hash_data.data);
@@ -741,80 +432,9 @@ int PVS_root(Search *search, const int alpha, const int beta, const int depth)
 			hash_data.beta = beta;
 			hash_data.score = node.bestscore;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
 			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
 			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
-=======
-=======
-		hash_code = board_get_hash_code(&search->board);
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
-		hash_get(&search->pv_table, &search->board, hash_code, &hash_data);
-=======
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-		if (depth < search->options.multipv_depth) movelist_sort(movelist);
-		else movelist_sort_cost(movelist, &hash_data.data);
-		movelist_sort_bestmove(movelist, node.bestmove);
-		record_best_move(search, movelist_first(movelist), alpha, beta, depth);
-
-		if (movelist->n_moves == get_mobility(search->board.player, search->board.opponent)) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-			cost += search_count_nodes(search);
-			cost_bits = last_bit(cost);
-			hash_store(&search->hash_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
-			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
-			else hash_store(&search->pv_table, &search->board, hash_code, depth, search->selectivity, cost_bits, alpha, beta, node.bestscore, node.bestmove);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-			hash_store_data.data.depth = depth;
-			hash_store_data.data.selectivity = search->selectivity;
-			hash_store_data.data.cost = last_bit(search_count_nodes(search) - nodes_org);
-=======
-			hash_store_data.data.wl.c.depth = depth;
-			hash_store_data.data.wl.c.selectivity = search->selectivity;
-			hash_store_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
-			hash_store_data.data.move[0] = node.bestmove;
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
-			hash_store_data.alpha = alpha;
-			hash_store_data.beta = beta;
-			hash_store_data.score = node.bestscore;
-
-			hash_store(&search->hash_table, &search->board, hash_code, &hash_store_data);
-			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_store_data);
-			else hash_store(&search->pv_table, &search->board, hash_code, &hash_store_data);
->>>>>>> d1c50ef (Structured hash_store parameters; AVXLASTFLIP changed to opt-in)
-=======
-			hash_data.data.wl.c.depth = depth;
-			hash_data.data.wl.c.selectivity = search->selectivity;
-			hash_data.data.wl.c.cost = last_bit(search_count_nodes(search) - nodes_org);
-			hash_data.data.move[0] = node.bestmove;
-			hash_data.alpha = alpha;
-			hash_data.beta = beta;
-			hash_data.score = node.bestscore;
-
-			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
-			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
-			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
->>>>>>> dea1c69 (Use same hash_data for R/W; reduce movelist in NWS_endgame)
-=======
-			hash_store(&search->hash_table, HBOARD_V(board0), hash_code, &hash_data);
-			if (search->options.guess_pv) hash_force(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data);
-			else hash_store(&search->pv_table, HBOARD_V(board0), hash_code, &hash_data);
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-			hash_store(&search->hash_table, &board0, hash_code, &hash_data);
-			if (search->options.guess_pv) hash_force(&search->pv_table, &board0, hash_code, &hash_data);
-			else hash_store(&search->pv_table, &board0, hash_code, &hash_data);
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
-=======
-			hash_store(&search->hash_table, &search->board, hash_code, &hash_data);
-			if (search->options.guess_pv) hash_force(&search->pv_table, &search->board, hash_code, &hash_data);
-			else hash_store(&search->pv_table, &search->board, hash_code, &hash_data);
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 		}
 
 		assert(SCORE_MIN <= node.bestscore && node.bestscore <= SCORE_MAX);
@@ -854,18 +474,8 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	log_print(xboard_log, "edax (search)> search [%d, %d] %d (%d)\n", alpha, beta, depth, score);
 
 	if (is_depth_solving(depth, search->eval.n_empties)) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		alpha -= (alpha & 1);
 		beta += (beta & 1);
-=======
-		if (alpha & 1) --alpha;
-		if (beta & 1) ++beta;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-		alpha -= (alpha & 1);
-		beta += (beta & 1);
->>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 	}
 
 	// at shallow depths always use a large window, for better move ordering
@@ -889,15 +499,7 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 
 	width = 10 - depth; if (width < 1) width = 1;
 	if ((width & 1) && depth == search->eval.n_empties) ++width;
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-
->>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 	for (i = 0; i < 10; ++i) {
 		old_score = score;
 
@@ -957,15 +559,7 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 		if (score == old_score) break;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if (!search->stop) record_best_move(search, movelist_first(&search->movelist), alpha, beta, depth);
-=======
-	if (!search->stop) record_best_move(search, &search->board, movelist_first(&search->movelist), alpha, beta, depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	if (!search->stop) record_best_move(search, movelist_first(&search->movelist), alpha, beta, depth);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 	search->result->time = search_time(search);
 	search->result->n_nodes = search_count_nodes(search);
 	if (options.noise <= depth && search->options.verbosity >= 2) {
@@ -996,64 +590,20 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 
 	for (i = 0; i < 4; ++i) {
 		hash_code = board_get_hash_code(&board);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
 		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
-=======
-		if (hash_get(&search->pv_table, HBOARD_P(&board), hash_code, &hash_data)
-		 || hash_get(&search->hash_table, HBOARD_P(&board), hash_code, &hash_data)) {
->>>>>>> e88638e (add vectorcall interface to hash functions)
-=======
-		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
-		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 			x = hash_data.move[0];
 		} else break;
 
 		d = hash_data.wl.c.depth + i;
 		s = hash_data.wl.c.selectivity;
-=======
-		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)) {
-			x = hash_data.move[0];
-		} else if (hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
-=======
-		if (hash_get(&search->pv_table, &board, hash_code, &hash_data)
-		 || hash_get(&search->hash_table, &board, hash_code, &hash_data)) {
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-			x = hash_data.move[0];
-		} else break;
-
-<<<<<<< HEAD
-		d = hash_data.depth + i;
-		s = hash_data.selectivity;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		d = hash_data.wl.c.depth + i;
-		s = hash_data.wl.c.selectivity;
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 		if (d > *depth) *depth = d;
 		if (s > *selectivity) *selectivity = s;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		board_get_move_flip(&board, x, &move);
 		board_update(&board, &move);
 
-=======
-		board_get_move(&board, x, &move);
-		board_update(&board, &move);
-<<<<<<< HEAD
-		
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-
->>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		if (x == PASS) --i;
 	}
 
@@ -1131,58 +681,22 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	}
 
 	// reuse last search ?
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
-=======
-	if (hash_get(&search->pv_table, &search->board, board_get_hash_code(&search->board), &hash_data)) {
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
-=======
-	if (hash_get_from_board(&search->pv_table, HBOARD_P(&search->board), &hash_data)) {
->>>>>>> 0b8fa13 (More HBOARD hash functions)
-=======
-	if (hash_get_from_board(&search->pv_table, &search->board, &hash_data)) {
->>>>>>> e31cd1d (Drop HBOARD opt; little gain and too many changes)
 		char s[2][3];
 		if (search->options.verbosity >= 2) {
 			info("<hash: value = [%+02d, %+02d] ; bestmove = %s, %s ; level = %d@%d%% ; date = %d ; cost = %d>\n",
 				hash_data.lower, hash_data.upper,
 				move_to_string(hash_data.move[0], search->player, s[0]),
 				move_to_string(hash_data.move[1], search->player, s[1]),
-<<<<<<< HEAD
-<<<<<<< HEAD
 				hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent,
 				hash_data.wl.c.date, hash_data.wl.c.cost);
-=======
-				hash_data.depth, selectivity_table[hash_data.selectivity].percent,
-				hash_data.date, hash_data.cost);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-				hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent,
-				hash_data.wl.c.date, hash_data.wl.c.cost);
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 		}
 		if (log_is_open(search_log)) {
 			log_print(search_log, "--- Next Search ---: ");
 			hash_print(&hash_data, search_log->f);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		old_depth = hash_data.wl.c.depth;
 		old_selectivity = hash_data.wl.c.selectivity;
-=======
-		old_depth = hash_data.depth;
-		old_selectivity = hash_data.selectivity;
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		old_depth = hash_data.wl.c.depth;
-		old_selectivity = hash_data.wl.c.selectivity;
->>>>>>> a556e46 (HashData and HashStoreData rearranged, TYPE_PUNING now uses union)
 
 		if (USE_PREVIOUS_SEARCH) {
 			if (hash_data.lower == hash_data.upper) {
@@ -1207,15 +721,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	if (start > search->options.depth) start = search->options.depth;
 	if (start > search->eval.n_empties) start = search->eval.n_empties;
 	if (start < search->eval.n_empties) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		start += ((start ^ end) & 1);
-=======
-		if ((start & 1) != (end & 1)) ++start;
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-		start += ((start ^ end) & 1);
->>>>>>> 927aa67 (Increase hash_table and decrease shallow_table; fix NO_SELECTIVITY hack)
 		if (start <= 0) start = 2 - (end & 1);
 		if (start > end) start = end;
 	}
@@ -1238,28 +744,12 @@ void iterative_deepening(Search *search, int alpha, int beta)
 		}
 		movelist_sort(movelist);
 		bestmove = movelist_first(movelist); bestmove->score = score;
-<<<<<<< HEAD
-<<<<<<< HEAD
 		record_best_move(search, bestmove, alpha, beta, old_depth);
-=======
-		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		record_best_move(search, bestmove, alpha, beta, old_depth);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
 	} else {
 		Move pass = MOVE_PASS;
 		bestmove = &pass; bestmove->score = score;
-<<<<<<< HEAD
-<<<<<<< HEAD
 		record_best_move(search, bestmove, alpha, beta, old_depth);
-=======
-		record_best_move(search, &search->board, bestmove, alpha, beta, old_depth);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		record_best_move(search, bestmove, alpha, beta, old_depth);
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
 		assert(SCORE_MIN <= result->score  && result->score <= SCORE_MAX);
 	}
 	search->selectivity = tmp_selectivity;
@@ -1279,15 +769,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	// midgame : iterative depth
 	for (search->depth = start; search->depth < end; search->depth += 2) {
 		search->depth_pv_extension = get_pv_extension(search->depth, search->eval.n_empties);
-<<<<<<< HEAD
-<<<<<<< HEAD
 		score = aspiration_search(search, SCORE_MIN, SCORE_MAX/*alpha, beta*/, search->depth, score);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
-=======
-		score = aspiration_search(search, alpha, beta, search->depth, score);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
-=======
-		score = aspiration_search(search, SCORE_MIN, SCORE_MAX/*alpha, beta*/, search->depth, score);	// https://github.com/eukaryo/edax-reversi-AVX-v446mod2
->>>>>>> 011233a (Update root.c)
 		if (!search_continue(search)) return;
 		if (abs(score) >= SCORE_MAX - 1 && search->depth > end - ITERATIVE_MIN_EMPTIES && search->options.depth >= search->eval.n_empties) break;
 	}
@@ -1347,15 +829,7 @@ void* search_run(void *v)
 	}
 	search->height = 0;
 	search->node_type[search->height] = PV_NODE;
-<<<<<<< HEAD
-<<<<<<< HEAD
 	search->depth_pv_extension = get_pv_extension(0, search->eval.n_empties);
-=======
-	search->depth_pv_extension = get_pv_extension(0, search->n_empties);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-	search->depth_pv_extension = get_pv_extension(0, search->eval.n_empties);
->>>>>>> c8248ad (Move n_empties into Eval; tweak eval_open and eval_set)
 	search->stability_bound.upper = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
 	search->stability_bound.lower = 2 * get_stability(search->board.player, search->board.opponent) - SCORE_MAX;
 	search->result->score = search_bound(search, search_eval_0(search));

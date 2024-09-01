@@ -3,23 +3,7 @@
  *
  * Constants as macros, enums, or global consts.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2024
-=======
- * @date 1998 - 2020
->>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
-=======
- * @date 1998 - 2021
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
-=======
- * @date 1998 - 2023
->>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
-=======
- * @date 1998 - 2024
->>>>>>> a09308f (Renew version string and copyright year)
  * @author Richard Delorme
  * @version 4.5
  */
@@ -95,75 +79,12 @@ enum {
 	CUT_NODE,
 	ALL_NODE
 };
-<<<<<<< HEAD
-<<<<<<< HEAD
 typedef	unsigned char	NodeType;
-=======
-typedef	char	NodeType;
->>>>>>> d63619f (Change NodeType to char; next node_type TLU to trinary Op)
-=======
-typedef	unsigned char	NodeType;
->>>>>>> 2ea1e4f (Change NodeType to unsigned char to fix gcc warning)
 
 #define VERSION 4
-<<<<<<< HEAD
-<<<<<<< HEAD
 #define RELEASE 5
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #define VERSION_STRING "4.5.3"
 #define EDAX_NAME "Edax 4.5.3"
-=======
-#define RELEASE 4
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#define VERSION_STRING "4.4.5"
-#define EDAX_NAME "Edax 4.4.5"
->>>>>>> 5124720 (-eval-file options added as documented; minor fix on console output)
-=======
-#define VERSION_STRING "4.4.6"
-#define EDAX_NAME "Edax 4.4.6"
->>>>>>> cd90dbb (Enable 32bit AVX build; optimize loop in board print; set version to 4.4.6)
-=======
-#define VERSION_STRING "4.4.7"
-#define EDAX_NAME "Edax 4.4.7"
->>>>>>> 9ad160e (4.4.7 AVX/shuffle optimization in endgame_sse.c)
-=======
-#define VERSION_STRING "4.4.8"
-#define EDAX_NAME "Edax 4.4.8"
->>>>>>> 569c1f8 (More neon optimizations; split bit_intrinsics.h from bit.h)
-=======
-=======
-#define RELEASE 5
->>>>>>> fdb3c8a (SWAR vector eval update; more restore in search_restore_midgame)
-#define VERSION_STRING "4.5.0"
-#define EDAX_NAME "Edax 4.5.0"
->>>>>>> 34a2291 (4.5.0: Use CRC32c for board hash)
-=======
-#define VERSION_STRING "4.5.1"
-#define EDAX_NAME "Edax 4.5.1"
->>>>>>> ff1c5db (skip hash access if n_moves <= 1 in NWS_endgame)
-=======
-#define VERSION_STRING "4.5.2"
-#define EDAX_NAME "Edax 4.5.2"
->>>>>>> a9633d5 (Initial 4.5.2; some reformats)
-=======
-#define VERSION_STRING "4.5.1"
-#define EDAX_NAME "Edax 4.5.1"
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
-=======
-#define VERSION_STRING "4.5.2"
-#define EDAX_NAME "Edax 4.5.2"
->>>>>>> a09308f (Renew version string and copyright year)
-=======
-#define VERSION_STRING "4.5.3"
-#define EDAX_NAME "Edax 4.5.3"
->>>>>>> d8589d2 (Init 4.5.3: abandon size_reduced_movelist which confuses gcc warn)
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c

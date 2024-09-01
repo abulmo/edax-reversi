@@ -1,27 +1,7 @@
 #
 # makefile to Compile Edax
 #
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 # Copyright 1998 - 2024
-=======
-# Copyright 1998 - 2018
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
-=======
-# Copyright 1998 - 2022
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
-# Copyright 1998 - 2022
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
-=======
-# Copyright 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
-=======
-# Copyright 1998 - 2024
->>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 # Richard Delorme
 # Version 4.5
 #
@@ -70,36 +50,7 @@ ifeq ($(COMP),gcc)
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
-	endif
-	ifeq ($(ARCH),x64-avx512)
-		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
-	endif
-	ifeq ($(ARCH),x64-popcnt)
-		CFLAGS += -m64 -mpopcnt -mtune=generic -DUSE_GAS_X64 -DPOPCOUNT
-	endif
-	ifeq ($(ARCH),x64-k10)
-		CFLAGS += -m64 -march=amdfam10 -DUSE_GAS_X64 -DPOPCOUNT -DMOVE_GENERATOR=MOVE_GENERATOR_BITSCAN
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
-=======
-		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
->>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64-avx512)
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
@@ -119,39 +70,8 @@ ifeq ($(COMP),gcc)
 	ifeq ($(ARCH),x32)
 		CFLAGS += -mx32 -mtune=generic -DUSE_GAS_X64
 	endif
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	ifeq ($(ARCH),x86-modern)
-		CFLAGS += -m32 -march=core-avx2 -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT -DLASTFLIP_HIGHCUT
-		ifeq ($(BUILD),optimize)
-			CFLAGS += -fomit-frame-pointer
-		endif
->>>>>>> 0b8fa13 (More HBOARD hash functions)
-=======
->>>>>>> f6ae8a3 (Drop some excessive 32bit optimizations)
 	ifeq ($(ARCH),x86-sse)
 		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
-=======
-	ifeq ($(ARCH),x86-modern)
-		CFLAGS += -m32 -march=native -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2 -DPOPCOUNT
-=======
-	ifeq ($(ARCH),x86-sse)
-		CFLAGS += -m32 -march=pentium-m -mfpmath=sse -DUSE_GAS_X86 -DUSE_GAS_MMX -DhasSSE2
-		ifeq ($(BUILD),optimize)
-			CFLAGS += -fomit-frame-pointer
-		endif
->>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
-	endif
-	ifeq ($(ARCH),x86)
-<<<<<<< HEAD
-		CFLAGS += -m32 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
->>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
-=======
-		CFLAGS += -m32 -march=i386 -mtune=generic -DUSE_GAS_X86 -DUSE_GAS_MMX
->>>>>>> 1c68bd5 (SSE / AVX optimized eval feature added)
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
@@ -167,24 +87,14 @@ ifeq ($(COMP),gcc)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
-<<<<<<< HEAD
-<<<<<<< HEAD
 	ifeq ($(ARCH),armv7)
 		CFLAGS += -march=armv7-a
 		ifeq ($(BUILD),optimize)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	ifeq ($(ARCH),armv7)
-		CFLAGS += -march=armv7-a
-		ifeq ($(BUILD),optimize)
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 			CFLAGS += -fomit-frame-pointer
 		endif
 	endif
 	ifeq ($(ARCH),arm-neon)
 		CFLAGS += -march=armv7-a+simd -mfloat-abi=softfp
-<<<<<<< HEAD
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
 		endif
@@ -193,23 +103,6 @@ ifeq ($(COMP),gcc)
 		CFLAGS += -march=armv8.2-a+sve
 		ifeq ($(BUILD),optimize)
 			CFLAGS += -fomit-frame-pointer
-<<<<<<< HEAD
-=======
-			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfpu=neon
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-			CFLAGS += -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
-=======
-	ifeq ($(ARCH),ARMv7)
-		CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon -DhasNeon
-=======
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
-		ifeq ($(BUILD),optimize)
-			CFLAGS += -fomit-frame-pointer
->>>>>>> 46e3559 (fix gcc x86 build; add x86-sse build to makefile)
-=======
->>>>>>> a26ed17 (Add flip-sve-lzcnt.c for arm SVE build)
 		endif
 	endif
 
@@ -221,30 +114,13 @@ ifeq ($(COMP),gcc)
 		ifeq ($(ARCH),arm)
 			CFLAGS += -march=armv8.3-a
 		endif
-<<<<<<< HEAD
-	endif
-	ifeq ($(OS),android)
-		CFLAGS += -DANDROID=1
-=======
->>>>>>> cae8121 (minimax search_eval_1; feed moves to search_eval_1/2)
 	endif
 	ifeq ($(OS),android)
 		CFLAGS += -DANDROID=1
 	endif
 	ifeq ($(OS),windows)
 		CFLAGS += -D__USE_MINGW_ANSI_STDIO -DWINVER=0x0501
-<<<<<<< HEAD
-<<<<<<< HEAD
 		ifneq (,$(findstring x86,$(ARCH)))
-=======
-		ifeq ($(ARCH),x86-modern)
-			CFLAGS += -DUSE_PTHREAD
-		endif
-		ifeq ($(ARCH),x86)
->>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
-=======
-		ifneq (,$(findstring x86,$(ARCH)))
->>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
 			CFLAGS += -DUSE_PTHREAD
 		endif
 	endif
@@ -345,23 +221,7 @@ endif
 
 #icc
 ifeq ($(COMP),icc)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
-=======
-	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
-	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -DUNICODE
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -wd913 -D_GNU_SOURCE=1 -DUNICODE
->>>>>>> 6506166 (More SSE optimizations)
-=======
-	CFLAGS = -std=c99 -Wall -Wcheck -wd2259 -D_GNU_SOURCE=1 -DUNICODE -Qoption,cpp,--unicode_source_kind,"UTF-8"
->>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
 	PGO_GEN = -prof_gen
 	PGO_USE = -prof_use -wd11505
 
@@ -375,15 +235,7 @@ ifeq ($(COMP),icc)
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
 	endif
 	ifeq ($(ARCH),x64-avx512)
-<<<<<<< HEAD
-<<<<<<< HEAD
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
-=======
-		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
-=======
-		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
->>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64)
 		CFLAGS += -m64 -DUSE_GAS_X64
@@ -419,68 +271,20 @@ endif
 
 #clang
 ifeq ($(COMP),clang)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
-=======
-	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
-	CFLAGS = -std=c99 -pedantic -W -Wall -DUNICODE -Wno-invalid-source-encoding
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
-=======
-	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE -Wno-invalid-source-encoding
->>>>>>> 6506166 (More SSE optimizations)
-=======
-	CFLAGS = -std=c99 -pedantic -W -Wall -D_GNU_SOURCE=1 -DUNICODE
->>>>>>> 0b9d604 (Add more AVX512 builds; fix modern compiler's warnings)
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
 
 	ifeq ($(BUILD),optimize)
-<<<<<<< HEAD
-<<<<<<< HEAD
 		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
 		LTOFLAG = -flto
-=======
-		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG
->>>>>>> ea39994 (Improve clang compatibility)
-=======
-		CFLAGS += -O3 -ffast-math -fomit-frame-pointer -DNDEBUG
-		LTOFLAG = -flto
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 	else
 		CFLAGS += -O0 -g -DDEBUG
 	endif
 
 	ifeq ($(ARCH),x64-modern)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
-	endif
-	ifeq ($(ARCH),x64-avx512)
-		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
-=======
-		CFLAGS += -m64 -march=core-avx2 -mno-bmi2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 93110ce (Use computation or optional pdep to unpack A1_A8)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> 6f4eb2e (VPGATHERDD accumlate_eval)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT
->>>>>>> bbc1ddf (VPGATHERDD accumlate_eval)
-=======
-		CFLAGS += -m64 -march=core-avx2 -DUSE_GAS_X64 -DPOPCOUNT -DLASTFLIP_HIGHCUT
->>>>>>> 85955bf (lazy high cut version of board_score_sse_1)
 	endif
 	ifeq ($(ARCH),x64-avx512)
 		CFLAGS += -m64 -march=skylake-avx512 -DUSE_GAS_X64 -DPOPCOUNT
@@ -514,39 +318,12 @@ endif
 ifeq ($(OS),windows)
 	EXE = wEdax-$(ARCH).exe
 	LIBS += -lws2_32
-<<<<<<< HEAD
-<<<<<<< HEAD
 	ifneq (,$(findstring x86,$(ARCH)))
 		LIBS += -Bstatic -Wl,-Bstatic,-lpthread
-<<<<<<< HEAD
-=======
-	ifeq ($(ARCH),x86-modern)
-		LIBS += -lpthread
-=======
->>>>>>> a03a9c9 (Static link to pthread on MSYS2 x86 build)
-	endif
-	ifeq ($(ARCH),x86)
-=======
-	ifneq (,$(findstring x86,$(ARCH)))
->>>>>>> 11e7bb7 (filp_sse_bitscan.c (experimental) added; Makefile modified.)
-		LIBS += -lpthread
->>>>>>> feb7fa7 (count_last_flip_bmi2 and transpose_avx2 added)
 	endif
 endif
 ifeq ($(OS),osx)
-<<<<<<< HEAD
-<<<<<<< HEAD
 	EXE = mEdax-$(ARCH)
-=======
-	ifeq ($(ARCH),x64)
-		EXE = mEdax
-	else
-		EXE = mEdax-$(ARCH)
-	endif
->>>>>>> e558fdb (Some cleanups for clang / android build)
-=======
-	EXE = mEdax-$(ARCH)
->>>>>>> ffdc063 (makefile for macuniversal)
 	LIBS += -lpthread
 endif
 
@@ -602,12 +379,6 @@ help:
 build:
 	@echo "building edax..."
 	$(CC) $(CFLAGS) $(LTOFLAG) all.c -s -o $(BIN)/$(EXE) $(LIBS)
-<<<<<<< HEAD
-
-source:
-	$(CC) $(CFLAGS) -S all.c
-=======
->>>>>>> 1b29848 (fix & optimize 32 bit build; other minor mods)
 
 source:
 	$(CC) $(CFLAGS) -S all.c
@@ -638,33 +409,12 @@ release:
 	$(MAKE) pgo-build ARCH=x64 OS=linux COMP=gcc 
 	$(MAKE) build ARCH=x64 OS=windows COMP=gcc CC='x86_64-w64-mingw32-gcc'
 	$(MAKE) build ARCH=x86 OS=windows COMP=gcc CC='i686-w64-mingw32-gcc'
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
-=======
-	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
->>>>>>> e558fdb (Some cleanups for clang / android build)
-=======
-	$(MAKE) build ARCH=ARMv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
->>>>>>> f2da03e (Refine arm builds adding neon support.)
-=======
-	$(MAKE) build ARCH=armv7 OS=android COMP=gcc CC='arm-linux-androideabi-gcc --sysroot=$SYSROOT'
->>>>>>> 520040b (Use DISPATCH_NEON, not hasNeon, for android arm32 build)
 	$(MAKE) clean
 	$(MAKE) build ARCH=x64 OS=osx COMP=gcc-old CC=i686-apple-darwin10-gcc
 
 android:
 	ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=./Application.mk # NDK_DEBUG=1
-<<<<<<< HEAD
-
-macuniversal:
-	$(MAKE) build ARCH=x86 OS=osx COMP=clang
-	$(MAKE) build ARCH=x64 OS=osx COMP=clang
-	lipo -create -arch i686 ../bin/mEdax-x86 -arch x86_64 ../bin/mEdax-x64 -arch arm64 ../bin/mEdax-arm -output ../bin/mEdax
-	rm -f ../bin/mEdax-x86 ../bin/mEdax-x64
-=======
->>>>>>> f2da03e (Refine arm builds adding neon support.)
 
 macuniversal:
 	$(MAKE) build ARCH=x86 OS=osx COMP=clang

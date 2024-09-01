@@ -481,15 +481,7 @@ static void wthorgame_get_board(WthorGame *game, const int n_empties, Board *boa
 		if (board_is_pass(board)) {
 			board_pass(board); *player ^= 1;
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		board_get_move_flip(board, move_from_wthor(game->x[i]), &move);
-=======
-		board_get_move(board, move_from_wthor(game->x[i]), &move);
->>>>>>> 0a166fd (Remove 1 element array coding style)
-=======
-		board_get_move_flip(board, move_from_wthor(game->x[i]), &move);
->>>>>>> 80ca4b1 (board_get_moves for AVX2; rename board_get_move_flip)
 		if (board_check_move(board, &move)) {
 			board_update(board, &move); *player ^= 1;
 		} else {

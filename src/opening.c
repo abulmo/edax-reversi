@@ -3,15 +3,7 @@
  *
  * Opening Name aliasing.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2020
-=======
- * @date 1998 - 2018
->>>>>>> 4cba71a (Use utf-8 for french/degree/micro chars; consistent capitalize in opening names for string-pooling)
-=======
- * @date 1998 - 2020
->>>>>>> 0a166fd (Remove 1 element array coding style)
  * @author Richard Delorme
  * @version 4.4
  */

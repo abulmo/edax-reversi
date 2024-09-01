@@ -17,28 +17,10 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * @date 1998 - 2023
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.5
-=======
- * @date 1998 - 2020
- * @author Richard Delorme
- * @author Toshihiko Okuhara
- * @version 4.4
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
- * @date 1998 - 2022
-=======
- * @date 1998 - 2023
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
- * @author Richard Delorme
- * @author Toshihiko Okuhara
- * @version 4.5
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
  * 
  */
 
@@ -128,14 +110,7 @@ const unsigned char COUNT_FLIP[8][256] = {
 	},
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #ifdef HAS_CPU_64
-=======
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
-#ifdef HAS_CPU_64
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 /* bit masks for diagonal lines (interleaved) */
 const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x000000000000ff01, 0x0000000000000000 }, { 0x0801040102010101, 0x8001400120011001 }},
@@ -203,10 +178,6 @@ const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x0000000000000000, 0xff40008000000000 }, { 0x0440024001400040, 0x4040204010400840 }},
 	{{ 0x0000000000000000, 0xff80000000000000 }, { 0x0880048002800180, 0x8080408020801080 }}
 };
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 #else
 /* bit masks for diagonal lines */
 const uint64x2_t mask_dvhd[64][2] = {
@@ -276,11 +247,6 @@ const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x8000000000000000, 0xff00000000000000 }, { 0x8080808080808080, 0x8040201008040201 }}
 };
 #endif
-<<<<<<< HEAD
-=======
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -290,8 +256,6 @@ const uint64x2_t mask_dvhd[64][2] = {
  * @return flipped disc count.
  */
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 int last_flip(int pos, unsigned long long P)
 {
 	unsigned int	n_flips;
@@ -324,53 +288,6 @@ int last_flip(int pos, unsigned long long P)
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
 #endif
-<<<<<<< HEAD
-=======
-#ifndef HAS_CPU_64
-#define vaddvq_u16(x)	vget_lane_u64(vpaddl_u32(vpaddl_u16(vadd_u16(vget_high_u16(x), vget_low_u16(x)))), 0)
-#endif
-
-=======
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
-int last_flip(int pos, unsigned long long P)
-{
-	unsigned int	n_flips;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-	uint64x2_t	PP = vdupq_n_u64(P);
-	uint64x2_t	II;
-#ifdef HAS_CPU_64	// vaddvq
-	unsigned int t;
-	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
-
-	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(PP)));
-	II = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
-	t = vaddvq_u16(vreinterpretq_u16_u64(II));
-	n_flips  = COUNT_FLIP_X[t >> 8];
-	n_flips += COUNT_FLIP_X[t & 0xFF];
-	II = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
-	t = vaddvq_u16(vreinterpretq_u16_u64(II));
-	n_flips += COUNT_FLIP_Y[t >> 8];
-	n_flips += COUNT_FLIP_Y[t & 0xFF];
-
-<<<<<<< HEAD
->>>>>>> 343493d (More neon/sse optimizations; neon dispatch added for arm32)
-=======
-#else // Neon kindergarten
-	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
-
-	II = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
-	n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 2)];
-	n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 0)];
-	II = vreinterpretq_u64_s8(vnegq_s8(vreinterpretq_s8_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1])))));
-	II = vpaddlq_u32(vmulq_u32(vreinterpretq_u32_u64(dmask), vreinterpretq_u32_u64(II)));
-	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
-	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
-#endif
-
->>>>>>> 81dec96 (Kindergarten last flip for arm32; MSVC arm Windows build (not tested))
-=======
->>>>>>> 4087529 (Revise board0 usage; fix unused flips)
 	return n_flips;
 }
 
