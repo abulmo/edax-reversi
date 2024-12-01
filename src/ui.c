@@ -3,9 +3,9 @@
  *
  * @brief User interface.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "options.h"
@@ -110,10 +110,10 @@ static void ui_read_input(UI *ui)
 		}
 	}
 	if (buffer) {
-		lock(event);
+		mtx_lock(&event->cond_mutex);
 			event_add_message(event, buffer);
-			condition_signal(event);
-		unlock(event);
+			cnd_signal(&event->condition);
+		mtx_unlock(&event->cond_mutex);
 	}
 }
 
@@ -123,7 +123,7 @@ static void ui_read_input(UI *ui)
  *
  * @param v Engine.
  */
-static void* ui_read_input_loop(void *v)
+static int ui_read_input_loop(void *v)
 {
 	UI *const ui = (UI*) v;
 
@@ -133,7 +133,7 @@ static void* ui_read_input_loop(void *v)
 
 	info("<exit ui_read_input>\n");
 
-	return NULL;
+	return thrd_success;
 }
 
 
@@ -190,9 +190,9 @@ bool ui_event_exist(UI *ui)
 {
 	bool ok;
 
-	spin_lock(&ui->event);
+	mtx_lock(&ui->event.mutex);
 	ok = event_exist(&ui->event);
-	spin_unlock(&ui->event);	
+	mtx_unlock(&ui->event.mutex);
 
 	return ok;
 }
@@ -207,8 +207,8 @@ void ui_event_init(UI *ui)
 {
 	event_init(&ui->event);
 	
-	thread_create(&ui->event.thread, ui_read_input_loop, ui);
-	thread_detach(ui->event.thread);
+	thrd_create(&ui->event.thread, ui_read_input_loop, ui);
+	thrd_detach(ui->event.thread);
 }
 
 /**

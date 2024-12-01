@@ -13,9 +13,9 @@
  * @version 4.5
  */
 
-#include "bit.h"
+#include "simd.h"
 
-const V8DI lrmask[66] = {
+const V8DI LR_MASK[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200, 0x0000000000000003, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -97,7 +97,7 @@ const V8DI lrmask[66] = {
 #define _mm256_broadcastsi128_si256(x) _mm_broadcastsi128_si256(x)
 #endif
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m128i vectorcall mm_flip(const __m128i OP, int pos)
 {
 	__m256i	PP, mOO, flip, outflank, mask, ocontig;
 	__m128i	outflank1;
@@ -105,30 +105,44 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	PP = _mm256_broadcastq_epi64(OP);
 	mOO = _mm256_and_si256(_mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP)),
-		_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
+	_mm256_set_epi64x(0x007e7e7e7e7e7e00, 0x007e7e7e7e7e7e00, 0x00ffffffffffff00, 0x7e7e7e7e7e7e7e7e));	// (sentinel on the edge)
 
-	mask = lrmask[pos].v4[1];
+	mask = LR_MASK[pos].v4[1];
 	ocontig = _mm256_andnot_si256(mOO, mask);
-		// -1 (CPU)
-	outflank1 = _mm_cvtsi64_si128(0x8000000000000000ULL >> lzcnt_u64(_mm_cvtsi128_si64(_mm256_castsi256_si128(ocontig))));
+	// -1 (CPU)
+	outflank1 = _mm_cvtsi64_si128(0x8000000000000000ULL >> _lzcnt_u64(_mm_cvtsi128_si64(_mm256_castsi256_si128(ocontig))));
 	// outflank1 = _mm_loadl_epi64((__m128i *) &X_TO_BIT[lzcnt_u64(_mm_cvtsi128_si64(_mm256_castsi256_si128(ocontig))) ^ 63]);
-		// -8/-7/-9 (bswap-LS1B)
+	// -8/-7/-9 (bswap-LS1B)
 	outflank = _mm256_shuffle_epi8(ocontig, mbswapll);
 	outflank = _mm256_shuffle_epi8(_mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank)), mbswapll);	// LS1B
 	outflank = _mm256_blend_epi32(outflank, _mm256_castsi128_si256(outflank1), 0x03);
 	outflank = _mm256_and_si256(outflank, PP);
-		// set all bits higher than outflank
+	// set all bits higher than outflank
 	flip = _mm256_and_si256(_mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(outflank, outflank)), mask);
 
-	mask = lrmask[pos].v4[0];
-		// look for non-opponent (or edge) bit
+	mask = LR_MASK[pos].v4[0];
+	// look for non-opponent (or edge) bit
 	ocontig = _mm256_andnot_si256(mOO, mask);
 	ocontig = _mm256_and_si256(ocontig, _mm256_sub_epi64(_mm256_setzero_si256(), ocontig));	// LS1B
 	outflank = _mm256_and_si256(ocontig, PP);
-		// set all bits lower than outflank (depends on ocontig != 0)
+	// set all bits lower than outflank (depends on ocontig != 0)
 	outflank = _mm256_add_epi64(outflank, _mm256_cmpeq_epi64(outflank, ocontig));
 	flip = _mm256_or_si256(flip, _mm256_and_si256(outflank, mask));
 
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 }
+
+uint64_t board_flip(const Board *board, const int x) 
+{
+	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}
+
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}	
+
 

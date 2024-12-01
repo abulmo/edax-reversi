@@ -3,19 +3,19 @@
  *
  * This module verifies if the move generator is correct.
  *
- * @date 1998 - 2012
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "bit.h"
 
 #ifndef NDEBUG
 
-unsigned long long flip_slow(const unsigned long long P, const unsigned long long O, const int x0)
+uint64_t flip_slow(const uint64_t P, const uint64_t O, const int x0)
 {
 	int x, d, dir[8] = {-9,-8,-7,-1,1,7,8,9};
-	const unsigned long long edge[8] = {
+	const uint64_t edge[8] = {
 		0x01010101010101ffull,
 		0x00000000000000ffull,
 		0x80808080808080ffull,
@@ -25,7 +25,7 @@ unsigned long long flip_slow(const unsigned long long P, const unsigned long lon
 		0xff00000000000000ull,
 		0xff80808080808080ull
 	};
-	unsigned long long flipped, f;
+	uint64_t flipped, f;
 
 	if (x0 == PASS) return 0;
 
@@ -42,7 +42,7 @@ unsigned long long flip_slow(const unsigned long long P, const unsigned long lon
 	return flipped;
 }
 
-bool test_generator(const unsigned long long flipped, const unsigned long long P, const unsigned long long O, const int x0)
+bool test_generator(const uint64_t flipped, const uint64_t P, const uint64_t O, const int x0)
 {
 	if (flipped != flip_slow(P, O, x0)) {
 		Board b[1];
@@ -50,7 +50,7 @@ bool test_generator(const unsigned long long flipped, const unsigned long long P
 		b->player = P; b->opponent = O;
 		board_print(b, BLACK, stderr);
 		fprintf(stderr, "move wrong : %s\n", move_to_string(x0, BLACK, s));
-		bitboard_write(flipped, stderr);
+		bitboard_print(flipped, stderr);
 		return true;
 	}
 	return false;

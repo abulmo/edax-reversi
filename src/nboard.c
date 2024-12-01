@@ -3,9 +3,10 @@
  *
  * Chris Welty's NBoard Protocol
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "options.h"
@@ -114,6 +115,7 @@ void ui_loop_nboard(UI *ui)
 {
 	char *cmd = NULL, *param = NULL;
 	Play *play = ui->play;
+	bool pass;
 
 	// loop forever
 	for (;;) {
@@ -137,11 +139,9 @@ void ui_loop_nboard(UI *ui)
 
 		} else if (strcmp(cmd, "game") == 0) {
 			Game game;
-			int lastmove = parse_ggf(&game, param);
-			if (lastmove >= 0) {
+			if (parse_ggf(&game, param, &pass) != param) {
 				game_get_board(&game, 60, &play->initial_board);
-				if (lastmove == PASS)	// https://github.com/okuhara/edax-reversi-AVX/issues/1
-					board_pass(&play->initial_board);
+				if (pass && board_is_pass(&play->initial_board)) board_pass(&play->initial_board);
 				play_new(play);
 			} else {
 				nboard_fail("Cannot parse game \"%s\"", param);
@@ -164,7 +164,7 @@ void ui_loop_nboard(UI *ui)
 			nboard_send("status Edax is waiting");
 
 		} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0) {
-			free(cmd); free(param);			
+			free(cmd); free(param);
 			return;
 
 		} else if (strcmp(cmd, "ping") == 0) {

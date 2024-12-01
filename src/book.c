@@ -10,9 +10,9 @@
  * with two bounds from retropropagated error.
  * Several algorithms are present to add positions in the book, in the most usefull way.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @version 4.6
  */
 
 #include "book.h"
@@ -24,9 +24,11 @@
 #include "util.h"
 
 #include <assert.h>
-#include <time.h>
-#include <stdarg.h>
 #include <limits.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #define BOOK_DEBUG 0
 static const int BOOK_INFO_RESOLUTION = 100000;
@@ -89,17 +91,6 @@ static inline bool link_write(const Link *link, FILE *f)
 	r  = fwrite(&link->score, 1, 1, f);
 	r += fwrite(&link->move, 1, 1, f);
 	return r == 2;
-}
-
-/**
- * @brief check if a link is unvalid.
- *
- * @param link checked link.
- * @return true if link is unvalid, false otherwise.
- */
-static inline bool link_is_bad(const Link *link)
-{
-	return link->score == -SCORE_INF;
 }
 
 /**
@@ -197,7 +188,7 @@ static bool position_is_ok(const Position *position)
 		} else {
 			if (/*l->move < A1 ||*/ l->move > H8
 			 || board_is_occupied(&board, l->move)
-			 || board_get_move_flip(&board, l->move, &move) == 0) {
+			 || board_get_move(&board, l->move, &move) == 0) {
 				warn("link %s is wrong\n", move_to_string(l->move, WHITE, s));
 				position_print(position, &position->board, stdout);
 				return false;
@@ -222,7 +213,7 @@ static bool position_is_ok(const Position *position)
 		}
 	} else if (/*l->move < A1 ||*/ l->move > H8
 		 || board_is_occupied(&board, l->move)
-		 || board_get_move_flip(&board, l->move, &move) == 0) {
+		 || board_get_move(&board, l->move, &move) == 0) {
 			warn("leaf %s is wrong\n", move_to_string(l->move, WHITE, s));
 			position_print(position, &position->board, stdout);
 			return false;
@@ -319,8 +310,8 @@ static bool position_read(Position *position, FILE *f)
 	int i;
 	int r;
 
-	r  = fread(&position->board.player, sizeof (unsigned long long), 1, f);
-	r += fread(&position->board.opponent, sizeof (unsigned long long), 1, f);
+	r  = fread(&position->board.player, sizeof (uint64_t), 1, f);
+	r += fread(&position->board.opponent, sizeof (uint64_t), 1, f);
 
 	r += fread(&position->n_wins, sizeof (unsigned int), 1, f);
 	r += fread(&position->n_draws, sizeof (unsigned int), 1, f);
@@ -417,8 +408,8 @@ static bool position_write(const Position *position, FILE* f)
 	int i;
 	int r;
 
-	r  = fwrite(&position->board.player, sizeof (unsigned long long), 1, f);
-	r += fwrite(&position->board.opponent, sizeof (unsigned long long), 1, f);
+	r  = fwrite(&position->board.player, sizeof (uint64_t), 1, f);
+	r += fwrite(&position->board.opponent, sizeof (uint64_t), 1, f);
 
 	r += fwrite(&position->n_wins, sizeof (unsigned int), 1, f);
 	r += fwrite(&position->n_draws, sizeof (unsigned int), 1, f);
@@ -495,14 +486,14 @@ static int position_get_moves(const Position *position, const Board *board, Move
 		if (board_equal(&sym, board)) {
 			for (i = 0; i < position->n_link; ++i) {
 				x = symetry(position->link[i].move, s);
-				board_get_move_flip(board, x, move);
+				board_get_move(board, x, move);
 				move->score = position->link[i].score;
 				previous = previous->next = move;
 				++move;
 			}
 			x = symetry(position->leaf.move, s);
 			if (x != NOMOVE) {
-				board_get_move_flip(board, x, move);
+				board_get_move(board, x, move);
 				move->score = position->leaf.score;
 				previous = previous->next = move;
 				++move;
@@ -540,7 +531,7 @@ static void position_show(const Position *position, const Board *board, FILE *f)
 	fprintf(f, "Best score: %+02d [%+02d, %+02d]\n", position->score.value, position->score.lower, position->score.upper);
 	fprintf(f, "Moves:");
 	sym = position_get_moves(position, board, &movelist);
-	foreach_move(move, movelist) {
+	foreach_move(move, &movelist) {
 		move_to_string(move->x, color, s);
 		if (symetry(position->leaf.move, sym) == move->x) {
 			fprintf(f, " <%s:%+02d>", s, move->score);
@@ -570,7 +561,7 @@ static void position_print(const Position *position, const Board *board, FILE *f
 	fprintf(f, "best: %+02d [%+02d, %+02d];", position->score.value, position->score.lower, position->score.upper);
 	fprintf(f, "moves:");
 	sym = position_get_moves(position, board, &movelist);
-	foreach_move(move, movelist) {
+	foreach_move(move, &movelist) {
 		move_to_string(move->x, color, m);
 		if (symetry(position->leaf.move, sym) == move->x) {
 			fprintf(f, " <%s:%+02d>", m, move->score);
@@ -599,7 +590,7 @@ static void position_get_random_move(const Position *position, const Board *boar
 	position_get_moves(position, board, &movelist);
 
 	n = 0;
-	foreach_best_move(m, movelist) {
+	foreach_best_move(m, &movelist) {
 		if (position->score.value <= m->score + randomness) {
 			++n;
 		} else break;
@@ -613,7 +604,7 @@ static void position_get_random_move(const Position *position, const Board *boar
 		i = (random_get(r) % n); // is good enough here
 	}
 
-	foreach_best_move(m, movelist) {
+	foreach_best_move(m, &movelist) {
 		if (i-- == 0) break;
 	}
 
@@ -692,7 +683,7 @@ static void position_search(Position *position, Book *book)
 	Search *search = book->search;
 	Link *l;
 	const int n_moves = get_mobility(position->board.player, position->board.opponent);
-	long long time;
+	int64_t time;
 	bool time_per_move;
 
 	if (position->leaf.move != NOMOVE && position_add_link(position, &position->leaf)) {
@@ -702,7 +693,7 @@ static void position_search(Position *position, Book *book)
 
 	if (position->n_link < n_moves || (position->n_link == 0 && n_moves == 0 && position->score.value == -SCORE_INF)) {
 		search_set_board(search, &position->board, BLACK);
-		search_set_level(search, position->level, search->eval.n_empties);
+		search_set_level(search, position->level, search->n_empties);
 
 		foreach_link (l, position) {
 			movelist_exclude(&search->movelist, l->move);
@@ -744,7 +735,7 @@ static void position_search(Position *position, Book *book)
 static void position_link(Position *position, Book *book)
 {
 	int x;
-	unsigned long long moves = board_get_moves(&position->board);
+	uint64_t moves = board_get_moves(&position->board);
 	Board next;
 	Link link;
 	Position *child;
@@ -1040,32 +1031,32 @@ static void position_enhance(Position *position, Book *book)
 static void board_feed_hash(Board *board, const Book *book, Search *search, const bool is_pv)
 {
 	Position *position;
-	const unsigned long long hash_code = board_get_hash_code(board);
+	const uint64_t hash_code = board_get_hash_code(board);
 	MoveList movelist;
 	Move *m;
-	HashStoreData hash_data;
 
 	position = book_probe(book, board);
 	if (position) {
 		const int n_empties = board_count_empties(&position->board);
+		const int depth = LEVEL[position->level][n_empties].depth;
+		const int selectivity = LEVEL[position->level][n_empties].selectivity;
 		const int score = position->score.value;
 		int move = NOMOVE;
 
-		hash_data.data.wl.c.depth = LEVEL[position->level][n_empties].depth;
-		hash_data.data.wl.c.selectivity = LEVEL[position->level][n_empties].selectivity;
-
 		position_get_moves(position, board, &movelist);
-		foreach_move(m, movelist) {
+		foreach_move(m, &movelist) {
 			if (move == NOMOVE) move = m->x;
 			board_update(board, m);
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
-
-		hash_data.data.lower = hash_data.data.upper = score;
-		hash_data.data.move[0] = move;
-		hash_feed(&search->hash_table, board, hash_code, &hash_data);
-		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &hash_data);
+	#ifdef __BIG_ENDIAN__
+		HashData data = {{{search->hash_table.date, 0, depth, selectivity}}, score, score, {move, 0}};
+	#else
+		HashData data = {{{selectivity, depth, 0, search->hash_table.date}}, score, score, {move, 0}};
+	#endif
+		hash_feed(&search->hash_table, board, hash_code, &data);
+		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &data);
 	}
 }
 
@@ -1095,7 +1086,7 @@ static bool board_fill(Board *board, Book *book, int depth)
 			}
 			board_pass(board);							
 		} else {
-			foreach_move(m, movelist) {
+			foreach_move(m, &movelist) {
 				board_update(board, m);
 				if (board_fill(board, book, depth - 1)) {
 					book_add_board(book, board);
@@ -1310,7 +1301,7 @@ static Position* book_probe(const Book *book, const Board *board)
  */
 static void book_add(Book *book, const Position *p)
 {
-	const unsigned long long i = board_get_hash_code(&p->board) & (book->n - 1);
+	const uint64_t i = board_get_hash_code(&p->board) & (book->n - 1);
 
 	if (position_array_add(book->array + i, p)) {
 		++book->n_nodes;
@@ -1326,7 +1317,7 @@ static void book_add(Book *book, const Position *p)
  */
 static void book_remove(Book *book, const Position *p)
 {
-	const unsigned long long i = board_get_hash_code(&p->board) & (book->n - 1);
+	const uint64_t i = board_get_hash_code(&p->board) & (book->n - 1);
 
 	if (position_array_remove(book->array + i, p)) {
 		--book->n_nodes;
@@ -1718,7 +1709,7 @@ void book_deepen(Book *book)
 	PositionArray *a;
 	Position *p;
 	int i = 0;
-	unsigned long long t = real_clock();
+	uint64_t t = real_clock();
 	char file[FILENAME_MAX + 1];
 	
 	file_add_ext(options.book_file, ".dep", file);
@@ -1754,7 +1745,7 @@ void book_correct_solved(Book *book)
 	PositionArray *a;
 	Position *p;
 	int i = 0;
-	unsigned long long t = real_clock();
+	uint64_t t = real_clock();
 	char file[FILENAME_MAX + 1];
 	Link old_leaf;
 	int n_error = 0;
@@ -1802,7 +1793,7 @@ static void book_expand(Book *book, const char *action, const char *tmp_file)
 	PositionArray *a;
 	Position *p;
 	int i = 0, k;
-	unsigned long long t = real_clock();
+	uint64_t t = real_clock();
 
 	bprint("%s...\r", action);
 	
@@ -2077,9 +2068,9 @@ void book_info(Book *book)
 {
 	PositionArray *a;
 	Position *p;
-	unsigned long long n_links = 0;
-	unsigned long long n_leaves = 0;
-	unsigned long long n_level[61] = {0};
+	uint64_t n_links = 0;
+	uint64_t n_leaves = 0;
+	uint64_t n_level[61] = {0};
 	int min_array = book->n_nodes, max_array = 0;
 	int i;
 
@@ -2100,14 +2091,14 @@ void book_info(Book *book)
 	bprint("Edax Book %d.%d; ", VERSION, RELEASE);
 	bprint("%d-%d-%d ", book->date.year, book->date.month, book->date.day);
 	bprint("%d:%02d:%02d;\n", book->date.hour, book->date.minute, book->date.second);
-	bprint("Positions: %d (moves = %lld links + %lld leaves);\n", book->n_nodes, n_links, n_leaves);
+	bprint("Positions: %d (moves = %ld links + %ld leaves);\n", book->n_nodes, n_links, n_leaves);
 	for (i = 0; i < 61; ++i) {
 		if (n_level[i]) {
-			bprint("Level %d : %lld nodes\n", i, n_level[i]);
+			bprint("Level %d : %ld nodes\n", i, n_level[i]);
 		}
 	}
 	bprint("Depth: %d\n", 61 - book->options.n_empties);
-	bprint("Memory occupation: %lld\n", (long long) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
+	bprint("Memory occupation: %ld\n", (int64_t) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
 	bprint("Hash balance: %d < %d < %d\n", min_array, (int) (book->n_nodes / book->n), max_array);
 }
 
@@ -2121,18 +2112,18 @@ void book_show(Book *book, Board *board)
 {
 	GameStats stat = {0,0,0,0};
 	Position *position = book_probe(book, board);
-	unsigned long long n_games;
+	uint64_t n_games;
 
 	if (position) {
 		position_show(position, board, stdout);
 		book_get_game_stats(book, board, &stat);
 		n_games = stat.n_wins + stat.n_draws + stat.n_losses;
 		if (n_games) {
-			bprint("\nLines: %lld full games", n_games);
+			bprint("\nLines: %ld full games", n_games);
 			bprint(" with %.2f%% win, %.2f%% draw, %.2f%% loss",
 				100.0 * stat.n_wins / n_games, 100.0 * stat.n_draws / n_games, 100.0 * stat.n_losses / n_games);
 		}
-		bprint("\n       %lld incomplete lines.\n\n", stat.n_lines - n_games);
+		bprint("\n       %ld incomplete lines.\n\n", stat.n_lines - n_games);
 	}
 }
 
@@ -2297,7 +2288,7 @@ void book_add_game(Book *book, const Game *game)
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {
@@ -2325,7 +2316,7 @@ void book_add_base(Book *book, const Base *base)
 {
 	int i;
 	char file[FILENAME_MAX + 1];
-	long long t0, t;
+	int64_t t0, t;
 
 	file_add_ext(options.book_file, ".gam", file);
 
@@ -2349,9 +2340,9 @@ void book_add_base(Book *book, const Base *base)
 }
 
 typedef struct BookCheckGame {
-	unsigned long long missing;
-	unsigned long long good;
-	unsigned long long bad;
+	uint64_t missing;
+	uint64_t good;
+	uint64_t bad;
 } BookCheckGame;
 
 /**
@@ -2377,7 +2368,7 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
 			stack[n_moves++] = MOVE_PASS;
 			board_pass(&board);
 		}
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_moves])) {
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_moves])) {
 			board_update(&board, stack + n_moves);
 			++n_moves;
 		} else {
@@ -2391,7 +2382,7 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
 		if (movehash_append(hash, &board, stack[n_moves].x)) {
 			if (book_get_moves(book, &board, &movelist)) {
 				bestscore = movelist_first(&movelist)->score;
-				foreach_move(iter, movelist) {
+				foreach_move (iter, &movelist) {
 					if (iter->x == stack[n_moves].x) {
 						if (iter->score < bestscore) ++stat->bad;
 						else ++stat->good;
@@ -2447,7 +2438,7 @@ static void extract_skeleton(Book *book, Board *board, Line *pv, Base *base)
 	if (book_get_moves(book, board, &movelist)) {
 		bestscore = movelist_best(&movelist)->score;
 		
-		foreach_move(move, movelist) {
+		foreach_move(move, &movelist) {
 			if (move->score == bestscore) {
 				board_update(board, move); line_push(pv, move->x);
 					extract_skeleton(book, board, pv, base);
@@ -2542,9 +2533,9 @@ void book_stats(Book *book)
 	PositionArray *a;
 	Position *p;
 	int i;
-	unsigned long long n_hash[256];
-	unsigned long long n_pos[61], n_leaf[61], n_link[61], n_terminal[61];
-	unsigned long long n_score[129];
+	uint64_t n_hash[256];
+	uint64_t n_pos[61], n_leaf[61], n_link[61], n_terminal[61];
+	uint64_t n_score[129];
 
 	printf("\n\nBook statistics:\n");
 
@@ -2555,8 +2546,8 @@ void book_stats(Book *book)
 		else ++n_hash[255];
 	}
 	printf("index    positions\n");
-	for (i = 0; i < 255; ++i) if (n_hash[i]) printf("%5d %12llu\n", i, n_hash[i]);
-	if (n_hash[i]) printf(">%4d %12llu\n", i - 1, n_hash[i]);
+	for (i = 0; i < 255; ++i) if (n_hash[i]) printf("%5d %12lu\n", i, n_hash[i]);
+	if (n_hash[i]) printf(">%4d %12lu\n", i - 1, n_hash[i]);
 
 	printf("\nStage distribution:\n");
 	printf("stage    positions        links       leaves      terminal nodes\n");
@@ -2568,7 +2559,7 @@ void book_stats(Book *book)
 		if (p->n_link == 0) ++n_terminal[i];
 		n_link[i] += p->n_link;
 	}
-	for (i = 0; i < 61; ++i) if (n_pos[i]) printf("%5d %12llu %12llu %12llu %12llu\n", i, n_pos[i], n_link[i], n_leaf[i], n_terminal[i]);
+	for (i = 0; i < 61; ++i) if (n_pos[i]) printf("%5d %12lu %12lu %12lu %12lu\n", i, n_pos[i], n_link[i], n_leaf[i], n_terminal[i]);
 		
 	printf("\nBest Score Distribution:\n");
 	printf("Score    positions\n");
@@ -2576,7 +2567,7 @@ void book_stats(Book *book)
 	foreach_position(p, a, book) {
 		++n_score[64 + p->score.value];
 	}
-	for (i = 0; i < 129; ++i) if (n_score[i]) printf("%+5d %12llu\n", i - 64, n_score[i]);
+	for (i = 0; i < 129; ++i) if (n_score[i]) printf("%+5d %12lu\n", i - 64, n_score[i]);
 	printf("\n\n");
 	fflush(stdout);
 }

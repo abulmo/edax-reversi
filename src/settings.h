@@ -5,7 +5,7 @@
  *
  * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @version 4.6
  */
 
 
@@ -14,61 +14,100 @@
 
 #include <stdbool.h>
 
-#define MOVE_GENERATOR_CARRY 1		// 32.6Mnps
-#define MOVE_GENERATOR_KINDERGARTEN 2	// 31.1Mnps
-#define MOVE_GENERATOR_SSE 3		// 34.4Mnps	// best for generic X64
-#define MOVE_GENERATOR_BITSCAN 4	// 32.7Mnps	// best for AMD K10/FX	// 7.21Mnps (neon_bitscan)
-#define MOVE_GENERATOR_ROXANE 5		// 29.0Mnps
-#define MOVE_GENERATOR_32 6		// 31.3Mnps	// best for 32bit X86
-#define MOVE_GENERATOR_SSE_BSWAP 7	// 30.6Mnps
-#define MOVE_GENERATOR_AVX 8		// 34.7Mnps	// best for modern X64
-#define MOVE_GENERATOR_AVX512 9
-#define MOVE_GENERATOR_NEON 10		// 6.71Mnps (neon_rbit), 6.51Mnps (neon_lzcnt), 6.17Mnps (neon_ppfill)
-#define MOVE_GENERATOR_SVE 11
+/**
+ * @brief The list of move generator
+ *
+ * x86-64 code tested on an AMD Ryzen 9 5950x @ 4.2 Ghz using the command "-bench 20 -n 1 -q"
+ * ARM code has been tested on a rpi 5 @ 2.4 Ghz
+ */
+// standard C only                         // x86-64-v3 | v2        |  ARM neon
+#define MOVE_GENERATOR_KINDERGARTEN   1    // 61.9 Mnps | 53.4 Mnps | 30.2 Mnps
+#define MOVE_GENERATOR_ROXANE         2    // 59.4 Mnps | 51.0      | 31.1 Mnps
 
-#define COUNT_LAST_FLIP_CARRY 1		// 33.8Mnps
-#define COUNT_LAST_FLIP_KINDERGARTEN 2	// 33.5Mnps
-#define COUNT_LAST_FLIP_SSE 3		// 34.7Mnps
-#define COUNT_LAST_FLIP_BITSCAN 4	// 33.9Mnps
-#define COUNT_LAST_FLIP_PLAIN 5		// 33.3Mnps
-#define COUNT_LAST_FLIP_32 6		// 33.1Mnps
-#define COUNT_LAST_FLIP_BMI2 7		// 34.7Mnps	// slow on AMD
-#define COUNT_LAST_FLIP_AVX_PPFILL 8
-#define COUNT_LAST_FLIP_AVX512 9
-#define COUNT_LAST_FLIP_NEON 10
-#define COUNT_LAST_FLIP_SVE 11
+// simd for X86-64
+// need sse support                        // v3        | v2
+#define MOVE_GENERATOR_CARRY_64       3    // 65.3 Mnps | 58.1
+#define MOVE_GENERATOR_BITSCAN        4    // 65.6 Mnps | 57.0
+#define MOVE_GENERATOR_SSE            5    // 59.9 Mnps | 53.5
+#define MOVE_GENERATOR_SSE_BITSCAN    6    // 63.3 Mnps | 49.9
+// need avx2 support
+#define MOVE_GENERATOR_AVX_ACEPCK     7    // 71.4 Mnps *
+#define MOVE_GENERATOR_AVX_CVTPS      8    // 65.0 Mnps
+#define MOVE_GENERATOR_AVX_LZCNT      9    // 69.1 Mnps
+#define MOVE_GENERATOR_AVX_PPFILL    10    // 70.7 Mnps
+#define MOVE_GENERATOR_AVX_PPSEQ     11    // 67.3 Mnps
+// need fast bmi2 support
+#define MOVE_GENERATOR_BMI2          12    // 68.6 Mnps
+// need avx512 support
+#define MOVE_GENERATOR_AVX512CD      13    // untested (unsupported on Zen 3 cpus)
+// ARM64                                   // ARM neon
+#define MOVE_GENERATOR_NEON_BITSCAN  14    // 33.7 Mnps
+#define MOVE_GENERATOR_NEON_LZCNT    15    // 29.9 Mnps
+#define MOVE_GENERATOR_NEON_PPFILL   16    // 28.9 Mnps
+#define MOVE_GENERATOR_NEON_RBIT     17    // 30.2 Mnps
+#define MOVE_GENERATOR_SVE_LZCNT     19    // untested
+
+// standard C                              // x86-64-v3 | v2      | ARM neon
+#define COUNT_LAST_FLIP_KINDERGARTEN  1    // 69.5 Mnps | 56.4    | 34.1
+#define COUNT_LAST_FLIP_CARRY_64      2    // 69.9 Mnps | 56.0    | 34.1
+#define COUNT_LAST_FLIP_PLAIN         3    // 70.3 Mnps | 58.3    | 33.7
+// simd for x86-64
+// need sse
+#define COUNT_LAST_FLIP_SSE           4    // 70.0 Mnps | 58.4
+#define COUNT_LAST_FLIP_LZCNT         5    // 68.1 Mnps | 56.9
+#define COUNT_LAST_FLIP_BITSCAN       6    // 70.1 Mnps | 56.3
+// need avx2
+#define COUNT_LAST_FLIP_AVX_PPFILL    7    // 68.0 Mnps
+#define COUNT_LAST_FLIP_BMI2          8    // 71.4 Mnps
+#define COUNT_LAST_FLIP_BMI           9    // 67.4 Mnps
+// need avx512
+#define COUNT_LAST_FLIP_AVX512CD     10    // untested (unsupported on Zen 3 cpus)
+// ARM64 neon
+#define COUNT_LAST_FLIP_NEON         11    // BUGGY | 32.8
+#define COUNT_LAST_FLIP_SVE_LZCNT    12    // untested (unsupported on ARM-cortex-A76)
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
-	#if defined(__AVX512VL__) || defined(__AVX10_1__)
-		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512
-	#elif defined(__AVX2__)
-		#define MOVE_GENERATOR MOVE_GENERATOR_AVX
-	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
-		#define MOVE_GENERATOR MOVE_GENERATOR_SSE
-	#elif defined(__ARM_FEATURE_SVE)
-		#define MOVE_GENERATOR MOVE_GENERATOR_SVE
-	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
-		#define MOVE_GENERATOR MOVE_GENERATOR_NEON
-	#elif defined(__arm__) || defined(_M_ARM)
-		#define MOVE_GENERATOR MOVE_GENERATOR_BITSCAN
+	#ifdef __AVX512__
+		#define MOVE_GENERATOR MOVE_GENERATOR_AVX512CD
+	#elif defined __AVX2__
+		#define MOVE_GENERATOR MOVE_GENERATOR_AVX_ACEPCK
+	#elif defined __SSE__
+		#define MOVE_GENERATOR MOVE_GENERATOR_CARRY_64
+	#elif defined __ARM_NEON
+		#define MOVE_GENERATOR MOVE_GENERATOR_NEON_BITSCAN
 	#else
-		#define MOVE_GENERATOR MOVE_GENERATOR_32
+		#define MOVE_GENERATOR MOVE_GENERATOR_KINDERGARTEN
 	#endif
 #endif
-#ifndef LAST_FLIP_COUNTER
-	#if (defined(__AVX512VL__) || defined(__AVX10_1__)) && (defined(SIMULLASTFLIP512) || defined(SIMULLASTFLIP) || defined(LASTFLIP_HIGHCUT))
-		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_AVX512
-	#elif defined(__SSE2__) || defined(_M_X64) || defined(hasSSE2)
-		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_SSE
-	#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_NEON)
-		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_NEON
-	#elif defined(__arm__) || defined(_M_ARM)
-		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_BITSCAN
-	#else
-		#define LAST_FLIP_COUNTER COUNT_LAST_FLIP_32
+
+#ifndef COUNT_LAST_FLIP
+	#if defined(__BMI2__) && !defined(SLOW_BMI2)
+		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_BMI2
+/*	#elif defined __ARM_NEON
+		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_NEON
+*/	#else
+		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_PLAIN
 	#endif
 #endif
+
+/** SIMD usage */
+#ifndef USE_SIMD
+	#define USE_SIMD true
+#endif
+
+/** CRC32c from hardware usage */
+#ifndef USE_CRC32C
+	#define USE_CRC32C true
+#endif
+
+/** SOLID usage (off by default) */
+#ifndef USE_SOLID
+	#define USE_SOLID false
+#endif
+
+/** Depth to use Solid heuristics */
+#define SOLID_DEPTH 9
 
 /** transposition cutoff usage. */
 #define USE_TC true
@@ -108,18 +147,8 @@
 /** Use previous search result */
 #define USE_PREVIOUS_SEARCH true
 
-/** Allow type puning */
-#ifndef USE_TYPE_PUNING
-// #ifndef ANDROID
-#define USE_TYPE_PUNING 1
-// #endif
-#endif
-
 /** Hash-n-way. */
 #define HASH_N_WAY 4
-
-/** hash align */
-#define HASH_ALIGNED 1
 
 /** PV extension (solve PV alone sooner) */
 #define USE_PV_EXTENSION true
@@ -139,9 +168,6 @@
 /** Try ETC down to this depth. */
 #define ETC_MIN_DEPTH 5
 
-/** Dogaishi hash reduction Depth (before DEPTH_TO_SHALLOW_SEARCH) */
-#define MASK_SOLID_DEPTH 9
-
 /** bound for usefull move sorting */
 #define SORT_ALPHA_DELTA 8
 
@@ -155,7 +181,7 @@
 #define SPLIT_MAX_SLAVES 3
 
 /** Branching factor (to adjust alloted time). */
-#define BRANCHING_FACTOR 2.24
+#define BRANCHING_FACTOR 2.0
 
 /** Parallelisable work. */
 #define SMP_W 49.0

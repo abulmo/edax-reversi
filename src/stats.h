@@ -3,9 +3,9 @@
  *
  * @brief Statistics header.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_STATS_H
@@ -14,9 +14,11 @@
 #include "const.h"
 #include "util.h"
 
+#include <stdatomic.h>
 #include <stdio.h>
 
 /* To turn on a statistics, add an x to the end of the line starting with #define .*/
+
 /** YBWC statistics on/off */
 #define YBWC_STATS(x)
 /** Hash statistics on/off */
@@ -37,83 +39,82 @@
 
 #if COUNT_NODES & 1
 	/** node counter for internal nodes */
-	#define SEARCH_UPDATE_INTERNAL_NODES(x) (++(x))
-	#define SEARCH_UPDATE_2EMPTIES_NODES(x) x
+	#define SEARCH_UPDATE_INTERNAL_NODES(n) (++(n))
 #else
 	/** no node counter for internal nodes */
-	#define SEARCH_UPDATE_INTERNAL_NODES(x)
-	#define SEARCH_UPDATE_2EMPTIES_NODES(x)
+	#define SEARCH_UPDATE_INTERNAL_NODES(n)
 #endif
 #if COUNT_NODES & 2
 	/** node counter for pattern changes */
-	#define SEARCH_UPDATE_EVAL_NODES(x) (++(x))
+	#define SEARCH_UPDATE_EVAL_NODES(n) (++(n))
 #else
 	/** no node counter for pattern changes */
-	#define SEARCH_UPDATE_EVAL_NODES(x)
+	#define SEARCH_UPDATE_EVAL_NODES(n)
 #endif
 #if COUNT_NODES & 4
 	/** more general node counter */
-	#define SEARCH_UPDATE_ALL_NODES(x) (++(x))
+	#define SEARCH_UPDATE_ALL_NODES(n) (++(n))
 #else
 	/** no general node counter */
-	#define SEARCH_UPDATE_ALL_NODES(x)
+	#define SEARCH_UPDATE_ALL_NODES(n)
 #endif
 
-/** \struct Statistics */
+/** struct Statistics */
 typedef struct Statistics {
-	unsigned long long n_nodes;
-	unsigned long long n_task_nodes[MAX_THREADS];
-	unsigned long long n_task[MAX_THREADS];
-	unsigned long long n_parallel_nodes;
+	uint64_t n_nodes;
+	uint64_t n_task_nodes[MAX_THREADS];
+	uint64_t n_task[MAX_THREADS];
+	uint64_t n_parallel_nodes;
 
-	unsigned long long n_hash_update;
-	unsigned long long n_hash_upgrade;
-	unsigned long long n_hash_new;
-	unsigned long long n_hash_remove;
-	unsigned long long n_hash_search;
-	unsigned long long n_hash_found;
-	unsigned long long n_hash_collision;
-	unsigned long long n_hash_n;
+	uint64_t n_hash_update;
+	uint64_t n_hash_upgrade;
+	uint64_t n_hash_new;
+	uint64_t n_hash_remove;
+	uint64_t n_hash_search;
+	uint64_t n_hash_found;
+	uint64_t n_hash_collision;
+	uint64_t n_hash_n;
 
-	unsigned long long n_PVS_root;
-	unsigned long long n_PVS_midgame;
-	unsigned long long n_NWS_midgame;
-	unsigned long long n_NWS_endgame;
-	unsigned long long n_PVS_shallow;
-	unsigned long long n_NWS_shallow;
-	unsigned long long n_search_solve;
-	unsigned long long n_search_solve_0;
-	unsigned long long n_board_solve_2;
-	unsigned long long n_search_solve_3;
-	unsigned long long n_search_solve_4;
-	unsigned long long n_search_eval_0;
-	unsigned long long n_search_eval_1;
-	unsigned long long n_search_eval_2;
-	unsigned long long n_cut_at_move_number[MAX_MOVE];
-	unsigned long long n_nocut_at_move_number[MAX_MOVE];
-	unsigned long long n_best_at_move_number[MAX_MOVE];
-	unsigned long long n_move_number[MAX_MOVE];
+	uint64_t n_PVS_root;
+	uint64_t n_PVS_midgame;
+	uint64_t n_NWS_midgame;
+	uint64_t n_NWS_endgame;
+	uint64_t n_PVS_shallow;
+	uint64_t n_NWS_shallow;
+	uint64_t n_solve;
+	uint64_t n_solve_0;
+	uint64_t n_solve_1;
+	uint64_t n_solve_2;
+	uint64_t n_solve_3;
+	uint64_t n_search_solve_4;
+	uint64_t n_search_eval_0;
+	uint64_t n_search_eval_1;
+	uint64_t n_search_eval_2;
+	uint64_t n_cut_at_move_number[MAX_MOVE];
+	uint64_t n_nocut_at_move_number[MAX_MOVE];
+	uint64_t n_best_at_move_number[MAX_MOVE];
+	uint64_t n_move_number[MAX_MOVE];
 
-	unsigned long long n_split_try;
-	unsigned long long n_split_success;
-	unsigned long long n_master_helper;
-	unsigned long long n_waited_slave;
-	unsigned long long n_stopped_slave;
-	unsigned long long n_stopped_master;
-	unsigned long long n_wake_up;
+	_Atomic uint64_t n_split_try;
+	_Atomic uint64_t n_split_success;
+	_Atomic uint64_t n_master_helper;
+	_Atomic uint64_t n_waited_slave;
+	_Atomic uint64_t n_stopped_slave;
+	_Atomic uint64_t n_stopped_master;
+	_Atomic uint64_t n_wake_up;
 
-	unsigned long long n_hash_try, n_hash_low_cutoff, n_hash_high_cutoff;
-	unsigned long long n_stability_try, n_stability_low_cutoff;
-	unsigned long long n_probcut_try;
-	unsigned long long n_probcut_low_try, n_probcut_low_cutoff;
-	unsigned long long n_probcut_high_try, n_probcut_high_cutoff;
-	unsigned long long n_etc_try, n_etc_high_cutoff, n_esc_high_cutoff;
+	uint64_t n_hash_try, n_hash_low_cutoff, n_hash_high_cutoff;
+	uint64_t n_stability_try, n_stability_low_cutoff;
+	uint64_t n_probcut_try;
+	uint64_t n_probcut_low_try, n_probcut_low_cutoff;
+	uint64_t n_probcut_high_try, n_probcut_high_cutoff;
+	uint64_t n_etc_try, n_etc_high_cutoff, n_esc_high_cutoff;
 
-	unsigned long long n_played_square[BOARD_SIZE][10];
-	unsigned long long n_good_square[BOARD_SIZE][10];
+	uint64_t n_played_square[BOARD_SIZE][10];
+	uint64_t n_good_square[BOARD_SIZE][10];
 
-	unsigned long long n_NWS_candidate;
-	unsigned long long n_NWS_bad_candidate;
+	uint64_t n_NWS_candidate;
+	uint64_t n_NWS_bad_candidate;
 
 } Statistics;
 

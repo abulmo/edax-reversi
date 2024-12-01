@@ -22,13 +22,15 @@
  * ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  * -# Feldmann R. (1993) Game-Tree Search on Massively Parallel System - PhD Thesis, Paderborn (English version).
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "ybwc.h"
 
+#include "eval.h"
 #include "move.h"
 #include "options.h"
 #include "util.h"
@@ -37,9 +39,12 @@
 #include "settings.h"
 
 #include <assert.h>
+#include <stdatomic.h>
 #include <stdlib.h>
+#include <string.h>
 
-extern Log search_log[1];
+
+extern Log search_log;
 
 /**
  * @brief Initialize a node
@@ -65,8 +70,8 @@ void node_init(Node* node, Search *search, const int alpha, const int beta, cons
 	assert(SCORE_MIN <= beta && beta <= SCORE_MAX);
 	assert(alpha < beta);
 
-	lock_init(node);
-	condition_init(node);
+	mtx_init(&node->mutex, mtx_plain);
+	cnd_init(&node->condition);
 
 	node->alpha = alpha;
 	node->beta = beta;
@@ -94,8 +99,8 @@ void node_init(Node* node, Search *search, const int alpha, const int beta, cons
  */
 void node_free(Node *node)
 {
-	lock_free(node);
-	condition_free(node);
+	mtx_destroy(&node->mutex);
+	cnd_destroy(&node->condition);
 }
 
 /**
@@ -116,24 +121,23 @@ static bool get_helper(Node *master, Node *node, Move *move)
 
 	if (master) {
 		if (master->is_waiting && !master->is_helping) {
-			lock(master);
+			mtx_lock(&master->mutex);
 			if (master->n_slave && master->is_waiting && !master->is_helping) {
 				master->is_helping = true;
 				task = &master->help;
 				task_init(task) ;
-				task->is_helping = true;
 				task->node = node;
 				task->move = move;
 				search_clone(task->search, node->search);
-				lock(node);
+				mtx_lock(&node->mutex);
 					node->slave[node->n_slave++] = task->search;
-				unlock(node);			
+				mtx_unlock(&node->mutex);
 				task->run = true;
 				found = true;
 
-				condition_broadcast(master);
+				cnd_broadcast(&master->condition);
 			}
-			unlock(master);
+			mtx_unlock(&master->mutex);
 		} else {
 			found = get_helper(master->parent, node, move);
 		}
@@ -174,24 +178,24 @@ bool node_split(Node *node, Move *move)
 	 && node->n_moves_done // do not split first move (ybwc main principle).
 	 && node->n_slave < SPLIT_MAX_SLAVES // do not split too much at the same point.
 	 && node->n_moves_todo >=  SPLIT_MIN_MOVES_TODO) {  // do not split the last move(s), to diminish waiting time
-		YBWC_STATS(atomic_add(&statistics.n_split_try, 1);)
+		YBWC_STATS(atomic_fetch_add(&statistics.n_split_try, 1);)
 
 		if (get_helper(node->parent, node, move)) {
-			YBWC_STATS(atomic_add(&statistics.n_master_helper, 1);)
+			YBWC_STATS(atomic_fetch_add(&statistics.n_master_helper, 1);)
 			return true;
 		} else if ((task = task_stack_get_idle_task(search->tasks)) != NULL) {
 			task->node = node;
 			task->move = move;
 			search_clone(task->search, search);
-			lock(node);
+			mtx_lock(&node->mutex);
 				node->slave[node->n_slave++] = task->search;
-			unlock(node);
-			YBWC_STATS(atomic_add(&statistics.n_split_success, 1);)
+			mtx_unlock(&node->mutex);
+			YBWC_STATS(atomic_fetch_add(&statistics.n_split_success, 1);)
 
-			lock(task);
+			mtx_lock(&task->mutex);
 				task->run = true;
-				condition_signal(task);
-			unlock(task);
+				cnd_signal(&task->condition);
+			mtx_unlock(&task->mutex);
 
 			return true;
 		}
@@ -213,21 +217,21 @@ void node_wait_slaves(Node* node)
 {
 	int i;
 
-	lock(node);
+	mtx_lock(&node->mutex);
 	// stop slaves ?
 	if ((node->alpha >= node->beta || node->search->stop) && node->n_slave) {
 		for (i = 0; i < node->n_slave; ++i) {
 			search_stop_all(node->slave[i], STOP_PARALLEL_SEARCH);
-			YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+			YBWC_STATS(atomic_fetch_add(&statistics.n_stopped_slave, 1);)
 		}
 	}
 
 	// wait slaves
-	YBWC_STATS(atomic_add(&statistics.n_waited_slave, node->n_slave > 0);)
+	YBWC_STATS(atomic_fetch_add(&statistics.n_waited_slave, node->n_slave > 0);)
 	while (node->n_slave) {
 		node->is_waiting = true;
 		assert(node->is_helping == false);
-		condition_wait(node);
+		cnd_wait(&node->condition, &node->mutex);
 
 		if (node->is_helping) {
 			assert(node->help.run);
@@ -243,9 +247,9 @@ void node_wait_slaves(Node* node)
 	if (node->search->stop == STOP_PARALLEL_SEARCH && node->stop_point) {
 		node->search->stop = RUNNING;
 		node->stop_point = false;
-		YBWC_STATS(atomic_add(&statistics.n_wake_up, 1);)
+		YBWC_STATS(atomic_fetch_add(&statistics.n_wake_up, 1);)
 	}
-	unlock(node);
+	mtx_unlock(&node->mutex);
 }
 
 
@@ -264,12 +268,12 @@ void node_update(Node* node, Move *move)
 	const int score = move->score;
 	int i;
 
-	lock(node);
+	mtx_lock(&node->mutex);
 	if (!search->stop && score > node->bestscore) {
 		node->bestscore = score;
 		node->bestmove = move->x;
 		if (node->height == 0) {
-			record_best_move(search, move, node->alpha, node->beta, node->depth);
+			record_best_move(search, &search->board, move, node->alpha, node->beta, node->depth);
 			search->result->n_moves_left--;
 		}
 		if (score > node->alpha) node->alpha = score;
@@ -277,10 +281,10 @@ void node_update(Node* node, Move *move)
 	if (node->alpha >= node->beta  && node->n_slave) { // stop slave ?
 		for (i = 0; i < node->n_slave; ++i) {
 			search_stop_all(node->slave[i], STOP_PARALLEL_SEARCH);
-			YBWC_STATS(atomic_add(&statistics.n_stopped_slave, 1);)
+			YBWC_STATS(atomic_fetch_add(&statistics.n_stopped_slave, 1);)
 		}
 	}
-	unlock(node);	
+	mtx_unlock(&node->mutex);
 }
 
 /**
@@ -297,7 +301,7 @@ void node_update(Node* node, Move *move)
 Move* node_first_move(Node *node, MoveList *movelist)
 {
 	Move *move;
-	lock(node);
+	mtx_lock(&node->mutex);
 		node->n_moves_todo = movelist->n_moves;
 		node->n_moves_done = 0;
 		node->move = movelist_first(movelist);
@@ -307,7 +311,7 @@ Move* node_first_move(Node *node, MoveList *movelist)
 		} else {
 			move = NULL;
 		}
-	unlock(node);
+	mtx_unlock(&node->mutex);
 	return move;
 }
 
@@ -345,9 +349,9 @@ static Move* node_next_move_lockless(Node *node)
 Move* node_next_move(Node *node)
 {
 	Move *move;
-	lock(node);
+	mtx_lock(&node->mutex);
 		move = node_next_move_lockless(node);
-	unlock(node);
+	mtx_unlock(&node->mutex);
 
 	return move;
 }
@@ -365,8 +369,6 @@ void task_search(Task *task)
 	Node *node = task->node;
 	Search *search = task->search;
 	Move *move = task->move;
-	Eval eval0;
-	Board board0;
 	int i;
 
 	search_set_state(search, node->search->stop);
@@ -377,28 +379,29 @@ void task_search(Task *task)
 		const int alpha = node->alpha;
 		if (alpha >= node->beta) break;
 
-		board0 = search->board;
-		eval0 = search->eval;
 		search_update_midgame(search, move);
 			move->score = -NWS_midgame(search, -alpha - 1, node->depth - 1, node);
 			if (alpha < move->score && move->score < node->beta) {
 				move->score = -PVS_midgame(search, -node->beta, -alpha, node->depth - 1, node);
 				assert(node->pv_node == true);
 			}
-		search_restore_midgame(search, move->x, &eval0);
-		search->board = board0;
+		search_restore_midgame(search, move);
 		if (node->height == 0) {
 			move->cost = search_get_pv_cost(search);
 			move->score = search_bound(search, move->score);
-			if (log_is_open(search_log)) show_current_move(search_log->f, search, move, alpha, node->beta, true);
+			if (log_is_open(&search_log)) {
+				mtx_lock(&search_log.mutex);
+					show_current_move(search_log.f, search, move, alpha, node->beta, true);
+				mtx_unlock(&search_log.mutex);
+			}
 		}
 
-		lock(node);
+		mtx_lock(&node->mutex);
 		if (!search->stop && move->score > node->bestscore) {
 			node->bestscore = move->score;
 			node->bestmove = move->x;
 			if (node->height == 0) {
-				record_best_move(search, move, alpha, node->beta, node->depth);
+				record_best_move(search, &search->board, move, alpha, node->beta, node->depth);
 				search->result->n_moves_left--;
 				if (search->options.verbosity == 4) pv_debug(search, move, stdout);
 			}
@@ -407,17 +410,17 @@ void task_search(Task *task)
 				if (node->alpha >= node->beta && node->search->stop == RUNNING) { // stop the master thread?
 					node->stop_point = true;
 					node->search->stop = STOP_PARALLEL_SEARCH;
-					YBWC_STATS(atomic_add(&statistics.n_stopped_master, 1);)
+					YBWC_STATS(atomic_fetch_add(&statistics.n_stopped_master, 1);)
 				}
 			}
 		}
 		move = node_next_move_lockless(node);
-		unlock(node);
+		mtx_unlock(&node->mutex);
 	}
 
 	search_set_state(search, STOP_END);
 
-	spin_lock(search->parent);
+	spinlock_lock(&search->parent->spin);
 		for (i = 0; i < search->parent->n_child; ++i) {
 			if (search->parent->child[i] == search) {
 				--search->parent->n_child;
@@ -427,9 +430,9 @@ void task_search(Task *task)
 		}
 		search->parent->child_nodes += search_count_nodes(search);
 		YBWC_STATS(task->n_nodes += search->n_nodes;)
-	spin_unlock(search->parent);
+	spinlock_unlock(&search->parent->spin);
 
-	lock(node);
+	mtx_lock(&node->mutex);
 		task->run = false;
 		for (i = 0; i < node->n_slave; ++i) {
 			if (node->slave[i] == search) {
@@ -438,8 +441,8 @@ void task_search(Task *task)
 				break;
 			}
 		}
-		condition_broadcast(node);
-	unlock(node);
+		cnd_broadcast(&node->condition);
+	mtx_unlock(&node->mutex);
 }
 
 
@@ -455,16 +458,16 @@ void task_search(Task *task)
  * @param param The task.
  * @return NULL.
  */
-void* task_loop(void *param)
+int task_loop(void *param)
 {
 	Task *task = (Task*) param;
 
-	lock(task);
+	mtx_lock(&task->mutex);
 	task->loop = true;
 
 	while (task->loop) {
 		if (!task->run) {
-			condition_wait(task);
+			cnd_wait(&task->condition, &task->mutex);
 		}
 		if (task->run) {
 			task_search(task);
@@ -472,9 +475,9 @@ void* task_loop(void *param)
 		}
 	}
 
-	unlock(task);
+	mtx_unlock(&task->mutex);
 
-	return NULL;
+	return thrd_success;
 }
 
 /**
@@ -487,15 +490,15 @@ static Search* task_search_create(Task *task)
 {
 	Search *search;
 
-	search = (Search*) mm_malloc(sizeof (Search)); // allocate the search attached to this task
+	search = (Search*) malloc(sizeof (Search)); // allocate the search attached to this task
 	if (search == NULL) {
 		fatal_error("task_init: cannot allocate the search position.\n");
 	}
 	search->n_nodes = 0;
 	search->n_child = 0;
 	search->parent = NULL;
-	// eval_init(search->eval);
-	spin_init(search);
+	eval_init(&search->eval);
+	spinlock_init(&search->spin);
 	search->task = task;
 	search->stop = STOP_END;
 
@@ -509,9 +512,8 @@ static Search* task_search_create(Task *task)
  */
 static void task_search_destroy(Search *search)
 {
-	// eval_free(search->eval);
-	spin_free(search);
-	mm_free(search);
+	eval_free(&search->eval);
+	free(search);
 }
 
 /**
@@ -524,8 +526,8 @@ static void task_search_destroy(Search *search)
  */
 void task_init(Task *task)
 {
-	lock_init(task);
-	condition_init(task);
+	mtx_init(&task->mutex, mtx_plain);
+	cnd_init(&task->condition);
 
 	task->loop = false;
 	task->run = false;
@@ -547,11 +549,11 @@ void task_free(Task *task)
 	assert(task->run == false);
 	if (task->loop) {
 		task->loop = false; // stop the main loop
-		condition_signal(task);
-		thread_join(task->thread);
+		cnd_signal(&task->condition);
+		thrd_join(task->thread, NULL);
 	}
-	lock_free(task);
-	condition_free(task);
+	mtx_destroy(&task->mutex);
+	cnd_destroy(&task->condition);
 	task_search_destroy(task->search); // free other resources
 	task->search = NULL;
 }
@@ -566,7 +568,7 @@ void task_stack_init(TaskStack *stack, const int n)
 {
 	int i;
 
-	spin_init(stack);
+	mtx_init(&stack->mutex, mtx_plain);
 
 	stack->n = n; // number of additional task
 	stack->n_idle = 0;
@@ -586,8 +588,7 @@ void task_stack_init(TaskStack *stack, const int n)
 		for (i = 0; i < stack->n; ++i) {
 			if (i) {
 				task_init(stack->task + i);
-				thread_create(&stack->task[i].thread, task_loop, stack->task + i);
-				if (options.cpu_affinity) thread_set_cpu(stack->task[i].thread, i); /* CPU 0 to n - 1 */
+				thrd_create(&stack->task[i].thread, task_loop, stack->task + i);
 			}
 			stack->task[i].container = stack;
 			stack->stack[i] = NULL;
@@ -619,7 +620,7 @@ void task_stack_free(TaskStack *stack)
 	free(stack->stack); stack->stack = NULL;
 	stack->n = 0;
 	stack->n_idle = 0;
-	spin_free(stack);
+	mtx_destroy(&stack->mutex);
 }
 
 /**
@@ -644,7 +645,7 @@ Task* task_stack_get_idle_task(TaskStack *stack)
 {
 	Task *task;
 
-	spin_lock(stack);
+	mtx_lock(&stack->mutex);
 
 	if (stack->n_idle) {
 		task = stack->stack[--stack->n_idle];
@@ -652,7 +653,7 @@ Task* task_stack_get_idle_task(TaskStack *stack)
 		task = NULL;
 	}
 
-	spin_unlock(stack);
+	mtx_unlock(&stack->mutex);
 
 	return task;
 }
@@ -665,10 +666,10 @@ Task* task_stack_get_idle_task(TaskStack *stack)
  */
 void task_stack_put_idle_task(TaskStack *stack, Task *task)
 {
-	spin_lock(stack);
+	mtx_lock(&stack->mutex);
 
 	stack->stack[stack->n_idle++] = task;
 
-	spin_unlock(stack);
+	mtx_unlock(&stack->mutex);
 }
 

@@ -3,13 +3,16 @@
  *
  * @brief Main file.
  *
- * @date 1998 - 2024
+  * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
+#include "bit.h"
 #include "board.h"
 #include "cassio.h"
+#include "crc32c.h"
 #include "hash.h"
 #include "obftest.h"
 #include "options.h"
@@ -34,9 +37,8 @@ void version(void)
 #elif defined(__APPLE__)
 		" for Apple"
 #endif
-		"\ncopyright 1998 - 2018 Richard Delorme, 2014 - 24 Toshihiko Okuhara\n\n");
+		"\ncopyright 1998 - 2024 Richard Delorme, Toshihiko Okuhara\n\n");
 }
-
 
 /**
  * @brief Programme usage.
@@ -73,6 +75,7 @@ int main(int argc, char **argv)
 	char *wthor_file = NULL;
 	char *count_type = NULL;
 	int n_bench = 0;
+	bool test = false;
 
 	// options.n_task default to system cpu number
 	options.n_task = get_cpu_number();
@@ -81,7 +84,7 @@ int main(int argc, char **argv)
 	options_parse("edax.ini");
 
 	// allocate ui
-	ui = (UI*) mm_malloc(sizeof *ui);	// Eval in Search in Play in UI
+	ui = (UI*) malloc(sizeof *ui);
 	if (ui == NULL) fatal_error("Cannot allocate a user interface.\n");
 	ui->type = UI_EDAX;
 	ui->init = ui_init_edax;
@@ -98,6 +101,7 @@ int main(int argc, char **argv)
 		else if (strcmp(arg, "solve") == 0 && argv[i + 1]) problem_file = argv[++i];
 		else if (strcmp(arg, "wtest") == 0 && argv[i + 1]) wthor_file = argv[++i];
 		else if (strcmp(arg, "bench") == 0 && argv[i + 1]) n_bench = atoi(argv[++i]);
+		else if (strcmp(arg, "test") == 0) test = true;
 		else if (strcmp(arg, "count") == 0 && argv[i + 1]) {
 			count_type = argv[++i];
 			if (argv[i + 1]) level = string_to_int(argv[++i], 0);
@@ -105,15 +109,12 @@ int main(int argc, char **argv)
 				size = 6;
 				++i;
 			}
-			
-	
 		}
 		else usage();
 	}
 	options_bound();
 
 	// initialize
-	bit_init();
 	edge_stability_init();
 	statistics_init();
 	eval_open(options.eval_file);
@@ -129,15 +130,21 @@ int main(int argc, char **argv)
 		if (problem_file) obf_test(&search, problem_file, NULL);
 		if (wthor_file) wthor_test(wthor_file, &search);
 		if (n_bench) obf_speed(&search, n_bench);
+		HASH_STATS(printf("pv_table     : %12llu stores %12llu probes %12llu found probes\n", search.pv_table.n_store, search.pv_table.n_try, search.pv_table.n_found);)
+		HASH_STATS(printf("hash_table   : %12llu stores %12llu probes %12llu found probes\n", search.hash_table.n_store, search.hash_table.n_try, search.hash_table.n_found);)
+		HASH_STATS(printf("shallow_table: %12llu stores %12llu probes %12llu found probes\n", search.shallow_table.n_store, search.shallow_table.n_try, search.shallow_table.n_found);)
 		search_free(&search);
-
 	} else if (count_type){
-		Board board;
+		alignas(16) Board board;
 		board_init(&board);
 		if (strcmp(count_type, "games") == 0) quick_count_games(&board, level, size);
 		else if (strcmp(count_type, "positions") == 0) count_positions(&board, level, size);
 		else if (strcmp(count_type, "shapes") == 0) count_shapes(&board, level, size);
 
+	} else if (test) {
+		// TODO: add more complete unit test
+		bit_test();
+		board_test();
 	} else if (ui->type == UI_CASSIO) {
 		engine_loop();
 
@@ -157,7 +164,7 @@ int main(int argc, char **argv)
 	// free;
 	eval_close();
 	options_free();
-	mm_free(ui);
+	free(ui);
 
 	return 0;
 }

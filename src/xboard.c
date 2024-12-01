@@ -5,9 +5,9 @@
  *
  * Of course, only the "reversi" variant is supported.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  *
  */
 
@@ -23,11 +23,11 @@
 
 #include <stdarg.h>
 
-Log xboard_log[1];
+Log xboard_log;
 
 typedef struct {
-	unsigned long long time;
-	unsigned long long n_nodes;
+	uint64_t time;
+	uint64_t n_nodes;
 	int n_games;
 } XBoardStats;
 
@@ -37,32 +37,32 @@ typedef struct {
  */
 static void xboard_observer(Result *result)
 {
-	spin_lock(result);
+	spinlock_lock(&result->spin);
 
 	printf("%2d ", result->depth);
 	printf("%4d ", 100 * result->score);
-	printf("%6lld ", result->time / 10);
-	printf("%10lld ", result->n_nodes);
-	if (result->selectivity < 5) printf("@%2d%% ", selectivity_table[result->selectivity].percent);	
+	printf("%6ld ", result->time / 10);
+	printf("%10lu ", result->n_nodes);
+	if (result->selectivity < 5) printf("@%2d%% ", selectivity_table[result->selectivity].percent);
 	if (result->book_move) putchar('(');
 	line_print(&result->pv, -200, " ", stdout);
 	if (result->book_move) putchar(')');
 	putchar('\n');
 	fflush(stdout);
 
-	if (log_is_open(xboard_log)) {
-		fprintf(xboard_log->f, "edax> %2d ", result->depth);
-		fprintf(xboard_log->f, "%4d ", 100 * result->score);
-		fprintf(xboard_log->f, "%6lld ", result->time / 10);
-		fprintf(xboard_log->f, "%10lld ", result->n_nodes);
-		if (result->selectivity < 5) fprintf(xboard_log->f, "@%2d%% ", selectivity_table[result->selectivity].percent);	
-		if (result->book_move) fputc('(', xboard_log->f);
-		line_print(&result->pv, -200, " ", xboard_log->f);
-		if (result->book_move) fputc(')', xboard_log->f);
-		putc('\n', xboard_log->f);
-		fflush(xboard_log->f);
+	if (log_is_open(&xboard_log)) {
+		fprintf(xboard_log.f, "edax> %2d ", result->depth);
+		fprintf(xboard_log.f, "%4d ", 100 * result->score);
+		fprintf(xboard_log.f, "%6ld ", result->time / 10);
+		fprintf(xboard_log.f, "%10lu ", result->n_nodes);
+		if (result->selectivity < 5) fprintf(xboard_log.f, "@%2d%% ", selectivity_table[result->selectivity].percent);
+		if (result->book_move) fputc('(', xboard_log.f);
+		line_print(&result->pv, -200, " ", xboard_log.f);
+		if (result->book_move) fputc(')', xboard_log.f);
+		putc('\n', xboard_log.f);
+		fflush(xboard_log.f);
 	}
-	spin_unlock(result);
+	spinlock_unlock(&result->spin);
 }
 
 /**
@@ -87,7 +87,7 @@ void ui_init_xboard(UI *ui)
 	play->type = ui->type;
 	play->ponder.verbose = true;
 
-	log_open(xboard_log, options.ui_log_file);
+	log_open(&xboard_log, options.ui_log_file);
 }
 
 /**
@@ -99,7 +99,7 @@ void ui_free_xboard(UI *ui)
 	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
 	book_free(&ui->book);
 	play_free(ui->play);
-	log_close(xboard_log);
+	log_close(&xboard_log);
 }
 
 /**
@@ -118,13 +118,13 @@ static void xboard_error(const char *format, ...)
 	putc('\n', stderr);
 	fflush(stderr);
 
-	if (log_is_open(xboard_log)) {
-		fprintf(xboard_log->f, "error> \"");
+	if (log_is_open(&xboard_log)) {
+		fprintf(xboard_log.f, "error> \"");
 		va_start(args, format);
-		vfprintf(xboard_log->f, format, args);
+		vfprintf(xboard_log.f, format, args);
 		va_end(args);
-		fprintf(xboard_log->f, "\"\n");
-		fflush(xboard_log->f);
+		fprintf(xboard_log.f, "\"\n");
+		fflush(xboard_log.f);
 	}
 }
 
@@ -142,12 +142,12 @@ static void xboard_send(const char *format, ...)
 	va_end(args);
 	fflush(stdout);
 
-	if (log_is_open(xboard_log)) {
-		fprintf(xboard_log->f, "edax> ");
+	if (log_is_open(&xboard_log)) {
+		fprintf(xboard_log.f, "edax> ");
 		va_start(args, format);
-		vfprintf(xboard_log->f, format, args);
+		vfprintf(xboard_log.f, format, args);
 		va_end(args);
-		fflush(xboard_log->f);
+		fflush(xboard_log.f);
 	}
 }
 
@@ -172,14 +172,14 @@ static void xboard_move(const int x)
 		putchar('\n');
 	}
 	fflush(stdout);
-	if (log_is_open(xboard_log)) {
+	if (log_is_open(&xboard_log)) {
 		if (x == PASS) printf("edax> move @@@@\n");
 		else {
-			fprintf(xboard_log->f, "edax> move P@");
-			move_print(x, 1, xboard_log->f);
-			fputc('\n', xboard_log->f);
+			fprintf(xboard_log.f, "edax> move P@");
+			move_print(x, 1, xboard_log.f);
+			fputc('\n', xboard_log.f);
 		}
-		fflush(xboard_log->f);
+		fflush(xboard_log.f);
 	}
 }
 
@@ -193,7 +193,7 @@ static void xboard_hint(Play *play)
 	const int x = search_guess(&play->search, &play->board);
 
 	if (x == NOMOVE) return;
-	
+
 	if (x == PASS) printf("Hint:@@@@\n");
 	else {
 		printf("Hint:P@");
@@ -201,14 +201,14 @@ static void xboard_hint(Play *play)
 		putchar('\n');
 		fflush(stdout);
 	}
-	if (log_is_open(xboard_log)) {
+	if (log_is_open(&xboard_log)) {
 		if (x == PASS) printf("edax> Hint:@@@@\n");
 		else {
-			fprintf(xboard_log->f, "edax> Hint:P@");
-			move_print(x, 1, xboard_log->f);
-			fputc('\n', xboard_log->f);
+			fprintf(xboard_log.f, "edax> Hint:P@");
+			move_print(x, 1, xboard_log.f);
+			fputc('\n', xboard_log.f);
 		}
-		fflush(xboard_log->f);
+		fflush(xboard_log.f);
 	}
 }
 
@@ -224,20 +224,20 @@ static void xboard_book(Play *play) {
 
 	if (book_get_moves(book, &play->board, &movelist)) {
 		printf("\tBook:");
-		foreach_move(move, movelist) {
+		foreach_move(move, &movelist) {
 			printf("  P@"); move_print(move->x, 1, stdout);
 			printf(":%d", move->score * 100);
 		}
 		putchar('\n');
 		fflush(stdout);
-		if (log_is_open(xboard_log)) {
-			fprintf(xboard_log->f, "edax> Book:");
-			foreach_move(move, movelist) {
-				fprintf(xboard_log->f, "  P@"); move_print(move->x, 1, xboard_log->f);
-				fprintf(xboard_log->f, ":%d", move->score * 100);
+		if (log_is_open(&xboard_log)) {
+			fprintf(xboard_log.f, "edax> Book:");
+			foreach_move(move, &movelist) {
+				fprintf(xboard_log.f, "  P@"); move_print(move->x, 1, xboard_log.f);
+				fprintf(xboard_log.f, ":%d", move->score * 100);
 			}
-			putc('\n', xboard_log->f);
-			fflush(xboard_log->f);
+			putc('\n', xboard_log.f);
+			fflush(xboard_log.f);
 		}
 	}
 }
@@ -250,13 +250,14 @@ static void xboard_book(Play *play) {
 static void xboard_check_game_over(Play *play)
 {
 	int n_discs[2];
+	const Board *board = &play->board;
 	const char *(color[2]) = {"Black", "White"};
 	const int player = WHITE; // !!!!
 	const int opponent = !player;
 
 	if (play_is_game_over(play)) {
-		n_discs[play->player] = bit_count(play->board.player);
-		n_discs[!play->player] = bit_count(play->board.opponent);
+		n_discs[play->player] = bit_count(board->player);
+		n_discs[!play->player] = bit_count(board->opponent);
 		if (n_discs[player] > n_discs[opponent]) xboard_send("1-0 {%s wins %d-%d}\n", color[player], n_discs[player], n_discs[opponent]);
 		else if (n_discs[player] < n_discs[opponent]) xboard_send("0-1 {%s wins %d-%d}\n", color[opponent], n_discs[opponent], n_discs[player]);
 		else xboard_send("1/2-1/2 {Draw %d-%d}\n", n_discs[player], n_discs[opponent]);
@@ -268,7 +269,7 @@ static void xboard_check_game_over(Play *play)
  */
 static inline int hash_size(int n)
 {
-	unsigned long long s = sizeof (Hash) << n;
+	uint64_t s = sizeof (Hash) << n;
 	return ((s << 1) + (s >> 4) + sizeof (HashTable) * 3) >> 20;
 }
 
@@ -280,30 +281,30 @@ static inline int hash_size(int n)
  */
 static void xboard_go(UI *ui, XBoardStats *stats)
 {
-	Play *const play = ui->play;
-	Search *const search = &play->search;
-	Result *const result = search->result;
+	Play *play = ui->play;
+	Search *search = &play->search;
+	Result *result = search->result;
 
 	play_go(play, true);
 	xboard_move(play_get_last_move(play)->x);
 	play_ponder(play);
 	xboard_check_game_over(play);
-	
+
 	stats->time += result->time;
 	stats->n_nodes += result->n_nodes;
 
-	if (log_is_open(xboard_log)) {
-		if (search->stop == STOP_TIMEOUT) fprintf(xboard_log->f, "edax search> stop on time-out\n");
-		else if (search->stop == STOP_ON_DEMAND) fprintf(xboard_log->f, "edax search> stop on user demand\n");
-		else if (search->stop == STOP_PONDERING) fprintf(xboard_log->f, "edax search> BUG: stop pondering ???\n");
-		else if (search->stop == STOP_END) fprintf(xboard_log->f, "edax search> search completed!\n");
-		else  fprintf(xboard_log->f, "edax search> BUG: search stopped for no reason ???\n");
-		fprintf(xboard_log->f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %lld\n",
+	if (log_is_open(&xboard_log)) {
+		if (search->stop == STOP_TIMEOUT) fprintf(xboard_log.f, "edax search> stop on time-out\n");
+		else if (search->stop == STOP_ON_DEMAND) fprintf(xboard_log.f, "edax search> stop on user demand\n");
+		else if (search->stop == STOP_PONDERING) fprintf(xboard_log.f, "edax search> BUG: stop pondering ???\n");
+		else if (search->stop == STOP_END) fprintf(xboard_log.f, "edax search> search completed!\n");
+		else  fprintf(xboard_log.f, "edax search> BUG: search stopped for no reason ???\n");
+		fprintf(xboard_log.f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %lu\n",
 			0.001 * result->time,  result->depth, selectivity_table[result->selectivity].percent, result->n_nodes);
-		fprintf(xboard_log->f, "edax search> best score = %d; pv = ", result->score);
-		line_print(&result->pv, 100, NULL, xboard_log->f);
-		putc('\n', xboard_log->f);
-		fflush(xboard_log->f);
+		fprintf(xboard_log.f, "edax search> best score = %d; pv = ", result->score);
+		line_print(&result->pv, 100, NULL, xboard_log.f);
+		putc('\n', xboard_log.f);
+		fflush(xboard_log.f);
 	}
 }
 
@@ -319,15 +320,15 @@ static void xboard_go(UI *ui, XBoardStats *stats)
 void xboard_stop_analyzing(Play *play)
 {
 	while (play->state == IS_ANALYZING) {
-		log_print(xboard_log, "edax (analyze)> stop\n");
+		log_print(&xboard_log, "edax (analyze)> stop\n");
 		search_stop_all(&play->search, STOP_PONDERING);
 		relax(10);
 	}
 
 	if (play->ponder.launched) {
-		thread_join(play->ponder.thread);
+		thrd_join(play->ponder.thread, NULL);
 		play->ponder.launched = false;
-		log_print(xboard_log, "edax (analyze)> stopped\n");
+		log_print(&xboard_log, "edax (analyze)> stopped\n");
 	}
 }
 
@@ -349,8 +350,8 @@ static void xboard_analyze(Play *play)
 		play->ponder.board.player = play->ponder.board.opponent = 0;
 		play->state = IS_ANALYZING;
 		search_cleanup(&play->search);
-		log_print(xboard_log, "edax (analyze)> start\n");
-		thread_create(&play->ponder.thread, play_ponder_run, play);
+		log_print(&xboard_log, "edax (analyze)> start\n");
+		thrd_create(&play->ponder.thread, play_ponder_run, play);
 		play->ponder.launched = true;
 	}
 }
@@ -366,7 +367,7 @@ static void xboard_loop_analyze(UI *ui)
 {
 	Play *play = ui->play;
 	char *cmd = NULL, *param = NULL;
-	Search *const search = &play->search;
+	Search *search = &play->search;
 
 	play_stop_pondering(play);
 	xboard_analyze(play);
@@ -375,25 +376,25 @@ static void xboard_loop_analyze(UI *ui)
 		errno = 0;
 
 		ui_event_wait(ui, &cmd, &param);
-		log_print(xboard_log, "xboard (analyze)> %s %s\n", cmd, param);
+		log_print(&xboard_log, "xboard (analyze)> %s %s\n", cmd, param);
 
 		if (strcmp(cmd, ".") == 0) {
-			spin_lock(search->result);
+			spinlock_lock(&search->result->spin);
 			xboard_send("stat01: %d %lld %d %d %d\n",
 				search_time(search) / 10, search_count_nodes(search), search->depth, search->result->n_moves_left, search->result->n_moves);
-			spin_unlock(search->result);
+			spinlock_unlock(&search->result->spin);
 
 		} else if (strcmp(cmd, "hint") == 0) {
-			xboard_hint(play);			
+			xboard_hint(play);
 
 		} else if (strcmp(cmd, "bk") == 0) {
-			xboard_book(play);			
+			xboard_book(play);
 
 		} else if (strcmp(cmd, "new") == 0) {
 			xboard_stop_analyzing(play);
 			play_new(play);
 			xboard_analyze(play);
-			
+
 		} else if (strcmp(cmd, "undo") == 0) {
 			xboard_stop_analyzing(play);
 			play_undo(play);
@@ -438,26 +439,26 @@ static void xboard_loop_analyze(UI *ui)
 void ui_loop_xboard(UI *ui)
 {
 	char *cmd = NULL, *param = NULL;
-	Play *const play = ui->play;
+	Play *play = ui->play;
 	bool alien_variant = false;
 	XBoardStats stats = {0, 0, 0};
 	int edax_turn = EMPTY;
 	int last_edax_turn = !play->player;
 	const char *(color[2]) = {"black", "white"};
-	
+
 	// loop forever
 	for (;;) {
 		errno = 0;
 
 		if (!ui_event_exist(ui) && !play_is_game_over(play) && (edax_turn == play->player)) {
-			log_print(xboard_log, "edax (auto_play)> turn = %s\n", color[edax_turn]);
+			log_print(&xboard_log, "edax (auto_play)> turn = %s\n", color[edax_turn]);
 			xboard_go(ui, &stats);
 
 		// proceed by reading a command
 		} else {
 
 			ui_event_wait(ui, &cmd, &param);
-			log_print(xboard_log, "xboard> %s %s\n", cmd, param);
+			log_print(&xboard_log, "xboard> %s %s\n", cmd, param);
 
 			if (cmd == NULL) {
 				xboard_error("(unexpected null command)");
@@ -469,7 +470,7 @@ void ui_loop_xboard(UI *ui)
 
 			// xboard
 			} else if (strcmp(cmd, "xboard") == 0) {
-			
+
 			// protover 2
 			} else if (strcmp(cmd, "protover") == 0) {
 				int version = string_to_int(param, 1);
@@ -526,20 +527,20 @@ void ui_loop_xboard(UI *ui)
 					alien_variant = false;
 				} else {
 					xboard_error("(Unsupported variant) '%s'", param);
-				}		
+				}
 				xboard_setup(play);
 
 			// quit
 			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0 || strcmp(cmd, "q") == 0) {
 				xboard_send("%d games played in %.2f s. %llu nodes searched\n", stats.n_games, 0.001 * stats.time, stats.n_nodes);
 				free(cmd); free(param);
-				if (log_is_open(xboard_log)) statistics_print(xboard_log->f);
+				if (log_is_open(&xboard_log)) statistics_print(xboard_log.f);
 				return;
 
 			// random command
 			} else if ((strcmp(cmd, "random") == 0)) {
 				// ignored command;
-			
+
 			// random command
 			} else if ((strcmp(cmd, "force") == 0)) {
 				play_stop_pondering(play);
@@ -569,8 +570,8 @@ void ui_loop_xboard(UI *ui)
 			} else if (strcmp(cmd, "level") == 0) {
 				int mps, base, inc, m, s;
 				char *next;
-				
-				mps = 0; next = parse_int(param, &mps);			
+
+				mps = 0; next = parse_int(param, &mps);
 				m = s = 0; next = parse_skip_spaces(parse_int(next, &m));
 				if (*next == ':') next = parse_int(next + 1, &s);
 				base = 60 * m + s;
@@ -579,26 +580,26 @@ void ui_loop_xboard(UI *ui)
 				if ((mps == 0 || mps > 30) && inc == 0) {
 					options.time = 1000ull * base ;
 					options.play_type = EDAX_TIME_PER_GAME;
-					log_print(xboard_log, "edax setup> time per game = %.2f s.\n", 0.001 * options.time);
+					log_print(&xboard_log, "edax setup> time per game = %.2f s.\n", 0.001 * options.time);
 				} else {
 					int t1 = base * 1000ull / mps;
 					int t2 = (base + inc * mps) * 30; // 30 <- 1000ms / 30moves
 					options.time = MIN(t1, t2);
 					options.play_type = EDAX_TIME_PER_MOVE;
-					log_print(xboard_log, "edax setup> time per move = %.2f s.\n", 0.001 * options.time);
+					log_print(&xboard_log, "edax setup> time per move = %.2f s.\n", 0.001 * options.time);
 				}
-				
+
 			// time control
 			} else if (strcmp(cmd, "st") == 0) {
 				options.time = string_to_time(param);
 				options.play_type = EDAX_TIME_PER_MOVE;
-				log_print(xboard_log, "edax setup> time per move = %.2f s.\n", 0.001 * options.time);
+				log_print(&xboard_log, "edax setup> time per move = %.2f s.\n", 0.001 * options.time);
 
 			// depth level
 			} else if (strcmp(cmd, "sd") == 0) {
 				options.level = string_to_int(param, 60);
 				BOUND(options.level, 0, 60, "level");
-				log_print(xboard_log, "edax setup> fixed level = %d\n", options.level);
+				log_print(&xboard_log, "edax setup> fixed level = %d\n", options.level);
 
 			// nps
 			} else if ((strcmp(cmd, "nps") == 0)) {
@@ -607,7 +608,7 @@ void ui_loop_xboard(UI *ui)
 			// time
 			} else if ((strcmp(cmd, "time") == 0)) {
 				int t;
-				t = string_to_int(param, 100); 
+				t = string_to_int(param, 100);
 				if (t > 6000) t -= 1000; else if (t > 1000) t -= 100; // keep a margin
 				play->time[edax_turn == EMPTY ? last_edax_turn : edax_turn].left = t * 10; // 100% of available time...
 
@@ -628,18 +629,18 @@ void ui_loop_xboard(UI *ui)
 			// draw
 			} else if ((strcmp(cmd, "draw") == 0)) {
 				// never accept draw... terminating a solved game should take no time
-		
-			// result		
+
+			// result
 			} else if ((strcmp(cmd, "result") == 0)) {
 				++stats.n_games;
 				if (options.auto_store) {
 					long t = real_clock();
-					play->book->options.verbosity = play->book->search->options.verbosity = 0;				
-					log_print(xboard_log, "edax learning>\n");		
+					play->book->options.verbosity = play->book->search->options.verbosity = 0;
+					log_print(&xboard_log, "edax learning>\n");
 					play_store(play);
-					log_print(xboard_log, "edax learning> done in %.2fs\n", 0.001 * (real_clock() - t));
+					log_print(&xboard_log, "edax learning> done in %.2fs\n", 0.001 * (real_clock() - t));
 				}
-			
+
 			// setboard
 			} else if ((strcmp(cmd, "setboard") == 0)) {
 				play_set_board_from_FEN(play, param);
@@ -653,11 +654,11 @@ void ui_loop_xboard(UI *ui)
 				xboard_hint(play);
 
 			} else if ((strcmp(cmd, "bk") == 0)) {
-				xboard_book(play);		
+				xboard_book(play);
 
 			} else if ((strcmp(cmd, "undo") == 0)) {
 				play_undo(play);
-			
+
 			} else if ((strcmp(cmd, "remove") == 0)) {
 				play_undo(play);
 				play_undo(play);
@@ -698,16 +699,16 @@ void ui_loop_xboard(UI *ui)
 
 			} else if ((strcmp(cmd, "memory") == 0)) {
 				int size = string_to_int(param, 100);
-				
+
 				for (options.hash_table_size = 10; hash_size(options.hash_table_size + 1) < size; ++options.hash_table_size) ;
 				BOUND(options.hash_table_size, 10, 30, "hash-table-size");
-				log_print(xboard_log, "edax setup> hash table size: 2**%d entries\n", options.hash_table_size);
+				log_print(&xboard_log, "edax setup> hash table size: 2**%d entries\n", options.hash_table_size);
 				play_stop_pondering(play);
 				search_resize_hashtable(&play->search);
-			
+
 			} else if ((strcmp(cmd, "cores") == 0)) {
 				options.n_task = string_to_int(param, 1);
-				log_print(xboard_log, "edax setup> cores: %d\n", options.n_task);
+				log_print(&xboard_log, "edax setup> cores: %d\n", options.n_task);
 				if (search_count_tasks(&play->search) != options.n_task) {
 					play_stop_pondering(play);
 					search_set_task_number(&play->search, options.n_task);
@@ -715,7 +716,7 @@ void ui_loop_xboard(UI *ui)
 
 			} else if ((strcmp(cmd, "egtpath") == 0)) {
 				xboard_error("(unknown command): %s %s", cmd, param);
-				
+
 			} else if ((strcmp(cmd, "option") == 0)) {
 				xboard_error("(unknown command): %s %s", cmd, param);
 

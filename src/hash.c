@@ -1,7 +1,7 @@
 /**
  * @file hash.c
  *
- * @brief Locked transposition table.
+ * @brief spined transposition table.
  *
  * The hash table is an efficient memory system to remember the previously
  * analysed positions and re-use the collected data when needed.
@@ -11,12 +11,13 @@
  * The implementation is now a multi-way (or bucket based) hashtable. It both
  * tries to keep the deepest records and to always add the latest one.
  * The following implementation store the whole board to avoid collision. 
- * When doing parallel search with a shared hashtable, a locked implementation
+ * When doing parallel search with a shared hashtable, a spined implementation
  * avoid concurrency collisions.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "bit.h"
@@ -27,12 +28,18 @@
 #include "util.h"
 #include "settings.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include <string.h>
 
 /** HashData init value */
-const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMOVE, NOMOVE }};
+const HashData HASH_DATA_INIT = {{{0, 0, 0, 0}}, -SCORE_INF, SCORE_INF, {NOMOVE, NOMOVE}};
+#if (HASH_COLLISIONS(1)+0)
+	const Hash HASH_INIT = {0, {0, 0}, {{{0, 0, 0, 0}}, -SCORE_INF, SCORE_INF, {NOMOVE, NOMOVE}}};
+#else
+	const Hash HASH_INIT = {{0, 0}, {{{0, 0, 0, 0}}, -SCORE_INF, SCORE_INF, {NOMOVE, NOMOVE}}};
+#endif
 
 /**
  * @brief Initialise the hashtable.
@@ -42,40 +49,29 @@ const HashData HASH_DATA_INIT = {{{ 0, 0, 0, 0 }}, -SCORE_INF, SCORE_INF, { NOMO
  * @param hash_table Hash table to setup.
  * @param size Requested size for the hash table in number of entries.
  */
-void hash_init(HashTable *hash_table, const unsigned long long size)
+void hash_init(HashTable *hash_table, const size_t size)
 {
-	int i, n_way;
-
-	for (n_way = 1; n_way < HASH_N_WAY; n_way <<= 1);	// round up HASH_N_WAY to 2 ^ n
-
 	assert(hash_table != NULL);
-	assert((n_way & -n_way) == n_way);
+	assert(bit_is_single(size));
 
-	info("< init hashtable of %llu entries>\n", size);
-	if (hash_table->hash != NULL) free(hash_table->memory);
-	hash_table->memory = malloc((size + n_way + 1) * sizeof (Hash));
-	if (hash_table->memory == NULL) {
+	info("< init hashtable of %zu entries>\n", size);
+	if (hash_table->hash != NULL) free(hash_table->hash);
+	hash_table->hash = aligned_alloc(32, (size + HASH_N_WAY + 1) * sizeof (Hash));
+	if (hash_table->hash == NULL) {
 		fatal_error("hash_init: cannot allocate the hash table\n");
 	}
-
-	if (HASH_ALIGNED) {
-		size_t alignment = n_way * sizeof (Hash);	// (4 * 24)
-		alignment = (alignment & -alignment) - 1;	// LS1B - 1 (0x1f)
-		hash_table->hash = (Hash*) (((size_t) hash_table->memory + alignment) & ~alignment);
-		hash_table->hash_mask = size - n_way;
-	} else {
-		hash_table->hash = (Hash*) hash_table->memory;
-		hash_table->hash_mask = size - 1;
-	}
+	hash_table->hash_mask = size - 1;
 
 	hash_cleanup(hash_table);
 
-	hash_table->n_lock = 1 << (31 - lzcnt_u32(get_cpu_number() | 1) + 8);	// round down to 2 ^ n, then * 256
-	hash_table->lock_mask = hash_table->n_lock - 1;
-	// hash_table->n_lock += n_way + 1;
-	hash_table->lock = (HashLock*) malloc(hash_table->n_lock * sizeof (HashLock));
-
-	for (i = 0; i < hash_table->n_lock; ++i) spin_init(hash_table->lock + i);
+	hash_table->n_spin = 256 * MAX(get_cpu_number(), 1);
+	hash_table->spin_mask = hash_table->n_spin - 1;
+	hash_table->spin = (SpinLock*) malloc(hash_table->n_spin * sizeof (SpinLock));
+	for (uint32_t i = 0; i < hash_table->n_spin; ++i) spinlock_init(hash_table->spin + i);
+	
+	HASH_STATS(hash_table->n_try   = 0;)
+	HASH_STATS(hash_table->n_found = 0;)
+	HASH_STATS(hash_table->n_store = 0;)
 }
 
 /**
@@ -86,46 +82,54 @@ void hash_init(HashTable *hash_table, const unsigned long long size)
  */
 void hash_cleanup(HashTable *hash_table)
 {
-	unsigned int i = 0, imax = hash_table->hash_mask + HASH_N_WAY;
-	Hash *pHash = hash_table->hash;
-
 	assert(hash_table != NULL && hash_table->hash != NULL);
+
+	size_t i = 0, hash_size = hash_table->hash_mask + HASH_N_WAY + 1;
 
 	info("< cleaning hashtable >\n");
 
-  #if defined(hasSSE2) || defined(USE_MSVC_X86)
-	if (hasSSE2 && (sizeof(Hash) == 24) && (((size_t) pHash & 0x1f) == 0) && (imax >= 7)) {
-		for (; i < 4; ++i, ++pHash) {
-			HASH_COLLISIONS(pHash->key = 0;)
-			pHash->board.player = pHash->board.opponent = 0;
-			pHash->data = HASH_DATA_INIT;
+#if defined (__SSE2__) && !(HASH_COLLISIONS(1)+0)
+
+	#if defined(__AVX__)
+
+		assert(sizeof(Hash) == 24 && ((uint64_t)hash_table->hash & 0x1f) == 0);
+
+		alignas(32) Hash hash_init[4] = {HASH_INIT, HASH_INIT, HASH_INIT, HASH_INIT};
+		__m256i h0, h1, h2, *h = (__m256i*) hash_init;
+
+		h0 = _mm256_load_si256(h);
+		h1 = _mm256_load_si256(h + 1);
+		h2 = _mm256_load_si256(h + 2);
+		h = (__m256i*) hash_table->hash;
+		for (; i < hash_size - 4; i += 4, h += 3) {
+			_mm256_stream_si256(h, h0);
+			_mm256_stream_si256(h + 1, h1);
+			_mm256_stream_si256(h + 2, h2);
 		}
-    #ifdef __AVX__
-		__m256i d0 = _mm256_load_si256((__m256i *)(pHash - 4));
-		__m256i d1 = _mm256_load_si256((__m256i *)(pHash - 4) + 1);
-		__m256i d2 = _mm256_load_si256((__m256i *)(pHash - 4) + 2);
-		for (i = 4; i <= imax - 3; i += 4, pHash += 4) {
-			_mm256_stream_si256((__m256i *) pHash, d0);
-			_mm256_stream_si256((__m256i *) pHash + 1, d1);
-			_mm256_stream_si256((__m256i *) pHash + 2, d2);
+		
+	#else // __SSE2__
+
+		Hash hash_init[2] = {HASH_INIT, HASH_INIT};
+
+		__m128i h0, h1, h2, *h = (__m128i*) hash_init;
+		h0 = _mm_load_si128(h);
+		h1 = _mm_load_si128(h + 1);
+		h2 = _mm_load_si128(h + 2);
+		h = (__m128i*) hash_table->hash;
+		for (; i < hash_size - 2; i += 2, h += 3) {
+			_mm_stream_si128(h, h0);
+			_mm_stream_si128(h + 1, h1);
+			_mm_stream_si128(h + 2, h2);
 		}
-    #else
-		__m128i d0 = _mm_load_si128((__m128i *)(pHash - 4));
-		__m128i d1 = _mm_load_si128((__m128i *)(pHash - 4) + 1);
-		__m128i d2 = _mm_load_si128((__m128i *)(pHash - 4) + 2);
-		for (i = 4; i <= imax - 1; i += 2, pHash += 2) {
-			_mm_stream_si128((__m128i *) pHash, d0);
-			_mm_stream_si128((__m128i *) pHash + 1, d1);
-			_mm_stream_si128((__m128i *) pHash + 2, d2);
-		}
-    #endif
-		_mm_sfence();
-	}
-  #endif
-	for (; i <= imax; ++i, ++pHash) {
-		HASH_COLLISIONS(pHash->key = 0;)
-		pHash->board.player = pHash->board.opponent = 0; 
-		pHash->data = HASH_DATA_INIT;
+
+	#endif
+
+	_mm_sfence();
+
+#endif
+
+	for (; i < hash_size; ++i) {
+		hash_table->hash[i] = HASH_INIT;
 	}
 	hash_table->date = 0;
 }
@@ -154,28 +158,26 @@ void hash_clear(HashTable *hash_table)
  */
 void hash_free(HashTable *hash_table)
 {
-	int i;
-
 	assert(hash_table != NULL && hash_table->hash != NULL);
-	free(hash_table->memory);
+	free(hash_table->hash);
 	hash_table->hash = NULL;
-	for (i = 0; i < hash_table->n_lock; ++i) spin_free(hash_table->lock + i);
-	free(hash_table->lock);
+	free(hash_table->spin);
+	hash_table->spin = NULL;
+	hash_table->n_spin = 0;
 }
 
 /**
- * @brief make a level from date, cost, depth & selectivity.
+ * @brief update a move in hash table item.
  *
  * @param data Hash data.
- * @return A level.
+ * @param move move to add.
  */
-inline unsigned int writeable_level(HashData *data)
+static void data_add_move(HashData *data, const bool good_move, const int move) 
 {
-#if USE_TYPE_PUNING	// HACK
-	return (data->wl.ui);
-#else	// slow but more portable implementation.
-	return (data->wl.c.date << 24) + (data->wl.c.cost << 16) + (data->wl.c.selectivity << 8) + data->wl.c.depth;
-#endif
+	if (good_move && data->move[0] != move) {
+		data->move[1] = data->move[0];
+		data->move[0] = (uint8_t) move;
+	}
 }
 
 /**
@@ -185,23 +187,19 @@ inline unsigned int writeable_level(HashData *data)
  * Best moves & bound scores are updated, other data are untouched.
  *
  * @param data Hash Data.
- * @param storedata.data.cost Search cost (log2(node count)).
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param cost Search cost (log2(node count)).
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  */
-static void data_update(HashData *data, HashStoreData *storedata)
+static void data_update(HashData *data, const HashStore *store)
 {
-	int score = storedata->score;
-
-	if (score < storedata->beta && score < data->upper) data->upper = (signed char) score;
-	if (score > storedata->alpha && score > data->lower) data->lower = (signed char) score;
-	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
-		data->move[1] = data->move[0];
-		data->move[0] = storedata->data.move[0];
-	}
-	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);
+	if (store->score < store->beta && store->score < data->upper) data->upper = store->score;
+	if (store->score > store->alpha && store->score > data->lower) data->lower = store->score;
+	data_add_move(data, (store->score > store->alpha || store->score == SCORE_MIN), store->move);
+	data->draft.u1.cost = (uint8_t) MAX(store->draft.u1.cost, data->draft.u1.cost);
+	data->draft.u1.date = store->draft.u1.date;
 	HASH_STATS(++statistics.n_hash_update;)
 }
 
@@ -212,26 +210,22 @@ static void data_update(HashData *data, HashStoreData *storedata)
  * Best moves are updated, others data are reset to new value.
  *
  * @param data Hash Data.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Search cost (log2(node count)).
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Search cost (log2(node count)).
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  */
-static void data_upgrade(HashData *data, HashStoreData *storedata)
+static void data_upgrade(HashData *data, const HashStore *store)
 {
-	int score = storedata->score;
-
-	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
-	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
-	if ((score > storedata->alpha || score == SCORE_MIN) && data->move[0] != storedata->data.move[0]) {
-		data->move[1] = data->move[0];
-		data->move[0] = storedata->data.move[0];
-	}
-	data->wl.us.selectivity_depth = storedata->data.wl.us.selectivity_depth;
-	data->wl.c.cost = (unsigned char) MAX(storedata->data.wl.c.cost, data->wl.c.cost);  // this may not work well in parallel search.
+	if (store->score < store->beta) data->upper = store->score; else data->upper = SCORE_MAX;
+	if (store->score > store->alpha) data->lower = store->score; else data->lower = SCORE_MIN;
+	data_add_move(data, (store->score > store->alpha || store->score == SCORE_MIN), store->move);
+	data->draft.u2.depth_selectivity = store->draft.u2.depth_selectivity;
+	data->draft.u1.cost = MAX(store->draft.u1.cost, data->draft.u1.cost);
+	data->draft.u1.date = store->draft.u1.date;
 	HASH_STATS(++statistics.n_hash_upgrade;)
 
 	assert(data->upper >= data->lower);
@@ -240,27 +234,42 @@ static void data_upgrade(HashData *data, HashStoreData *storedata)
 /**
  * @brief Set an hash table data item.
  *
+ * All the data are set to a new value.
+ *
  * @param data Hash Data.
- * @param storedata.data.date Search Date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Search cost (log2(node count)).
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param date Search Date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Search cost (log2(node count)).
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  */
-static void data_new(HashData *data, HashStoreData *storedata)
+static void data_new(HashData *data, const HashStore *store)
 {
-	int score = storedata->score;
-
-	if (score < storedata->beta) data->upper = (signed char) score; else data->upper = SCORE_MAX;
-	if (score > storedata->alpha) data->lower = (signed char) score; else data->lower = SCORE_MIN;
-	if (score > storedata->alpha || score == SCORE_MIN) data->move[0] = storedata->data.move[0];
-	else data->move[0] = NOMOVE;
-	data->move[1] = NOMOVE;
-	data->wl = storedata->data.wl;
+	if (store->score < store->beta) data->upper = store->score; else data->upper = SCORE_MAX;
+	if (store->score > store->alpha) data->lower = store->score; else data->lower = SCORE_MIN;
+	data->move[0] = data->move[1] = NOMOVE;
+	data_add_move(data, (store->score > store->alpha || store->score == SCORE_MIN), store->move);
+	data->draft.u4 = store->draft.u4;	
 	assert(data->upper >= data->lower);
+}
+
+/**
+ * @brief Initialize a new hash table item.
+ *
+ * This implementation tries to be robust against concurrency. Data are first
+ * set up in a local thread-safe structure, before being copied into the
+ * hashtable entry. Then the hashcode of the entry is xored with the thread
+ * safe structure ; so that any corrupted entry won't be readable.
+*/
+void hash_prefetch(HashTable *hashtable, const uint64_t hashcode) {
+	#if defined(__GNUC__)
+	Hash *hash = hashtable->hash + (hashcode & hashtable->hash_mask);
+	__builtin_prefetch(hash);
+	__builtin_prefetch(hash + HASH_N_WAY - 1);
+	#endif
 }
 
 /**
@@ -272,99 +281,98 @@ static void data_new(HashData *data, HashStoreData *storedata)
  * safe structure ; so that any corrupted entry won't be readable.
  *
  * @param hash Hash Entry.
- * @param lock Lock.
+ * @param spin spinlock.
  * @param hash_code Hash code.
- * @param storedata.data.date Hash date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Search cost.
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param date Hash date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Search cost.
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  */
-static void hash_new(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+#if (HASH_COLLISIONS(1)+0)
+static void hash_new(Hash *hash, SpinLock *spin, const uint64_t hash_code, const HashStore *store)
+#else
+static void hash_new(Hash *hash, SpinLock *spin, const Board* board, const HashStore *store)
+#endif
 {
-	spin_lock(lock);
-	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
+	spinlock_lock(spin);
+	HASH_STATS(if (date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
-	HASH_COLLISIONS(hash->key = storedata->hash_code;)
+	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
-	data_new(&hash->data, storedata);
-	spin_unlock(lock);
+	data_new(&hash->data, store);
+	spinlock_unlock(spin);
 }
 
 /**
  * @brief Set a new hash table item.
  *
- * This implementation tries to be robust against concurrency. Data are first
- * set up in a local thread-safe structure, before being copied into the
- * hashtable entry. Then the hashcode of the entry is xored with the thread
- * safe structure ; so that any corrupted entry won't be readable.
+ * This implementation tries to be robust against concurrency using a spin lock,
+ * simpler and faster than mutex.
  *
  * @param hash Hash Entry.
- * @param lock Lock.
- * @param board Bitboard.
- * @param storedata.data.date Hash date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Search cost.
- * @param storedata.data.lower Lower score bound.
- * @param storedata.data.upper Upper score bound.
- * @param storedata.move Best move.
+ * @param spin a spin.
+ * @param hash_code Hash code.
+ * @param date Hash date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Search cost.
+ * @param lower Lower score bound.
+ * @param upper Upper score bound.
+ * @param move Best move.
  */
-static void hash_set(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+#if (HASH_COLLISIONS(1)+0)
+static void hash_set(Hash *hash, SpinLock *spin, const uint64_t hash_code, const Board *board, const HashData * data)
+#else
+static void hash_set(Hash *hash, SpinLock *spin, const Board *board, const HashData* data)
+#endif
 {
-	storedata->data.move[1] = NOMOVE;
-	spin_lock(lock);
-	HASH_STATS(if (date == hash->data.date) ++statistics.n_hash_remove;)
+	spinlock_lock(spin);
+	HASH_STATS(if (date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
-	HASH_COLLISIONS(hash->key = storedata->hash_code;)
+	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
-	hash->data = storedata->data;
+	hash->data = *data;
 	assert(hash->data.upper >= hash->data.lower);
-	spin_unlock(lock);
+	spinlock_unlock(spin);
 }
 
 
 /**
  * @brief update the hash entry
  *
- * This implementation tries to be robust against concurrency. Data are first
- * set up in a local thread-safe structure, before being copied into the
- * hashtable entry. Then the hashcode of the entry is xored with the thread
- * safe structure ; so that any corrupted entry won't be readable.
+ * This implementation tries to be robust against concurrency using a spin lock,
+ * simpler and faster than mutex.
  *
  * @param hash Hash Entry.
- * @param lock Lock.
- * @param board Bitboard.
- * @param storedata.data.date Hash date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Hash Cost (log2(node count)).
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param spin spin.
+ * @param hash_code Hash code.
+ * @param date Hash date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Hash Cost (log2(node count)).
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  * @return true if an entry has been updated, false otherwise.
  */
-static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+static bool hash_update(Hash *hash, SpinLock *spin, const Board *board, const HashStore *store)
 {
 	bool ok = false;
 
 	if (board_equal(&hash->board, board)) {
-		spin_lock(lock);
+		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
-			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth)
-				data_update(&hash->data, storedata);
-			else	data_upgrade(&hash->data, storedata);
-			hash->data.wl.c.date = storedata->data.wl.c.date;
-			if (hash->data.lower > hash->data.upper) { // reset the hash-table...
-				data_new(&hash->data, storedata);
-			}
+			if (hash->data.draft.u2.depth_selectivity == store->draft.u2.depth_selectivity) data_update(&hash->data,  store);
+			else data_upgrade(&hash->data, store);
+			if (hash->data.lower > hash->data.upper) data_new(&hash->data, store);
 			ok = true;
 		} 
-		spin_unlock(lock);
+		spinlock_unlock(spin);
 	}
 	return ok;
 }
@@ -372,35 +380,33 @@ static bool hash_update(Hash *hash, HashLock *lock, const Board *board, HashStor
 /**
  * @brief replace the hash entry.
  *
- * This implementation tries to be robust against concurrency. Data are first
- * set up in a local thread-safe structure, before being copied into the
- * hashtable entry. Then the hashcode of the entry is xored with the thread
- * safe structure ; so that any corrupted entry won't be readable.
+ * This implementation tries to be robust against concurrency using a spin lock,
+ * simpler and faster than mutex.
  *
  * @param hash Hash Entry.
- * @param lock Lock.
- * @param board Bitboard.
- * @param storedata.data.date Hash date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.cost Hash Cost (log2(node count)).
- * @param storedata.alpha Alpha bound.
- * @param storedata.beta Beta bound.
- * @param storedata.score Best score.
- * @param storedata.move Best move.
+ * @param spin spin.
+ * @param hash_code Hash code.
+ * @param date Hash date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param cost Hash Cost (log2(node count)).
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score.
+ * @param move Best move.
  * @return true if an entry has been replaced, false otherwise.
  */
-static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+static bool hash_replace(Hash *hash, SpinLock *spin, const Board *board, const HashStore *store)
 {
 	bool ok = false;
-
+	
 	if (board_equal(&hash->board, board)) {
-		spin_lock(lock);
+		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
-			data_new(&hash->data, storedata);
+			data_new(&hash->data, store);
 			ok = true;
 		}
-		spin_unlock(lock);
+		spinlock_unlock(spin);
 	}
 	return ok;
 }
@@ -409,41 +415,32 @@ static bool hash_replace(Hash *hash, HashLock *lock, const Board *board, HashSto
  * @brief Reset an hash entry from new data values.
  *
  * @param hash Hash Entry.
- * @param lock Lock.
- * @param board Bitboard.
- * @param storedata.data.date Hash date.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Search selectivity.
- * @param storedata.data.lower Lower score bound.
- * @param storedata.data.upper Upper score bound.
- * @param storedata.move Best move.
+ * @param spin spin.
+ * @param hash_code Hash code.
+ * @param date Hash date.
+ * @param depth Search depth.
+ * @param selectivity Search selectivity.
+ * @param lower Lower score bound.
+ * @param upper Upper score bound.
+ * @param move Best move.
  */
-static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStoreData *storedata)
+static bool hash_reset(Hash *hash, SpinLock *spin, const Board *board, const HashData *data)
 {
 	bool ok = false;
-
+	
 	if (board_equal(&hash->board, board)) {
-		spin_lock(lock);
+		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
-			if (hash->data.wl.us.selectivity_depth == storedata->data.wl.us.selectivity_depth) {
-				if (hash->data.lower < storedata->data.lower) hash->data.lower = storedata->data.lower;
-				if (hash->data.upper > storedata->data.upper) hash->data.upper = storedata->data.upper;
+			if (hash->data.draft.u2.depth_selectivity == data->draft.u2.depth_selectivity) {
+				hash->data.draft.u2.cost_date = data->draft.u2.cost_date;
+				hash->data.lower = MAX(hash->data.lower, data->lower);
+				hash->data.upper = MIN(hash->data.upper, data->upper);
 			} else {
-				hash->data.lower = storedata->data.lower;
-				hash->data.upper = storedata->data.upper;
-			}
-			hash->data.wl = storedata->data.wl;
-			if (storedata->data.move[0] != NOMOVE) {
-				// if (hash->data.move[0] != storedata->data.move[0]) {
-					hash->data.move[1] = hash->data.move[0];
-					hash->data.move[0] = storedata->data.move[0];
-				// } else {
-				//	hash->data.move[1] = storedata->data.move[0];
-				// }
+				hash->data = *data;
 			}
 			ok = true;
 		}
-		spin_unlock(lock);
+		spinlock_unlock(spin);
 	}
 	return ok;
 }
@@ -452,37 +449,35 @@ static bool hash_reset(Hash *hash, HashLock *lock, const Board *board, HashStore
  * @brief feed hash table (from Cassio).
  *
  * @param hash_table Hash Table.
- * @param board Bitboard.
- * @param storedata.data.depth Search depth.
- * @param storedata.data.selectivity Selectivity level.
- * @param storedata.data.lower Alpha bound.
- * @param storedata.data.upper Beta bound.
- * @param storedata.move best move.
+ * @param hash_code Hash code.
+ * @param depth Search depth.
+ * @param selectivity Selectivity level.
+ * @param lower Alpha bound.
+ * @param upper Beta bound.
+ * @param move best move.
  */
-void hash_feed(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
+void hash_feed(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashData *data)
 {
 	Hash *hash, *worst;
-	HashLock *lock; 
+	SpinLock *spin; 
 	int i;
 
-	storedata->data.wl.c.date = hash_table->date ? hash_table->date : 1;
-	storedata->data.wl.c.cost = 0;
-
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	if (hash_reset(hash, lock, board, storedata)) return;
+	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
+	if (hash_reset(hash, spin, board, data)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_reset(hash, lock, board, storedata)) return;
-		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
-			worst = hash;
-		}
+		if (hash_reset(hash, spin, board, data)) return;
+		if (worst->data.draft.u4 > hash->data.draft.u4) worst = hash;
 	}
 
 	// new entry
-	HASH_COLLISIONS(storedata->hash_code = hash_code;)
-	hash_set(worst, lock, board, storedata);
+#if (HASH_COLLISIONS(1)+0) 
+	hash_set(worst, spin, hash_code, board, data);
+#else 
+	hash_set(worst, spin, board, data);
+#endif
 }
 
 /**
@@ -504,37 +499,37 @@ void hash_feed(HashTable *hash_table, const Board *board, const unsigned long lo
  * already exists with better data, nothing is stored.
  *
  * @param hash_table Hash table to update.
- * @param board Bitboard.
  * @param hash_code  Hash code of an othello board.
- * @param storedata.data.depth      Search depth.
- * @param storedata.data.selectivity   Search selectivity.
- * @param storedata.data.cost       Search cost (i.e. log2(node count)).
- * @param storedata.alpha      Alpha bound when calling the alphabeta function.
- * @param storedata.beta       Beta bound when calling the alphabeta function.
- * @param storedata.score      Best score found.
- * @param storedata.move       Best move found.
+ * @param alpha      Alpha bound when calling the alphabeta function.
+ * @param depth      Search depth.
+ * @param selectivity   Search selectivity.
+ * @param cost       Search cost (i.e. log2(node count)).
+ * @param beta       Beta bound when calling the alphabeta function.
+ * @param score      Best score found.
+ * @param move       Best move found.
  */
-void hash_store(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
+void hash_store(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashStore *store)
 {
 	int i;
 	Hash *worst, *hash;
-	HashLock *lock;
+	SpinLock *spin; 
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	storedata->data.wl.c.date = hash_table->date;
-	if (hash_update(hash, lock, board, storedata)) return;
+	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
+	if (hash_update(hash, spin, board, store)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_update(hash, lock, board, storedata)) return;
-		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
-			worst = hash;
-		}
+		if (hash_update(hash, spin, board, store)) return;
+		if (worst->data.draft.u4 > hash->data.draft.u4) worst = hash;
 	}
+#if (HASH_COLLISIONS(1)+0) 
+	hash_new(worst, spin, hash_code, board, store);
+#else 
+	hash_new(worst, spin, board, store);
+#endif
+	HASH_STATS(hash_table->n_store++;)
 
-	HASH_COLLISIONS(storedata->hash_code = hash_code;)
-	hash_new(worst, lock, board, storedata);
 }
 
 /**
@@ -543,80 +538,79 @@ void hash_store(HashTable *hash_table, const Board *board, const unsigned long l
  * Does the same as hash_store() except it always store the current search state
  *
  * @param hash_table Hash table to update.
- * @param board Bitboard.
  * @param hash_code  Hash code of an othello board.
- * @param storedata.data.depth      Search depth.
- * @param storedata.data.selectivity   Search selectivity.
- * @param storedata.data.cost       Search cost (i.e. log2(node count)).
- * @param storedata.alpha      Alpha bound when calling the alphabeta function.
- * @param storedata.beta       Beta bound when calling the alphabeta function.
- * @param storedata.score      Best score found.
- * @param storedata.move       Best move found.
+ * @param alpha      Alpha bound when calling the alphabeta function.
+ * @param depth      Search depth.
+ * @param selectivity   Search selectivity.
+ * @param cost       Search cost (i.e. log2(node count)).
+ * @param beta       Beta bound when calling the alphabeta function.
+ * @param score      Best score found.
+ * @param move       Best move found.
  */
-void hash_force(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashStoreData *storedata)
+void hash_force(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashStore *store)
 {
 	int i;
 	Hash *worst, *hash;
-	HashLock *lock;
+	SpinLock *spin; 
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
-	lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-	storedata->data.wl.c.date = hash_table->date;
-	if (hash_replace(hash, lock, board, storedata)) return;
+	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
+	if (hash_replace(hash, spin, board, store)) return;
 
 	for (i = 1; i < HASH_N_WAY; ++i) {
 		++hash;
-		if (hash_replace(hash, lock, board, storedata)) return;
-		if (writeable_level(&worst->data) > writeable_level(&hash->data)) {
-			worst = hash;
-		}
+		if (hash_replace(hash, spin, board, store)) return;
+		if (worst->data.draft.u4 > hash->data.draft.u4) worst = hash;
 	}
-
-	HASH_COLLISIONS(storedata->hash_code = hash_code;)
-	hash_new(worst, lock, board, storedata);
+	
+#if (HASH_COLLISIONS(1)+0) 
+	hash_new(worst, spin, hash_code, board, store);
+#else 
+	hash_new(worst, spin, board, store);
+#endif
 }
 
 /**
  * @brief Find an hash table entry according to the evaluated board hash codes.
  *
  * @param hash_table Hash table.
- * @param board Bitboard.
  * @param hash_code Hash code of an othello board.
  * @param data Output hash data.
  * @return True the board was found, false otherwise.
  */
-bool hash_get(HashTable *hash_table, const Board *board, const unsigned long long hash_code, HashData *data)
+bool hash_get(HashTable *hash_table, const Board *board, const uint64_t hash_code, HashData *data)
 {
 	int i;
 	Hash *hash;
-	HashLock *lock;
+	SpinLock *spin;
 	bool ok = false;
 
 	HASH_STATS(++statistics.n_hash_search;)
 	HASH_COLLISIONS(++statistics.n_hash_n;)
+	HASH_STATS(hash_table->n_try++;)
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
+	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
 		HASH_COLLISIONS(if (hash->key == hash_code) {)
-		HASH_COLLISIONS(	lock = hash_table->lock + (hash_code & hash_table->lock_mask);)
-		HASH_COLLISIONS(	spin_lock(lock);)
-		HASH_COLLISIONS(	if (hash->key == hash_code && !vboard_equal(board, &hash->board)) {)
+		HASH_COLLISIONS(	spinlock_lock(spin);)
+		HASH_COLLISIONS(	if (hash->key == hash_code && !board_equal(&hash->board, board)) {)
 		HASH_COLLISIONS(		++statistics.n_hash_collision;)
 		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
 		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
 		HASH_COLLISIONS(		board_print(&hash->board, WHITE, stdout);)
 		HASH_COLLISIONS(	})
-		HASH_COLLISIONS(	spin_unlock(lock);)
+		HASH_COLLISIONS(	spinlock_unlock(spin);)
 		HASH_COLLISIONS(})
 		if (board_equal(&hash->board, board)) {
-			lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-			spin_lock(lock);
+			spinlock_lock(spin);
 			if (board_equal(&hash->board, board)) {
 				*data = hash->data;
 				HASH_STATS(++statistics.n_hash_found;)
-				hash->data.wl.c.date = hash_table->date;
+				HASH_STATS(hash_table->n_found++;)
+				hash->data.draft.u1.date = hash_table->date;
 				ok = true;
 			}
-			spin_unlock(lock);
+			spinlock_unlock(spin);
 			if (ok) return true;
 		}
 		++hash;
@@ -626,37 +620,20 @@ bool hash_get(HashTable *hash_table, const Board *board, const unsigned long lon
 }
 
 /**
- * @brief Find an hash table entry from the board.
+ * @brief Exclude a move from the hash table entry.
  *
  * @param hash_table Hash table.
- * @param board Bitboard.
- * @param data Output hash data.
- * @return True the board was found, false otherwise.
- */
-bool hash_get_from_board(HashTable *hash_table, const Board *board, HashData *data)
-{
-	return hash_get(hash_table, board, board_get_hash_code(board), data);
-}
-
-/**
- * @brief Erase an hash table entry.
- *
- * @param hash_table Hash table.
- * @param board Bitboard.
  * @param hash_code Hash code of an othello board.
  * @param move Move to exclude.
  */
-void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned long long hash_code, const int move)
+void hash_exclude_move(HashTable *hash_table, const Board *board, const uint64_t hash_code, const int move)
 {
 	int i;
 	Hash *hash;
-	HashLock *lock;
 
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
 		if (board_equal(&hash->board, board)) {
-			lock = hash_table->lock + (hash_code & hash_table->lock_mask);
-			spin_lock(lock);
 			if (board_equal(&hash->board, board)) {
 				if (hash->data.move[0] == move) {
 					hash->data.move[0] = hash->data.move[1];
@@ -666,7 +643,6 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
 				}
 				hash->data.lower = SCORE_MIN;
 			}
-			spin_unlock(lock);
 			return;
 		}
 		++hash;
@@ -681,13 +657,12 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const unsigned
  */
 void hash_copy(const HashTable *src, HashTable *dest)
 {
-	unsigned int i, imax = src->hash_mask + HASH_N_WAY;
-	Hash *pSrc = src->hash, *pDest = dest->hash;
+	unsigned int i;
 
 	assert(src->hash_mask == dest->hash_mask);
 	info("<hash copy>\n");
-	for (i = 0; i <= imax; ++i) {
-		*pDest++ = *pSrc++;
+	for (i = 0; i <= src->hash_mask + HASH_N_WAY; ++i) {
+		dest->hash[i] = src->hash[i];
 	}
 	dest->date = src->date;
 }
@@ -701,9 +676,11 @@ void hash_copy(const HashTable *src, HashTable *dest)
 void hash_print(const HashData *data, FILE *f)
 {
 	char s_move[4];
+	const int p_selectivity[] = {72, 87, 95, 98, 99, 100};
 
-	fprintf(f, "moves = %s, ", move_to_string(data->move[0], WHITE, s_move));
-	fprintf(f, "%s ; ", move_to_string(data->move[1], WHITE, s_move));
+	fprintf(f, "moves = {%s, ", move_to_string(data->move[0], WHITE, s_move));
+	fprintf(f, "%s }; ", move_to_string(data->move[1], WHITE, s_move));
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
-	fprintf(f, "level = %2d:%2d:%2d@%3d%%", data->wl.c.date, data->wl.c.cost, data->wl.c.depth, selectivity_table[data->wl.c.selectivity].percent);
+	fprintf(f, "draft = %2d:%2d:%2d@%d%%", data->draft.u1.date, data->draft.u1.cost, data->draft.u1.depth, p_selectivity[data->draft.u1.selectivity]);
 }
+

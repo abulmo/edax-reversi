@@ -3,9 +3,9 @@
  *
  * @brief Miscellaneous utilities header.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_UTIL_H
@@ -13,24 +13,84 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h> 
 #include <errno.h>
-#include <string.h>
 
 struct Board;
 struct Move;
 struct Line;
 
 /*
+ * Memory
+ */
+size_t adjust_size(const size_t, const size_t);
+void* aligned_alloc(size_t, size_t);
+
+/*
  * Time management
  */
-extern long long (*time_clock)(void);
-long long real_clock(void);
-long long cpu_clock(void);
-void time_print(long long, bool, FILE*);
-long long time_read(FILE*);
+int64_t real_clock(void);
+int64_t cpu_clock(void);
+void time_print(int64_t, bool, FILE*);
+int64_t time_read(FILE*);
 void time_stamp(FILE*);
 void relax(int);
+void rest(void);
+
+/*
+ * stdc thread
+ */
+#ifdef __STDC_NO_THREADS__
+
+#include <pthread.h>
+
+typedef pthread_t thrd_t;
+enum {
+	thrd_success  = 0,
+	thrd_busy     = 1,
+	thrd_error    = 2,
+	thrd_nomem    = 3,
+	thrd_timedout = 4,
+};
+typedef int (*thrd_start_t)(void *);
+int thrd_create (thrd_t *thr, thrd_start_t, void*);
+int thrd_detach(thrd_t);
+int	thrd_join(thrd_t, int*);
+
+typedef pthread_mutex_t mtx_t;
+enum {
+	mtx_plain     = 0,
+	mtx_recursive = 1,
+	mtx_timed     = 2,
+};
+int mtx_init(mtx_t*, int);
+void mtx_destroy(mtx_t*);
+int mtx_lock(mtx_t*);
+int mtx_unlock(mtx_t*);
+
+typedef pthread_cond_t cnd_t;
+int cnd_init(cnd_t *);
+void cnd_destroy(cnd_t *);
+int cnd_broadcast(cnd_t *);
+int cnd_signal(cnd_t *);
+int cnd_timedwait(cnd_t *__restrict, mtx_t *__restrict, const struct timespec *__restrict);
+int cnd_wait(cnd_t *, mtx_t *);
+
+#else
+	#include <threads.h>
+#endif
+
+/*
+ * spin lock
+ */
+typedef struct SpinLock {
+	int _Atomic lock;
+} SpinLock;
+void spinlock_init(SpinLock*);
+void spinlock_lock(SpinLock*);
+void spinlock_unlock(SpinLock*);
 
 /*
  * Special printing function
@@ -42,7 +102,7 @@ void print_scientific(double, const char*, FILE*);
  * Strings
  */
 char* string_duplicate(const char*);
-long long string_to_time(const char*);
+int64_t string_to_time(const char*);
 char* string_read_line(FILE*);
 char* string_copy_line(FILE*);
 void string_to_lowercase(char*);
@@ -80,11 +140,11 @@ bool is_stdin_keyboard(void);
  * random
  */
 typedef struct Random {
-	unsigned long long x;
+	uint64_t x;
 } Random;
 
-unsigned long long random_get(Random*);
-void random_seed(Random*, const unsigned long long);
+uint64_t random_get(Random*);
+void random_seed(Random*, const uint64_t);
 
 /*
  * Usefull macros
@@ -98,243 +158,65 @@ void random_seed(Random*, const unsigned long long);
 /** Constrain a variable to a range of values. */
 #define BOUND(var, min, max, name) do {\
 	if (var < min && min <= max) {\
-		if (name) fprintf(stderr, "\nWARNING: %s = %lld is out of range. Set to %lld\n", name, (long long)var, (long long)min);\
+		if (name) fprintf(stderr, "\nWARNING: %s = %ld is out of range. Set to %ld\n", name, (int64_t)var, (int64_t)min);\
 		var = min;\
 	} else if (var > max) {\
-		if (name) fprintf(stderr, "\nWARNING: %s = %lld is out of range. Set to %lld\n", name, (long long)var, (long long)max);\
+		if (name) fprintf(stderr, "\nWARNING: %s = %ld is out of range. Set to %ld\n", name, (int64_t)var, (int64_t)max);\
 		var = max;\
 	}\
 } while (0)
 
 
-/*
- *Threads
- */
-#if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
-
-#include <pthread.h>
-
-/** Typedef mutex to a personalized type for portability */
-typedef pthread_t Thread;
-
-/** Typedef mutex to a personalized type for portability */
-typedef pthread_mutex_t Lock;
-
-/** typedef conditional variable */
-typedef pthread_cond_t Condition;
-
-/** @macro to detach a thread */
-#define thread_detach(thread) pthread_detach(thread)
-
-#if DEBUG && defined(__unix__) && !defined(__APPLE__)
-/** @macro Lock a mutex with a macro for genericity */
-#define lock(c) if (pthread_mutex_lock(&(c)->lock)) { \
-	error("lock"); \
-} else (void) 0
-
-/** @macro unlock a mutex with a macro for genericity */
-#define unlock(c) if (pthread_mutex_unlock(&(c)->lock)) { \
-	error("unlock"); \
-} else (void) 0
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define lock_init(c) do {\
-	pthread_mutexattr_t attr;\
-	pthread_mutexattr_init(&attr);\
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK_NP);\
-	pthread_mutex_init(&(c)->lock, &attr);\
-} while (0)
-
-/** @macro Free a mutex with a macro for genericity. */
-#define lock_free(c) if (pthread_mutex_destroy(&(c)->lock)) { \
-	error("lock_free"); \
-} else (void) 0
-
-#else //NDEBUG
-
-/** @macro Lock a mutex with a macro for genericity */
-#define lock(c) pthread_mutex_lock(&(c)->lock)
-
-/** @macro unlock a mutex with a macro for genericity */
-#define unlock(c) pthread_mutex_unlock(&(c)->lock)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define lock_init(c) pthread_mutex_init(&(c)->lock, NULL)
-
-/** @macro Free a mutex with a macro for genericity. */
-#define lock_free(c) pthread_mutex_destroy(&(c)->lock)
-
-#endif
-
-#ifdef __APPLE__ // Mac OS spinlock
-
-#include <libkern/OSAtomic.h>
-
-/** Typedef spinlock (=fast mutex) to a personalized type for portability */
-typedef OSSpinLock SpinLock;
-
-/** @macro Lock a spinlock with a macro for genericity */
-#define spin_lock(c) OSSpinLockLock(&(c)->spin)
-
-/** @macro unlock a spinlock with a macro for genericity */
-#define spin_unlock(c) OSSpinLockUnlock(&(c)->spin)
-
-/** @macro Initialize a spinlock with a macro for genericity. */
-#define spin_init(c)  do {(c)->spin = OS_SPINLOCK_INIT;} while (0)
-
-/** @macro Free a spinlock with a macro for genericity. */
-#define spin_free(c)   // FIXME ?? should this stay empty ?
-
-
-#elif defined(__USE_XOPEN2K) // Posix spinlock
-
-/** Typedef spinlock (=fast mutex) to a personalized type for portability */
-typedef pthread_spinlock_t SpinLock;
-
-/** @macro Lock a spinlock with a macro for genericity */
-#define spin_lock(c) pthread_spin_lock(&(c)->spin)
-
-/** @macro unlock a spinlock with a macro for genericity */
-#define spin_unlock(c) pthread_spin_unlock(&(c)->spin)
-
-/** @macro Initialize a spinlock with a macro for genericity. */
-#define spin_init(c) pthread_spin_init(&(c)->spin, PTHREAD_PROCESS_PRIVATE)
-
-/** @macro Free a spinlock with a macro for genericity. */
-#define spin_free(c) pthread_spin_destroy(&(c)->spin)
-
-#else // No spin lock available, use mutex instead
-
-/** Typedef spinlock (=fast mutex) to a personalized type for portability */
-typedef pthread_mutex_t SpinLock;
-
-/** @macro Lock a spinlock with a macro for genericity */
-#define spin_lock(c) pthread_mutex_lock(&(c)->spin)
-
-/** @macro unlock a mutex with a macro for genericity */
-#define spin_unlock(c) pthread_mutex_unlock(&(c)->spin)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define spin_init(c) pthread_mutex_init(&(c)->spin, NULL)
-
-/** @macro Free a mutex with a macro for genericity. */
-#define spin_free(c) pthread_mutex_destroy(&(c)->spin)
-
-#endif
-
-/** init a condition */
-#define condition_init(c) pthread_cond_init(&(c)->cond, NULL)
-
-/** wait for a condition change */
-#define condition_wait(c) pthread_cond_wait(&(c)->cond, &(c)->lock)
-
-/** signal a condition change */
-#define condition_signal(c) pthread_cond_signal(&(c)->cond)
-
-/** boardcast a condition change */
-#define condition_broadcast(c) pthread_cond_broadcast(&(c)->cond)
-
-/** free a condition */
-#define condition_free(c) pthread_cond_destroy(&(c)->cond)
-
-#elif defined(_WIN32)
-
-#include <winsock2.h>
-#include <windows.h>
-
-/** Typedef to a personalized Thread type for portability */
-typedef HANDLE Thread;
-
-/** Typedef to a personalized Lock type for portability */
-typedef CRITICAL_SECTION Lock;
-
-/** Typedef to a personalized SpinLock type for portability */
-typedef CRITICAL_SECTION SpinLock;
-
-/** Some buggy compilers need the following declarations */
-#if defined __MINGW32__ && (_WIN32_WINNT < 0x0600)
-
-#if (__MINGW64_VERSION_MAJOR < 3)
-typedef DWORD CONDITION_VARIABLE;
-#endif
-void InitializeConditionVariable(CONDITION_VARIABLE*);
-void WakeConditionVariable(CONDITION_VARIABLE*);
-void WakeAllConditionVariable(CONDITION_VARIABLE*);
-BOOL SleepConditionVariableCS(CONDITION_VARIABLE*, CRITICAL_SECTION*, DWORD);
-
-#endif
-
-#if defined(_WIN64) || defined(_WIN32)
-
-/** Typedef to a personalized Condition type for portability */
-typedef CONDITION_VARIABLE Condition;
-
-/** init a condition */
-#define condition_init(c) InitializeConditionVariable(&(c)->cond)
-
-/** wait for a condition change */
-#define condition_wait(c) SleepConditionVariableCS(&(c)->cond, &(c)->lock, INFINITE)
-
-/** signal a condition change */
-#define condition_signal(c) WakeConditionVariable(&(c)->cond)
-
-/** signal a condition change */
-#define condition_broadcast(c) WakeAllConditionVariable(&(c)->cond)
-
-/** free a condition */
-#define condition_free(c)
-
-#endif
-
-/** @macro to detach a thread */
-#define thread_detach(thread) CloseHandle(thread)
-
-/** @macro Lock a spinlock with a macro for genericity */
-#define lock(c) EnterCriticalSection(&(c)->lock)
-
-/** @macro unlock a mutex with a macro for genericity */
-#define unlock(c) LeaveCriticalSection(&(c)->lock)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define lock_init(c) InitializeCriticalSection(&(c)->lock)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define lock_free(c) DeleteCriticalSection(&(c)->lock)
-
-/** @macro Lock a spinlock with a macro for genericity */
-#define spin_lock(c) EnterCriticalSection(&(c)->spin)
-
-/** @macro unlock a mutex with a macro for genericity */
-#define spin_unlock(c) LeaveCriticalSection(&(c)->spin)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define spin_init(c) InitializeCriticalSection(&(c)->spin)
-
-/** @macro Initialize a mutex with a macro for genericity. */
-#define spin_free(c) DeleteCriticalSection(&(c)->spin)
-
-
-#endif
-
-void thread_create(Thread*, void* (*f)(void*), void*);
-void thread_join(Thread);
-void thread_set_cpu(Thread, int);
-Thread thread_self(void);
-
-/** atomic addition */
-static inline void atomic_add(volatile unsigned long long *value, long long i)
-{
-#if defined(USE_GAS_X64)
-  __asm__ __volatile__("lock xaddq %1, %0":"=m"(*value) :"r"(i), "m" (*value));
-#elif defined(USE_MSVC_X64)
-	_InterlockedAdd64(value, i);
-#else
-	*value += i;
-#endif
-}
-
 void cpu(void);
 int get_cpu_number(void);
+
+/**
+ * @brief LogFile.
+ */
+typedef struct Log {
+	FILE *f;
+	mtx_t mutex;
+} Log;
+
+/** @brief open a log file if allowed. */
+#define log_open(l, file) if ((l)->f == NULL && file != NULL) { \
+	mtx_init(&(l)->mutex, mtx_plain); \
+	(l)->f = fopen(file, "w"); \
+} else (void) 0
+
+/** @brief Close an opened log file. */
+#define log_close(l) if ((l)->f) { \
+	mtx_destroy(&(l)->mutex); \
+	fclose((l)->f); \
+	(l)->f = NULL; \
+} else (void) 0
+
+/** @brief Print into the log file */
+#define log_print(l, ...) if ((l)->f) { \
+	fprintf((l)->f, __VA_ARGS__); \
+	fflush((l)->f); \
+} else (void) 0
+
+/** @brief Check if the log stream can be used */
+#define log_is_open(l) ((l)->f != NULL)
+
+/** @brief log a reception */
+#define log_receive(l, title, ...)  if ((l)->f) { \
+	fprintf((l)->f, "%s", title); \
+	time_stamp((l)->f); \
+	fprintf((l)->f, " >>> "); \
+	fprintf((l)->f, __VA_ARGS__); \
+	fflush((l)->f); \
+} else (void) 0
+
+/** @brief log a sending */
+#define log_send(l, title, ...)  if ((l)->f) { \
+	fprintf((l)->f, "%s", title); \
+	time_stamp((l)->f); \
+	fprintf((l)->f, " <<< "); \
+	fprintf((l)->f, __VA_ARGS__); \
+	fflush((l)->f); \
+} else (void) 0
 
 /*
  * Error management
@@ -378,17 +260,20 @@ int get_cpu_number(void);
  * @brief Display a message.
  */
 #define info(...) if (options.info) { \
+	extern Log ggs_log; \
 	fprintf(stderr, __VA_ARGS__); \
+	log_print(&ggs_log, __VA_ARGS__); \
 } else (void) 0
 
 /**
  * @brief Display a message in cassio's "fenetre de rapport" .
  */
 #define cassio_debug(...) if (options.debug_cassio) { \
+	extern Log engine_log; \
 	printf("DEBUG: "); \
 	printf(__VA_ARGS__); \
-	log_print(engine_log, "DEBUG: "); \
-	log_print(engine_log, __VA_ARGS__);\
+	log_print(&engine_log, "DEBUG: "); \
+	log_print(&engine_log, __VA_ARGS__);\
 } else (void) 0
 
 
@@ -404,11 +289,10 @@ int get_cpu_number(void);
 /**
  * @brief Display a debuging message as "DEBUG : ... "
  */
-#define debug(...) \
-	do { \
-		fprintf(stderr, "\nDEBUG : "); \
-		fprintf(stderr, __VA_ARGS__); \
-	} while (0)
+#define debug(...) do { \
+	fprintf(stderr, "\nDEBUG : "); \
+	fprintf(stderr, __VA_ARGS__); \
+} while (0)
 
 #else
 #define trace(...)
@@ -416,51 +300,11 @@ int get_cpu_number(void);
 #endif
 
 /**
- * @brief LogFile.
+ * @brief test a equality
  */
-typedef struct Log {
-	FILE *f;
-	Lock lock;
-} Log;
-
-/** @brief open a log file if allowed. */
-#define log_open(l, file) if ((l)->f == NULL && file != NULL) { \
-	lock_init(l); \
-	(l)->f = fopen(file, "w"); \
-} else (void) 0
-
-/** @brief Close an opened log file. */
-#define log_close(l) if ((l)->f) { \
-	lock_free(l); \
-	fclose((l)->f); \
-	(l)->f = NULL; \
-} else (void) 0
-
-/** @brief Print into the log file */
-#define log_print(l, ...) if ((l)->f) { \
-	fprintf((l)->f, __VA_ARGS__); \
-	fflush((l)->f); \
-} else (void) 0
-
-/** @brief Check if the log stream can be used */
-#define log_is_open(l) ((l)->f != NULL)
-
-/** @brief log a reception */
-#define log_receive(l, title, ...)  if ((l)->f) { \
-	fprintf((l)->f, "%s", title); \
-	time_stamp((l)->f); \
-	fprintf((l)->f, " <== "); \
-	fprintf((l)->f, __VA_ARGS__); \
-	fflush((l)->f); \
-} else (void) 0
-
-/** @brief log a sending */
-#define log_send(l, title, ...)  if ((l)->f) { \
-	fprintf((l)->f, "%s", title); \
-	time_stamp((l)->f); \
-	fprintf((l)->f, " ==> "); \
-	fprintf((l)->f, __VA_ARGS__); \
-	fflush((l)->f); \
-} else (void) 0
+#define expect_eq(a, b, msg) if (a != b) { \
+	fprintf(stderr, "expectation failed at file: %s, function: %s, line: %d :", __FILE__, __func__, __LINE__); \
+	fprintf(stderr, "0x%08lx != 0x%08lx - %s\n", (long) (a), (long) (b), msg); \
+}
 
 #endif // EDAX_UTIL_H

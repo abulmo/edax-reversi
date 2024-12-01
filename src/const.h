@@ -5,17 +5,23 @@
  *
  * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #ifndef EDAX_CONST_H
 #define EDAX_CONST_H
 
-/** maximal number of threads */
-#define MAX_THREADS 64
+#include <stdint.h>
 
-/** maximal number of moves */
-#define MAX_MOVE 33	// https://eukaryote.hateblo.jp/entry/2023/05/23/145945
+/** maximal number of threads */
+#define MAX_THREADS 256
+
+/**
+ * Maximal number of moves is 33.
+ * For a proof, see: https://doi.org/10.51094/jxiv.480
+ */
+#define MAX_MOVE 33
 
 /** size of the board */
 #define BOARD_SIZE 64
@@ -44,6 +50,9 @@ enum {
 	EMPTY,
 	OFF_SIDE
 };
+
+extern const uint64_t X_TO_BIT[];
+extern const uint64_t NEIGHBOUR[];
 
 /** infinite score: a huge value unreachable as a score and fitting in a char */
 #define SCORE_INF 127
@@ -74,17 +83,16 @@ typedef enum Stop {
 } Stop;
 
 /** node type */
-enum {
+typedef enum {
 	PV_NODE,
 	CUT_NODE,
 	ALL_NODE
-};
-typedef	unsigned char	NodeType;
+} NodeType;
 
 #define VERSION 4
-#define RELEASE 5
-#define VERSION_STRING "4.5.3"
-#define EDAX_NAME "Edax 4.5.3"
+#define RELEASE 6
+#define VERSION_STRING "4.6"
+#define EDAX_NAME "Edax 4.6"
 #define BOOK 0x424f4f4b
 #define EDAX 0x45444158
 #define EVAL 0x4556414c
@@ -95,7 +103,7 @@ typedef	unsigned char	NodeType;
  * Edax state.
  */
 typedef enum PlayState {
-	IS_WAITING,
+	IS_WAITING = 0,
 	IS_PONDERING,
 	IS_ANALYZING,
 	IS_THINKING
@@ -113,5 +121,3 @@ enum {
 };
 
 #endif
-
-

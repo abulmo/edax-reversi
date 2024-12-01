@@ -24,7 +24,7 @@
  * 
  */
 
-#include "bit.h"
+#include "simd.h"
 #include <stdint.h>
 
 /** precomputed count flip array */
@@ -187,7 +187,7 @@ const V4DI mask_dvhd[64] = {
  * @return flipped disc count.
  */
 
-int last_flip(int pos, unsigned long long P)
+int count_last_flip(int pos, uint64_t P)
 {
 	uint_fast8_t	n_flips;
 	unsigned int	t;

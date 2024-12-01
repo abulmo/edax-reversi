@@ -3,9 +3,10 @@
  *
  * Opening Name aliasing.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #ifndef EDAX_OPENING_NAME

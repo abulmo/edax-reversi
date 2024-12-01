@@ -18,17 +18,15 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2014
+ * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.4
+ * @version 4.6
  * 
  */
 
-#include "bit_intrinsics.h"
-
 /** precomputed count flip array */
-static const unsigned char COUNT_FLIP[8][256] = {
+static const uint8_t COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -114,7 +112,7 @@ static const unsigned char COUNT_FLIP[8][256] = {
 #ifdef lzcnt_u64
 
 /* bit masks for vertical and diagonal lines for A8..H8 */
-static const unsigned long long mask_9_7[8][2] = {
+static const uint64_t mask_9_7[8][2] = {
 	{ 0x0204081020408000, 0x0000000000000000 },
 	{ 0x0204081020400000, 0x8000000000000000 },
 	{ 0x0204081020000000, 0x8040000000000000 },
@@ -128,7 +126,7 @@ static const unsigned long long mask_9_7[8][2] = {
 #else
 
 /* bit masks for vertical and diagonal lines for A1..H1 */
-static const unsigned long long mask_9_7[8][2] = {
+static const uint64_t mask_9_7[8][2] = {
 	{ 0x0000000000000000, 0x4020100804020100 },
 	{ 0x0000000000000040, 0x0020100804020100 },
 	{ 0x0000000000002040, 0x0000100804020100 },
@@ -142,7 +140,7 @@ static const unsigned long long mask_9_7[8][2] = {
 #endif
 
 /* bit masks for diagonal lines for A5..H6 */
-static const unsigned long long mask_d[16][2] = {
+static const uint64_t mask_d[16][2] = {
 	{ 0x0000000102040810, 0x0804020100000000 },
 	{ 0x0000010204081020, 0x1008040201000000 },
 	{ 0x0001020408102040, 0x2010080402010000 },
@@ -161,17 +159,8 @@ static const unsigned long long mask_d[16][2] = {
 	{ 0x2040800000000000, 0x0000804020100804 }
 };
 
-#ifdef HAS_CPU_64
-
 #define	packV(P, x)	(((((P) >> (x)) & 0x0101010101010101) * 0x0102040810204080) >> 56)
 #define packD(PM)	(((PM) * 0x0101010101010101) >> 56)
-
-#else
-
-#define	packV(P, x)	(((((((unsigned int)(P)) >> (x)) & 0x01010101u) + (((((unsigned int)((P) >> 32)) >> (x)) & 0x01010101u) << 4)) * 0x01020408u) >> 24)
-#define	packD(PM)	(((((unsigned int)(PM)) * 0x01010101u) + (((unsigned int)((PM) >> 32)) * 0x01010101u)) >> 24)
-
-#endif // HAS_CPU_64
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -181,32 +170,18 @@ static const unsigned long long mask_d[16][2] = {
  * @return flipped disc count.
  */
 
-int last_flip(int pos, unsigned long long P)
+int count_last_flip(int pos, uint64_t P)
 {
-	unsigned long long	P8, P7, P9;
+	uint64_t P8, P7, P9;
 	int	n_flipped;
 	int	x = pos & 7;
 
-	n_flipped = COUNT_FLIP[x][(unsigned char) (P >> (pos & 0x38))];
-
-#ifdef lzcnt_u64
+	n_flipped = COUNT_FLIP[x][(uint8_t) (P >> (pos & 0x38))];
 
 	if (pos < 0x20) {
 		P = vertical_mirror(P);
 		pos ^= 0x38;
 	}
-
-	if (pos >= 0x30) {
-		P <<= (64 - pos);
-		P8 = P & 0x0101010101010101;
-		P7 = P & mask_9_7[x][0];
-		P9 = (P << 8) & mask_9_7[x][1];
-		n_flipped += ((lzcnt_u64(P8) & 0x38) + (lzcnt_u64(P7) & 0x38) + (lzcnt_u64(P9) & 0x38)) >> 2;
-
-		return n_flipped;
-	}
-
-#else // ls1b - slow
 
 	if (pos & 0x10) {	// 0 1 2 3 4 5 6 7 -> 0 1 4 5 4 5 0 1
 		P = vertical_mirror(P);
@@ -221,16 +196,12 @@ int last_flip(int pos, unsigned long long P)
 		n_flipped += ((P7 & -P7) * 0x0001040c2050c000) >> 60;
 		P9 = P & mask_9_7[x][1];
 		n_flipped += ((P9 & -P9) * 0x000010100c080503) >> 60;
-
-		return n_flipped;
+	} else {
+		n_flipped += COUNT_FLIP[pos >> 3][packV(P, x)];
+		P7 = P & mask_d[pos - 0x20][0];
+		n_flipped += COUNT_FLIP[x][packD(P7)];
+		P9 = P & mask_d[pos - 0x20][1];
+		n_flipped += COUNT_FLIP[x][packD(P9)];
 	}
-#endif
-
-	n_flipped += COUNT_FLIP[pos >> 3][packV(P, x)];
-	P7 = P & mask_d[pos - 0x20][0];
-	n_flipped += COUNT_FLIP[x][packD(P7)];
-	P9 = P & mask_d[pos - 0x20][1];
-	n_flipped += COUNT_FLIP[x][packD(P9)];
-
 	return n_flipped;
 }

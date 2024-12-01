@@ -13,9 +13,9 @@
  * 
  */
 
-#include "bit.h"
+#include "simd.h"
 
-extern	const V8DI lrmask[66];
+extern const V8DI MASK_LR[66];
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -25,24 +25,23 @@ extern	const V8DI lrmask[66];
  * @return flipped disc count.
  */
 
-int last_flip(int pos, unsigned long long P)
+int last_flip(int pos, uint64_t P)
 {
 	__m256i PP = _mm256_set1_epi64x(P);
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2;
 
-		// left: look for player LS1B
-	lmask = lrmask[pos].v4[0];
+	// left: look for player LS1B
+	lmask = MASK_LR[pos].v4[0];
 	outflank = _mm256_and_si256(PP, lmask);
-		// set below LS1B if P is in lmask
+	// set below LS1B if P is in lmask
 	flip = _mm256_maskz_add_epi64(_mm256_test_epi64_mask(PP, lmask), outflank, _mm256_set1_epi64x(-1));
 	// flip = _mm256_and_si256(_mm256_andnot_si256(outflank, flip), lmask);
 	flip = _mm256_ternarylogic_epi64(outflank, flip, lmask, 0x08);
 
-		// right: look for player bit with lzcnt
-	rmask = lrmask[pos].v4[1];
-	eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1),
-		_mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(PP, rmask), _mm256_and_si256(PP, rmask)));
+	// right: look for player bit with lzcnt
+	rmask = MASK_LR[pos].v4[1];
+	eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1), _mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(PP, rmask), _mm256_and_si256(PP, rmask)));
 	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, rmask));
 	flip = _mm256_ternarylogic_epi64(flip, eraser, rmask, 0xf2);
 

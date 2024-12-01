@@ -3,9 +3,9 @@
  *
  * Header file for opening book management
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_BOOK_H
@@ -40,13 +40,13 @@ typedef struct Book {
 		int n_links;
 		int n_todo;
 	} stats;
+	Random random;
 	struct PositionArray *array;
 	struct PositionStack* stack;
+	Search *search;
 	int n;
 	int n_nodes;
 	bool need_saving;
-	Random random;
-	Search *search;
 } Book;
 
 /**
@@ -54,10 +54,10 @@ typedef struct Book {
  * @brief Game statistics
  */
 typedef struct GameStats {
- 	unsigned long long n_wins;       /**< game win count */
-	unsigned long long n_draws;      /**< game draw count */
-	unsigned long long n_losses;     /**< game loss count */
-	unsigned long long n_lines;      /**< unterminated line count */
+ 	uint64_t n_wins;       /**< game win count */
+	uint64_t n_draws;      /**< game draw count */
+	uint64_t n_losses;     /**< game loss count */
+	uint64_t n_lines;      /**< unterminated line count */
 } GameStats;
 
 void book_init(Book*);
@@ -78,8 +78,8 @@ void book_link(Book*);
 void book_fix(Book*);
 void book_fill(Book *book, const int);
 void book_deviate(Book*, Board*, const int, const int);
+void book_subtree(Book*, const Board*); 
 void book_enhance(Book*, Board*, const int, const int);
-void book_subtree(Book*, const Board*);
 void book_play(Book*);
 
 void book_info(Book*);

@@ -7,15 +7,16 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 2023
+ * @date 2024
  * @author Toshihiko Okuhara
- * @version 4.5
+ * @version 4.6
  * 
  */
 
-#include "bit.h"
+#include "simd.h"
 
-extern	const V4DI lmask_v4[66], rmask_v4[66];
+extern const V8DI MASK_LR[66];
+
 
 /**
  * Count last flipped discs when playing on the last empty.
@@ -25,13 +26,13 @@ extern	const V4DI lmask_v4[66], rmask_v4[66];
  * @return flipped disc count.
  */
 
-int last_flip(int pos, unsigned long long P)
+int count_last_flip(int pos, uint64_t P)
 {
 	__m256i PP = _mm256_set1_epi64x(P);
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2;
 
-	rmask = rmask_v4[pos].v4;
+	rmask = MASK_LR[pos].v4[1];
 		// isolate player MS1B by clearing lower shadow bits
 	outflank = _mm256_and_si256(PP, rmask);
 	eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
@@ -43,7 +44,7 @@ int last_flip(int pos, unsigned long long P)
 		// clear if no player bit, i.e. all opponent
 	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(flip, rmask), flip);
 
-	lmask = lmask_v4[pos].v4;
+	lmask = MASK_LR[pos].v4[0];
 		// look for player LS1B
 	outflank = _mm256_and_si256(PP, lmask);
 	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
@@ -53,5 +54,5 @@ int last_flip(int pos, unsigned long long P)
 
 	flip2 = _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 	flip2 = _mm_or_si128(flip2, _mm_shuffle_epi32(flip2, 0x4e));
-	return 2 * bit_count(_mm_cvtsi128_si64(flip2));
+	return 2 * bit_count((uint64_t)_mm_cvtsi128_si64(flip2));
 }

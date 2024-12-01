@@ -3,14 +3,15 @@
  *
  * Game management
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @version 4.6
  */
 
 #include "bit.h"
 #include "board.h"
 #include "const.h"
+#include "crc32c.h"
 #include "game.h"
 #include "search.h"
 #include "util.h"
@@ -158,7 +159,7 @@ bool game_update_board(Board *board, int x)
 	if (!can_move(board->player, board->opponent)) {
 		board_pass(board);
 	}
-	if (board_get_move_flip(board, x, &move) == 0) return false;
+	if (board_get_move(board, x, &move) == 0) return false;
 	board_update(board, &move);
 
 	return true;
@@ -172,15 +173,15 @@ static bool game_update_player(Board *board, int x)
 {
 	Move move;
 	bool swap = false;
-	
+
 	if (A1 <= x && x <= H8 && !board_is_occupied(board, x)) {
 		if (!can_move(board->player, board->opponent)) {
 			board_pass(board);
 			swap = !swap;
 		}
-		if (board_get_move_flip(board, x, &move) == 0) swap = !swap;
+		if (board_get_move(board, x, &move) == 0) swap = !swap;
 	}
-	
+
 	return swap;
 }
 
@@ -260,7 +261,7 @@ int game_score(const Game *game)
 }
 
 /**
- * @brief Convert a text (ascii) game to a Game 
+ * @brief Convert a text (ascii) game to a Game
  * @param line A move sequence in ascii.
  * @param game The output game.
  */
@@ -303,8 +304,8 @@ void game_to_text(const Game *game, char *line)
 
 /**
  * @brief convert an allinf.oko game to a Game.
- *  
- * this was a serie of games played by early M. Buro's logistello
+ *
+ * This was a serie of games played by early M. Buro's logistello
  * against I. Durdanovic's programs.
  *
  * @param oko A single input game.
@@ -329,7 +330,7 @@ void oko_to_game(const OkoGame *oko, Game *game)
 
 /**
  * @brief convert a Wthor game to a Game.
- *  
+ *
  * The Wthor format is famous as all main event
  * games are recorded into this format. Its name
  * comes from Sylvain Quin's program.
@@ -356,7 +357,7 @@ void wthor_to_game(const WthorGame *thor, Game *game)
 
 /**
  * @brief convert a Game to a Whor game.
- *  
+ *
  * The wthor format is famous as all main event
  * games are recorded into this format.
  *
@@ -373,12 +374,11 @@ void game_to_wthor(const Game *game, WthorGame *thor)
 	thor->black = 1368; // edax
 	thor->white = 1368; // edax
 	thor->tournament = 0;//g->tournament;
-	/* TODO: */
 	thor->score = 32 + game_score(game) / 2;
 	thor->theoric_score = thor->score; // may be wrong?
 }
 
-/** 
+/**
  * @brief Build a game from an initial position and a move sequence.
  *
  * @param game Game.
@@ -405,7 +405,7 @@ void game_append_line(Game *game, const Line *line, const int from)
 	}
 }
 
-/** 
+/**
  * @brief Build a game from an initial position and a move sequence.
  *
  * @param initial_board Initial board.
@@ -421,7 +421,7 @@ void line_to_game(const Board *initial_board, const Line *line, Game *game)
 }
 
 /**
- * @brief Read a game from a binary file 
+ * @brief Read a game from a binary file
  *
  * @param game The output game.
  * @param f The file stream.
@@ -432,7 +432,7 @@ void game_read(Game *game, FILE *f)
 }
 
 /**
- * @brief Write a game to a binary file 
+ * @brief Write a game to a binary file
  *
  * @param game The input game.
  * @param f The file stream.
@@ -443,7 +443,7 @@ void game_write(const Game *game, FILE *f)
 }
 
 /**
- * @brief Read a game from a text file 
+ * @brief Read a game from a text file
  *
  * @param game The output game.
  * @param f The file stream.
@@ -459,7 +459,7 @@ void game_import_text(Game *game, FILE *f)
 }
 
 /**
- * @brief Write a game to a text file 
+ * @brief Write a game to a text file
  *
  * @param game The input game.
  * @param f The file stream.
@@ -479,7 +479,7 @@ void game_export_text(const Game *game, FILE *f)
 }
 
 /**
- * @brief Read a game from a Wthor file 
+ * @brief Read a game from a Wthor file
  *
  * @param game The output game.
  * @param f The file stream.
@@ -492,7 +492,7 @@ void game_import_wthor(Game *game, FILE *f)
 }
 
 /**
- * @brief Write a game to a Wthor file 
+ * @brief Write a game to a Wthor file
  *
  * @param game The input game.
  * @param f The file stream.
@@ -505,7 +505,7 @@ void game_export_wthor(const Game *game, FILE *f)
 }
 
 /**
- * @brief Read a game from the "allinf.oko" file 
+ * @brief Read a game from the "allinf.oko" file
  *
  * @param game The output game.
  * @param f The file stream.
@@ -659,17 +659,18 @@ static const char* parse_tag(const char *string, char *tag, char *value)
  *
  * @param game The output game.
  * @param string An input string.
- * @return The Last move played, -1 on error.
+ * @param pass set to true if the last move is pass
+ * @return The unprocessed remaining part of the string.
  */
-int parse_ggf(Game *game, const char *string)
+char* parse_ggf(Game *game, const char *string, bool *pass)
 {
 	const char *s = string;
 	const char *next;
 	char tag[4], value[256];
 	int i = 0;
-	int lastmove = NOMOVE;
 
 	game_init(game);
+	*pass = false;
 
 	while ((next = parse_tag(s, tag, value)) != s && strcmp(tag, "(;") != 0) s = next;
 
@@ -679,10 +680,12 @@ int parse_ggf(Game *game, const char *string)
 			s = next;
 
 			if (strcmp(tag, "GM") == 0 && strcmp(value, "othello") != 0) {
-				return -1;
+				s = string;
+				break;
 			} else if (strcmp(tag, "BO") == 0) {
 				if (value[0] != '8') {
-					return -1;
+					s = string;
+					break;
 				}
 				game->player = board_set(&game->initial_board, value + 2);
 			} else if (strcmp(tag, "PB") == 0) {
@@ -692,16 +695,16 @@ int parse_ggf(Game *game, const char *string)
 				memcpy(game->name[WHITE], value, 31);
 				game->name[WHITE][31] = '\0';
 			} else if (i < 60 && (strcmp(tag, "B") == 0 || strcmp(tag, "W") == 0)) {
-				lastmove = string_to_coordinate(value);
-				if (lastmove != PASS)
-					game->move[i++] = lastmove;
+				*pass = (strncmp("pa", value, 2) == 0);
+				if (*pass) continue;
+				game->move[i++] = string_to_coordinate(value);
 			}
 		}
 	}
 
-	if (!game_check(game)) return -1;
+	if (!game_check(game)) s = string;
 
-	return lastmove;
+	return (char*) s;
 }
 
 /**
@@ -714,7 +717,6 @@ void game_export_ggf(const Game *game, FILE *f)
 {
 	Board board;
 	int player;
-	unsigned long long bk, wh;
 	static const char board_color[] = "*O-?";
 	int i, x, square;
 //	time_t t:
@@ -723,26 +725,16 @@ void game_export_ggf(const Game *game, FILE *f)
 	char move_string[3] = "xx";
 
 	fputs("(;GM[othello]PC[Edax]", f);
-//	t = time(NULL); 
+//	t = time(NULL);
 //	date = localtime(&t);
 //	fprintf(f, "DT[%d.%2d.%2d_%2d:%2d:%2d]", date->tm_year + 1900, date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min, date->tm_sec);
 	fprintf(f, "PB[%s]PW[%s]", game->name[BLACK], game->name[WHITE]);
 	fprintf(f, "RE[%+d.000]", game_score(game));
 	fputs("BO[8 ", f);
-
-	if (game->player == BLACK) {
-		bk = game->initial_board.player;
-		wh = game->initial_board.opponent;
-	} else {
-		bk = game->initial_board.opponent;
-		wh = game->initial_board.player;
-	}
 	for (x = 0; x < 64; ++x) {
-		square = 2 - (wh & 1) - 2 * (bk & 1);
-		putc(board_color[square], f);
-		if ((x & 7) == 7) putc(' ', f);
-		bk >>= 1;
-		wh >>= 1;
+		if (game->player == BLACK) square = 2 - ((game->initial_board.opponent >> x) & 1) - 2 * ((game->initial_board.player >> x) & 1);
+		else square = 2 - ((game->initial_board.player >> x) & 1) - 2 * ((game->initial_board.opponent >> x) & 1);
+		putc(board_color[square], f); if ((x & 7) == 7) putc(' ', f);
 	}
 	putc(board_color[(int) game->player], f); fputc(']', f);
 
@@ -887,7 +879,7 @@ void game_save_sgf(const Game *game, FILE *f, const bool multiline)
 	int i;
 	time_t t = time(NULL);
 	struct tm *date = localtime(&t);
-	unsigned long long black, white;
+	uint64_t black, white;
 	const int score = game_score(game);
 
 	// game info
@@ -911,13 +903,13 @@ void game_save_sgf(const Game *game, FILE *f, const bool multiline)
 	if (black) {
 		fputs("AB", f);
 		for (i = A1; i <= H8; i++){
-			if (black & (1ULL << i)) fprintf(f, "[%s]", move_to_string(i, WHITE, s));
+			if (black & x_to_bit(i)) fprintf(f, "[%s]", move_to_string(i, WHITE, s));
 		}
 	}
 	if (white) {
 		fputs("AW", f);
 		for (i = A1; i <= H8; i++){
-			if (white & (1ULL << i)) fprintf(f, "[%s]", move_to_string(i, WHITE, s));
+			if (white & x_to_bit(i)) fprintf(f, "[%s]", move_to_string(i, WHITE, s));
 		}
 	}
 	fprintf(f, "PL[%c]", color[(int) game->player]);
@@ -971,7 +963,7 @@ void game_import_pgn(Game *game, FILE *f)
 	char info_tag[257] = "", info_value[257] = ""; // 256 is the maximal info size according to PGN standard
 	int value[3];
 	const int info_size = 256;
-	
+
 	enum {
 		STATE_START,
 		STATE_BEGIN_INFO,
@@ -1035,7 +1027,7 @@ void game_import_pgn(Game *game, FILE *f)
 				case STATE_BEGIN_VALUE:
 					state = STATE_END_VALUE;
 					info_value[j] = '\0';
-					j = 0;					
+					j = 0;
 					if (strcmp(info_tag, "black") == 0) {
 						memcpy(game->name[BLACK], info_value, 31);
 						game->name[BLACK][31] = '\0';
@@ -1052,7 +1044,7 @@ void game_import_pgn(Game *game, FILE *f)
 						game->player = board_from_FEN(&game->initial_board, info_value);
 					}
 					break;
-			}				
+			}
 		}  else  if (isdigit(c)) {
 			switch(state) {
 			case STATE_BEGIN_SCORE:
@@ -1196,7 +1188,7 @@ void game_import_pgn(Game *game, FILE *f)
 				break;
 			}
 		}
-			
+
 	}
 
 	if (!game_check(game)) {
@@ -1498,9 +1490,9 @@ void game_export_svg(const Game *game, FILE *f)
 }
 
 
-/** 
+/**
  * @brief Fill a game with some random moves.
- * 
+ *
  * @param game The output game.
  * @param n_ply The number of random move to generate.
  * @param r The random generator.
@@ -1508,7 +1500,7 @@ void game_export_svg(const Game *game, FILE *f)
 void game_rand(Game *game, int n_ply, Random *r)
 {
 	Move move;
-	unsigned long long moves;
+	uint64_t moves;
 	int ply;
 	Board board;
 
@@ -1524,7 +1516,7 @@ void game_rand(Game *game, int n_ply, Random *r)
 			}
 		}
 		;
-		board_get_move_flip(&board, get_rand_bit(moves, r), &move);
+		board_get_move(&board, get_rand_bit(moves, r), &move);
 		game->move[ply] = move.x;
 		board_update(&board, &move);
 	}
@@ -1567,14 +1559,14 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 			stack[n_move++].played = MOVE_PASS;
 			board_pass(&board);
 			player = !player;
-		} 
-		if (!board_is_occupied(&board, game->move[i]) && board_get_move_flip(&board, game->move[i], &stack[n_move].played)) {
+		}
+		if (!board_is_occupied(&board, game->move[i]) && board_get_move(&board, game->move[i], &stack[n_move].played)) {
 			stack[n_move].best = MOVE_INIT;
 			line_init(&stack[n_move].pv, player);
 			search_set_board(search, &board, player);
-			search_set_level(search, 60, search->eval.n_empties);
-			stack[n_move].n_empties = search->eval.n_empties;
-			if (search->movelist.n_moves > 1 && search->eval.n_empties <= n_empties) {
+			search_set_level(search, 60, search->n_empties);
+			stack[n_move].n_empties = search->n_empties;
+			if (search->movelist.n_moves > 1 && search->n_empties <= n_empties) {
 				movelist_exclude(&search->movelist, game->move[i]);
 				search_run(search);
 				stack[n_move].best = *(movelist_first(&search->movelist));
@@ -1585,25 +1577,25 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
 			++n_move;
 		} else {
 			char s[4];
-			warn("\nillegal move %s in game:\n", move_to_string(game->move[i], player, s));			
+			warn("\nillegal move %s in game:\n", move_to_string(game->move[i], player, s));
 			game_export_text(game, stderr);
 			board_print(&board, player, stderr);
-			fprintf(stderr, "\n\n");			
+			fprintf(stderr, "\n\n");
 			return 1; // stop, illegal moves
 		}
 	}
 
 	search_set_board(search, &board, player);
-	if (search->eval.n_empties <= n_empties) {
-		search_set_level(search, 60, search->eval.n_empties);
+	if (search->n_empties <= n_empties) {
+		search_set_level(search, 60, search->n_empties);
 		search_run(search);
 		score = search->result->score;
-		
+
 		for (i = n_move - 1; stack[i].n_empties <= n_empties; --i) {
 			stack[i].played.score = -score;
 			score = MAX(stack[i].played.score, stack[i].best.score);
 		}
-		
+
 		//backpropagate the score
 		while (stack[--n_move].n_empties <= n_empties) {
 			if (stack[n_move].played.score < stack[n_move].best.score) {
@@ -1633,7 +1625,7 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
  * @param search Search analyzer.
  * @return number of iterations to terminate the game.
  */
-int game_complete(Game *game, Search *search) 
+int game_complete(Game *game, Search *search)
 {
 	Board board;
 	const int verbosity = search->options.verbosity;
@@ -1661,7 +1653,7 @@ int game_complete(Game *game, Search *search)
 
 		search_set_board(search, &board, player);
 		search_run(search);
-		if (search->result->depth == search->eval.n_empties && search->result->selectivity == NO_SELECTIVITY) {
+		if (search->result->depth == search->n_empties && search->result->selectivity == NO_SELECTIVITY) {
 			game_append_line(game, &search->result->pv, i);
 		} else {
 			game->move[i] = search->result->move;

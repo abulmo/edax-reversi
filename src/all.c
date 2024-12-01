@@ -3,9 +3,9 @@
  *
  * @brief Gather all other files to facilitate compiler inter-procedural optimization.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 /* miscellaneous utilities */
@@ -13,8 +13,10 @@
 #include "util.c"
 #include "stats.c"
 #include "bit.c"
+#include "crc32c.c"
 
 /* move generation */
+#include "flip.c"
 #include "board.c"
 #include "move.c"
 
@@ -31,7 +33,6 @@
 #include "perft.c"
 #include "obftest.c"
 #include "histogram.c"
-#include "bench.c"
 
 /* opening book & game database */
 #include "book.c"

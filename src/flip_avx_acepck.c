@@ -16,9 +16,10 @@
  * @version 4.5
  */
 
-#include "bit.h"
+#include "simd.h"
 
-const V8DI lrmask[66] = {
+/** Left Right mask as a V8DI union */
+const V8DI LR_MASK[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200, 0x0000000000000003, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -96,31 +97,45 @@ const V8DI lrmask[66] = {
  * @return partially reduced flipped disc pattern.
  */
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m128i vectorcall mm_flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, mask, rP, rS, rE, lO, lF;
 
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
 
-	mask = lrmask[pos].v4[1];
-		// right: shadow mask lower than leftmost P
+	mask = LR_MASK[pos].v4[1];
+	// right: shadow mask lower than leftmost P
 	rP = _mm256_and_si256(PP, mask);
 	rS = _mm256_or_si256(rP, _mm256_srlv_epi64(rP, _mm256_set_epi64x(7, 9, 8, 1)));
 	rS = _mm256_or_si256(rS, _mm256_srlv_epi64(rS, _mm256_set_epi64x(14, 18, 16, 2)));
 	rS = _mm256_or_si256(rS, _mm256_srlv_epi64(rS, _mm256_set_epi64x(28, 36, 32, 4)));
-		// apply flip if leftmost non-opponent is P
+	// apply flip if leftmost non-opponent is P
 	rE = _mm256_xor_si256(_mm256_andnot_si256(OO, mask), rP);	// masked Empty
 	flip = _mm256_and_si256(_mm256_andnot_si256(rS, mask), _mm256_cmpgt_epi64(rP, rE));
 
-	mask = lrmask[pos].v4[0];
-		// left: non-opponent BLSMSK
+	mask = LR_MASK[pos].v4[0];
+	// left: non-opponent BLSMSK
 	lO = _mm256_andnot_si256(OO, mask);
 	lO = _mm256_and_si256(_mm256_xor_si256(_mm256_add_epi64(lO, _mm256_set1_epi64x(-1)), lO), mask);
-		// clear MSB of BLSMSK if it is P
+	// clear MSB of BLSMSK if it is P
 	lF = _mm256_andnot_si256(PP, lO);
-		// erase lF if lO = lF (i.e. MSB is not P)
+	// erase lF if lO = lF (i.e. MSB is not P)
 	flip = _mm256_or_si256(flip, _mm256_andnot_si256(_mm256_cmpeq_epi64(lF, lO), lF));
 
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 }
+
+uint64_t board_flip(const Board *board, const int x) 
+{
+	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}
+
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}	
+

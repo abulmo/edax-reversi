@@ -3,9 +3,9 @@
  *
  * Options header.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_OPTIONS_H
@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
 	EDAX_FIXED_LEVEL,
@@ -38,7 +39,7 @@ typedef struct {
 	bool transgress_cassio;               /**< adapt Cassio requests to search & solve faster */
 
 	int level;                            /**< level */
-	long long time;                       /**< time in sec. */
+	int64_t time;                         /**< time in sec. */
 	PlayType play_type;                   /**< game|move-time switch */
 	bool can_ponder;                      /**< pondering on/off */
 	int depth;                            /**< depth (only for testing) */

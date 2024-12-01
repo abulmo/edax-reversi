@@ -3,9 +3,10 @@
  *
  * A simple protocol to communicate with Cassio.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #ifndef CASSIO_H

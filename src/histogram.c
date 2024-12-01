@@ -1,11 +1,11 @@
 /**
  * @file histogram.c
  *
- * Hash table's header.
+ * Histogram management.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "util.h"
@@ -18,7 +18,7 @@
 #define RCD 0.5
 #endif
 
-void histogram_init(unsigned long long h[129][65])
+void histogram_init(uint64_t h[129][65])
 {
 	int i, j;
 
@@ -27,10 +27,10 @@ void histogram_init(unsigned long long h[129][65])
 		h[i][j] = 0;
 }
 
-void histogram_print(unsigned long long h[129][65]) 
+void histogram_print(uint64_t h[129][65]) 
 {
 	int i, j;
-	unsigned long long n, N;
+	uint64_t n, N;
 	double x, y, s, s2;
 	double mean[65], variance[65], median[65];
 
@@ -42,16 +42,16 @@ void histogram_print(unsigned long long h[129][65])
 			x = (i - 64);
 		for (j = 0; j < 65; ++j) {
 			y = 2 * j - 64;
-			printf("; %lld", h[i][j]);
+			printf("; %ld", h[i][j]);
 			n += h[i][j];
 			s += y * h[i][j];
 			s2 += (x - y) * (x - y) * h[i][j];
 		}
 		s /= n;
 		s2 /= (n - 1);
-		if (n > 5) printf("; %lld; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
-		else if (n > 0) printf("; %lld; %.2f; %.2f", n, s, sqrt(s2));
-		else printf("; %lld", n);
+		if (n > 5) printf("; %ld; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
+		else if (n > 0) printf("; %ld; %.2f; %.2f", n, s, sqrt(s2));
+		else printf("; %ld", n);
 	}
 
 	printf("\n");
@@ -90,9 +90,9 @@ void histogram_print(unsigned long long h[129][65])
 				}
 			}
 		}
-		printf("; %lld", n);
+		printf("; %ld", n);
 	}
-	printf("; %lld\n", N);
+	printf("; %ld\n", N);
 	printf("mean"); for (j = 0; j < 65; ++j) printf("; %.2f", mean[j]); printf("\n");
 	printf("median"); for (j = 0; j < 65; ++j) printf("; %.2f", median[j]); printf("\n");
 	printf("error"); for (j = 0; j < 65; ++j) printf("; %.2f", sqrt(variance[j])); printf("\n");
@@ -100,7 +100,7 @@ void histogram_print(unsigned long long h[129][65])
 	printf("precision"); for (j = 0; j < 65; ++j) {x = (2*j - 64) - mean[j]; printf("; %.2f", sqrt(variance[j] - x * x));} printf("\n");
 }
 
-void histogram_stats(unsigned long long h[129][65])
+void histogram_stats(uint64_t h[129][65])
 {
 	double y[65], x[129];
 	double m_x, m_y, s_x, s_y, s_xy;
@@ -153,11 +153,11 @@ void histogram_stats(unsigned long long h[129][65])
 	printf("\n");
 }
 
-void histogram_to_ppm(const char *file, unsigned long long histogram[129][65])
+void histogram_to_ppm(const char *file, uint64_t histogram[129][65])
 {
 	FILE *f;
 	int i, j, i_k, j_k, v;
-	unsigned long long max;
+	uint64_t max;
 	double w;
 	unsigned char r[256], g[256], b[256];
 

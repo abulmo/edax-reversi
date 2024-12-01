@@ -3,119 +3,139 @@
  *
  * Hash table's header.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #ifndef EDAX_HASH_H
 #define EDAX_HASH_H
 
 #include "board.h"
-#include "settings.h"
-#include "util.h"
 #include "stats.h"
+#include "util.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+
+/** HashDraft: search setting to discriminate between hash entries */
+typedef union {
+	struct {
+	#ifdef __BIG_ENDIAN__
+		uint8_t date;       /*!< entry age */
+		uint8_t cost;       /*!< search cost */
+		uint8_t selectivity;/*!< selectivity */
+		uint8_t depth;      /*!< depth */
+	#else
+		uint8_t depth;      /*!< depth */
+		uint8_t selectivity;/*!< selectivity */
+		uint8_t cost;       /*!< search cost */
+		uint8_t date;       /*!< entry age */
+	#endif
+	} u1;
+	struct {
+	#ifdef __BIG_ENDIAN__
+		uint16_t cost_date;         /*!< cost & date gathered */
+		uint16_t depth_selectivity; /*!< depth & selectivity gathered */
+	#else
+		uint16_t depth_selectivity; /*!< depth & selectivity gathered */
+		uint16_t cost_date;         /*!< cost & date gathered */
+	#endif
+	} u2;
+	uint32_t u4; /** whole draft as an unsigned integer */
+} HashDraft;
+
 
 /** HashData : data stored in the hash table */
 typedef struct HashData {
-	union {
-#ifdef __BIG_ENDIAN__
-		struct {
-			unsigned char date;       /*!< dating technique */
-			unsigned char cost;       /*!< search cost */
-			unsigned char selectivity;/*!< selectivity */
-			unsigned char depth;      /*!< depth */
-		} c;
-		struct {
-			unsigned short date_cost;
-			unsigned short selectivity_depth;
-		} us;
-#else
-		struct {
-			unsigned char depth;      /*!< depth */
-			unsigned char selectivity;/*!< selectivity */
-			unsigned char cost;       /*!< search cost */
-			unsigned char date;       /*!< dating technique */
-		} c;
-		struct {
-			unsigned short selectivity_depth;
-			unsigned short date_cost;
-		} us;
-#endif
-		unsigned int	ui;      /*!< as writable level */
-	} wl;
-	signed char lower;        /*!< lower bound of the position score */
-	signed char upper;        /*!< upper bound of the position score */
-	unsigned char move[2];    /*!< best moves */
+	HashDraft draft;
+	int8_t lower;        /*!< lower bound of the position score */
+	int8_t upper;        /*!< upper bound of the position score */
+	int8_t move[2];      /*!< best moves */
 } HashData;
 
-/** Hash  : item stored in the hash table */
-typedef struct Hash {
-	HASH_COLLISIONS(unsigned long long key;)
-	Board board;
-	HashData data;
-} Hash;
+/** HashStore : data to store in he hash table */
+typedef struct HashStore {
+	HashDraft draft;
+	int8_t alpha;
+	int8_t beta;
+	int8_t score;
+	int8_t move;
+} HashStore;
 
-/** HashLock : lock for table entries */
-typedef struct HashLock {
-	SpinLock spin;
-} HashLock;
+/** Hash  : item stored in the hash table*/
+typedef struct Hash {
+	HASH_COLLISIONS(uint64_t key;) //<- collision counter
+	Board board;                   //<- the full Othello board
+	HashData data;                 //<- stored search results
+} Hash;
 
 /** HashTable: position storage */
 typedef struct HashTable {
-	void *memory;                 /*!< allocated memory */
 	Hash *hash;                   /*!< hash table */
-	HashLock *lock;               /*!< table with locks */
-	unsigned long long hash_mask; /*!< a bit mask for hash entries */
-	unsigned int lock_mask;       /*!< a bit mask for lock entries */
-	int n_hash;                   /*!< hash table size */
-	int n_lock;                   /*!< number of locks */
-	unsigned char date;           /*!< date */
+	SpinLock *spin;               /*!< table with spinlocks */
+	uint64_t n_hash;              /*!< hash table size */
+	uint64_t hash_mask;           /*!< a bit mask for hash entries */
+	uint32_t spin_mask;           /*!< a bit mask for lock entries */
+	uint32_t n_spin;              /*!< number of locks */
+	HASH_STATS(uint64_t n_try;)   /*!< number of probe attempt */
+	HASH_STATS(uint64_t n_found;) /*!< number of succesful probes */
+	HASH_STATS(uint64_t n_store;) /*!< number of stores */
+	uint8_t date;                 /*!< date */
 } HashTable;
 
-/** HashStoreData : data to store */
-typedef struct HashStoreData {
-	HashData data;
-	HASH_COLLISIONS(unsigned long long hash_code;)
-	int alpha;
-	int beta;
-	int score;
-} HashStoreData;
-
 /* declaration */
-
-void hash_move_init(void);
-void hash_init(HashTable*, const unsigned long long);
+void hash_init(HashTable*, const size_t);
 void hash_cleanup(HashTable*);
 void hash_clear(HashTable*);
 void hash_free(HashTable*);
-void hash_feed(HashTable*, const Board *, const unsigned long long, HashStoreData *);
-void hash_store(HashTable*, const Board *, const unsigned long long, HashStoreData *);
-void hash_force(HashTable*, const Board *, const unsigned long long, HashStoreData *);
-bool hash_get(HashTable*, const Board *, const unsigned long long, HashData *);
-bool hash_get_from_board(HashTable*, const Board *, HashData *);
-void hash_exclude_move(HashTable*, const Board *, const unsigned long long, const int);
+void hash_prefetch(HashTable*, const uint64_t);
+void hash_store(HashTable*, const Board*, const uint64_t, const HashStore*);
+void hash_force(HashTable*, const Board*, const uint64_t, const HashStore*);
+bool hash_get(HashTable*, const Board*, const uint64_t, HashData*);
 void hash_copy(const HashTable*, HashTable*);
 void hash_print(const HashData*, FILE*);
-extern unsigned int writeable_level(HashData *data);
+void hash_feed(HashTable*, const Board*, const uint64_t, const HashData*);
+void hash_exclude_move(HashTable*, const Board*, const uint64_t, const int);
 
 extern const HashData HASH_DATA_INIT;
 
-inline void hash_prefetch(HashTable *hashtable, unsigned long long hashcode) {
-	Hash *p = hashtable->hash + (hashcode & hashtable->hash_mask);
-  #ifdef hasSSE2
-	_mm_prefetch((char const *) p, _MM_HINT_T0);
-	_mm_prefetch((char const *)(p + HASH_N_WAY - 1), _MM_HINT_T0);
-  #elif defined(__ARM_ACLE)
-	__pld(p);
-	__pld(p + HASH_N_WAY - 1);
-  #elif defined(__GNUC__)
-	__builtin_prefetch(p);
-	__builtin_prefetch(p + HASH_N_WAY - 1);
-  #endif
+/**
+ * @brief Fill a Draft structure/union
+ *
+ * @param draft The draft to fill
+ * @param depth Depth.
+ * @param selectivity Selectivity.
+ * @param cost Cost.
+ * @param date Date.
+ */
+static inline void draft_set(HashDraft *draft, const int depth, const int selectivity, const int cost, const int date)
+{
+	draft->u1.depth = (uint8_t) depth;
+	draft->u1.selectivity = (uint8_t) selectivity;
+	draft->u1.cost = (uint8_t) cost;
+	draft->u1.date = (uint8_t) date;
 }
 
+/**
+ * @brief Fill a HashStore structure (exect its Draf part).
+ *
+ * @param store The store structure to fill.
+ * @param alpha Alpha bound.
+ * @param beta Beta bound.
+ * @param score Best score found.
+ * @param move Best move found.
+ */
+static inline void store_set(HashStore *store, const int alpha, const int beta, const int score, const int move)
+{
+	store->alpha = (int8_t) alpha;
+	store->beta = (int8_t) beta;
+	store->score = (int8_t) score;
+	store->move = (int8_t) move;
+}
+
+
 #endif
+

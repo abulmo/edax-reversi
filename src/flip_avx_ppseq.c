@@ -13,9 +13,9 @@
  * @version 4.5
  */
 
-#include "bit.h"
+#include "simd.h"
 
-const V4DI lmask_v4[66] = {
+const V4DI L_MASK[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100 }},
 	{{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200 }},
@@ -93,7 +93,7 @@ const V4DI lmask_v4[66] = {
  * @return partially reduced flipped disc pattern.
  */
 
-__m128i vectorcall mm_Flip(const __m128i OP, int pos)
+__m128i vectorcall mm_flip(const __m128i OP, int pos)
 {
 	__m256i	PP, mOO, flip, shift2, pre, outflank, mask, ocontig;
 	const __m256i shift1897 = _mm256_set_epi64x(7, 9, 8, 1);
@@ -112,7 +112,7 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 	outflank = _mm256_and_si256(_mm256_srlv_epi64(ocontig, shift1897), PP);
 	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(outflank, _mm256_setzero_si256()), ocontig);
 
-	mask = lmask_v4[pos].v4;
+	mask = L_MASK[pos].v4;
 		// look for non-opponent (or edge) bit
 	ocontig = _mm256_andnot_si256(mOO, mask);
 	ocontig = _mm256_and_si256(ocontig, _mm256_sub_epi64(_mm256_setzero_si256(), ocontig));	// LS1B
@@ -123,4 +123,19 @@ __m128i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 }
+
+
+uint64_t board_flip(const Board *board, const int x) 
+{
+	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}
+
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}	
+
 

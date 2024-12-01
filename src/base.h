@@ -3,9 +3,9 @@
  *
  * Header file for game base management
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_BASE_H
@@ -56,7 +56,7 @@ void wthor_init(WthorBase*);
 bool wthor_load(WthorBase*, const char*);
 bool wthor_save(WthorBase*, const char*);
 void wthor_test(const char*, struct Search*);
-void wthor_eval(const char*, struct Search*, unsigned long long histogram[129][65]);
+void wthor_eval(const char*, struct Search*, uint64_t histogram[129][65]);
 void wthor_edaxify(const char*);
 
 #define foreach_wthorgame(wgame, wbase) \

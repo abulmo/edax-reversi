@@ -3,12 +3,10 @@
  *
  * @brief Various utilities.
  *
- * This should be the only file with linux/windows
- * dedicated code.
- *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "bit.h"
@@ -26,6 +24,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <time.h>
@@ -67,12 +66,40 @@
 #if defined(__unix__) || defined(__APPLE__)
 
 /**
+ * @brief Adjust the allocated size to a multiple of the alignment
+ *
+ * @param alignment
+ * @param size
+ * @return the adjusted size
+ */
+size_t adjust_size(const size_t alignment, const size_t size)
+{
+	return ((size / alignment) + 1) * alignment;
+}
+
+#if defined __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300
+/**
+ * @brief aligned_alloc for old mac (MAC_OS_X < 10.13)
+ *
+ * @param memory_alignment: required alignment as a power of two.
+ * @param size: size of memory top allocate. 
+ * @return a pointer to the allocated memory. 
+ */
+void* aligned_alloc(size_t memory_alignment, size_t size)
+{
+	void *ptr;
+	posix_memalign(&ptr, memory_alignment, size);
+	return ptr;
+}
+#endif
+
+/**
  * @brief real_clock
  *
  * Measure wall clock time.
  * @return time in milliseconds.
  */
-long long real_clock(void)
+int64_t real_clock(void)
 {
 #if _POSIX_TIMERS > 0
 	struct timespec tv;
@@ -88,11 +115,24 @@ long long real_clock(void)
 /**
  * @brief cpu_clock
  *
+ * NB: does not work well ?
+ * clock() & clock_gettime() are very slow (give time 50% slower than realtime on some test)
+ * getrusage is also slower, but it works better.
+ *
  * Measure cpu time.
  * @return time in milliseconds.
  */
-long long cpu_clock(void)
+int64_t cpu_clock(void)
 {
+/*
+// does not work on my system
+	const double freq = 1000.0 / CLOCKS_PER_SEC;
+	return freq * clock();
+// does not work on my system:
+	struct timespec tv;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tv);
+	return tv.tv_sec * 1000ULL + tv.tv_nsec / 1000000ULL;
+*/
 	struct rusage u;
 	getrusage(RUSAGE_SELF, &u);
 	return 1000 * u.ru_utime.tv_sec + u.ru_utime.tv_usec / 1000;
@@ -100,26 +140,17 @@ long long cpu_clock(void)
 
 #elif defined (_WIN32)
 
-long long real_clock(void)
+int64_t real_clock(void)
 {
 	return GetTickCount();
 }
 
-long long cpu_clock(void)
+int64_t cpu_clock(void)
 {
 	return GetTickCount();
 }
 
 #endif
-
-/**
- * @brief Time clock.
- *
- * Can be set as a real_clock or a cpu_clock.
- *
- * @return time in milliseconds.
- */
-long long (*time_clock)(void) = real_clock;
 
 /**
  * @brief Print time as "D:HH:MM:SS.CC".
@@ -128,7 +159,7 @@ long long (*time_clock)(void) = real_clock;
  * @param justified add spaces or not before the text.
  * @param f Stream.
  */
-void time_print(long long t, bool justified, FILE* f)
+void time_print(int64_t t, bool justified, FILE* f)
 {
 	int d, h, m, s, c;
 	int sign;
@@ -153,13 +184,12 @@ void time_print(long long t, bool justified, FILE* f)
  * @param f Input stream.
  * @return time in milliseconds.
  */
-long long time_read(FILE *f)
+int64_t time_read(FILE *f)
 {
-	long long t = 0;
+	int64_t t = 0;
 	int n, c;
 
-	while (isspace(c = getc(f)))
-		;
+	while (isspace(c = getc(f))) ;
 	ungetc(c, f);
 	n = 0; while (isdigit(c = getc(f))) n = n * 10 + (c - '0');
 	if (c == ':') {
@@ -196,7 +226,6 @@ void time_stamp(FILE *f)
 	fprintf(f, "[%4d/%2d/%2d %2d:%2d:%2d] ", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 }
 
-
 /**
  * @brief sleep for t ms.
  * @param t time in ms.
@@ -212,6 +241,198 @@ void relax(int t)
 	Sleep(t);
 #endif
 }
+
+/**
+ * @brief pause.
+ */
+void rest(void)
+{
+	#if defined(__GNUC__)
+		#if defined(__X86_64__)
+			__builtin_ia32_pause();
+		#elif defined(__ARM_NEON)
+			__asm__("yield");
+		#endif
+	#elif defined(_MSCVER)
+		_mm_pause();
+	#endif
+}
+
+// for old OS not supporting standard C threads but having posix_threads:
+#ifdef __STDC_NO_THREADS__
+
+/**
+ * @brief create a new thread
+ * 
+ * @param thread thread to create.
+ * @param function the function to start
+ * @param arg the argument for the function.
+ * @return thrd_success on success an error otherwise.
+ */
+int thrd_create (thrd_t *thread, thrd_start_t function, void *arg)
+{
+	typedef void *(*start_function) (void *);
+
+	return pthread_create(thread, NULL, (start_function) function, arg);
+}
+
+/**
+ * @brief detach a thread.
+ * 
+ * @param thread thread to detach.
+ * @return thrd_success on success an error otherwise.
+ */
+int thrd_detach(thrd_t thread) {
+	return pthread_detach(thread);
+}
+
+/**
+ * @brief join a thread
+ * 
+ * @param thr thread.
+ * @param res the result of the function.
+ * @return thrd_success on success an error otherwise.
+ */
+int	thrd_join(thrd_t thread, int *res) {
+	return pthread_join(thread, (void **) &res);
+}
+
+/**
+ * @brief create a new mutex
+ * 
+ * @param mutex mutex to create.
+ * @param type (unused in Edax).
+ * @return thrd_success on success, an error otherwise.
+ */
+int mtx_init(mtx_t *mutex, int type)
+{
+	(void) type; // unused in Eda, ie always mtx_plainx	
+	return pthread_mutex_init(mutex, NULL);
+}
+
+/**
+ * @brief free an unlocked mutex.
+ * 
+ * @param mutex mutex to free.
+ */
+void mtx_destroy(mtx_t *mutex)
+{
+	pthread_mutex_destroy(mutex);
+}
+
+/**
+ * @brief lock a mutex
+ * 
+ * @param mutex mutex to lock.
+ * @return thrd_success on success, an error otherwise.
+ */
+int mtx_lock(mtx_t *mutex)
+{
+	return pthread_mutex_lock(mutex);
+}
+
+/**
+ * @brief unlock a mutex
+ * 
+ * @param mutex mutex to unlock.
+ * @return thrd_success on success, an error otherwise.
+ */
+int mtx_unlock(mtx_t *mutex)
+{
+	return pthread_mutex_unlock(mutex);	
+}
+
+/**
+ * @brief create a new condition
+ * 
+ * @param cond the condition to create.
+ * @return thrd_success on success, an error otherwise.
+ */
+int cnd_init(cnd_t *cond) 
+{
+	 return pthread_cond_init(cond, NULL);
+}
+
+/**
+ * @brief free a condition
+ * 
+ * @param cond the condition to delete.
+ */
+void cnd_destroy(cnd_t *cond)
+{
+	pthread_cond_destroy(cond);
+}
+
+/**
+ * @brief wake up all threads attached to the condition.
+ * 
+ * @param cond the condition.
+ * @return thrd_success on success, an error otherwise.
+ */
+int cnd_broadcast(cnd_t *cond)
+{
+	return pthread_cond_broadcast(cond);
+}
+
+/**
+ * @brief wake up one thread attached to the condition.
+ * 
+ * @param cond the condition.
+ * @return thrd_success on success, an error otherwise.
+ */
+int cnd_signal(cnd_t *cond)
+{
+	return pthread_cond_signal(cond);	
+}
+
+/**
+ * @brief unlock the mutex & wait for a signal, making the thread
+ * associated asleep.
+ * 
+ * @param cond the condition.
+ * @param mutex a mutex.
+ * @return thrd_success on success, an error otherwise.
+ */
+int cnd_wait(cnd_t *cond, mtx_t *mutex)
+{
+	return pthread_cond_wait(cond, mutex);
+}
+
+#endif
+
+/** spinlock status */
+enum {SL_FREE = 0, SL_BUSY = 1};
+
+/**
+ * @brief Initialise a lock
+ * @param lock lock to initialise
+ */
+void spinlock_init(SpinLock *spin)
+{
+	spin->lock = SL_FREE;
+}
+
+/**
+ * @brief Lock a spinlock
+ * @param lock spinlock to lock
+ */
+void spinlock_lock(SpinLock *spin)
+{
+	for(;;) {
+		if (atomic_exchange_explicit(&spin->lock, SL_BUSY, memory_order_acquire) == SL_FREE) return;
+		while (atomic_load_explicit(&spin->lock, memory_order_relaxed)) rest();
+	}
+}
+
+/**
+ * @brief Unlock a spinlock
+ * @param lock spinlock to unlock
+ */
+void spinlock_unlock(SpinLock *spin)
+{
+	atomic_store_explicit(&spin->lock, SL_FREE, memory_order_release);
+}
+
 
 /**
  * @brief Format a value with a unit.
@@ -325,9 +546,9 @@ char* string_duplicate(const char *s)
  * @param string Time as a string.
  * @return Time in milliseconds.
  */
-long long string_to_time(const char *string)
+int64_t string_to_time(const char *string)
 {
-	long long t = 0;
+	int64_t t = 0;
 	int n = 0;
 	double x = 0.0;
 
@@ -634,6 +855,7 @@ char* parse_line(const char *string, char *line, unsigned int n)
  */
 char* parse_move(const char *string, const Board *board, Move *move)
 {
+
 	*move = MOVE_INIT;
 
 	if (string) {
@@ -641,11 +863,8 @@ char* parse_move(const char *string, const Board *board, Move *move)
 		int x = string_to_coordinate(word);
 		move->x = x;
 		move->flipped = board_flip(board, x);
-		if (move->flipped && !board_is_occupied(board, x)) {
-			return word + 2;
-		} else if (board_is_pass(board)) {
-			if (x == PASS)
-				return word + 2;
+		if ((x == PASS && board_is_pass(board)) || (move->flipped && !board_is_occupied(board, x))) return word + 2;
+		else if (board_is_pass(board)) {
 			move->x = PASS;
 			move->flipped = 0;
 		} else {
@@ -693,34 +912,34 @@ char* parse_board(const char *string, Board *board, int *player)
 {
 	if (string) {
 		int i;
-		unsigned long long b = 1;
-		const char *s = string;
+		const char *s = parse_skip_spaces(string);
 
 		board->player = board->opponent = 0;
 		for (i = A1; i <= H8; ++i) {
-			s = parse_skip_spaces(s);
+			if (*s == '\0') return (char*) string;
 			switch (tolower(*s)) {
 			case 'b':
 			case 'x':
 			case '*':
-				board->player |= b;
+				board->player |= x_to_bit(i);
 				break;
 			case 'o':
 			case 'w':
-				board->opponent |= b;
+				board->opponent |= x_to_bit(i);
 				break;
 			case '-':
 			case '.':
 				break;
 			default:
-				return (char*) string;
+				if (!isspace(*s)) return (char*) string;
+				i--;
+				break;
 			}
 			++s;
-			b <<= 1;
 		}
 		board_check(board);
 
-		for (; *s; ++s) {
+		for (;*s; ++s) {
 			switch (tolower(*s)) {
 			case 'b':
 			case 'x':
@@ -773,7 +992,7 @@ char* parse_int(const char *string, int *result)
 	if (string) {
 		char *s = parse_skip_spaces(string);
 		char *end = s;
-		long long n = 0;
+		int64_t n = 0;
 
 		if (*s) n = strtol(s, &end, 10);
 
@@ -831,7 +1050,7 @@ char* parse_real(const char *string, double *result)
  * @param t Output time in milliseconds.
  * @return The remaining of the input string.
  */
-char* parse_time(const char *string, long long *t)
+char* parse_time(const char *string, int64_t *t)
 {
 	int n = 0;
 	double x = 0.0;
@@ -922,73 +1141,6 @@ char* file_add_ext(const char *base, const char *ext, char *file)
 	return file;
 }
 
-/**
- * @brief Create a thread.
- *
- * @param thread Thread.
- * @param function Function to run in parallel.
- * @param data Data for the function.
- */
-void thread_create(Thread *thread, void* (*function)(void*), void *data)
-{
-#if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
-	pthread_create(thread, NULL, function, data);
-#elif defined(_WIN32)
-	DWORD id;
-	*thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)(void (*)(void)) function, data, 0, &id);
-#endif
-}
-
-/**
- * @brief Join a thread.
- *
- * Wait for the thread termination. this function also frees the resources
- * allocated by a thread that has not been detached.
- *
- * @param thread Thread.
- */
-void thread_join(Thread thread)
-{
-#if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
-	pthread_join(thread, NULL);
-#elif defined(_WIN32)
-	WaitForSingleObject(thread, INFINITE);
-	CloseHandle(thread);
-#endif
-}
-/**
- * @brief Current thread.
- *
- * @return current thread.
- */
-Thread thread_self(void)
-{
-#if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
-	return pthread_self();
-#elif defined(_WIN32)
-	return GetCurrentThread();
-#endif
-}
-
-/**
- * @brief Choose a single core or cpu to run on, under linux systems, to avoid
- * context changes
- */
-void thread_set_cpu(Thread thread, int i)
-{
-#if defined(__linux__) && defined(CPU_SET)
-	cpu_set_t cpu;
-
-	CPU_ZERO(&cpu);
-	CPU_SET(i, &cpu);
-	pthread_setaffinity_np(thread, sizeof (cpu_set_t), &cpu);
-#elif defined(_WIN32) && !defined(USE_PTHREAD)
-	SetThreadIdealProcessor(thread, i);
-#else
-	(void) thread; (void) i;
-#endif
-}
-
 
 /**
  * @brief Get the number of cpus or cores on the machine.
@@ -1050,12 +1202,12 @@ int get_cpu_number(void)
  * @param random Pseudo-Random generator state.
  * @return a 64-bits pseudo-random unsigned int integer.
  */
-unsigned long long random_get(Random *random)
+uint64_t random_get(Random *random)
 {
-	const unsigned long long MASK48 = 0xFFFFFFFFFFFFull;
-	const unsigned long long A = 0x5DEECE66Dull;
-	const unsigned long long B = 0xBull;
-	register unsigned long long r;
+	const uint64_t MASK48 = 0xFFFFFFFFFFFFull;
+	const uint64_t A = 0x5DEECE66Dull;
+	const uint64_t B = 0xBull;
+	uint64_t r;
 
 	random->x = ((A * random->x + B) & MASK48);
 	r = random->x >> 16;
@@ -1069,8 +1221,8 @@ unsigned long long random_get(Random *random)
  * @param random Pseudo-Random generator state.
  * @param seed a 64-bits integer used as seed.
  */
-void random_seed(Random *random, const unsigned long long seed)
+void random_seed(Random *random, const uint64_t seed)
 {
-	const unsigned long long MASK48 = 0xFFFFFFFFFFFFull;
+	const uint64_t MASK48 = 0xFFFFFFFFFFFFull;
 	random->x = (seed & MASK48);
 }

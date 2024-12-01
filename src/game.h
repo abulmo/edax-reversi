@@ -3,9 +3,10 @@
  *
  * Header file for game management
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #ifndef EDAX_GAME_H
@@ -22,28 +23,28 @@ struct Random;
 typedef struct Game {
 	Board initial_board;
 	struct {
-		short year;
-		signed char month;
-		signed char day;
-		signed char hour;
-		signed char minute;
-		signed char second;
+		uint16_t year;
+		uint8_t month;
+		uint8_t day;
+		uint8_t hour;
+		uint8_t minute;
+		uint8_t second;
 	} date;
 	char name[2][32];
-	char move[60];
-	char player;
-	unsigned long long hash;
+	uint8_t move[60];
+	uint8_t player;
+	uint64_t hash;
 } Game;
 
 typedef struct WthorGame {
 	short tournament, black, white;
-	signed char score, theoric_score;
+	int8_t score, theoric_score;
 	char x[60];
 } WthorGame;
 
 typedef struct OkoGame {
 	char n;
-	signed char score;
+	int8_t score;
 	char flag;
 	char move[61];
 } OkoGame;
@@ -63,7 +64,7 @@ void game_import_text(Game*, FILE*);
 void game_import_wthor(Game*, FILE*);
 void game_import_ggf(Game*, FILE*);
 void game_import_sgf(Game*, FILE *);
-int parse_ggf(Game*, const char*);
+char* parse_ggf(Game*, const char*, bool*);
 void game_import_pgn(Game*, FILE *);
 void game_export_text(const Game*, FILE*);
 void game_export_ggf(const Game*, FILE*);

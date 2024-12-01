@@ -3,9 +3,10 @@
  *
  * Go Text Protocol
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "options.h"

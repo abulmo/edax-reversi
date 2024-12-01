@@ -3,9 +3,9 @@
  *
  * Event management.
  *
- * @date 1998 - 2017
+  * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_EVENT_H
@@ -16,15 +16,15 @@
 
 /** Event management data */
 typedef struct Event {
-	volatile bool loop;         /*!< flag allowing to loop, waiting for events */
+	bool loop;                  /*!< flag allowing to loop, waiting for events */
 	char **ring;                /*!< ring of buffers */
 	int size;                   /*!< size of the buffer ring */
 	int first;                  /*!< first position in the ring */
 	int end;                    /*!< one past the last position in the ring */
-	Thread thread;              /*!< thread */
-	SpinLock spin;              /*!< spin lock */
-	Lock lock;                  /*!< lock */
-	Condition cond;             /*!< condition */
+	thrd_t thread;              /*!< thread */
+	mtx_t mutex;                /*!< mutex */
+	mtx_t cond_mutex;           /*!< conditional mutex */
+	cnd_t condition;            /*!< condition */
 } Event;                        /*!< messages */
 
 void event_init(Event*);

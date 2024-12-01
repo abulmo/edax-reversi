@@ -1,11 +1,12 @@
+
 /**
  * @file ggs.c
  *
  *  A ggs client in C language.
  *
- * @date 2002 - 2020
+ * @date 2002 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "board.h"
@@ -21,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 #include <sys/types.h>
 #ifdef _WIN32
@@ -47,7 +47,7 @@
 
 /** Text (set of lines) representation */
 typedef struct Text {
-	const char** line; /**< array of lines */
+	char** line;       /**< array of lines */
 	int n_lines;       /**< number of lines */
 } Text;
 
@@ -94,14 +94,14 @@ typedef struct GGSMatchOff {
 typedef struct GGSMatchOn {
 	char *id;                   /**< match id */
 	GGSPlayer player[2];        /**< match players */
-	GGSMatchType match_type[1]; /**< match type */
+	GGSMatchType match_type;    /**< match type */
 } GGSMatchOn;
 
 /* match request message */
 typedef struct GGSRequest {
 	char *id;                   /**< match request id */
 	GGSPlayer player[2];        /**< match players */
-	GGSMatchType match_type[1]; /**< match type */
+	GGSMatchType match_type;    /**< match type */
 	GGSClock clock[2];          /**< match clock */
 } GGSRequest;
 
@@ -109,11 +109,11 @@ typedef struct GGSRequest {
 typedef struct GGSBoard {
 	char *id;                   /**< match request id */
 	GGSPlayer player[2];        /**< match players */
-	GGSMatchType match_type[1]; /**< match type */
+	GGSMatchType match_type; /**< match type */
 	GGSClock clock[2];          /**< match clock */
 	double komi;                /**< komi value */
 	int is_join;                /**< join a new game ? */
-	int is_update;              /**< update an existing game? */  
+	int is_update;              /**< update an existing game? */
 	int move;                   /**< move */
 	int move_no;                /**< move number */
 	char color[2];              /**< color */
@@ -122,7 +122,7 @@ typedef struct GGSBoard {
 	char board_init[GGS_BOARD_SIZE]; /**< initial board */
 	char turn_init;             /**< first player */
 	int move_list[MOVELIST_SIZE]; /**< list of played moves */
-	int move_list_n;              /**< number of played moves */                
+	int move_list_n;              /**< number of played moves */
 } GGSBoard;
 
 
@@ -137,35 +137,35 @@ typedef struct GGSEvent {
 	int socket;                 /**< socket */
 	bool loop;                  /**< loop */
 	char *buffer;               /**< read buffer */
-	Thread thread;              /**< thread */
-	Lock lock;                  /**< lock */
+	thrd_t thread;              /**< thread */
+	mtx_t mutex;                /**< mutex */
 } GGSEvent;
 
 /* GGSClient structure */
 typedef struct GGSClient {
-	GGSBoard board[1];          /**< ggs board */
-	GGSRequest request[1];      /**< ggs request */
-	GGSMatchOn match_on[1];     /**< ggs match on */ 
-	GGSMatchOff match_off[1];   /**< ggs match off */
-	GGSAdmin admin[1];          /**< ggs admin */
+	GGSBoard board;             /**< ggs board */
+	GGSRequest request;         /**< ggs request */
+	GGSMatchOn match_on;        /**< ggs match on */
+	GGSMatchOff match_off;      /**< ggs match off */
+	GGSAdmin admin;             /**< ggs admin */
 	GGSEvent event;             /**< ggs event */
 	const char *me;             /**< Edax's name on GGS */
 	bool is_playing;            /**< is Edax playing ? */
-	long long last_refresh;     /**< date of last refresh */
+	int64_t last_refresh;     /**< date of last refresh */
 	struct {
 		char *cmd;              /**< command */
 		int i;                  /**< iteration number */
-		long long delay;        /**< delay between commands */
-	} loop[1];                  /**< loop instruction */
-	struct {                    
-		char *cmd;              /**< command */              
-		long long delay;        /**< delay */
-	} once[1];		            /**< command issued once after some delay */
+		int64_t delay;        /**< delay between commands */
+	} loop;                     /**< loop instruction */
+	struct {
+		char *cmd;              /**< command */
+		int64_t delay;        /**< delay */
+	} once;		                /**< command issued once after some delay */
 } GGSClient;
 
-static Log ggs_log[1];
+Log ggs_log;
 
-static char admin_list[][16] = {"delorme", "dan", "mic", "romano", "HCyrano", "romelica", ""};
+static char *admin_list[] = {"delorme", "dan", "mic", "romano", "HCyrano", "romelica", "ohr", ""};
 
 static const GGSClock GGS_CLOCK_INI = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 static const GGSMatchType GGS_MATCH_TYPE_INI = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -191,13 +191,13 @@ static void text_init(Text *text)
  * @param text Text.
  * @param line line of text.
  */
-static void text_add_line(Text *text, const char *line)
+static void text_add_line(Text *text, char *line)
 {
 	++text->n_lines;
-	text->line = (const char**) realloc((void *) text->line, text->n_lines * sizeof (const char*));
+	text->line = (char**) realloc(text->line, text->n_lines * sizeof (char*));
 	if (text->line == NULL) fatal_error("Allocation error\n");
 	text->line[text->n_lines - 1] = line;
-	log_receive(ggs_log, "GGS ", "%s\n", line);
+	log_receive(&ggs_log, "GGS ", "%s\n", line);
 }
 
 /**
@@ -211,7 +211,7 @@ static void text_add_line(Text *text, const char *line)
 static void text_print(Text *text, FILE *f)
 {
 	int i;
-	
+
 	for (i = 0; i < text->n_lines; ++i) {
 		fprintf(f, "GGS> %s\n", text->line[i]);
 	}
@@ -226,15 +226,24 @@ static void text_print(Text *text, FILE *f)
  */
 static void text_free(Text *text)
 {
-
 	int i;
-	
+
 	for (i = 0; i < text->n_lines; ++i) {
-		free((void*)text->line[i]);
+		free(text->line[i]);
 	}
-	free((void*)text->line);
+	free(text->line);
 	text_init(text);
 }
+
+/**
+ *  @brief print some info
+ *
+ */
+#define ggs_printf(...) do { \
+	fprintf(stdout, __VA_ARGS__); \
+	if (ggs_log.f) fprintf(ggs_log.f, __VA_ARGS__); \
+} while(0);
+
 
 /**
  * @brief ggs_parse_line
@@ -250,12 +259,12 @@ static char *ggs_parse_line(const char *buffer, char **line)
 	int n;
 	assert(buffer);
 
-	*line = NULL;	
+	*line = NULL;
 	for (n = 0; buffer[n] && buffer[n] != '\n' && buffer[n] != '\r'; ++n) ;
 	if (buffer[n]) { /* complete line found */
 		*line = (char*) malloc(n + 1);
 		if (*line == NULL) fatal_error("Allocation error\n");
-		if (n > 0) memcpy(*line, buffer, n); 
+		if (n > 0) memcpy(*line, buffer, n);
 		(*line)[n] = '\0';
 
 		while (buffer[n] == '\n' || buffer[n] == '\r') ++n;
@@ -344,7 +353,7 @@ static bool ggs_parse_move(int *move, const char *word) {
  * @return true if parsing succeed.
  */
 static bool ggs_parse_time(int *time, const char *word) {
-	errno = 0;	
+	errno = 0;
 	*time = string_to_time(parse_skip_spaces(word));
 	return errno == 0;
 }
@@ -427,7 +436,7 @@ static bool ggs_player_set(GGSPlayer *player, const char *name, const char *rati
 	parse_word(name, word, WORD_SIZE);
 	player->name = string_duplicate(word);
 
-	rating = parse_skip_spaces(rating);	
+	rating = parse_skip_spaces(rating);
 	if (*rating == '(') ++rating;
 	return ggs_parse_double(&(player->rating), rating);
 }
@@ -485,7 +494,7 @@ static void ggs_player_free(GGSPlayer *player) {
  * @param v GGS match/Board or Request structure.
  */
 static void ggs_MBR_free(void* v) {
-	GGSMatchOff *m = (GGSMatchOff*) v; 
+	GGSMatchOff *m = (GGSMatchOff*) v;
 	assert(m);
 	free(m->id);
 	m->id = 0;
@@ -571,10 +580,10 @@ static bool ggs_match_on(GGSMatchOn *match, Text *text)
 	line = parse_skip_word(line);
 
 	line = parse_word(line, word, WORD_SIZE);
-	ggs_match_type_set(match->match_type, word);
+	ggs_match_type_set(&match->match_type, word);
 
 	line = parse_word(line, word, WORD_SIZE);
-	match->match_type->is_rated = (strcmp(word, "R") == 0) ? 1 : 0;
+	match->match_type.is_rated = (strcmp(word, "R") == 0) ? 1 : 0;
 
 	return true;
 }
@@ -652,15 +661,15 @@ static bool ggs_board(GGSBoard *board, Text *text)
 
 	if (*line == '\0') return false;
 	line = parse_word(line, word, WORD_SIZE);
-	ggs_match_type_set(board->match_type, word);
+	ggs_match_type_set(&board->match_type, word);
 
 	if (*line) {
 		line = parse_word(line, word, WORD_SIZE);
 		if (word[1] == '?') {
-			board->match_type->is_komi = 0;
+			board->match_type.is_komi = 0;
 			board->komi = 0;
 		} else {
-			board->match_type->is_komi = 1;
+			board->match_type.is_komi = 1;
 			ggs_parse_double(&board->komi, word + 1);
 		}
 	}
@@ -773,7 +782,7 @@ static bool ggs_os_off(Text *text)
  * @param delay Time delay (in ms).
  * @return 'true' if the text is a valid saio delay.
  */
-static bool ggs_saio_delay(Text *text, long long *delay)
+static bool ggs_saio_delay(Text *text, int64_t *delay)
 {
 	const char *s = strstr(text->line[0], "Sorry, i will accept new games in");
 
@@ -879,7 +888,7 @@ static bool ggs_password(Text *text)
  * @param v Event.
  * @return NULL.
  */
-static void* ggs_event_loop(void *v)
+static int ggs_event_loop(void *v)
 {
 	GGSEvent *event = (GGSEvent*) v;
 	enum {BUCKET_SIZE = 16384};
@@ -889,19 +898,19 @@ static void* ggs_event_loop(void *v)
 	while (event->loop) {
 		r = recv(event->socket, buffer, BUCKET_SIZE, 0);
 		if (r > 0) {
-			lock(event);
+			mtx_lock(&event->mutex);
 				l = strlen(event->buffer);
 				event->buffer = (char*) realloc(event->buffer, r + l + 1);
 				memcpy(event->buffer + l, buffer, r);
 				event->buffer[l + r] = '\0';
 				*buffer = '\0';
-			unlock(event);
+			mtx_unlock(&event->mutex);
 		} else {
 			event->loop = false;
 		}
 	}
 
-	return NULL;
+	return thrd_success;
 }
 
 /**
@@ -916,7 +925,7 @@ static void ggs_event_init(GGSEvent *event)
 	struct addrinfo hints;
 	struct addrinfo *result, *rp = NULL;
 
-	lock_init(event);
+	mtx_init(&event->mutex, mtx_plain);
 	event->loop = true;
 	event->buffer = (char*) calloc(1, 1);
 
@@ -960,7 +969,7 @@ static void ggs_event_init(GGSEvent *event)
   		freeaddrinfo(result);
 	}
 
-	thread_create(&event->thread, ggs_event_loop, event);
+	thrd_create(&event->thread, ggs_event_loop, event);
 }
 
 /**
@@ -980,9 +989,9 @@ static void ggs_event_free(GGSEvent *event)
 #else
 	close(event->socket);
 #endif
-	thread_join(event->thread);
+	thrd_join(event->thread, NULL);
 	free(event->buffer);
-	lock_free(event);
+	mtx_destroy(&event->mutex);
 }
 
 /**
@@ -1000,7 +1009,7 @@ static bool ggs_event_peek(GGSEvent *event, Text *text)
 	bool ok = false;
 	const char *s;
 
-	lock(event);
+	mtx_lock(&event->mutex);
 	if (*event->buffer) {
 		s = ggs_parse_text(event->buffer, text);
 		if (s > event->buffer) {
@@ -1008,7 +1017,7 @@ static bool ggs_event_peek(GGSEvent *event, Text *text)
 			ok = (*event->buffer != '|');
 		}
 	}
-	unlock(event);
+	mtx_unlock(&event->mutex);
 
 	return ok;
 }
@@ -1022,17 +1031,17 @@ static bool ggs_event_peek(GGSEvent *event, Text *text)
  */
 static void ggs_client_free(GGSClient *client) {
 	ggs_event_free(&client->event);
-	ggs_MBR_free(client->board);
-	ggs_MBR_free(client->request);
-	ggs_MBR_free(client->match_on);
-	ggs_MBR_free(client->match_off);
+	ggs_MBR_free(&client->board);
+	ggs_MBR_free(&client->request);
+	ggs_MBR_free(&client->match_on);
+	ggs_MBR_free(&client->match_off);
 }
 
 /**
  * @brief ggs_client_send
  *
  * Send a message to the GGS server.
- * This function uses vnsprintf with some workaround
+ * This function uses vnsggs_printf with some workaround
  * for MS-Windows incorrect behaviour.
  *
  * @param client GGS client.
@@ -1046,7 +1055,7 @@ static void ggs_client_send(GGSClient *client, const char *fmt, ...) {
  	va_list ap;
 
 	if (fmt == NULL) return ;
-	
+
 	for (;;) {
 		buffer = (char*) malloc(size + 1);
 		if (buffer == NULL) return;
@@ -1061,10 +1070,10 @@ static void ggs_client_send(GGSClient *client, const char *fmt, ...) {
 		free(buffer);
 	}
 
-	log_send(ggs_log, "GGS", "%s", buffer);
+	log_send(&ggs_log, "GGS ", "%s", buffer);
 	printf("GGS< %s", buffer);
 	send(client->event.socket, buffer, message_length, 0);
-	
+
 	free(buffer);
 }
 
@@ -1076,7 +1085,7 @@ static void ggs_client_send(GGSClient *client, const char *fmt, ...) {
  *
  * @param client GGS client.
   */
-static void ggs_client_refresh(GGSClient *client) 
+static void ggs_client_refresh(GGSClient *client)
 {
 	/* send "tell /os continue" every minute */
 	if (real_clock() - client->last_refresh > 60000) { // 60 sec.
@@ -1084,18 +1093,18 @@ static void ggs_client_refresh(GGSClient *client)
 		else ggs_client_send(client, "tell /os open %d\n", options.ggs_open);
 		ggs_client_send(client, "tell /os continue\n");
 		client->last_refresh = real_clock();
-	}	
+	}
 
 	/* check loop */
-	if (client->loop->delay != 0 && real_clock() - client->loop->delay > 0) {
-		client->loop->delay = 0;
-		ggs_client_send(client, "%s\n", client->loop->cmd);
-	}	
+	if (client->loop.delay != 0 && real_clock() - client->loop.delay > 0) {
+		client->loop.delay = 0;
+		ggs_client_send(client, "%s\n", client->loop.cmd);
+	}
 
 	/* check once */
-	if (client->once->cmd && client->once->delay != 0 && real_clock() - client->once->delay > 0) {
-		client->once->delay = 0;
-		ggs_client_send(client, "%s\n", client->once->cmd);
+	if (client->once.cmd && client->once.delay != 0 && real_clock() - client->once.delay > 0) {
+		client->once.delay = 0;
+		ggs_client_send(client, "%s\n", client->once.cmd);
 	}
 }
 
@@ -1106,10 +1115,10 @@ static void ggs_client_refresh(GGSClient *client)
  *
  * @param ui User Interface.
  */
-static void ui_login(UI *ui) 
+static void ui_login(UI *ui)
 {
 	GGSClient *client = ui->ggs;
-	
+
 	/* sanity check */
 	if (options.ggs_host == NULL) fatal_error("Unknown GGS host\n");
 	if (options.ggs_port == NULL) fatal_error("Unknown GGS port\n");
@@ -1117,15 +1126,15 @@ static void ui_login(UI *ui)
 	if (options.ggs_password == NULL) fatal_error("Unknown GGS password\n");
 	if (strlen(options.ggs_login) > 8) fatal_error("Bad GGS login %s (too much characters)\n", options.ggs_login);
 
-	printf("Connecting to GGS...\n");
+	ggs_printf("Connecting to GGS...\n");
 	memset(client, 0, sizeof (GGSClient));
 	client->me = options.ggs_login;
-	client->loop->cmd = NULL;
-	client->loop->i = 0;
-	client->loop->delay = 0;
+	client->loop.cmd = NULL;
+	client->loop.i = 0;
+	client->loop.delay = 0;
 
-	client->once->cmd = NULL;
-	client->once->delay = 0;
+	client->once.cmd = NULL;
+	client->once.delay = 0;
 	client->last_refresh = real_clock();
 
 	ggs_event_init(&client->event);
@@ -1160,28 +1169,28 @@ static void ui_ggs_ponder(UI *ui, int turn) {
  * @param turn Edax's color.
  */
 static void ui_ggs_play(UI *ui, int turn) {
-	long long real_time = -time_clock();
-	int remaining_time = ui->ggs->board->clock[turn].ini_time;
-	int extra_time = ui->ggs->board->clock[turn].ext_time;
+	int64_t real_time = -real_clock();
+	int remaining_time = ui->ggs->board.clock[turn].ini_time;
+	int extra_time = ui->ggs->board.clock[turn].ext_time;
 	Play *play;
 	Result *result;
 	char move[4], line[32];
-	static const char * const search_state_array[6] = {"running", "interrupted", "stop pondering", "out of time", "stopped on user demand", "completed"};
+	static const char *search_state_array[6] = {"running", "interrupted", "stop pondering", "out of time", "stopped on user demand", "completed"};
 	char search_state[32];
 
 	if (ui->is_same_play) {
 		play = ui->play;
 		if (search_count_tasks(&ui->play->search) < options.n_task) {
-			printf("<use a single %d tasks search while a single game is played>\n", options.n_task);
+			ggs_printf("<use a single %d tasks search while a single game is played>\n", options.n_task);
 			play_stop_pondering(ui->play);
 			search_set_task_number(&ui->play[0].search, options.n_task);
 			play_stop_pondering(ui->play + 1);
-			search_set_task_number(&ui->play[1].search, 0);
+			// search_set_task_number(&ui->play[1].search, 0); // 0 is not an allowed value
 		}
 	} else {
 		play = ui->play + turn;
 		if (search_count_tasks(&ui->play->search) == options.n_task && options.n_task > 1) {
-			printf("<split single %d tasks search into two %d task searches>\n", options.n_task, options.n_task / 2);
+			ggs_printf("<split single %d tasks search into two %d task searches>\n", options.n_task, options.n_task / 2);
 			play_stop_pondering(ui->play);
 			search_set_task_number(&ui->play[0].search, options.n_task / 2);
 			play_stop_pondering(ui->play + 1);
@@ -1198,31 +1207,31 @@ static void ui_ggs_play(UI *ui, int turn) {
 	}
 
 	result = &play->result;
-	
+
 	if (remaining_time > 60000) remaining_time -= 10000; // keep 10s. for safety.
 	else if (remaining_time > 10000) remaining_time -= 2000; // keep 2s. for safety.
 	if (remaining_time < 1000) remaining_time = 1000; // set time to at list 1ms
 	play_adjust_time(play, remaining_time, extra_time);
 
-	printf("<ggs: go thinking>\n");
+	ggs_printf("<ggs: go thinking>\n");
 	play_go(play, false);
 
-	real_time += time_clock();
+	real_time += real_clock();
 
 	move_to_string(result->move, play->player, move);
 
-	ggs_client_send(ui->ggs, "tell /os play %s %s/%d/%.2f\n", ui->ggs->board->id, move, result->score, 0.001 * (real_time + 1));
+	ggs_client_send(ui->ggs, "tell /os play %s %s/%d/%.2f\n", ui->ggs->board.id, move, result->score, 0.001 * (real_time + 1));
 
 	if (result->book_move) {
-		printf("[%s plays %s in game %s ; score = %d from book]\n", ui->ggs->me, move, ui->ggs->board->id, result->score);
+		ggs_printf("[%s plays %s in game %s ; score = %d from book]\n", ui->ggs->me, move, ui->ggs->board.id, result->score);
 		ggs_client_send(ui->ggs, "tell .%s -----------------------------------------"
 			"\\%s plays %s in game %s"
 			"\\score == %d from book\n",
 			ui->ggs->me,
-			ui->ggs->me, move, ui->ggs->board->id,
+			ui->ggs->me, move, ui->ggs->board.id,
 			result->score
 		);
-	} else if (play->search.eval.n_empties >= 15) { //avoid noisy display
+	} else if (play->search.n_empties >= 15) { //avoid noisy display
 		const char *bound;
 		char s_nodes[16], s_speed[16];
 
@@ -1230,8 +1239,8 @@ static void ui_ggs_play(UI *ui, int turn) {
 		else if (result->bound[result->move].lower == result->score && result->score < result->bound[result->move].upper) bound = ">=";
 		else bound = "==";
 
-		info("<%s plays %s in game %s ; score = %d at %d@%d%% ; %lld nodes in %.1fs (%.0f nodes/s.)>\n",
-			ui->ggs->me, move, ui->ggs->board->id,
+		info("<%s plays %s in game %s ; score = %d at %d@%d%% ; %lu nodes in %.1fs (%.0f nodes/s.)>\n",
+			ui->ggs->me, move, ui->ggs->board.id,
 			result->score, result->depth, selectivity_table[result->selectivity].percent,
 			result->n_nodes, 0.001 * real_time, (result->n_nodes / (0.001 * real_time + 0.001))
 		);
@@ -1246,7 +1255,7 @@ static void ui_ggs_play(UI *ui, int turn) {
 			"\\nodes: %s ; time: search = %.1fs, move = %.1fs; speed: %s."
 			"\\search %s\n",
 			ui->ggs->me,
-			ui->ggs->me, move, ui->ggs->board->id, search_count_tasks(&play->search), search_count_tasks(&play->search) > 1 ? "s ;" : " ;",
+			ui->ggs->me, move, ui->ggs->board.id, search_count_tasks(&play->search), search_count_tasks(&play->search) > 1 ? "s ;" : " ;",
 			bound, result->score,
 			result->depth, selectivity_table[result->selectivity].percent,
 			line_to_string(&result->pv, 8, " ", line),
@@ -1270,49 +1279,54 @@ static void ui_ggs_join(UI *ui) {
 	char s_move[4];
 	Play *play;
 	int edax_turn, i;
-	
-	printf("[received GGS_BOARD_JOIN]\n");
+
+	ggs_printf("[received GGS_BOARD_JOIN]\n");
 
 	// set correct played game
-	if (strcmp(ui->ggs->board->player[0].name, ui->ggs->me) == 0) {
+	if (strcmp(ui->ggs->board.player[0].name, ui->ggs->me) == 0) {
 		play = ui->play;
+		play_new(play);
 		edax_turn = BLACK;
-	} else if (strcmp(ui->ggs->board->player[1].name, ui->ggs->me) == 0) {
+	} else if (strcmp(ui->ggs->board.player[1].name, ui->ggs->me) == 0) {
 		play = ui->play + 1;
+		play_new(play);
 		edax_turn = WHITE;
 	} else {
 		warn("Edax is not concerned by this game\n");
 		return ;
 	}
 
-	// non synchro games => play a single match
-	if (!ui->ggs->board->match_type->is_synchro) play = ui->play;
+	// first move or same positions for synchro games or non synchro games => play a single match
+	ui->is_same_play = (ui->ggs->board.move_list_n == 0 || board_equal(&ui->play[0].board, &ui->play[1].board) || !ui->ggs->board.match_type.is_synchro);
+	if (ui->is_same_play) {
+		ggs_printf("[Playing same game]\n");
+		play = ui->play;
+	}
 
 	// set board
-	sprintf(buffer, "%s %c", ui->ggs->board->board_init, ui->ggs->board->turn_init);
+	sprintf(buffer, "%s %c", ui->ggs->board.board_init, ui->ggs->board.turn_init);
 	play_set_board(play, buffer);
 
-	for (i = 0; i < ui->ggs->board->move_list_n; i++) {
-		if (!play_move(play, ui->ggs->board->move_list[i])) {
-			error("cannot play GGS move %s ?", move_to_string(ui->ggs->board->move_list[i], play->player, s_move));
+	for (i = 0; i < ui->ggs->board.move_list_n; i++) {
+		if (!play_move(play, ui->ggs->board.move_list[i])) {
+			error("cannot play GGS move %s ?", move_to_string(ui->ggs->board.move_list[i], play->player, s_move));
 			break;
 		}
 	}
-	printf("[%s's turn in game %s]\n", ui->ggs->board->player[play->player].name, ui->ggs->board->id);
+	ggs_printf("[%s's turn in game %s]\n", ui->ggs->board.player[play->player].name, ui->ggs->board.id);
 	board_print(&play->board, play->player, stdout);
 
-	ui->is_same_play = (ui->ggs->board->move_list_n == 0 || board_equal(&ui->play[0].board, &ui->play[1].board) || !ui->ggs->board->match_type->is_synchro);
-	if (ui->is_same_play) printf("[Playing same game]\n");
+
 
 	// set time & start thinking
 	if (play->player == edax_turn) {
-		printf("<My turn>\n");
+		ggs_printf("<My turn>\n");
 		ggs_client_send(ui->ggs, "tell .%s =====================================\n", ui->ggs->me);
 		ui_ggs_play(ui, edax_turn);
-		ui_ggs_ponder(ui, edax_turn);
-	} else {
-		printf("[Waiting opponent move]\n");
 //		ui_ggs_ponder(ui, edax_turn);
+	} else {
+		ggs_printf("[Waiting opponent move]\n");
+		ui_ggs_ponder(ui, edax_turn);
 	}
 }
 
@@ -1328,29 +1342,29 @@ static void ui_ggs_update(UI *ui) {
 	Play *play;
 	int edax_turn, turn;
 	Board board;
-	
-	printf("[received GGS_BOARD_UPDATE]\n");
+
+	ggs_printf("[received GGS_BOARD_UPDATE]\n");
 
 	// set correct played game
-	if (strcmp(ui->ggs->board->player[0].name, ui->ggs->me) == 0) {
+	if (strcmp(ui->ggs->board.player[0].name, ui->ggs->me) == 0) {
 		play = ui->play;
 		edax_turn = BLACK;
-	} else if (strcmp(ui->ggs->board->player[1].name, ui->ggs->me) == 0) {
+	} else if (strcmp(ui->ggs->board.player[1].name, ui->ggs->me) == 0) {
 		play = ui->play + 1;
 		edax_turn = WHITE;
 	} else {
 		return ;
 	}
 
-	if (!ui->ggs->board->match_type->is_synchro) play = ui->play;
-		
+	if (!ui->ggs->board.match_type.is_synchro) play = ui->play;
+
 	// set board as an edax's board
-	sprintf(buffer, "%s %c", ui->ggs->board->board, ui->ggs->board->turn);
+	sprintf(buffer, "%s %c", ui->ggs->board.board, ui->ggs->board.turn);
 	turn = board_set(&board, buffer);
 
 	// update the board... if possible
-	if (!play_move(play, ui->ggs->board->move)) {
-		info("<Updating with bad move %s>\n", move_to_string(ui->ggs->board->move, play->player, s_move));
+	if (!play_move(play, ui->ggs->board.move)) {
+		info("<Updating with bad move %s>\n", move_to_string(ui->ggs->board.move, play->player, s_move));
 	}
 
 	if (!board_equal(&board, &play->board)) { // may happens when game diverges
@@ -1359,22 +1373,22 @@ static void ui_ggs_update(UI *ui) {
 	}
 
 	if (turn != play->player) { // should never happen: TODO fatal error?
-		printf("[WARNING: updating player's turn]\n");
+		ggs_printf("[WARNING: updating player's turn]\n");
 		play->player = turn;
 	}
 
-	printf("[%s's turn in game %s]\n", ui->ggs->board->player[play->player].name, ui->ggs->board->id);
+	ggs_printf("[%s's turn in game %s]\n", ui->ggs->board.player[play->player].name, ui->ggs->board.id);
 
 	// playing same game... ?
-	ui->is_same_play = (!ui->ggs->board->match_type->is_synchro || board_equal(&ui->play[0].board, &ui->play[1].board));
-	if (ui->is_same_play) printf("<Playing same game...>\n");
+	ui->is_same_play = (!ui->ggs->board.match_type.is_synchro || board_equal(&ui->play[0].board, &ui->play[1].board));
+	if (ui->is_same_play) ggs_printf("<Playing same game...>\n");
 
 	// set time & start thinking
 	if (play->player == edax_turn) {
-		printf("<My turn>\n");
+		ggs_printf("<My turn>\n");
 		ui_ggs_play(ui, edax_turn);
 	} else {
-		printf("<Opponent turn>\n");
+		ggs_printf("<Opponent turn>\n");
 		ui_ggs_ponder(ui, edax_turn);
 	}
 }
@@ -1401,7 +1415,7 @@ void ui_init_ggs(UI *ui) {
 	play_init(ui->play + 1, &ui->book);
 	ui->play[1].search.id = 2;
 	options.n_task = n_task;
-	log_open(ggs_log, options.ggs_log_file);
+	log_open(&ggs_log, options.ggs_log_file);
 
 	ui_login(ui);
 }
@@ -1428,24 +1442,24 @@ void ui_loop_ggs(UI *ui) {
 		/* look for a user event */
 		if (ui_event_peek(ui, &cmd, &param)) {
 			/* stop the search */
-			if (strcmp(cmd, "stop") == 0) { 
+			if (strcmp(cmd, "stop") == 0) {
 				if (ui->play[0].state == IS_THINKING) play_stop(ui->play);
 				else if (ui->play[1].state == IS_THINKING) play_stop(ui->play + 1);
 
-			/* repeat a cmd <n> times */			
-			} else if (strcmp(cmd, "loop") == 0) { 
-				free(client->loop->cmd);
+			/* repeat a cmd <n> times */
+			} else if (strcmp(cmd, "loop") == 0) {
+				free(client->loop.cmd);
 				errno = 0;
-				client->loop->cmd = string_duplicate(parse_int(param, &client->loop->i));
-				if (errno) client->loop->i = 100;
-				if (client->loop->i > 0) {
-					info("<loop %d>\n", client->loop->i);
-					--client->loop->i;
-					ggs_client_send(client, "%s\n", client->loop->cmd);
+				client->loop.cmd = string_duplicate(parse_int(param, &client->loop.i));
+				if (errno) client->loop.i = 100;
+				if (client->loop.i > 0) {
+					info("<loop %d>\n", client->loop.i);
+					--client->loop.i;
+					ggs_client_send(client, "%s\n", client->loop.cmd);
 				}
 
 			/* exit from ggs */
-			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "q") == 0) { 
+			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "q") == 0) {
 				ggs_client_send(client, "tell .%s Bye bye!\n", client->me);
 				ggs_client_send(client, "quit\n");
 				free(cmd); free(param);
@@ -1456,7 +1470,7 @@ void ui_loop_ggs(UI *ui) {
 				ggs_client_send(client, "%s %s\n", cmd, param);
 			}
 		}
-		
+
 		/* stay on line... */
 		ggs_client_refresh(client);
 
@@ -1474,7 +1488,6 @@ void ui_loop_ggs(UI *ui) {
 		/* password */
 		} else if (ggs_password(&text)) {
 			ggs_client_send(client, "%s\n", options.ggs_password);
-
 			ggs_client_send(client, "vt100 -\n");
 			ggs_client_send(client, "bell -t -tc -tg -n -nc -ng -ni -nn\n");
 			ggs_client_send(client, "verbose -news -faq -help -ack\n");
@@ -1485,41 +1498,42 @@ void ui_loop_ggs(UI *ui) {
 
 		/* os on */
 		} else if (ggs_os_on(&text)) {
-			printf("[received GGS_OS_ON]\n");
+			ggs_printf("[received GGS_OS_ON]\n");
 			ggs_client_send(client, "tell /os trust +\n" );
 			ggs_client_send(client, "tell /os rated +\n" );
 			ggs_client_send(client, "tell /os request +\n" );
 			ggs_client_send(client, "tell /os client -\n" );
 			ggs_client_send(client, "tell /os open %d\n", options.ggs_open);
 			ggs_client_send(client, "mso\n" );
-	
+
 		/* os off */
 		} else if (ggs_os_off(&text)) {
-			printf("[received GGS_OS_OFF]\n");
+			ggs_printf("[received GGS_OS_OFF]\n");
 
 		/* match on */
-		} else if (ggs_match_on(client->match_on, &text)) {
-			if (ggs_has_player(client->match_on->player, client->me)) {
-				printf("[received GGS_MATCH_ON]\n");
+		} else if (ggs_match_on(&client->match_on, &text)) {
+			if (ggs_has_player(client->match_on.player, client->me)) {
+				ggs_printf("[received GGS_MATCH_ON]\n");
 				client->is_playing = true;
 				ggs_client_send(client, "tell /os open 0\n" );
 			} else {
-				printf("[received GGS_WATCH_ON]\n");
+				ggs_printf("[received GGS_WATCH_ON]\n");
 			}
 
 		/* match off */
-		} else if (ggs_match_off(client->match_off, &text)) {
-			if (ggs_has_player(client->match_off->player, client->me)) {
-				printf("[received GGS_MATCH_OFF]\n");
+		} else if (ggs_match_off(&client->match_off, &text)) {
+			if (ggs_has_player(client->match_off.player, client->me)) {
+				ggs_printf("[received GGS_MATCH_OFF]\n");
 
-				if (!client->match_on->match_type->is_rand) {
-					if (client->match_on->match_type->is_synchro) {
-						printf("[store match #1]\n");
+				// store the game in yhe opening book (standard game only)
+				if (!client->match_on.match_type.is_rand) {
+					if (client->match_on.match_type.is_synchro) {
+						ggs_printf("[store match #1]\n");
 						play_store(ui->play);
-						printf("[store match #2]\n");
+						ggs_printf("[store match #2]\n");
 						play_store(ui->play + 1);
 					} else {
-						printf("[store match]\n");
+						ggs_printf("[store match]\n");
 						play_store(ui->play);
 					}
 					if (ui->book.need_saving) {
@@ -1528,50 +1542,59 @@ void ui_loop_ggs(UI *ui) {
 					}
 				}
 
+				// save the game(s)
+				if (options.game_file) {
+					ggs_printf("[save match]\n");
+					play_save(ui->play, options.game_file);
+					if (client->match_on.match_type.is_synchro) {
+						play_save(ui->play + 1, options.game_file);
+					}
+				}
+
 				client->is_playing = false;
 				ggs_client_send(client, "tell /os open %d\n", options.ggs_open);
-				if (client->loop->i > 0) {
-					info("<loop %d>\n", client->loop->i);
-					--client->loop->i;
-					client->loop->delay = 10000 + real_clock(); // wait 10 sec.
+				if (client->loop.i > 0) {
+					info("<loop %d>\n", client->loop.i);
+					--client->loop.i;
+					client->loop.delay = 10000 + real_clock(); // wait 10 sec.
 				}
 			} else {
-				printf("[received GGS_WATCH_OFF]\n");
+				ggs_printf("[received GGS_WATCH_OFF]\n");
 			}
 
 		/* board join/update */
-		} else if (ggs_board(client->board, &text)) {
-			if (ggs_has_player(client->board->player, client->me)) {
-				if (client->board->is_join) ui_ggs_join(ui);
+		} else if (ggs_board(&client->board, &text)) {
+			if (ggs_has_player(client->board.player, client->me)) {
+				if (client->board.is_join) ui_ggs_join(ui);
 				else ui_ggs_update(ui);
 			} else {
-				printf("[received GGS_WATCH_BOARD]\n");
+				ggs_printf("[received GGS_WATCH_BOARD]\n");
 			}
 
 		/* request */
-		} else if (ggs_request(client->request, &text)) {
-			printf("[received GGS_REQUEST]\n");
+		} else if (ggs_request(&client->request, &text)) {
+			ggs_printf("[received GGS_REQUEST]\n");
 
 		/* admin on */
-		} else if (ggs_admin(client->admin, &text)) {
-			printf("[received GGS_ADMIN_CMD]\n");
-			ggs_client_send(client, client->admin->command);
-			ggs_client_send(client, "\ntell %s command processed\n", client->admin->name);
+		} else if (ggs_admin(&client->admin, &text)) {
+			ggs_printf("[received GGS_ADMIN_CMD]\n");
+			ggs_client_send(client, client->admin.command);
+			ggs_client_send(client, "\ntell %s command processed\n", client->admin.name);
 
 		/* To request Saio a game later */
-		} else if (ggs_saio_delay(&text, &client->once->delay)) {
-			printf("[received GGS_SAIO_DELAY]\n");
-			free(client->once->cmd); client->once->cmd = NULL;
+		} else if (ggs_saio_delay(&text, &client->once.delay)) {
+			ggs_printf("[received GGS_SAIO_DELAY]\n");
+			free(client->once.cmd); client->once.cmd = NULL;
 			if (cmd != NULL && param != NULL) {
 				if (strcmp(cmd, "loop") == 0) {
-					client->once->cmd = string_duplicate(client->loop->cmd);
+					client->once.cmd = string_duplicate(client->loop.cmd);
 				} else {
-					client->once->cmd = (char*) malloc(strlen(cmd) + strlen(param) + 3);
-					sprintf(client->once->cmd, "%s %s\n", cmd, param);
-				}	
-				printf("[received GGS_SAIO_DELAY, retry request in %.1f s]\n", 0.001 * (client->once->delay - real_clock()));
+					client->once.cmd = (char*) malloc(strlen(cmd) + strlen(param) + 3);
+					sprintf(client->once.cmd, "%s %s\n", cmd, param);
+				}
+				ggs_printf("[received GGS_SAIO_DELAY, retry request in %.1f s]\n", 0.001 * (client->once.delay - real_clock()));
 			} else {
-				client->once->delay = 0;
+				client->once.delay = 0;
 			}
 
 		/* READY */
@@ -1579,7 +1602,7 @@ void ui_loop_ggs(UI *ui) {
 
 		/* ALERT */
 		} else if (ggs_alert(&text)) {
-			printf("[received ALERT]\n");
+			ggs_printf("[received ALERT]\n");
 
 		/* Other messages */
 		} else {
@@ -1601,9 +1624,9 @@ void ui_free_ggs(UI *ui) {
 	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
 	book_free(&ui->book);
 	ggs_client_free(ui->ggs);
-	free(ui->ggs->loop->cmd);
-	free(ui->ggs->once->cmd);
+	free(ui->ggs->loop.cmd);
+	free(ui->ggs->once.cmd);
 	free(ui->ggs);
-	log_close(ggs_log);
+	log_close(&ggs_log);
 }
 

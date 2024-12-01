@@ -3,9 +3,9 @@
  *
  * Header file for game base management.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "base.h"
@@ -15,6 +15,8 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 /**
@@ -207,7 +209,7 @@ static void wthor_players_save(WthorBase *base, const char *file)
  * @param base Wthor base.
  * @param name Player's name.
  */
-int wthor_player_get(WthorBase *base, const char *name) 
+int wthor_player_get(WthorBase *base, const char *name)
 {
 	int i, n;
 	char (*player)[20];
@@ -216,15 +218,16 @@ int wthor_player_get(WthorBase *base, const char *name)
 	assert(base->player != NULL && base->n_players > 0);
 
 	for (i = 0; i < base->n_players; ++i) {
-		if (strcmp(name, base->player[i]) == 0) return i;
+	    if (strcmp(name, base->player[i]) == 0) return i;
 	}
-	
+
 	n = base->n_players + 1;
 	player = (char (*)[20]) realloc(base->player, n * sizeof (*base->player));
 	if (player) {
-		base->player = player;
-		base->n_players = n;
-		sprintf(base->player[i], "%-.19s", name); // force null terminated string
+	    base->player = player;
+	    base->n_players = n;
+	    strncpy(base->player[i], name, 20); // used on purpose, as strncpy fills with '\0' the field name
+		base->player[i][19] = '\0'; // force null terminated string
 	} else {
 		warn("Cannot allocate Wthor players' array\n");
 		i = 0;
@@ -273,39 +276,6 @@ static void wthor_tournaments_load(WthorBase *base, const char *file)
 
 	fclose(f);
 }
-
-#if 0 // Unused
-/**
- * @brief Load wthor tournaments.
- *
- * @param base Wthor base.
- * @param file File name.
- */
-static void wthor_tournaments_save(WthorBase *base, const char *file)
-{
-	FILE *f;
-	WthorHeader header;
-	int i, r;
-
-	r = 0;
-
-	if ((f = fopen(file, "rw")) == NULL) {
-		warn("Cannot open Wthor tournaments' file %s\n", file);
-		return;
-	}
-	wthor_header_set(&header, 0, base->n_tournaments, 0);
-	if (wthor_header_write(&header, f)) {
-		for (i = r = 0; i < base->n_tournaments; ++i) {
-			r += fwrite(base->tournament[i], 26, 1, f);
-		}
-		if (r != base->n_tournaments) {
-			warn("Error while writing %s %d/%d\n", file, r, base->n_tournaments);
-		}
-	}
-
-	fclose(f);
-}
-#endif
 
 /**
  * @brief Initialize a Wthor base.
@@ -424,8 +394,8 @@ bool base_to_wthor(const Base *base, WthorBase *wthor)
 	if (wthor->game) {
 		for (i = 0; i < base->n_games; ++i, ++j) {
 			game_to_wthor(base->game + i, wthor->game + j);
-			wthor->game[j].black = wthor_player_get(wthor, base->game[i].name[BLACK]); 
-			wthor->game[j].white = wthor_player_get(wthor, base->game[i].name[WHITE]); 
+			wthor->game[j].black = wthor_player_get(wthor, base->game[i].name[BLACK]);
+			wthor->game[j].white = wthor_player_get(wthor, base->game[i].name[WHITE]);
 		}
 	} else {
 		warn("Cannot allocate wthor games\n");
@@ -481,7 +451,7 @@ static void wthorgame_get_board(WthorGame *game, const int n_empties, Board *boa
 		if (board_is_pass(board)) {
 			board_pass(board); *player ^= 1;
 		}
-		board_get_move_flip(board, move_from_wthor(game->x[i]), &move);
+		board_get_move(board, move_from_wthor(game->x[i]), &move);
 		if (board_check_move(board, &move)) {
 			board_update(board, &move); *player ^= 1;
 		} else {
@@ -521,8 +491,8 @@ void wthor_test(const char *file, Search *search)
 	int score;
 	int n_empties;
 	int n_failure;
-	long long n_nodes;
-	long long t;
+	int64_t n_nodes;
+	int64_t t;
 	int n_err;
 
 	if (wthor_load(&base, file)) {
@@ -584,7 +554,7 @@ void wthor_test(const char *file, Search *search)
 
 			if (search->options.verbosity == 0) {
 				printf("%s  game: %4d, error: %2d ; ", file, (int)(wthor - base.game) + 1, n_failure);
-				printf("%lld n, ", n_nodes); time_print(t, false, stdout); putchar('\r');
+				printf("%ld n, ", n_nodes); time_print(t, false, stdout); putchar('\r');
 				fflush(stdout);
 			}
 		}
@@ -607,7 +577,7 @@ void wthor_test(const char *file, Search *search)
  * @param search Search.
  * @param histogram output array.
  */
-void wthor_eval(const char *file, Search *search, unsigned long long histogram[129][65])
+void wthor_eval(const char *file, Search *search, uint64_t histogram[129][65])
 {
 	WthorBase base;
 	WthorGame *wthor;
@@ -934,29 +904,29 @@ void base_complete(Base *base, Search *search)
 /**
  * @brief Base Compare.
  *
- * Display the number of positions two base files have in common. 
+ * Display the number of positions two base files have in common.
  *
  * @param file_1 Game base file.
  * @param file_2 Game base file.
  */
 void base_compare(const char *file_1, const char *file_2)
 {
-	Base base_1[1], base_2[2];
+	Base base_1, base_2;
 	PositionHash hash;
 	Board board;
 	int i, j;
-	long long n_1, n_2, n_2_only;
+	int64_t n_1, n_2, n_2_only;
 
-	base_init(base_1);
-	base_init(base_2);
+	base_init(&base_1);
+	base_init(&base_2);
 	n_1 = 0;
 	n_2 = 0;
 	n_2_only = 0;
 
-	base_load(base_1, file_1);
+	base_load(&base_1, file_1);
 	positionhash_init(&hash, options.hash_table_size);
-	for (i = 0; i < base_1->n_games; ++i) {
-		Game *game = base_1->game + i;
+	for (i = 0; i < base_1.n_games; ++i) {
+		Game *game = base_1.game + i;
 		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
 			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
@@ -965,11 +935,11 @@ void base_compare(const char *file_1, const char *file_2)
 			}
 		}
 	}
-	base_free(base_1);
+	base_free(&base_1);
 
-	base_load(base_2, file_2);
-	for (i = 0; i < base_2->n_games; ++i) {
-		Game *game = base_2->game + i;
+	base_load(&base_2, file_2);
+	for (i = 0; i < base_2.n_games; ++i) {
+		Game *game = base_2.game + i;
 		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
 			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
@@ -981,8 +951,8 @@ void base_compare(const char *file_1, const char *file_2)
 
 	positionhash_delete(&hash);
 	positionhash_init(&hash, options.hash_table_size);
-	for (i = 0; i < base_2->n_games; ++i) {
-		Game *game = base_2->game + i;
+	for (i = 0; i < base_2.n_games; ++i) {
+		Game *game = base_2.game + i;
 		board = game->initial_board;
 		for (j = 0; j < 60 && game->move[j] != NOMOVE; ++j) {
 			if (!game_update_board(&board, game->move[j])) break; // BAD MOVE -> end of game
@@ -991,12 +961,11 @@ void base_compare(const char *file_1, const char *file_2)
 			}
 		}
 	}
-	base_free(base_2);
+	base_free(&base_2);
 
 	positionhash_delete(&hash);
 
-	printf("%s : %lld positions - %lld original positions\n", file_1, n_1, n_1 - (n_2- n_2_only));
-	printf("%s : %lld positions - %lld original positions\n", file_2, n_2, n_2_only);
-	printf("%lld common positions\n", n_2-n_2_only);
+	printf("%s : %ld positions - %ld original positions\n", file_1, n_1, n_1 - (n_2- n_2_only));
+	printf("%s : %ld positions - %ld original positions\n", file_2, n_2, n_2_only);
+	printf("%ld common positions\n", n_2-n_2_only);
 }
-

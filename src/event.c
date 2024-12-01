@@ -3,9 +3,9 @@
  *
  * Event management.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #include "event.h"
@@ -30,9 +30,9 @@ void event_init(Event *event)
 	event->ring = (char**) malloc(event->size * sizeof (char*));
 	if (event->ring == NULL) fatal_error("cannot allocate event buffers\n");
 	for (i = 0; i < event->size; ++i) event->ring[i] = NULL;
-	spin_init(event);
-	lock_init(event);
-	condition_init(event);
+	mtx_init(&event->mutex, mtx_plain);
+	mtx_init(&event->cond_mutex, mtx_plain);
+	cnd_init(&event->condition);
 
 	event->loop = true;
 }
@@ -46,7 +46,7 @@ void event_clear_messages(Event *event)
 {
 	int i;
 
-	spin_lock(event);
+	mtx_lock(&event->mutex);
 
 	for (i = 0; i < event->size; ++i) {
 		free(event->ring[i]);
@@ -55,7 +55,7 @@ void event_clear_messages(Event *event)
 	event->first = 0;
 	event->end = 0;
 
-	spin_unlock(event);
+	mtx_unlock(&event->mutex);
 }
 
 
@@ -68,7 +68,7 @@ void event_free(Event *event)
 {
 	int i;
 
-	spin_lock(event);
+	mtx_lock(&event->mutex);
 
 	for (i = 0; i < event->size; ++i) {
 		free(event->ring[i]);
@@ -77,11 +77,11 @@ void event_free(Event *event)
 	event->end = 0;
 	free(event->ring);
 
-	lock_free(event);
-	condition_free(event);
+	mtx_destroy(&event->cond_mutex);
+	cnd_destroy(&event->condition);
 
-	spin_unlock(event);
-	spin_free(event);
+	mtx_unlock(&event->mutex);
+	mtx_destroy(&event->mutex);
 }
 
 /**
@@ -96,7 +96,7 @@ void event_add_message(Event *event, char *message)
 	int new_size, i;
 	int last;
 
-	spin_lock(event);
+	mtx_lock(&event->mutex);
 
 	last = event->end;
 	event->end = (event->end + 1) % event->size;
@@ -119,7 +119,7 @@ void event_add_message(Event *event, char *message)
 	event->ring[last] = message;
 	info("<event add [%d]: %s>\n", last, message);
 
-	spin_unlock(event);
+	mtx_unlock(&event->mutex);
 }
 
 
@@ -135,11 +135,11 @@ void event_wait(Event *event, char **cmd, char **param)
 	int n;
 	char *message;
 
-	lock(event);
+	mtx_lock(&event->cond_mutex);
 	while ((message = event_peek_message(event)) == NULL) {
-		condition_wait(event);
+		cnd_wait(&event->condition, &event->cond_mutex);
 	}
-	unlock(event);
+	mtx_unlock(&event->cond_mutex);
 
 	free(*cmd);
 	free(*param);
@@ -157,11 +157,11 @@ void event_wait_enter(Event *event)
 {
 	char *message;
 	puts("Press [Enter] to continue");
-	lock(event);
+	mtx_lock(&event->cond_mutex);
 	while ((message = event_peek_message(event)) == NULL) {
-		condition_wait(event);
+		cnd_wait(&event->condition, &event->cond_mutex);
 	}
-	unlock(event);
+	mtx_unlock(&event->cond_mutex);
 	free(message);
 }
 
@@ -188,7 +188,7 @@ char *event_peek_message(Event *event)
 {
 	char *message;
 
-	spin_lock(event);
+	mtx_lock(&event->mutex);
 
 	if (event_exist(event)) {
 		message = event->ring[event->first];
@@ -198,7 +198,7 @@ char *event_peek_message(Event *event)
 		message = NULL;
 	}
 
-	spin_unlock(event);
+	mtx_unlock(&event->mutex);
 
 	return message;
 }

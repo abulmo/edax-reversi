@@ -3,16 +3,14 @@
  *
  * @brief Edax protocol.
  *
- * This is version 4.5 of Edax User Interface. Several changes
- * occurred between this version and 3.x previous versions because of the
- * evolution of the search engine. Here is a summary of the commands:
+ * This is version 4.6 of Edax User Interface. Here is a summary of the commands:
  *
  * Options:
  * Options must be entered in the form '[set] <option> [=] <value>', with [set] and\n[=] being optional.
  *   -verbose [n]          set Edax verbosity (default 1).
  *   -noise [n]            start displaying Edax search result from this depth\n  (default 5).
  *   -witdh [n]            display edax search results using <width> characters\n  (default 80).
- *   -hash-table-size [n]  set hashtable size (default 22 bits).
+ *   -hash-table-size [n]  set hashtable size (default 21 bits).
  *   -n-tasks [n]          control the number of parallel threads used in searching\n  (default 1).
  *   -l|level [n]          search using limited depth (default 21).
  *   -t|game-time <time>   search using limited time per game.
@@ -60,22 +58,22 @@
  *   -a|analyze [n]       retro-analyze the game using the opening book.
  *   -randomness [n]      play more various but worse move from the opening book.
  *   -depth [n]           change book depth (up to which to add positions).
- *   -deepen [n]          change book level & reevalute the whole book (very slow!).
- *   -fix                 fix the opening book: add missing links and negamax the\n  whole book tree.
+ *   -deepen [n]          change book level & reevaluate the whole book (very slow!).
+ *   -fix                 fix the opening book: add missing links and negamax the whole book tree.
  *   -store               add the last played game to the opening book.
- *   -deviate <n1> <n2>   add positions by deviating with a relative error <n1> and\n  an absolute error <n2>.
- *   -enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n  error <n1> and an endcut error <n2>.
+ *   -deviate <n1> <n2>   add positions by deviating with a relative error <n1> and an absolute error <n2>.
+ *   -enhance <n1> <n2>   add positions by improving score accuracy with a midgame error <n1> and an endcut error <n2>.
  *   -fill [n]            add positions between existing positions.
  *   -prune               remove unreachable positions.
- *   -add [file]          add positions from a game base file (txt, ggf, sgf or\n  wthor format).
+ *   -add [file]          add positions from a game base file (txt, ggf, sgf or wthor format).
  *
  * Game DataBase Commands:
  *   -convert [file_in] [file_out]     convert between different format.
  *   -unique [file_in] [file_out]      remove doublons in the base.
  *   -check [file_in] [n]              check error in the last <n> moves.
  *   -correct [file_in] [n]            correct error in the last <n> moves.
- *   -complete [file_in]               complete a database by playing the last\n  missing moves.
- *   -problem [file_in] [n] [file_out] build a set of <n> problems from a game\n  database.
+ *   -complete [file_in]               complete a database by playing the last missing moves.
+ *   -problem [file_in] [n] [file_out] build a set of problems @ <n> empties from a game database.
  *
  * Tests commands:
  *   -solve [file]        solve a set of positions.
@@ -89,12 +87,12 @@
  *   -count shapes [d]    compute the number of shapes from the current position up\n  to depth [d].
  *
  *
- * @date 1998 - 2018
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  *
  */
-
+#include "book.h"
 #include "cassio.h"
 #include "event.h"
 #include "histogram.h"
@@ -106,16 +104,16 @@
 #include "search.h"
 #include "util.h"
 #include "ui.h"
+
 #ifdef __linux__
 	#include <sys/time.h>
 	#include <sys/resource.h>
 #endif
 
-static Log edax_log[1];
+static Log edax_log;
 extern bool book_verbose;
 
 void version(void);
-void bench(void);
 
 /**
  * @brief default search oberver.
@@ -124,9 +122,9 @@ void bench(void);
 static void edax_observer(Result *result)
 {
 	search_observer(result);
-	if (log_is_open(edax_log)) {
-		result_print(result, edax_log->f);
-		putc('\n', edax_log->f);
+	if (log_is_open(&edax_log)) {
+		result_print(result, edax_log.f);
+		putc('\n', edax_log.f);
 	}
 }
 
@@ -147,7 +145,7 @@ void ui_init_edax(UI *ui)
 	ui->mode = options.mode;
 	play->type = ui->type;
 
-	log_open(edax_log, options.ui_log_file);
+	log_open(&edax_log, options.ui_log_file);
 }
 
 /**
@@ -159,22 +157,25 @@ void ui_free_edax(UI *ui)
 	if (ui->book.need_saving) book_save(&ui->book, options.book_file);
 	book_free(&ui->book);
 	play_free(ui->play);
-	log_close(edax_log);
+	log_close(&edax_log);
 	book_verbose = false;
 }
+
+/** Spaces for help indentation */
+#define SPACES "                       "
 
 /**
  * @brief print help about options.
  */
-void help_options(void) 
+void help_options(void)
 {
 	printf(	"Options:\n"
 		"Options must be entered in the form '[set] <option> [=] <value>', with [set] and\n[=] being optional.\n"
 		"  verbose [n]          set Edax verbosity (default 1).\n"
-		"  noise [n]            start displaying Edax search result from this depth\n  (default 5).\n"
-		"  witdh [n]            display edax search results using <width> characters\n  (default 80).\n"
-		"  hash-table-size [n]  set hashtable size (default 22 bits).\n"
-		"  n-tasks [n]          control the number of parallel threads used in searching\n  (default 1).\n"
+		"  noise [n]            start displaying Edax search result from this depth\n" SPACES "(default 5).\n"
+		"  witdh [n]            display edax search results using <width> characters\n" SPACES "(default 80).\n"
+		"  hash-table-size [n]  set hashtable size (default 21 bits).\n"
+		"  n-tasks [n]          control the number of parallel threads used in searching\n" SPACES "(default 1).\n"
 		"  l|level [n]          search using limited depth (default 21).\n"
 		"  t|game-time <time>   search using limited time per game.\n"
 		"  move-time <time>     search using limited time per move.\n"
@@ -184,13 +185,14 @@ void help_options(void)
 		"  book-randomness [n]  play various but worse moves from the opening book.\n"
 		"  auto-start [on/off]  automatically start a new game.\n"
 		"  auto-swap [on/off]   automatically swap players between each game.\n"
-		"  auto-store [on/off]  automatically store each game into the opening book.\n");
+		"  auto-store [on/off]  automatically store each game into the opening book.\n"
+		"  auto-quit [on/off]   automatically quit after it is done.\n");
 }
 
 /**
  * @brief print help commands.
  */
-void help_commands(void) 
+void help_commands(void)
 {
 	printf(	"\nCommands:\n"
 		"Commands must be entered in the form '<command> <parameters>'.\n"
@@ -216,7 +218,7 @@ void help_commands(void)
 /**
  * @brief print book's help.
  */
-void help_book(void) 
+void help_book(void)
 {
 	printf(	"\nBook Commands:\n"
 		"Book Commands must be entered in the form 'b|book <command> <parameters>'.\n"
@@ -233,53 +235,54 @@ void help_book(void)
 		"  a|analyze [n]       retro-analyze the game using the opening book.\n"
 		"  randomness [n]      play more various but worse move from the opening book.\n"
 		"  depth [n]           change book depth (up to which to add positions).\n"
-		"  deepen [n]          change book level & reevalute the whole book (very slow!).\n"
+		"  deepen [n]          change book level & reevaluate the whole book (very slow!).\n"
 		"  fix                 fix the opening book: add missing links and negamax the\n  whole book tree.\n"
 		"  store               add the last played game to the opening book.\n"
-		"  deviate <n1> <n2>   add positions by deviating with a relative error <n1> and\n  an absolute error <n2>.\n"
-		"  enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n  error <n1> and an endcut error <n2>.\n"
+		"  deviate <n1> <n2>   add positions by deviating with a relative error <n1> and\n" SPACES "an absolute error <n2>.\n"
+		"  enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n" SPACES "error <n1> and an endcut error <n2>.\n"
 		"  fill [n]            add positions between existing positions.\n"
 		"  prune               remove unreachable positions.\n"
 		"  subtree             only keep positions from the current position.\n"
-		"  add [file]          add positions from a game base file (txt, ggf, sgf or\n  wthor format).\n");
+		"  add [file]          add positions from a game base file (txt, ggf, sgf or\n" SPACES "wthor format).\n");
 }
 
 /**
  * @brief print base's help.
  */
-void help_base(void) 
+void help_base(void)
 {
-	printf(	"\nGame DataBase :\n"
-		"  convert [file_in] [file_out]     convert between different format.\n"
-		"  unique [file_in] [file_out]      remove doublons in the base.\n"
+	printf("\nGame DataBase :\n"
+		"  convert [file_in] [file_out]     convert between different format.\n"
+		"  unique [file_in] [file_out]      remove doublons in the base.\n"
 		"  check [file_in] [n]              check error in the last <n> moves.\n"
 		"  correct [file_in] [n]            correct error in the last <n> moves.\n"
-		"  complete [file_in]               complete a database by playing the last\n  missing moves.\n"
-		"  problem [file_in] [n] [file_out] build a set of <n> problems from a game\n  database.\n");
+		"  complete [file_in]               complete a database by playing the last\n" SPACES "missing moves.\n"
+		"  problem [file_in] [n] [file_out] build a set of problems from a game\n" SPACES "database with <n> empties.\n");
 }
 
 /**
  * @brief print base's help.
  */
-void help_test(void) 
+void help_test(void)
 {
 	printf(	"\nTests:\n"
 		"  bench               test edax speed.\n"
-		"  microbench          test CPU cycle speed of some major functions.\n"
 		"  obftest [file]      Test from an obf file.\n"
 		"  script-to-obf [file]Convert a script to an obf file.\n"
 		"  wtest [file]        check the theoric scores of a wthor base file.\n"
-		"  count games [d]     compute the number of moves from the current position up\n  to depth [d].\n"
+		"  count games [d]     compute the number of moves from the current position up\n" SPACES "to depth [d].\n"
 		"  perft [d]           same as above, but without hash table.\n"
-		"  estimate [d] [n]    estimate the number of moves from the current position up\n  to depth [d].\n"
-		"  count positions [d] compute the number of positions from the current position\n  up to depth [d].\n"
-		"  count shapes [d]    compute the number of shapes from the current position up\n  to depth [d].\n");
+		"  estimate [d] [n]    estimate the number of moves from the current position up\n" SPACES "to depth [d].\n"
+		"  count positions [d] compute the number of positions from the current position\n" SPACES "up to depth [d].\n"
+		"  count shapes [d]    compute the number of shapes from the current position up\n" SPACES "to depth [d].\n");
 }
 
+#undef SPACES
 
 /**
- * @brief Loop event.
- * @param ui user interface.
+ * @brief Display of game state.
+ * @param play Play
+ * @param f stream to output to.
  */
 static void ui_play_print(Play *play, FILE *f)
 {
@@ -289,12 +292,16 @@ static void ui_play_print(Play *play, FILE *f)
 	putc('\n', f);
 }
 
+/**
+ * @brief Loop event.
+ * @param ui user interface.
+ */
 void ui_loop_edax(UI *ui)
 {
 	char *cmd = NULL, *param = NULL;
 	Play *play = ui->play;
 	char book_file[FILENAME_MAX];
-	unsigned long long histogram[129][65];
+	uint64_t histogram[129][65];
 	int repeat = options.repeat;
 
 	histogram_init(histogram);
@@ -306,8 +313,8 @@ void ui_loop_edax(UI *ui)
 		if (options.verbosity)
 			ui_play_print(play, stdout);
 
-		if (log_is_open(edax_log))
-			ui_play_print(play, edax_log->f);
+		if (log_is_open(&edax_log))
+			ui_play_print(play, edax_log.f);
 
 		// edax turn ? (automatic play mode)
 		if (!ui_event_exist(ui) && !play_is_game_over(play) && (ui->mode == !play->player || ui->mode == 2)) {
@@ -329,7 +336,7 @@ void ui_loop_edax(UI *ui)
 					continue;
 				}
 				if (options.auto_quit) {
-					return;
+					break;
 				}
 				if (options.auto_start) {
 					play_new(play);
@@ -339,7 +346,7 @@ void ui_loop_edax(UI *ui)
 
 			putchar('>'); fflush(stdout);
 			ui_event_wait(ui, &cmd, &param);
-			log_print(edax_log, "cmd=\"%s\" ; param=\"%s\"\n", cmd, param);
+			log_print(&edax_log, "cmd=\"%s\" ; param=\"%s\"\n", cmd, param);
 			putchar('\n');
 
 			if (cmd == NULL) {
@@ -349,14 +356,14 @@ void ui_loop_edax(UI *ui)
 
 			// skip empty lines or commented lines
 			if (*cmd == '\0' || *cmd == '#') {
-			
+
 			// help
 			} else if (strcmp(cmd, "help") == 0 || strcmp(cmd, "?") == 0) {
 				if (*param == '\0' || strcmp(param, "options") == 0) help_options();
 				if (*param == '\0' || strcmp(param, "commands") == 0) help_commands();
 				if (*param == '\0' || strcmp(param, "book") == 0) help_book();
 				if (*param == '\0' || strcmp(param, "base") == 0) help_base();
-				if (*param == '\0' || strcmp(param, "test") == 0) help_test(); 
+				if (*param == '\0' || strcmp(param, "test") == 0) help_test();
 
 			// new game from standard position
 			} else if (strcmp(cmd, "i") == 0 || strcmp(cmd, "init") == 0) {
@@ -380,11 +387,11 @@ void ui_loop_edax(UI *ui)
 			// quit
 			} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "q") == 0 || strcmp(cmd, "exit") == 0) {
 				free(cmd); free(param);
-				return;
+				break;
 
 			} else if (!options.auto_quit && (strcmp(cmd, "eof") == 0 && (ui->mode != 2 || play_is_game_over(play)))){
 				free(cmd); free(param);
-				return;
+				break;
 
 			// undo last move
 			} else if (strcmp(cmd, "u") == 0 || strcmp(cmd, "undo") == 0) {
@@ -421,15 +428,15 @@ void ui_loop_edax(UI *ui)
 				int angle = string_to_int(param, 90) % 360;
 				if (angle < 0) angle += 360;
 				switch (angle) {
-				case 90: 
+				case 90:
 					play_symetry(play, 5);
-					break; 
+					break;
 				case 180:
 					play_symetry(play, 3);
-					break; 
+					break;
 				case 270:
 					play_symetry(play, 6);
-					break; 
+					break;
 				default:
 					warn("Rotate angle should be 90°, 180° or 270°");
 					break;
@@ -482,8 +489,10 @@ void ui_loop_edax(UI *ui)
 				int depth = 10, size = 8;
 
 				count_param = parse_word(param, count_cmd, 15);
-				count_param = parse_int(count_param, &depth); BOUND(depth, 1, 90, "max-ply");
-				/* if (count_param) */ parse_int(count_param, &size); BOUND(size, 6, 8, "board-size");
+				count_param = parse_int(count_param, &depth);
+				BOUND(depth, 1, 90, "max-ply");
+				if (count_param) parse_int(count_param, &size);
+				BOUND(size, 6, 8, "board-size");
 
 				if (strcmp(count_cmd, "games") == 0) { // game enumeration
 					quick_count_games(&play->board, depth, size);
@@ -499,14 +508,14 @@ void ui_loop_edax(UI *ui)
 				int depth = 14;
 				depth = string_to_int(param, 10); BOUND(depth, 1, 90, "max-ply");
 				count_games(&play->board, depth);
-			
+
 			// game/position enumeration
 			} else if (strcmp(cmd, "estimate") == 0) {
 				int n = 1000;
 				n = string_to_int(param, 10); BOUND(n, 1, 2000000000, "max-trials");
 
 				estimate_games(&play->board, n);
-	
+
 			// seek highest mobility
 			} else if (strcmp(cmd, "mobility") == 0) {
 				int t = 3600; // 1 hour
@@ -518,19 +527,15 @@ void ui_loop_edax(UI *ui)
 			} else if (strcmp(cmd, "seek") == 0) {
 				Board target;
 				Line solution;
-				
+
 				board_set(&target, param);
 				line_init(&solution, play->player);
-				
+
 				if (seek_position(&target, &play->board, &solution)) {
 					printf("Solution found:\n");
 					line_print(&solution, 200, " ", stdout);
 					putchar('\n');
 				}
-			
-			// microbench (a serie of low level tests).
-			} else if (strcmp(cmd, "microbench") == 0) {
-				bench();
 
 			// bench (a serie of low level tests).
 			} else if (strcmp(cmd, "bench") == 0) {
@@ -586,36 +591,44 @@ void ui_loop_edax(UI *ui)
 				}
 			} else if (strcmp(cmd, "options") == 0) {
 					options_dump(stdout);
+
 #ifdef __unix__
 			} else if (strcmp(cmd, "resources") == 0) {
 				struct rusage u;
 				long long t;
 	 			getrusage(RUSAGE_SELF, &u);
 				t = 1000 * u.ru_utime.tv_sec + u.ru_utime.tv_usec / 1000;
-				printf("user cpu time: "); time_print(t, false, stdout); printf("\n");	
+				printf("user cpu time: "); time_print(t, false, stdout); printf("\n");
 				t = 1000 * u.ru_stime.tv_sec + u.ru_stime.tv_usec / 1000;
-				printf("system cpu time: "); time_print(t, false, stdout); printf("\n");	
-				printf("max resident memory: %ld\n", u.ru_maxrss); 
-				printf("page fault without I/O: %ld\n", u.ru_minflt); 
-				printf("page fault with I/O: %ld\n", u.ru_majflt); 
-				printf("number of input: %ld\n", u.ru_inblock); 
-				printf("number of output: %ld\n", u.ru_oublock); 
-				printf("number of voluntary context switch: %ld\n", u.ru_nvcsw); 
-				printf("number of unvoluntary context switch: %ld\n\n", u.ru_nivcsw); 
-#endif		
+				printf("system cpu time: "); time_print(t, false, stdout); printf("\n");
+				printf("max resident memory: %ld\n", u.ru_maxrss);
+				// printf("integral shared memory: %ld\n", u.ru_ixrss);
+				// printf("integral unshared data memory: %ld\n", u.ru_idrss);
+				// printf("integral unshared stack memory: %ld\n", u.ru_isrss);
+				printf("soft page fault: %ld\n", u.ru_minflt);
+				printf("hard page fault: %ld\n", u.ru_majflt);
+				// printf("swaps: %ld\n", u.ru_nswap);
+				// printf("block input: %ld\n", u.ru_inblock);
+				// printf("block output: %ld\n", u.ru_oublock);
+				// printf("IPC messages sent: %ld\n", u.ru_msgsnd);
+				// printf("IPC messages receive: %ld\n", u.ru_msgrcv);
+				// printf("signal received: %ld\n", u.ru_nsignals);
+				printf("voluntary context switch: %ld\n", u.ru_nvcsw);
+				printf("involuntary context switch: %ld\n\n", u.ru_nivcsw);
+#endif
 			// opening name
 			} else if (strcmp(cmd, "opening") == 0) {
 				const char *name;
 				name = play_show_opening_name(play, opening_get_english_name);
 				if (name == NULL) name = "?";
-				puts(name);  
+				puts(name);
 
 			// opening name in french
 			} else if (strcmp(cmd, "ouverture") == 0) {
 				const char *name;
 				name = play_show_opening_name(play, opening_get_french_name);
 				if (name == NULL) name = "?";
-				puts(name); 
+				puts(name);
 
 			// opening book commands
 			} else if (strcmp(cmd, "book") == 0 || strcmp(cmd, "b") == 0) {
@@ -774,7 +787,7 @@ void ui_loop_edax(UI *ui)
 					val_1 = 24; book_param = parse_int(book_param, &val_1); BOUND(val_1, 0, 60, "number of empties");
 					val_2 = 10; book_param = parse_int(book_param, &val_2); BOUND(val_2, 1, 1000000, "number of positions");
 					book_extract_positions(book, val_1, val_2);
-					
+
 				// extract pv to a game database
 				} else if (strcmp(book_cmd, "extract") == 0) {
 					Base base;
@@ -840,7 +853,7 @@ void ui_loop_edax(UI *ui)
 					base_load(&base, base_file);
 					base_to_problem(&base, n_empties, problem_file);
 
-				// extract FEN 
+				// extract FEN
 				} else if (strcmp(base_cmd, "tofen") == 0) {
 					char problem_file[FILENAME_MAX + 1];
 					int n_empties = 24;
@@ -849,7 +862,7 @@ void ui_loop_edax(UI *ui)
 
 					base_load(&base, base_file);
 					base_to_FEN(&base, n_empties, problem_file);
-	
+
 				// correct erroneous games
 				} else if (strcmp(base_cmd, "correct") == 0) {
 					int n_empties = 24;
@@ -962,5 +975,11 @@ void ui_loop_edax(UI *ui)
 			}
 		}
 	}
+
+	/* dispay hash statistics */
+	HASH_STATS(printf("pv_table     : %12llu stores %12llu probes %12llu found probes\n", play->search.pv_table.n_store, play->search.pv_table.n_try, play->search.pv_table.n_found);)
+	HASH_STATS(printf("hash_table   : %12llu stores %12llu probes %12llu found probes\n", play->search.hash_table.n_store, play->search.hash_table.n_try, play->search.hash_table.n_found);)
+	HASH_STATS(printf("shallow_table: %12llu stores %12llu probes %12llu found probes\n", play->search.shallow_table.n_store, play->search.shallow_table.n_try, play->search.shallow_table.n_found);)
+
 }
 

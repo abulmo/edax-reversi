@@ -3,9 +3,9 @@
  *
  * @brief Edax play control - header file.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 
@@ -23,7 +23,7 @@
 
 /** play structure */
 typedef struct Play {
-	Board board;               /**< current board. */
+	alignas(16) Board board;   /**< current board. */
 	Board initial_board;       /**< initial board. */
 	Search search;             /**< search. */
 	Result result;             /**< search result. */
@@ -34,13 +34,13 @@ typedef struct Play {
 	Move game[80];             /**< game (move sequence). */
 	int i_game;                /**< current move index. */
 	int n_game;                /**< last move index. */
-	volatile PlayState state;  /**< current state */
+	PlayState state;           /**< current state */
 	int level;                 /**< search level */
-	long long clock;           /**< internal clock */
+	int64_t clock;             /**< internal clock */
 	struct {
-		long long spent;       /**< time spent */
-		long long left;        /**< time left */
-		long long extra;       /**< extra time left */
+		int64_t spent;         /**< time spent */
+		int64_t left;          /**< time left */
+		int64_t extra;         /**< extra time left */
 	} time[2];                 /**< time of each player */
 	struct {
 		Board real[80];        /**< forced positions */
@@ -50,8 +50,8 @@ typedef struct Play {
 		int i_move;            /**< current forced move */
 	} force;                   /**< forced line */
 	struct {
-		Thread thread;         /**< thread. */
-		Lock lock;             /**< lock. */
+		thrd_t thread;         /**< thread. */
+		mtx_t mutex;           /**< lock. */
 		Board board;           /**< pondered position */
 		bool launched;         /**< launched thread */
 		bool verbose;          /**< verbose pondering */
@@ -60,6 +60,8 @@ typedef struct Play {
 } Play;
 
 /* functions */
+bool play_is_game_over(Play*);
+bool play_must_pass(Play *play);
 void play_init(Play*, Book*);
 void play_free(Play*);
 void play_new(Play*);
@@ -70,7 +72,7 @@ void play_auto_save(Play*);
 void play_go(Play*, const bool);
 void play_hint(Play*, int);
 void play_stop(Play*);
-void* play_ponder_run(void*);
+int play_ponder_run(void*);
 void play_ponder(Play*);
 void* play_ponder_loop(void*);
 void play_stop_pondering(Play*);
@@ -96,10 +98,6 @@ void play_force_restore(Play*);
 bool play_force_go(Play*, Move*);
 void play_symetry(Play*, const int);
 const char* play_show_opening_name(Play*, const char *(*opening_get_name)(const Board*));
-// bool play_is_game_over(Play*);
-// bool play_must_pass(Play *play);
-#define	play_is_game_over(play)	board_is_game_over(&(play)->board)
-#define	play_must_pass(play)	board_is_pass(&(play)->board)
 
 #endif
 

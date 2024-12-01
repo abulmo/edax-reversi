@@ -44,8 +44,7 @@
  * @version 4.4
  */
 
-#include "bit.h"
-#include <stdio.h>
+#include "simd.h"
 
 /** rotated outflank array (indexed with inner 6 bits) */
 static const unsigned char OUTFLANK_2[64] = {	// ...ahgfe
@@ -84,7 +83,7 @@ static const unsigned char OUTFLANK_7[64] = {
 };
 
 /** flip array (indexed with rotated outflank, returns inner 6 bits) */
-static const unsigned long long FLIPPED_2_V[25] = {	// ...ahgfe
+static const uint64_t FLIPPED_2_V[25] = {	// ...ahgfe
 	0x0000000000000000, 0x00000000ff000000, 0x000000ffff000000, 0x0000000000000000,
 	0x0000ffffff000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x00ffffffff000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -94,7 +93,7 @@ static const unsigned long long FLIPPED_2_V[25] = {	// ...ahgfe
 	0x00ffffffff00ff00
 };
 
-static const unsigned long long FLIPPED_3_H[21] = {	// ...bahgf
+static const uint64_t FLIPPED_3_H[21] = {	// ...bahgf
 	0x0000000000000000, 0x1010101010101010, 0x3030303030303030, 0x0000000000000000,
 	0x7070707070707070, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0606060606060606, 0x1616161616161616, 0x3636363636363636, 0x0000000000000000,
@@ -103,7 +102,7 @@ static const unsigned long long FLIPPED_3_H[21] = {	// ...bahgf
 	0x7474747474747474
 };
 
-static const unsigned long long FLIPPED_4_H[19] = {	// ...cbahg
+static const uint64_t FLIPPED_4_H[19] = {	// ...cbahg
 	0x0000000000000000, 0x2020202020202020, 0x6060606060606060, 0x0000000000000000,
 	0x0e0e0e0e0e0e0e0e, 0x2e2e2e2e2e2e2e2e, 0x6e6e6e6e6e6e6e6e, 0x0000000000000000,
 	0x0c0c0c0c0c0c0c0c, 0x2c2c2c2c2c2c2c2c, 0x6c6c6c6c6c6c6c6c, 0x0000000000000000,
@@ -111,7 +110,7 @@ static const unsigned long long FLIPPED_4_H[19] = {	// ...cbahg
 	0x0808080808080808, 0x2828282828282828, 0x6868686868686868
 };
 
-static const unsigned long long FLIPPED_4_V[19] = {
+static const uint64_t FLIPPED_4_V[19] = {
 	0x0000000000000000, 0x0000ff0000000000, 0x00ffff0000000000, 0x0000000000000000,
 	0x00000000ffffff00, 0x0000ff00ffffff00, 0x00ffff00ffffff00, 0x0000000000000000,
 	0x00000000ffff0000, 0x0000ff00ffff0000, 0x00ffff00ffff0000, 0x0000000000000000,
@@ -119,13 +118,13 @@ static const unsigned long long FLIPPED_4_V[19] = {
 	0x00000000ff000000, 0x0000ff00ff000000, 0x00ffff00ff000000
 };
 
-static const unsigned long long FLIPPED_7_V[38] = {
+static const uint64_t FLIPPED_7_V[38] = {
 	0x0000000000000000, 0x00ffffffffffff00, 0x00ffffffffff0000, 0x0000000000000000,
 	0x00ffffffff000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x00ffffff00000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x00ffff0000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
-	// static const unsigned long long FLIPPED_5_V[18] = {	// ...dcbah
+	// static const uint64_t FLIPPED_5_V[18] = {	// ...dcbah
 		0x0000000000000000, 0x00ff000000000000, 0x000000ffffffff00, 0x00ff00ffffffff00,
 		0x000000ffffff0000, 0x00ff00ffffff0000, 0x0000000000000000, 0x0000000000000000,
 		0x000000ffff000000, 0x00ff00ffff000000, 0x0000000000000000, 0x0000000000000000,
@@ -133,7 +132,7 @@ static const unsigned long long FLIPPED_7_V[38] = {
 		0x000000ff00000000, 0x00ff00ff00000000
 };
 
-static const unsigned long long *FLIPPED_5_V = FLIPPED_7_V + 20;
+static const uint64_t *FLIPPED_5_V = FLIPPED_7_V + 20;
 
 
 #define minusone	_mm_set1_epi32(-1)
@@ -142,6 +141,17 @@ static const unsigned long long *FLIPPED_5_V = FLIPPED_7_V + 20;
 #define	SWAP32	0xb1
 #define	DUPLO	0x44
 #define	DUPHI	0xee
+
+// rotl8
+#if __has_builtin(__builtin_rotateleft8)
+	#define rotl8(x,y)	__builtin_rotateleft8((x),(y))
+#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)) && (defined(__x86_64__) || defined(__i386__))
+	#define rotl8(x,y)	__builtin_ia32_rolqi((x),(y))
+#elif defined(_MSC_VER)
+	#define	rotl8(x,y)	_rotl8((x),(y))
+#else	// may not compile into 8-bit rotate
+	#define	rotl8(x,y)	((unsigned char)(((x)<<(y))|((unsigned char)(x)>>(8-(y)))))
+#endif
 
 
 /*
@@ -200,9 +210,9 @@ static inline __m128i flipmask (const __m128i outflank) {
 }
 
 /**
- * Load 2 unsigned long longs into xmm.
+ * Load 2 uint64_ts into xmm.
  */
-static inline __m128i load64x2 (const unsigned long long *x0, const unsigned long long *x1) {
+static inline __m128i load64x2 (const uint64_t *x0, const uint64_t *x1) {
 	return _mm_castps_si128(_mm_loadh_pi(_mm_castsi128_ps(_mm_loadl_epi64((__m128i *) x0)), (__m64 *) x1));
 }
 
@@ -1987,7 +1997,7 @@ static __m128i vectorcall flip_pass(const __m128i OP)
 
 
 /** Array of functions to compute flipped discs */
-__m128i (vectorcall *mm_flip[])(const __m128i) = {
+__m128i (vectorcall *MM_FLIP[])(const __m128i) = {
 	flip_A1, flip_B1, flip_C1, flip_D1, flip_E1, flip_F1, flip_G1, flip_H1,
 	flip_A2, flip_B2, flip_C2, flip_D2, flip_E2, flip_F2, flip_G2, flip_H2,
 	flip_A3, flip_B3, flip_C3, flip_D3, flip_E3, flip_F3, flip_G3, flip_H3,
@@ -1998,4 +2008,17 @@ __m128i (vectorcall *mm_flip[])(const __m128i) = {
 	flip_A8, flip_B8, flip_C8, flip_D8, flip_E8, flip_F8, flip_G8, flip_H8,
 	flip_pass, flip_pass
 };
+
+uint64_t board_flip(const Board *board, const int x) 
+{
+	__m128i flip = MM_FLIP[x](_mm_loadu_si128((__m128i *) board));
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}
+
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = MM_FLIP[x](_mm_set_epi64x(O, P));
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}	
 

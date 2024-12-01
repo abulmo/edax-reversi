@@ -3,10 +3,9 @@
  *
  * Evaluation function.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @author Toshihiko Okuhara
- * @version 4.5
+ * @version 4.6
  */
 
 #include "eval.h"
@@ -19,22 +18,21 @@
 
 #include <stdlib.h>
 #include <assert.h>
-
-#if !defined(VECTOR_EVAL_UPDATE) && !defined(hasSSE2) && !defined(__ARM_NEON)
+#include <string.h>
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
 	int n_feature;
 	struct {
-		unsigned short i;
-		unsigned short x;
+		uint16_t i;
+		uint16_t x;
 	} feature[7];
 } CoordinateToFeature;
 
 /** feature to coordinates conversion */
 typedef struct FeatureToCoordinate {
-	int n_square;
-	unsigned char x[12];
+	uint32_t n_square;
+	uint8_t x[12];
 } FeatureToCoordinate;
 
 /** array to convert features into coordinates */
@@ -97,10 +95,12 @@ static const FeatureToCoordinate EVAL_F2X[] = {
 	{ 4, {E1, F2, G3, H4}},
 	{ 4, {H5, G6, F7, E8}},
 
+	{ 0, {NOMOVE}},
 	{ 0, {NOMOVE}}
 };
 
 /** array to convert coordinates into feature */
+#if !USE_SIMD || (!defined(__ARM_NEON) && !defined(__AVX2__))
 static const CoordinateToFeature EVAL_X2F[] = {
 	{7, {{ 0,  6561}, { 4,   243}, { 8,  6561}, {10,  6561}, {12, 19683}, {14, 19683}, {28,  2187}}},  /* a1 */
 	{5, {{ 0,  2187}, { 4,    27}, { 8,  2187}, {18,  2187}, {30,   729}}},                            /* b1 */
@@ -166,13 +166,12 @@ static const CoordinateToFeature EVAL_X2F[] = {
 	{6, {{ 3,    27}, { 7,     9}, { 9,    27}, {13,     3}, {23,     1}, {35,     1}}},               /* f8 */
 	{5, {{ 3,   729}, { 7,    27}, { 9,     9}, {19,     1}, {32,     1}}},                            /* g8 */
 	{7, {{ 3,  6561}, { 7,   243}, { 9,     3}, {11,     3}, {13,     1}, {15,     1}, {28,     1}}},  /* h8 */
-	{4, {{ 0,     0}, { 0,     0}, { 0,     0}, { 0,     0}}} // <- PASS
+	{0, {{ 0,     0},}}, // offset
+	{0, {{ 0,     0},}} // hack to get 3 * 16 features
 };
-
 #endif
-#if defined(VECTOR_EVAL_UPDATE) || defined(hasSSE2) || defined(__ARM_NEON) || defined(DISPATCH_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
 
-const EVAL_FEATURE_V EVAL_FEATURE[65] = {
+const Feature EVAL_FEATURE[] = {
 	{{ // a1
 		 6561,     0,     0,     0,   243,     0,     0,     0,  6561,     0,  6561,     0, 19683,     0, 19683,     0,
 		    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,  2187,     0,     0,     0,
@@ -436,120 +435,128 @@ const EVAL_FEATURE_V EVAL_FEATURE[65] = {
 	}}
 };
 
-const EVAL_FEATURE_V EVAL_FEATURE_all_opponent = {{
-	 9841,  9841,  9841,  9841, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524, 29524,
-//	11111111(3)                 +3^8                       +3^8*2                      +3^8*3         1111111(3)
-	 3280,  3280,  3280,  3280,  9841,  9841,  9841,  9841, 16402, 16402, 16402, 16402, 22963, 22963,  1093,  1093,
-//	              364(=111111(3))+2187        121(=11111(3))+2187+729     40(=1111(3))+2187+729+243
-	 1093,  1093,  2551,  2551,  2551,  2551,  3037,  3037,  3037,  3037,  3199,  3199,  3199,  3199,     0,     0
-}};
 
-#endif
+/** feature size */
+static const uint32_t EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
 
-/** feature offset/size */
-// static const int EVAL_OFS[] = { 0, 19683, 78732, 137781, 196830, 203391, 209952, 216513, 223074, 225261, 225990, 226233, 226314 };
-// static const int EVAL_SIZE[] = {19683, 59049, 59049, 59049, 6561, 6561, 6561, 6561, 2187, 729, 243, 81, 1};
-static const unsigned short EVAL_OFFSET[] = {
-	    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-	    0,     0,     0,     0,  6561,  6561,  6561,  6561, 13122, 13122, 13122, 13122, 19683, 19683,     0,     0,
-	    0,     0,  2187,  2187,  2187,  2187,  2916,  2916,  2916,  2916,  3159,  3159,  3159,  3159,     0,     0
+/** packed feature size */
+static const uint32_t EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
+
+/** feature offset */
+static const uint32_t WEIGHT_OFFSET[] = {
+	     0,
+	 19683,
+	 78732,
+	137781,
+	196830,
 };
 
-/** packed feature offset/size */
-static const int EVAL_PACKED_OFS[] = { 0, 10206, 40095, 69741, 99387, 102708, 106029, 109350, 112671, 113805, 114183, 114318, 114363 };
-// static const int EVAL_PACKED_SIZE[] = {10206, 29889, 29646, 29646, 3321, 3321, 3321, 3321, 1134, 378, 135, 45, 1};
+/** feature offset */
+static const uint32_t FEATURE_OFFSET[] = {
+	    0,     0,     0,     0,
+	    0,     0,     0,     0,
+	    0,     0,     0,     0,
+	    0,     0,     0,     0,
+	    0,     0,     0,     0,
+	 6561,  6561,  6561,  6561,
+	13122, 13122, 13122, 13122,
+	19683, 19683,
+	26244, 26244, 26244, 26244,
+	28431, 28431, 28431, 28431,
+	29160, 29160, 29160, 29160,
+	29403, 29403, 29403, 29403,
+	29484, 29485
+};
 
-/** feature symetry packing */
-typedef struct {
-	short EVAL_C10[59049];
-	short EVAL_S10[59049];
-	short EVAL_C9[19683];
-	short EVAL_S8[6561];
-	short EVAL_S7[2187];
-	short EVAL_S6[729];
-	short EVAL_S5[243];
-	short EVAL_S4[81];
-} SymetryPacking;
+/** Evaluation weights by color & ply */
+static int16_t *EVAL_WEIGHT[65][2];
+
+/** number of (unpacked) weights */
+static const uint32_t EVAL_N_WEIGHT = 226315;
+
+/** number of plies */
+static const uint32_t EVAL_N_PLY = 61;
+
+/** number of features */
+static const uint32_t EVAL_N_FEATURE = 47;
 
 /** eval weight load status */
 static int EVAL_LOADED = 0;
 
-/** eval weights */
-Eval_weight (*EVAL_WEIGHT)[EVAL_N_PLY - 2];	// for 2..53
-
-/** opponent feature */
-static unsigned short *OPPONENT_FEATURE;
-
 /** evaluation function error coefficient parameters */
 static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
+
 
 /**
  * @brief Opponent feature.
  *
  * Compute a feature from the opponent point of view.
- * @param p opponent feature pointer.
- * @param o opponent feature base to next depth.
+ * @param l feature.
  * @param d feature size.
- * @return updated opponent feature pointer
+ * @return opponent feature.
  */
-// #define OPPONENT(x)	((9 >> (x)) & 3)	// (0, 1, 2) to (1, 0, 2)
-static unsigned short *set_opponent_feature(unsigned short *p, int o, int d)
+static uint32_t opponent_feature(uint32_t l, uint32_t d)
 {
-	if (--d) {
-		p = set_opponent_feature(p, (o + 1) * 3, d);
-		p = set_opponent_feature(p, o * 3, d);
-		p = set_opponent_feature(p, (o + 2) * 3, d);
-	} else {
-		*p++ = o + 1;
-		*p++ = o;
-		*p++ = o + 2;
-	}
-	return p;
+	static const uint8_t o[] = {1, 0, 2};
+	uint32_t f = o[l % 3];
+
+	if (d > 1) f += opponent_feature(l / 3, d - 1) * 3;
+
+	return f;
 }
 
 /**
- * @brief Create eval packing index.
+ * @brief player's symetric feature.
  *
- * Create an index array to reduce mirror positions.
- * @param pe pointer to array to set result.
- * @param T internally used array to check mirror positions.
- * @param kd feature increment at each depth for the mirror position.
- * @param l feature index.
- * @param k feature index for the mirror position.
- * @param n packed count so far.
- * @param d feature size, >= 4.
- * @return updated packed count.
+ * Compute a symetric feature.
+ * @param sym symetries.
+ * @param n feature length.
+ * @param j feature.
+ * @return player's feature.
  */
-static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int n, int d)
+static uint32_t player_feature(const int sym[], uint32_t n, uint32_t l)
 {
-	int	i, q0, q1, q2, q3;
+	uint32_t power3[] = {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
+	uint32_t f, i;
 
-	if (--d > 3) {
-		l *= 3;
-		n = set_eval_packing(pe, T, kd, l, k, n, d);
-		k += kd[d];
-		n = set_eval_packing(pe, T, kd, l + 3, k, n, d);
-		k += kd[d];
-		n = set_eval_packing(pe, T, kd, l + 6, k, n, d);
-	} else {
-		l *= 27;
-		for (q3 = 0; q3 < 3; ++q3) {
-			for (q2 = 0; q2 < 3; ++q2) {
-				for (q1 = 0; q1 < 3; ++q1) {
-					for (q0 = 0; q0 < 3; ++q0) {
-						if (k < l) i = T[k];
-						else T[l] = i = n++;
-						pe[l++] = i;
-						k += kd[0];
-					}
-					k += (kd[1] - kd[0] * 3);
-				}
-				k += (kd[2] - kd[1] * 3);
-			}
-			k += (kd[3] - kd[2] * 3);
-		}
+	for (f = i = 0; i < n; ++i) {
+		f += ((l / power3[sym[i]]) % 3) * power3[i];
 	}
-	return n;
+
+	return f;
+}
+
+static int** alloc_pack(size_t size)
+{
+	int **pack = (int**) malloc (2 * sizeof (int*));
+	pack[0] = (int*) malloc(size * sizeof (int));
+	pack[1] = (int*) malloc(size * sizeof (int));
+	return pack;
+}
+
+static void free_pack(int **pack)
+ {
+	free(pack[1]);
+	free(pack[0]);
+	free(pack);
+}
+
+/**
+ * @brief Unpack a feature
+ *
+ */
+static int **unpack(const uint32_t length, const uint32_t size, const int sym[])
+{
+	uint32_t i, j, n;
+	int ** pack = alloc_pack(size);
+
+	for (i = n = 0; i < size; ++i) {
+		j = player_feature(sym, length, i);
+		if (j < i) pack[0][i] = pack[0][j];
+		else pack[0][i] = n++;
+		pack[1][opponent_feature(i, length)] = pack[0][i];
+	}
+	return pack;
 }
 
 /**
@@ -564,78 +571,45 @@ static int set_eval_packing(short *pe, int *T, const int *kd, int l, int k, int 
  */
 void eval_open(const char* file)
 {
-	unsigned int edax_header, eval_header;
-	unsigned int version, release, build;
+	const uint32_t n_w = 114364;
+	uint32_t edax_header, eval_header;
+	uint32_t version, release, build;
 	double date;
-	const int n_w = 114364;
-	int *T;
-	int ply, i, j, k;
-	int r;
+	uint32_t ply, i, j, k, r, offset;
 	FILE* f;
-	short *w;
-	Eval_weight *pe;
-	SymetryPacking (*P)[2];
-	SymetryPacking *pp;
-	static const int kd_S10[] = { 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1 };
-	static const int kd_C10[] = { 19683, 6561, 2187, 729, 81, 243, 27, 9, 3, 1 };
-	static const int kd_C9[] = { 1, 9, 3, 81, 27, 243, 2187, 729, 6561 };
+	int16_t *w = NULL;
+	static const int sym_S10[] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+	static const int sym_C10[] = { 9, 8, 7, 6, 4, 5, 3, 2, 1, 0 };
+	static const int sym_C9[]  = { 0, 2, 1, 4, 3, 5, 7, 6, 8};
+	/** feature symetry packing */
+	int **EVAL_C10, **EVAL_S10, **EVAL_C9, **EVAL_S8, **EVAL_S7, **EVAL_S6, **EVAL_S5, **EVAL_S4;
 
 	if (EVAL_LOADED++) return;
 
-	// the following is assumed:
-	//	-(unsigned) int are 32 bits
-	if (sizeof (int) != 4) fatal_error("int size is not compatible with Edax.\n");
-	//	-(unsigned) short are 16 bits
-	if (sizeof (short) != 2) fatal_error("short size is not compatible with Edax.\n");
-
 	// create unpacking tables
-	OPPONENT_FEATURE = (unsigned short *) malloc(59049 * sizeof(unsigned short));	// 3^10
-	P = (SymetryPacking (*)[2]) malloc(2 * sizeof(*P));
-	T = (int *) malloc(2 * 59049 * sizeof(*T));
-	if ((OPPONENT_FEATURE == NULL) || (P == NULL) || (T == NULL))
-		fatal_error("Cannot allocate temporary table variable.\n");
-
-	set_opponent_feature(OPPONENT_FEATURE, 0, 10);
-
-	set_eval_packing((*P)[0].EVAL_S8, T, kd_S10 + 2, 0, 0, 0, 8);	/* 8 squares : 6561 -> 3321 */
-	for (j = 0; j < 6561; ++j)
-		(*P)[1].EVAL_S8[j] = (*P)[0].EVAL_S8[OPPONENT_FEATURE[j + 26244]];	// 1100000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S7, T, kd_S10 + 3, 0, 0, 0, 7);	/* 7 squares : 2187 -> 1134 */
-	for (j = 0; j < 2187; ++j)
-		(*P)[1].EVAL_S7[j] = (*P)[0].EVAL_S7[OPPONENT_FEATURE[j + 28431]];	// 1110000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S6, T, kd_S10 + 4, 0, 0, 0, 6);	/* 6 squares : 729 -> 378 */
-	for (j = 0; j < 729; ++j)
-		(*P)[1].EVAL_S6[j] = (*P)[0].EVAL_S6[OPPONENT_FEATURE[j + 29160]];	// 1111000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S5, T, kd_S10 + 5, 0, 0, 0, 5);	/* 5 squares : 243 -> 135 */
-	for (j = 0; j < 243; ++j)
-		(*P)[1].EVAL_S5[j] = (*P)[0].EVAL_S5[OPPONENT_FEATURE[j + 29403]];	// 1111100000(3)
-
-	set_eval_packing((*P)[0].EVAL_S4, T, kd_S10 + 6, 0, 0, 0, 4);	/* 4 squares : 81 -> 45 */
-	for (j = 0; j < 81; ++j)
-		(*P)[1].EVAL_S4[j] = (*P)[0].EVAL_S4[OPPONENT_FEATURE[j + 29484]];	// 1111110000(3)
-
-	set_eval_packing((*P)[0].EVAL_C9, T, kd_C9, 0, 0, 0, 9);	/* 9 corner squares : 19683 -> 10206 */
-	for (j = 0; j < 19683; ++j)
-		(*P)[1].EVAL_C9[j] = (*P)[0].EVAL_C9[OPPONENT_FEATURE[j + 19683]];	// 1000000000(3)
-
-	set_eval_packing((*P)[0].EVAL_S10, T, kd_S10, 0, 0, 0, 10);	/* 10 squares (edge + X) : 59049 -> 29646 */
-	set_eval_packing((*P)[0].EVAL_C10, T, kd_C10, 0, 0, 0, 10);	/* 10 squares (angle + X) : 59049 -> 29889 */
-	for (j = 0; j < 59049; ++j) {
-		(*P)[1].EVAL_S10[j] = (*P)[0].EVAL_S10[OPPONENT_FEATURE[j]];
-		(*P)[1].EVAL_C10[j] = (*P)[0].EVAL_C10[OPPONENT_FEATURE[j]];
-	}
-
-	free(T);
+	// linear symetries
+	EVAL_S10 = unpack(10, 59049, sym_S10);     // 10 squares (edge +X ) : 59049 -> 29646
+	EVAL_S8  = unpack( 8,  6561, sym_S10 + 2); // 8 squares : 6561 -> 3321
+	EVAL_S7  = unpack( 7,  2187, sym_S10 + 3); // 7 squares : 2187 -> 1134
+	EVAL_S6  = unpack( 6,   729, sym_S10 + 4); // 6 squares :  729 ->  378
+	EVAL_S5  = unpack( 5,   243, sym_S10 + 5); // 5 squares :  243 ->  135
+	EVAL_S4  = unpack( 4,    81, sym_S10 + 6); // 4 squares :   81  -> 45
+	// corner symetries
+	EVAL_C9  = unpack( 9, 19683, sym_C9);      // 9 corner squares 19683 -> 1006
+	EVAL_C10 = unpack(10, 59049, sym_C10);     // 10 squares (angle + X) : 59049 -> 29889
 
 	// allocation
-	EVAL_WEIGHT = (Eval_weight(*)[EVAL_N_PLY - 2]) malloc(sizeof(*EVAL_WEIGHT));
-	if (EVAL_WEIGHT == NULL) fatal_error("Cannot allocate evaluation weights.\n");
+	int16_t *eval_weight = (int16_t*) malloc(2 * EVAL_N_PLY * (EVAL_N_WEIGHT + 2) * sizeof (int16_t));
+	if (eval_weight == NULL) fatal_error("Cannot allocate evaluation weights.\n");
+	EVAL_WEIGHT[0][0] = eval_weight + 1;
+	EVAL_WEIGHT[0][1] = eval_weight + 1 + EVAL_N_WEIGHT + 1;
+	for (ply = 1; ply < EVAL_N_PLY; ply++) {
+		EVAL_WEIGHT[ply][0] = EVAL_WEIGHT[ply - 1][0] + 2 * (EVAL_N_WEIGHT + 1);
+		EVAL_WEIGHT[ply][1] = EVAL_WEIGHT[ply][0] + EVAL_N_WEIGHT + 1;
+	}
 
 	// data reading
-	w = (short*) malloc(n_w * sizeof (*w)); // a temporary to read packed weights
+	w = (int16_t*) malloc(n_w * sizeof (int16_t)); // a temporary to read packed weights
 	f = fopen(file, "rb");
 	if (f == NULL) {
 		fprintf(stderr, "Cannot open %s", file);
@@ -646,60 +620,115 @@ void eval_open(const char* file)
 	r = fread(&edax_header, sizeof (int), 1, f);
 	r += fread(&eval_header, sizeof (int), 1, f);
 	if (r != 2 || (!(edax_header == EDAX || eval_header == EVAL) && !(edax_header == XADE || eval_header == LAVE))) fatal_error("%s is not an Edax evaluation file\n", file);
-	r = fread(&version, sizeof (int), 1, f);
+	r  = fread(&version, sizeof (int), 1, f);
 	r += fread(&release, sizeof (int), 1, f);
 	r += fread(&build, sizeof (int), 1, f);
 	r += fread(&date, sizeof (double), 1, f);
 	if (r != 4) fatal_error("Cannot read version info from %s\n", file);
 	if (edax_header == XADE) {
-		version = bswap_int(version);
-		release = bswap_int(release);
-		build = bswap_int(build);
+		version = bswap_32(version);
+		release = bswap_32(release);
+		build = bswap_32(build);
 	}
 	// Weights : read & unpacked them
 	for (ply = 0; ply < EVAL_N_PLY; ply++) {
-		r = fread(w, sizeof (short), n_w, f);
+		r = fread(w, sizeof (int16_t), n_w, f);
 		if (r != n_w) fatal_error("Cannot read evaluation weight from %s\n", file);
-		if (ply < 2) continue;	// skip ply 1 & 2
+		if (edax_header == XADE) for (i = 0; i < n_w; ++i) w[i] = bswap_16(w[i]);
 
-		if (edax_header == XADE) for (i = 0; i < n_w; ++i) w[i] = bswap_short(w[i]);
+		EVAL_WEIGHT[ply][0][-1] = 0;
+		EVAL_WEIGHT[ply][1][-1] = 0;
 
-		pe = *EVAL_WEIGHT + ply - 2;
-		pp = *P + (ply & 1);
-		for (k = 0; k < 19683; k++) {
-			pe->C9[k] = w[pp->EVAL_C9[k] + EVAL_PACKED_OFS[0]];
+		j = offset = 0;
+		for (k = 0; k < EVAL_SIZE[0]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_C9[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_C9[1][k] + offset];
 		}
-		for (k = 0; k < 59049; k++) {
-			pe->C10[k] = w[pp->EVAL_C10[k] + EVAL_PACKED_OFS[1]];
-			i = pp->EVAL_S10[k];
-			pe->S100[k] = w[i + EVAL_PACKED_OFS[2]];
-			pe->S101[k] = w[i + EVAL_PACKED_OFS[3]];
+
+		offset += EVAL_PACKED_SIZE[0];
+		for (k = 0; k < EVAL_SIZE[1]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_C10[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_C10[1][k] + offset];
 		}
-		for (k = 0; k < 6561; k++) {
-			i = pp->EVAL_S8[k];
-			pe->S8x4[k] = w[i + EVAL_PACKED_OFS[4]];
-			pe->S8x4[k + 6561] = w[i + EVAL_PACKED_OFS[5]];
-			pe->S8x4[k + 13122] = w[i + EVAL_PACKED_OFS[6]];
-			pe->S8x4[k + 19683] = w[i + EVAL_PACKED_OFS[7]];
+
+		offset += EVAL_PACKED_SIZE[1];
+		for (k = 0; k < EVAL_SIZE[2]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S10[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S10[1][k] + offset];
 		}
-		for (k = 0; k < 2187; k++) {
-			pe->S7654[k] = w[pp->EVAL_S7[k] + EVAL_PACKED_OFS[8]];
+
+		offset += EVAL_PACKED_SIZE[2];
+		for (k = 0; k < EVAL_SIZE[3]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S10[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S10[1][k] + offset];
 		}
-		for (k = 0; k < 729; k++) {
-			pe->S7654[k + 2187] = w[pp->EVAL_S6[k] + EVAL_PACKED_OFS[9]];
+
+		offset += EVAL_PACKED_SIZE[3];
+		for (k = 0; k < EVAL_SIZE[4]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S8[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S8[1][k] + offset];
 		}
-		for (k = 0; k < 243; k++) {
-			pe->S7654[k + 2916] = w[pp->EVAL_S5[k] + EVAL_PACKED_OFS[10]];
+
+		offset += EVAL_PACKED_SIZE[4];
+		for (k = 0; k < EVAL_SIZE[5]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S8[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S8[1][k] + offset];
 		}
-		for (k = 0; k < 81; k++) {
-			pe->S7654[k + 3159] = w[pp->EVAL_S4[k] + EVAL_PACKED_OFS[11]];
+
+		offset += EVAL_PACKED_SIZE[5];
+		for (k = 0; k < EVAL_SIZE[6]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S8[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S8[1][k] + offset];
 		}
-		pe->S0 = w[EVAL_PACKED_OFS[12]];
+
+		offset += EVAL_PACKED_SIZE[6];
+		for (k = 0; k < EVAL_SIZE[7]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S8[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S8[1][k] + offset];
+		}
+
+		offset += EVAL_PACKED_SIZE[7];
+		for (k = 0; k < EVAL_SIZE[8]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S7[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S7[1][k] + offset];
+		}
+
+		offset += EVAL_PACKED_SIZE[8];
+		for (k = 0; k < EVAL_SIZE[9]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S6[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S6[1][k] + offset];
+		}
+
+		offset += EVAL_PACKED_SIZE[9];
+		for (k = 0; k < EVAL_SIZE[10]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S5[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S5[1][k] + offset];
+		}
+
+		offset += EVAL_PACKED_SIZE[10];
+		for (k = 0; k < EVAL_SIZE[11]; k++, j++) {
+			EVAL_WEIGHT[ply][0][j] = w[EVAL_S4[0][k] + offset];
+			EVAL_WEIGHT[ply][1][j] = w[EVAL_S4[1][k] + offset];
+		}
+
+		offset += EVAL_PACKED_SIZE[11];
+		EVAL_WEIGHT[ply][0][j] = w[offset];
+		EVAL_WEIGHT[ply][1][j] = w[offset];
+
+		EVAL_WEIGHT[ply][0][j + 1] = 0;
+		EVAL_WEIGHT[ply][1][j + 1] = 0;
 	}
 
 	fclose(f);
 	free(w);
-	free(P);
+	free_pack(EVAL_C10);
+	free_pack(EVAL_S10);
+	free_pack(EVAL_C9);
+	free_pack(EVAL_S8);
+	free_pack(EVAL_S7);
+	free_pack(EVAL_S6);
+	free_pack(EVAL_S5);
+	free_pack(EVAL_S4);
 
 	/*if (version == 3 && release == 2 && build == 5)*/ {
 		EVAL_A = -0.10026799, EVAL_B = 0.31027733, EVAL_C = -0.57772603;
@@ -707,10 +736,6 @@ void eval_open(const char* file)
 	}
 
 	info("<Evaluation function weights version %u.%u.%u loaded>\n", version, release, build);
-
-	// f = fopen("eval.bin", "wb");
-	// fwrite(*EVAL_WEIGHT, sizeof(Eval_weight), EVAL_N_PLY, f);
-	// fclose(f);
 }
 
 /**
@@ -718,18 +743,32 @@ void eval_open(const char* file)
  */
 void eval_close(void)
 {
-	free(OPPONENT_FEATURE);
-	free(EVAL_WEIGHT);
-	EVAL_WEIGHT = NULL;
+	free(EVAL_WEIGHT[0][0] - 1);
+	EVAL_LOADED = 0;
 }
 
-#ifdef ANDROID
-extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in);
-#elif defined(hasSSE2) || defined(__ARM_NEON) || defined(USE_GAS_MMX) || defined(USE_MSVC_X86)
-#include "eval_sse.c"
-#endif
+/**
+ * @brief Initialize a new evaluation function.
+ *
+ * Allocate space to store the state of the evaluation function.
+ *
+ * @param eval Evaluation function.
+ */
+void eval_init(Eval *eval)
+{
+	eval->feature = (Feature*) aligned_alloc(64, adjust_size(64, EVAL_N_PLY * sizeof (Feature)));
+	if (eval->feature == NULL) fatal_error("Cannot allocate eval features");
+}
 
-#if !defined(hasSSE2) && !defined(__ARM_NEON)
+/**
+ * @brief Free resources used by the evaluation function.
+ *
+ * @param eval Evaluation function.
+ */
+void eval_free(Eval *eval)
+{
+	free(eval->feature);
+}
 
 /**
  * @brief Set up evaluation features from a board.
@@ -739,173 +778,256 @@ extern void eval_update_sse(int x, unsigned long long f, Eval *eval_out, const E
  */
 void eval_set(Eval *eval, const Board *board)
 {
-	int	i, x;
-  #ifdef VECTOR_EVAL_UPDATE
-	unsigned long long b = (eval->n_empties & 1) ? board->opponent : board->player;
+	assert(eval != NULL);
+	assert(eval->feature != NULL);
+	assert(board != NULL);
 
-	eval->feature = EVAL_FEATURE_all_opponent;
-	foreach_bit (x, b)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
+	uint32_t i, j, c;
 
-	b = ~(board->opponent | board->player);
-	foreach_bit (x, b)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
+	eval->player = 0;
+	eval->ply = 60 - board_count_empties(board);
 
-  #else
-	int	j;
-	Board	b;
+	uint16_t *feature = eval->feature[eval->ply].v1;
 
-	if (eval->n_empties & 1) {
-		b.player = board->opponent;
-		b.opponent = board->player;
-	} else	b = *board;
-
-	for (i = 0; i < EVAL_N_FEATURE; ++i) {
-		x = 0;
+	for (i = 0; i <= EVAL_N_FEATURE; ++i) {
+		feature[i] = 0;
 		for (j = 0; j < EVAL_F2X[i].n_square; j++) {
-			x = x * 3 + board_get_square_color(&b, EVAL_F2X[i].x[j]);
+			c = board_get_square_color(board, EVAL_F2X[i].x[j]);
+			feature[i] = feature[i] * 3 + c;
 		}
-		eval->feature.us[i] = x + EVAL_OFFSET[i];
+		feature[i] += FEATURE_OFFSET[i];
 	}
-  #endif
 }
+
+/**
+ * @brief Swap player's feature.
+ *
+ * @param eval  Evaluation function.
+ */
+static void eval_swap(Eval *eval)
+{
+	eval->player ^= 1;
+}
+
 
 /**
  * @brief Update the features after a player's move.
  *
- * @param x     Move position.
- * @param f     Flipped bitboard.
  * @param eval  Evaluation function.
+ * @param move  Move.
  */
-static void eval_update_0(int x, unsigned long long f, Eval *eval)
+void eval_update(Eval *eval, const Move *move)
 {
-  #ifdef VECTOR_EVAL_UPDATE
-	int	i;
+	assert(eval != NULL);
+	assert(eval->feature != NULL);
+	assert(move != NULL);
+	assert(move->flipped);
+	assert(WHITE == eval->player || BLACK == eval->player);
 
-	for (i = 0; i < 12; ++i)
-		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i] << 1;
+	int x = move->x;
+	uint64_t flip = move->flipped;
 
-	foreach_bit (x, f)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
+// AVX2 version: add 16 features at once
+#if USE_SIMD && defined(__AVX2__)
 
-  #else
-	const CoordinateToFeature *s = EVAL_X2F + x;
+	__m256i *feature_in = eval->feature[eval->ply].v16;
+	__m256i *feature_out = eval->feature[++eval->ply].v16;
 
-	switch (s->n_feature) {
-	default:
-		eval->feature.us[s->feature[6].i] -= 2 * s->feature[6].x;	// FALLTHRU
-	case 6:	eval->feature.us[s->feature[5].i] -= 2 * s->feature[5].x;	// FALLTHRU
-	case 5:	eval->feature.us[s->feature[4].i] -= 2 * s->feature[4].x;	// FALLTHRU
-	case 4:	eval->feature.us[s->feature[3].i] -= 2 * s->feature[3].x;
-		eval->feature.us[s->feature[2].i] -= 2 * s->feature[2].x;
-		eval->feature.us[s->feature[1].i] -= 2 * s->feature[1].x;
-		eval->feature.us[s->feature[0].i] -= 2 * s->feature[0].x;
-		break;
-	}
+	__m256i f0 = feature_in[0];
+	__m256i f1 = feature_in[1];
+	__m256i f2 = feature_in[2];
 
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-			eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
-		case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
-		case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
-		case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
-			eval->feature.us[s->feature[2].i] -= s->feature[2].x;
-			eval->feature.us[s->feature[1].i] -= s->feature[1].x;
-			eval->feature.us[s->feature[0].i] -= s->feature[0].x;
-			break;
+	if (eval->player == 0) {
+		f0 = _mm256_sub_epi16(f0, _mm256_slli_epi16(EVAL_FEATURE[x].v16[0], 1));
+		f1 = _mm256_sub_epi16(f1, _mm256_slli_epi16(EVAL_FEATURE[x].v16[1], 1));
+		f2 = _mm256_sub_epi16(f2, _mm256_slli_epi16(EVAL_FEATURE[x].v16[2], 1));
+
+		foreach_bit (x, flip) {
+			f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
+			f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
+			f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
+		}
+	} else {
+		f0 = _mm256_sub_epi16(f0, EVAL_FEATURE[x].v16[0]);
+		f1 = _mm256_sub_epi16(f1, EVAL_FEATURE[x].v16[1]);
+		f2 = _mm256_sub_epi16(f2, EVAL_FEATURE[x].v16[2]);
+
+		foreach_bit (x, flip) {
+			f0 = _mm256_add_epi16(f0, EVAL_FEATURE[x].v16[0]);
+			f1 = _mm256_add_epi16(f1, EVAL_FEATURE[x].v16[1]);
+			f2 = _mm256_add_epi16(f2, EVAL_FEATURE[x].v16[2]);
 		}
 	}
-  #endif
+
+	feature_out[0] = f0;
+	feature_out[1] = f1;
+	feature_out[2] = f2;
+
+// SSE version: add 8 features at once
+#elif USE_SIMD && defined(__SSE2__)
+
+	__m128i *feature_in = eval->feature[eval->ply].v8;
+	__m128i *feature_out = eval->feature[++eval->ply].v8;
+
+	__m128i	f0 = feature_in[0];
+	__m128i	f1 = feature_in[1];
+	__m128i	f2 = feature_in[2];
+	__m128i	f3 = feature_in[3];
+	__m128i	f4 = feature_in[4];
+	__m128i	f5 = feature_in[5];
+
+	if (eval->player == 0) {
+		f0 = _mm_sub_epi16(f0, _mm_slli_epi16(EVAL_FEATURE[x].v8[0], 1));
+		f1 = _mm_sub_epi16(f1, _mm_slli_epi16(EVAL_FEATURE[x].v8[1], 1));
+		f2 = _mm_sub_epi16(f2, _mm_slli_epi16(EVAL_FEATURE[x].v8[2], 1));
+		f3 = _mm_sub_epi16(f3, _mm_slli_epi16(EVAL_FEATURE[x].v8[3], 1));
+		f4 = _mm_sub_epi16(f4, _mm_slli_epi16(EVAL_FEATURE[x].v8[4], 1));
+		f5 = _mm_sub_epi16(f5, _mm_slli_epi16(EVAL_FEATURE[x].v8[5], 1));
+
+		foreach_bit (x, flip) {
+			f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
+			f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
+			f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
+			f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
+			f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
+			f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
+		}
+	} else {
+		f0 = _mm_sub_epi16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = _mm_sub_epi16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = _mm_sub_epi16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = _mm_sub_epi16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = _mm_sub_epi16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = _mm_sub_epi16(f5, EVAL_FEATURE[x].v8[5]);
+
+		foreach_bit (x, flip) {
+			f0 = _mm_add_epi16(f0, EVAL_FEATURE[x].v8[0]);
+			f1 = _mm_add_epi16(f1, EVAL_FEATURE[x].v8[1]);
+			f2 = _mm_add_epi16(f2, EVAL_FEATURE[x].v8[2]);
+			f3 = _mm_add_epi16(f3, EVAL_FEATURE[x].v8[3]);
+			f4 = _mm_add_epi16(f4, EVAL_FEATURE[x].v8[4]);
+			f5 = _mm_add_epi16(f5, EVAL_FEATURE[x].v8[5]);
+		}
+	}
+
+	feature_out[0] = f0;
+	feature_out[1] = f1;
+	feature_out[2] = f2;
+	feature_out[3] = f3;
+	feature_out[4] = f4;
+	feature_out[5] = f5;
+
+// NEON version: add 8 features at once
+#elif USE_SIMD && defined(__ARM_NEON)
+
+	int16x8_t *feature_in = eval->feature[eval->ply].v8;
+	int16x8_t *feature_out = eval->feature[++eval->ply].v8;
+
+	int16x8_t f0 = feature_in[0];
+	int16x8_t f1 = feature_in[1];
+	int16x8_t f2 = feature_in[2];
+	int16x8_t f3 = feature_in[3];
+	int16x8_t f4 = feature_in[4];
+	int16x8_t f5 = feature_in[5];
+
+	if (eval->player == 0) {
+		f0 = vsubq_s16(f0, vshlq_n_s16(EVAL_FEATURE[x].v8[0], 1));
+		f1 = vsubq_s16(f1, vshlq_n_s16(EVAL_FEATURE[x].v8[1], 1));
+		f2 = vsubq_s16(f2, vshlq_n_s16(EVAL_FEATURE[x].v8[2], 1));
+		f3 = vsubq_s16(f3, vshlq_n_s16(EVAL_FEATURE[x].v8[3], 1));
+		f4 = vsubq_s16(f4, vshlq_n_s16(EVAL_FEATURE[x].v8[4], 1));
+		f5 = vsubq_s16(f5, vshlq_n_s16(EVAL_FEATURE[x].v8[5], 1));
+
+		foreach_bit (x, flip) {
+			f0 = vsubq_s16(f0, EVAL_FEATURE[x].v8[0]);
+			f1 = vsubq_s16(f1, EVAL_FEATURE[x].v8[1]);
+			f2 = vsubq_s16(f2, EVAL_FEATURE[x].v8[2]);
+			f3 = vsubq_s16(f3, EVAL_FEATURE[x].v8[3]);
+			f4 = vsubq_s16(f4, EVAL_FEATURE[x].v8[4]);
+			f5 = vsubq_s16(f5, EVAL_FEATURE[x].v8[5]);
+		}
+	} else {
+		f0 = vsubq_s16(f0, EVAL_FEATURE[x].v8[0]);
+		f1 = vsubq_s16(f1, EVAL_FEATURE[x].v8[1]);
+		f2 = vsubq_s16(f2, EVAL_FEATURE[x].v8[2]);
+		f3 = vsubq_s16(f3, EVAL_FEATURE[x].v8[3]);
+		f4 = vsubq_s16(f4, EVAL_FEATURE[x].v8[4]);
+		f5 = vsubq_s16(f5, EVAL_FEATURE[x].v8[5]);
+
+		foreach_bit (x, flip) {
+			f0 = vaddq_s16(f0, EVAL_FEATURE[x].v8[0]);
+			f1 = vaddq_s16(f1, EVAL_FEATURE[x].v8[1]);
+			f2 = vaddq_s16(f2, EVAL_FEATURE[x].v8[2]);
+			f3 = vaddq_s16(f3, EVAL_FEATURE[x].v8[3]);
+			f4 = vaddq_s16(f4, EVAL_FEATURE[x].v8[4]);
+			f5 = vaddq_s16(f5, EVAL_FEATURE[x].v8[5]);
+		}
+	}
+	feature_out[0] = f0;
+	feature_out[1] = f1;
+	feature_out[2] = f2;
+	feature_out[3] = f3;
+	feature_out[4] = f4;
+	feature_out[5] = f5;
+
+#else // add features that change only
+
+	uint16_t *feature_in = eval->feature[eval->ply].v1;
+	uint16_t *feature_out = eval->feature[++eval->ply].v1;
+	const CoordinateToFeature *s = EVAL_X2F + move->x;
+	int i, j;
+
+	memcpy(feature_out, feature_in, sizeof(Feature));
+
+	if (eval->player == 0) {
+
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			feature_out[j] -= 2 * s->feature[i].x;
+		}
+
+		foreach_bit (x, flip) {
+			s = EVAL_X2F + x;
+			for (i = 0; i < s->n_feature; ++i) {
+				j = s->feature[i].i;
+				feature_out[j] -= s->feature[i].x;
+			}
+		}
+
+	} else {
+
+		for (i = 0; i < s->n_feature; ++i) {
+			j = s->feature[i].i;
+			feature_out[j] -= s->feature[i].x;
+		}
+
+		foreach_bit (x, flip) {
+			s = EVAL_X2F + x;
+			for (i = 0; i < s->n_feature; ++i) {
+				j = s->feature[i].i;
+				feature_out[j] += s->feature[i].x;
+			}
+		}
+	}
+
+#endif
+
+	eval_swap(eval);
 }
 
 /**
- * @brief Update the features after a player's move.
+ * @brief Restore the features as before a player's move.
  *
- * @param x     Move position.
- * @param f     Flipped bitboard.
  * @param eval  Evaluation function.
+ * @param move  Move.
  */
-static void eval_update_1(int x, unsigned long long f, Eval *eval)
+void eval_restore(Eval *eval)
 {
-  #ifdef VECTOR_EVAL_UPDATE
-	int	i;
+	assert(eval != NULL);
 
-	for (i = 0; i < 12; ++i)
-		eval->feature.ull[i] -= EVAL_FEATURE[x].ull[i];
-
-	foreach_bit (x, f)
-		for (i = 0; i < 12; ++i)
-			eval->feature.ull[i] += EVAL_FEATURE[x].ull[i];
-
-  #else
-	const CoordinateToFeature *s = EVAL_X2F + x;
-
-	switch (s->n_feature) {
-	default:
-	       	eval->feature.us[s->feature[6].i] -= s->feature[6].x;	// FALLTHRU
-	case 6:	eval->feature.us[s->feature[5].i] -= s->feature[5].x;	// FALLTHRU
-	case 5:	eval->feature.us[s->feature[4].i] -= s->feature[4].x;	// FALLTHRU
-	case 4:	eval->feature.us[s->feature[3].i] -= s->feature[3].x;
-	       	eval->feature.us[s->feature[2].i] -= s->feature[2].x;
-	       	eval->feature.us[s->feature[1].i] -= s->feature[1].x;
-	       	eval->feature.us[s->feature[0].i] -= s->feature[0].x;
-	       	break;
-	}
-
-	foreach_bit (x, f) {
-		s = EVAL_X2F + x;
-		switch (s->n_feature) {
-		default:
-		       	eval->feature.us[s->feature[6].i] += s->feature[6].x;	// FALLTHRU
-		case 6:	eval->feature.us[s->feature[5].i] += s->feature[5].x;	// FALLTHRU
-		case 5:	eval->feature.us[s->feature[4].i] += s->feature[4].x;	// FALLTHRU
-		case 4:	eval->feature.us[s->feature[3].i] += s->feature[3].x;
-		       	eval->feature.us[s->feature[2].i] += s->feature[2].x;
-		       	eval->feature.us[s->feature[1].i] += s->feature[1].x;
-		       	eval->feature.us[s->feature[0].i] += s->feature[0].x;
-		       	break;
-		}
-	}
-  #endif
+	--eval->ply;
+	eval_swap(eval);
 }
-
-void eval_update(int x, unsigned long long f, Eval *eval)
-{
-	assert(f);
-
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
-	if (hasSSE2) {
-		eval_update_sse(x, f, eval, eval);
-		return;
-	}
-  #endif
-	if (eval->n_empties & 1)
-		eval_update_1(x, f, eval);
-	else
-		eval_update_0(x, f, eval);
-}
-
-void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *eval_in)
-{
-  #if defined(USE_GAS_MMX) || defined(USE_MSVC_X86) || defined(DISPATCH_NEON)
-	if (hasSSE2) {
-		eval_update_sse(x, f, eval_out, eval_in);
-		return;
-	}
-  #endif
-	eval_out->feature = eval_in->feature;
-	if (eval_in->n_empties & 1)
-		eval_update_1(x, f, eval_out);
-	else
-		eval_update_0(x, f, eval_out);
-}
-
-#endif // !defined(hasSSE2) && !defined(__ARM_NEON)
 
 /**
  * @brief Update/Restore the features after a passing move.
@@ -914,23 +1036,91 @@ void eval_update_leaf(int x, unsigned long long f, Eval *eval_out, const Eval *e
  */
 void eval_pass(Eval *eval)
 {
-	int i;
+	assert(eval != NULL);
 
-	for (i =  0; i <  4; ++i)	// 9
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 19683];
-	for (i =  4; i < 16; ++i)	// 10
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i]];
-	for (i = 16; i < 30; ++i)	// 8
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - EVAL_OFFSET[i] + 26244] + EVAL_OFFSET[i];
-	for (i = 30; i < 34; ++i)	// 7
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] + 28431];
-	for (i = 34; i < 38; ++i)	// 6
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2187 + 29160] + 2187;
-	for (i = 38; i < 42; ++i)	// 5
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 2916 + 29403] + 2916;
-	for (i = 42; i < 46; ++i)	// 4
-		eval->feature.us[i] = OPPONENT_FEATURE[eval->feature.us[i] - 3159 + 29484] + 3159;
+	eval_swap(eval);
 }
+
+/**
+ * @brief raw addition of the feature weights
+ *
+ * @param eval the evaluation data;
+ * @param player;
+ * @param ply;
+ */
+int eval_accumulate(const Eval *eval) {
+
+// the vectorised version is ~10% slower than the standard version below on zen3, so I (Richard Delorme) disabled it.
+#if 0 && USE_SIMD && defined(__AVX2__)
+
+	int *w_0 = (int*) EVAL_WEIGHT[eval->ply][eval->player];
+	int *w_1 = (int*) (EVAL_WEIGHT[eval->ply][eval->player] + WEIGHT_OFFSET[4] - 1);
+	const __m128i *f = eval->feature[eval->ply].v8;
+	const __m256i o[] = {
+		_mm256_set_epi32( 19682,  19682,  19682,  19682,     -1,     -1,     -1,     -1),
+		_mm256_set_epi32(137780, 137780, 137780, 137780,  78731,  78731,  78731,  78731),
+	};
+	__m256i f8, fo, w8, s8;
+	__m128i s4, s2;
+	int32_t sum;
+
+	f8 = _mm256_cvtepu16_epi32(f[0]); // dispatch the 8 int16_t into 8 int32_t inside f8 : f8  = [feature.v1[7] | feature.v1[6]  ... | feature v1[0]]
+ 	fo = _mm256_add_epi32(f8, o[0]); //	add f8 + o8
+	w8 = _mm256_i32gather_epi32(w_0, fo, 2); // w8 = | w[f8+offset] | ...
+	s8 = _mm256_srai_epi32(w8, 16);	// shift to the right by a short
+
+	f8 = _mm256_cvtepu16_epi32(f[1]); // repeat
+ 	fo = _mm256_add_epi32(f8, o[1]);
+	w8 = _mm256_i32gather_epi32(w_0, fo, 2);
+	s8 = _mm256_add_epi32(s8, _mm256_srai_epi32(w8, 16));
+
+	f8 = _mm256_cvtepu16_epi32(f[2]); // the offset is included in the feature (within 16 bit)
+	w8 = _mm256_i32gather_epi32(w_1, f8, 2);
+	s8 = _mm256_add_epi32(s8, _mm256_srai_epi32(w8, 16));
+
+	f8 = _mm256_cvtepu16_epi32(f[3]);
+	w8 = _mm256_i32gather_epi32(w_1, f8, 2);
+	s8 = _mm256_add_epi32(s8, _mm256_srai_epi32(w8, 16));
+
+	f8 = _mm256_cvtepu16_epi32(f[4]);
+	w8 = _mm256_i32gather_epi32(w_1, f8, 2);
+	s8 = _mm256_add_epi32(s8, _mm256_srai_epi32(w8, 16));
+
+	f8 = _mm256_cvtepu16_epi32(f[5]);
+	w8 = _mm256_i32gather_epi32(w_1, f8, 2);
+	s8 = _mm256_add_epi32(s8, _mm256_srai_epi32(w8, 16));
+
+	s4 = _mm_add_epi32(_mm256_castsi256_si128(s8), _mm256_extracti128_si256(s8, 1));
+	s2 = _mm_hadd_epi32(s4, s4);
+	sum = _mm_cvtsi128_si32(s2) + _mm_extract_epi32(s2, 1);
+
+#else
+
+	const uint32_t *o = WEIGHT_OFFSET;
+	const int16_t *w0 = EVAL_WEIGHT[eval->ply][eval->player];
+	const int16_t *w1 = w0 + o[1], *w2 = w0 + o[2], *w3 = w0 + o[3], *w4 = w0 + o[4];
+	const uint16_t *f = eval->feature[eval->ply].v1;
+	int sum;
+
+	sum = w0[f[ 0]] + w0[f[ 1]] + w0[f[ 2]] + w0[f[ 3]]
+	    + w1[f[ 4]] + w1[f[ 5]] + w1[f[ 6]] + w1[f[ 7]]
+	    + w2[f[ 8]] + w2[f[ 9]] + w2[f[10]] + w2[f[11]]
+	    + w3[f[12]] + w3[f[13]] + w3[f[14]] + w3[f[15]]
+	    + w4[f[16]] + w4[f[17]] + w4[f[18]] + w4[f[19]]
+	    + w4[f[20]] + w4[f[21]] + w4[f[22]] + w4[f[23]]
+	    + w4[f[24]] + w4[f[25]] + w4[f[26]] + w4[f[27]]
+	    + w4[f[28]] + w4[f[29]]
+	    + w4[f[30]] + w4[f[31]] + w4[f[32]] + w4[f[33]]
+	    + w4[f[34]] + w4[f[35]] + w4[f[36]] + w4[f[37]]
+	    + w4[f[38]] + w4[f[39]] + w4[f[40]] + w4[f[41]]
+	    + w4[f[42]] + w4[f[43]] + w4[f[44]] + w4[f[45]]
+	    + w4[f[46]];
+
+#endif
+
+	return sum;
+}
+
 
 /**
  * @brief Compute the error-type of the evaluation function according to the

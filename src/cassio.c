@@ -13,9 +13,9 @@
  *  - With "-follow-cassio" Edax will follow more closely Cassio's search request. By default, it
  * searches with settings that make it better in tournament mode against Roxane, Cassio, etc.
  *
- * @date 1998 - 2023
+  * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @version 4.6
  */
 
 #include "cassio.h"
@@ -32,7 +32,7 @@
 #include <stdarg.h>
 #include <math.h>
 
-Log engine_log[1];
+Log engine_log;
 
 #define ENGINE_N_POSITION 1024
 
@@ -43,7 +43,7 @@ static char last_line_sent[1024];
 
 /** Engine management data */
 typedef struct Engine {
-	Event event[1];          /** Events */
+	Event event;             /** Events */
 	Search *search;          /** Search */
 	struct {
 		Board board[ENGINE_N_POSITION];    /** Last position */
@@ -67,14 +67,14 @@ static void engine_send(const char *format, ...)
 	va_end(args);
 	putchar('\n'); fflush(stdout);
 
-	if (log_is_open(engine_log)) {
-		time_stamp(engine_log->f);
-		fprintf(engine_log->f, "sent> \"");
+	if (log_is_open(&engine_log)) {
+		time_stamp(engine_log.f);
+		fprintf(engine_log.f, "sent> \"");
 		va_start(args, format);
-		vfprintf(engine_log->f, format, args);
+		vfprintf(engine_log.f, format, args);
 		va_end(args);
-		fprintf(engine_log->f, "\"\n");
-		fflush(engine_log->f);
+		fprintf(engine_log.f, "\"\n");
+		fflush(engine_log.f);
 	}
 }
 
@@ -86,14 +86,14 @@ static void engine_send(const char *format, ...)
 static void engine_get_input(Engine *engine)
 {
 	char protocol[32], cmd[32];
-	Event *event = engine->event;
+	Event *event = &engine->event;
 	char *buffer_with_garbage;
 	char *buffer = NULL;
 
 	buffer_with_garbage = string_read_line(stdin);
-	if (log_is_open(engine_log)) {
-		time_stamp(engine_log->f);
-		fprintf(engine_log->f, "received< \"%s\"\n", buffer_with_garbage);
+	if (log_is_open(&engine_log)) {
+		time_stamp(engine_log.f);
+		fprintf(engine_log.f, "received< \"%s\"\n", buffer_with_garbage);
 	}
 
 	if (buffer_with_garbage == NULL) { // stdin closed or not working
@@ -129,9 +129,9 @@ static void engine_get_input(Engine *engine)
 			}
 			// add the message (including quit) to a queue for later processing.
 			event_add_message(event, buffer);
-			lock(event);
-				condition_signal(event);
-			unlock(event);
+			mtx_lock(&event->cond_mutex);
+				cnd_signal(&event->condition);
+			mtx_unlock(&event->cond_mutex);
 
 		}
 	} else if (*protocol == '\0') {
@@ -156,7 +156,7 @@ static void engine_get_input(Engine *engine)
  */
 static void engine_wait_input(Engine *engine, char **cmd, char **param)
 {
-	event_wait(engine->event, cmd, param);
+	event_wait(&engine->event, cmd, param);
 }
 
 /**
@@ -164,19 +164,19 @@ static void engine_wait_input(Engine *engine, char **cmd, char **param)
  *
  * @param v Engine.
  */
-static void* engine_input_loop(void *v)
+static int engine_input_loop(void *v)
 {
 	Engine *engine = (Engine*) v;
 
 
-	while (engine->event->loop && !feof(stdin) && !ferror(stdin)) {
+	while (engine->event.loop && !feof(stdin) && !ferror(stdin)) {
 		engine_get_input(engine);
 	}
 
-	engine->event->loop = false;
+	engine->event.loop = false;
 	cassio_debug("Quit input loop\n");
 
-	return NULL;
+	return thrd_success;
 }
 
 /**
@@ -192,12 +192,12 @@ static bool is_position_new(Engine *engine, Board *board)
 	}
 	
 	if (i == ENGINE_N_POSITION) {
-		cassio_debug("Position list: removing position %llx\n", board_get_hash_code(board));
+		cassio_debug("Position list: removing position %lx\n", board_get_hash_code(board));
 	}
 	while (--i > 0) {
 		engine->last_position.board[i] = engine->last_position.board[i - 1];	
 	}
-	cassio_debug("Position list: adding position %llx\n", board_get_hash_code(board));
+	cassio_debug("Position list: adding position %lx\n", board_get_hash_code(board));
 	engine->last_position.board[0] = *board;
 	engine->last_position.n = MIN(ENGINE_N_POSITION, engine->last_position.n + 1);
 	hash_clear(&engine->search->hash_table);
@@ -222,7 +222,7 @@ static void engine_observer(Result *result)
 		 color, result->bound[result->move].lower, color, result->bound[result->move].upper);
 	line_to_string(&result->pv, result->pv.n_moves, NULL, engine_result + n);
 	n += 2 * result->pv.n_moves;
-	n += sprintf(engine_result + n, ", node %llu, time %.3f", result->n_nodes, 0.001 * result->time);
+	n += sprintf(engine_result + n, ", node %lu, time %.3f", result->n_nodes, 0.001 * result->time);
 
 	// avoid to send multiple times the same result.
 	if (strncmp(engine_result + 72, last_line_sent, n - 75) != 0) {
@@ -239,7 +239,7 @@ static Search* engine_create_search(void)
 {
 	Search *search;
 
-	search = (Search*) mm_malloc(sizeof (Search));
+	search = (Search*) malloc(sizeof (Search));
 	if (search == NULL) {
 		engine_send("ERROR: Cannot allocate a new search engine.");
 		engine_send("bye bye!");
@@ -272,7 +272,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	Move *move;
 	int score = 0;
 	
-	search->time.spent = -time_clock();
+	search->time.spent = -real_clock();
 	search->stop = RUNNING;
 
 	// set alphabeta bounds
@@ -302,7 +302,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	if (player != search->player || !board_equal(&search->board, board)) {
 		search_set_board(search, board, player);
 
-		if (hash_get_from_board(&search->pv_table, board, &hash_data)) {
+		if (hash_get(&search->pv_table, board, board_get_hash_code(board), &hash_data)) {
 			if (hash_data.lower == -SCORE_INF && hash_data.upper < SCORE_INF) score = hash_data.upper;
 			else if (hash_data.upper == +SCORE_INF && hash_data.lower > -SCORE_INF) score = hash_data.lower;
 			else score = (hash_data.upper + hash_data.lower) / 2;
@@ -313,7 +313,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 		}
 	}
 
-	foreach_move(move, search->movelist) {
+	foreach_move (move, &search->movelist) {
 		search->result->bound[move->x].lower = SCORE_MIN;
 		search->result->bound[move->x].upper = SCORE_MAX;
 	}
@@ -323,14 +323,14 @@ static int engine_open(Search *search, const Board *board, const int player, con
 
 	// set level
 	search->depth = depth;
-	if (options.transgress_cassio && (search->eval.n_empties & 1) != (depth & 1)) ++search->depth;
-	if (options.transgress_cassio && search->depth > search->eval.n_empties - 10) search->depth = search->eval.n_empties;
+	if (options.transgress_cassio && (search->n_empties & 1) != (depth & 1)) ++search->depth;
+	if (options.transgress_cassio && search->depth > search->n_empties - 10) search->depth = search->n_empties;
 	search->options.depth = search->depth;
 
-	BOUND(search->depth, 0, search->eval.n_empties, "depth");
-	search->depth_pv_extension = get_pv_extension(search->depth, search->eval.n_empties);
+	BOUND(search->depth, 0, search->n_empties, "depth");
+	search->depth_pv_extension = get_pv_extension(search->depth, search->n_empties);
 
-	if (options.transgress_cassio && depth < search->eval.n_empties) k = 0;
+	if (options.transgress_cassio && depth < search->n_empties) k = 0;
 	else if (precision <= 73) k = 0;
 	else if (precision <= 87) k = 1;
 	else if (precision <= 95) k = 2;
@@ -355,7 +355,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 static void engine_close(Search *search)
 {
 	search->result->n_nodes = search_count_nodes(search);
-	search->time.spent += time_clock();
+	search->time.spent += real_clock();
 	search->result->time = search->time.spent;
 
 	statistics_sum_nodes(search);
@@ -377,7 +377,7 @@ void* engine_init(void)
 {
 	Engine *engine;
 
-	log_open(engine_log, options.ui_log_file);
+	log_open(&engine_log, options.ui_log_file);
 
 	engine = (Engine*) malloc(sizeof (Engine));
 	if (engine == NULL) {
@@ -387,10 +387,10 @@ void* engine_init(void)
 	}
 	engine->is_searching = false;
 	engine->search = engine_create_search();
-	event_init(engine->event);
+	event_init(&engine->event);
 	
-	thread_create(&engine->event->thread, engine_input_loop, engine);
-	thread_detach(engine->event->thread);
+	thrd_create(&engine->event.thread, engine_input_loop, engine);
+	thrd_detach(engine->event.thread);
 	
 	return engine;
 }
@@ -401,29 +401,27 @@ void* engine_init(void)
  */
 void engine_free(void *v)
 {
-	Search *const search = (Search*) v;
-
+	Search *search = (Search*) v;
 	if (search) {
 		search_free(search);
-		mm_free(search);
+		free(search);
 	}
-	log_close(engine_log);
+	log_close(&engine_log);
 }
 
 
 
 void feed_all_hash_table(Search *search, Board *board, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
-	HashStoreData hash_data;
-	const unsigned long long hash_code = board_get_hash_code(board);
+	const uint64_t hash_code = board_get_hash_code(board);
+	#ifdef __BIG_ENDIAN__
+		HashData data = {{{search->hash_table.date, 0, depth, selectivity}}, lower, upper, {move, 0}};
+	#else
+		HashData data = {{{selectivity, depth, 0, search->hash_table.date}}, lower, upper, {move, 0}};
+	#endif
 
-	hash_data.data.wl.c.depth = depth;
-	hash_data.data.wl.c.selectivity = selectivity;
-	hash_data.data.move[0] = move;
-	hash_data.data.lower = lower;
-	hash_data.data.upper = upper;
-	hash_feed(&search->hash_table, board, hash_code, &hash_data);
-	hash_feed(&search->pv_table, board, hash_code, &hash_data);
+	hash_feed(&search->hash_table, board, hash_code, &data);
+	hash_feed(&search->pv_table, board, hash_code, &data);
 }
 
 /**
@@ -439,8 +437,8 @@ void feed_all_hash_table(Search *search, Board *board, const int depth, const in
  */
 void engine_feed_hash(void *v, Board *board, int lower, int upper, const int depth, const int precision, Line *pv)
 {
-	Engine *const engine = (Engine*) v;
-	Search *const search = engine->search;
+	Engine *engine = (Engine*) v;
+	Search *search = engine->search;
 	int i, selectivity, tmp;
 	int current_depth;
 	Move *move, *child_move;
@@ -463,13 +461,13 @@ void engine_feed_hash(void *v, Board *board, int lower, int upper, const int dep
 		movelist_get_moves(&movelist, board);
 		movelist_sort_bestmove(&movelist, pv->move[i]);
 
-		foreach_move(move, movelist) {
+		foreach_move(move, &movelist) {
 			board_update(board, move);
 				if (move->x == pv->move[i]) {
 					feed_all_hash_table(search, board, current_depth - 1, selectivity, -upper, -lower, NOMOVE);
 					if (lower > SCORE_MIN) {
 						movelist_get_moves(&child_movelist, board);
-						foreach_move(child_move, child_movelist) {
+						foreach_move(child_move, &child_movelist) {
 							board_update(board, child_move);
 								feed_all_hash_table(search, board, current_depth - 2, selectivity, lower, SCORE_MAX, NOMOVE);
 							board_restore(board, child_move);
@@ -507,7 +505,7 @@ void engine_feed_hash(void *v, Board *board, int lower, int upper, const int dep
  */
 void engine_empty_hash(void *v)
 {
-	Engine *const engine = (Engine*) v;
+	Engine *engine = (Engine*) v;
 	
 	if (engine && engine->search) {
 		cassio_debug("clear the hash-table.\n");
@@ -526,30 +524,31 @@ void engine_empty_hash(void *v)
  */
 static bool skip_search(Engine *engine, int *old_score)
 {
-	Search *const search = engine->search;
-	MoveList *const movelist = &search->movelist;
+	Search *search = engine->search;
+	Board *board = &search->board;
+	MoveList *movelist = &search->movelist;
 	HashData hash_data;
 	Move *bestmove;
 	int alpha = options.alpha;
 	int beta = options.beta;
 	Bound *bound;
 	char s[4], b[80];
-	const unsigned long long hash_code = board_get_hash_code(&search->board);
+	const uint64_t hash_code = board_get_hash_code(board);
 	
 	*old_score = 0;
 	
-	if (hash_get(&search->pv_table, &search->board, hash_code, &hash_data)
-	|| hash_get(&search->hash_table, &search->board, hash_code, &hash_data)) {
+	if (hash_get(&search->pv_table, board, hash_code, &hash_data)
+	|| hash_get(&search->hash_table, board, hash_code, &hash_data)) {
 		// compute bounds
 		if (alpha < hash_data.lower) alpha = *old_score = hash_data.lower;
 		if (beta > hash_data.upper) beta = *old_score = hash_data.upper;
 		// skip search ?
-		if (hash_data.wl.c.depth >= search->depth && hash_data.wl.c.selectivity >= search->selectivity && alpha >= beta) {
+		if (hash_data.draft.u1.depth >= search->depth && hash_data.draft.u1.selectivity >= search->selectivity && alpha >= beta) {
 			if (hash_data.move[0] != NOMOVE) movelist_sort_bestmove(movelist, hash_data.move[0]);
 			else if (hash_data.lower > SCORE_MIN) return false;
 			bestmove = movelist_first(movelist);
 			bestmove->score = *old_score;
-			record_best_move(search, bestmove, options.alpha, options.beta, search->depth);
+			record_best_move(search, board, bestmove, options.alpha, options.beta, search->depth);
 			bound =  search->result->bound + bestmove->x;
 
 			if (bound->lower != bound->upper || is_pv_ok(search, bestmove->x, search->depth)) {
@@ -560,14 +559,14 @@ static bool skip_search(Engine *engine, int *old_score)
 				cassio_debug("Edax does not skip the search : BAD PV!\n");
 			}
 		} else {
-			if (hash_data.wl.c.depth < search->depth || hash_data.wl.c.selectivity < search->selectivity) {
-				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.wl.c.depth, selectivity_table[hash_data.wl.c.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
+			if (hash_data.draft.u1.depth < search->depth || hash_data.draft.u1.selectivity < search->selectivity) {
+				cassio_debug("Edax does not skip the search: Level %d@%d < %d@%d\n", hash_data.draft.u1.depth, selectivity_table[hash_data.draft.u1.selectivity].percent, search->depth, selectivity_table[search->selectivity].percent);
 			} else {
 				cassio_debug("Edax does not skip the search: unsolved score alpha %d < beta %d\n", alpha, beta); 
 			}
 		}
 	} else {
-		cassio_debug("Edax does not skip the search: Position %s (hash=%llx) not found\n", board_to_string(&search->board, search->player, b), hash_code);
+		cassio_debug("Edax does not skip the search: Position %s (hash=%lx) not found\n", board_to_string(board, search->player, b), hash_code);
 	}
 	
 	return false;
@@ -590,8 +589,8 @@ static bool skip_search(Engine *engine, int *old_score)
  */
 double engine_midgame_search(void *v, const char *position, const double alpha, const double beta, const int depth, const int precision)
 {
-	Engine *const engine = (Engine*) v;
-	Search *const search = engine->search;
+	Engine *engine = (Engine*) v;
+	Search *search = engine->search;
 	Board board;
 	int player;
 	int old_score;
@@ -635,8 +634,8 @@ double engine_midgame_search(void *v, const char *position, const double alpha, 
  */
 int engine_endgame_search(void *v, const char *position, const int  alpha, const int beta, const int precision)
 {
-	Engine *const engine = (Engine*) v;
-	Search *const search = engine->search;
+	Engine *engine = (Engine*) v;
+	Search *search = engine->search;
 	Board board;
 	int player;
 	int old_score;
@@ -675,7 +674,7 @@ int engine_endgame_search(void *v, const char *position, const int  alpha, const
  */
 void engine_stop(void *v)
 {
-	Search *const search = (Search*) v;
+	Search *search = (Search*) v;
 	if (search == NULL) {
 		engine_send("ERROR: Engine need to be initialized.");
 		return;
@@ -689,7 +688,7 @@ void engine_stop(void *v)
 void engine_loop(void)
 {
 	char *cmd = NULL, *param = NULL;
-	Engine *const engine = (Engine*) engine_init();
+	Engine *engine = (Engine*) engine_init();
 
 	// loop forever
 	for (;;) {
@@ -747,7 +746,7 @@ void engine_loop(void)
 			
 		} else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "eof") == 0) {
 			engine_free(engine->search);
-			event_free(engine->event);
+			event_free(&engine->event);
 			free(engine);
 			free(cmd);
 			free(param);

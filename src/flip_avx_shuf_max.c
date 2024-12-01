@@ -12,9 +12,9 @@
  * @version 4.4
  */
 
-#include "bit.h"
+#include "simd.h"
 
-const V8DI lrmask[66] = {
+const V8DI LR_MASK[66] = {
 	{{ 0x00000000000000fe, 0x0101010101010100, 0x8040201008040200, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000fc, 0x0202020202020200, 0x0080402010080400, 0x0000000000000100, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
 	{{ 0x00000000000000f8, 0x0404040404040400, 0x0000804020100800, 0x0000000000010200, 0x0000000000000003, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 }},
@@ -92,7 +92,7 @@ const V8DI lrmask[66] = {
  * @return flipped disc pattern.
  */
 
-__m256i vectorcall mm_Flip(const __m128i OP, int pos)
+__m256i vectorcall mm_flip(const __m128i OP, int pos)
 {
 	__m256i	PP, OO, flip, outflank, eraser, mask;
 	const __m256i mask0F0F = _mm256_set1_epi16(0x0F0F);
@@ -101,7 +101,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 	PP = _mm256_broadcastq_epi64(OP);
 	OO = _mm256_broadcastq_epi64(_mm_unpackhi_epi64(OP, OP));
 
-	mask = lrmask[pos].v4[1];
+	mask = LR_MASK[pos].v4[1];
 		// look for non-opponent MS1B
 	outflank = _mm256_andnot_si256(OO, mask);
 		// mask to clear low half if high half != 0 in word/dword/qword
@@ -116,7 +116,7 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 		// set all bits higher than outflank
 	flip = _mm256_and_si256(_mm256_sub_epi64(_mm256_setzero_si256(), _mm256_add_epi64(outflank, outflank)), mask);
 
-	mask = lrmask[pos].v4[0];
+	mask = LR_MASK[pos].v4[0];
 		// look for non-opponent LS1B
 	outflank = _mm256_andnot_si256(OO, mask);
 	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B
@@ -127,4 +127,19 @@ __m256i vectorcall mm_Flip(const __m128i OP, int pos)
 
 	return flip;
 }
+
+uint64_t board_flip(const Board *board, const int x) 
+{
+	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}
+
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
+	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
+	return (uint64_t) _mm_cvtsi128_si64(rflip);
+}	
+
+
 

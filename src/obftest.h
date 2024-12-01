@@ -3,9 +3,9 @@
  *
  * @brief Problem solver.
  *
- * @date 1998 - 2017
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.4
+ * @version 4.6
  */
 
 #ifndef EDAX_OPDTEST_H

@@ -37,13 +37,13 @@
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.4
+ * @version 4.6
  */
 
-#include "bit.h"
+#include "simd.h"
 
 /** outflank array (indexed with inner 6 bits) */
 static const unsigned char OUTFLANK[64][8] = {
@@ -377,45 +377,19 @@ static inline __m128i flipmask (__m128i outflank) {
  * @return flipped disc pattern.
  */
 
-unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
+uint64_t flip(const int pos, const uint64_t P, const uint64_t O)
 {
 	__m128i	outflank7, outflank8, outflank9, PP, OO;
 	int	x, y8, index_h;
-	unsigned long long	flipped;
+	uint64_t	flipped;
 	static const V2DI minusone = {{ -1LL, -1LL }};
 
 	if (pos >= 64)	// pass
 		return 0;
 
-#ifdef __x86_64__
 	PP = _mm_set_epi64x(vertical_mirror(P), P);
 	OO = _mm_set_epi64x(vertical_mirror(O), O);
-#else
-	PP = _mm_set_epi32(bswap_int(P), bswap_int(P >> 32), (P >> 32), P);
-	OO = _mm_set_epi32(bswap_int(O), bswap_int(O >> 32), (O >> 32), O);
-#endif
 
-#if (defined (USE_GAS_X64) || defined(USE_GAS_X86)) && !defined(__AVX__)
-	__asm__ (
-						"movdqa	%4, %1\n\t"		"movdqa	%4, %2\n\t"
-		"movdqa	(%5), %0\n\t"		"movdqa	1024(%5), %%xmm3\n\t"	"movdqa	2048(%5), %%xmm5\n\t"
-		"por	%0, %4\n\t"		"por	%%xmm3, %1\n\t"		"por	%%xmm5, %2\n\t"
-		"psubq	%6, %4\n\t"		"psubq	%6, %1\n\t"		"psubq	%6, %2\n\t"
-		"pand	%3, %4\n\t"		"pand	%3, %1\n\t"		"pand	%3, %2\n\t"
-		"movdqa	%0, %3\n\t"
-		"pandn	%4, %3\n\t"		"pandn	%1, %%xmm3\n\t"		"pandn	%2, %%xmm5\n\t"
-		"pshufd	$177, %3, %4\n\t"	"pshufd	$177, %%xmm3, %1\n\t"	"pshufd	$177, %%xmm5, %2\n\t"
-		"pcmpeqd %3, %4\n\t"		"pcmpeqd %%xmm3, %1\n\t"	"pcmpeqd %%xmm5, %2\n\t"
-		"paddq	%6, %3\n\t"		"paddq	%6, %%xmm3\n\t"		"paddq	%6, %%xmm5\n\t"
-		"psubq	%4, %3\n\t"		"psubq	%1, %%xmm3\n\t"		"psubq	%2, %%xmm5\n\t"
-						"movdqa	1024(%5), %1\n\t"	"movdqa	2048(%5), %2\n\t"
-		"pandn	%3, %0\n\t"		"pandn	%%xmm3, %1\n\t"		"pandn	%%xmm5, %2\n\t"
-						"por	%1, %0\n\t"		"por	%2, %0"
-	: "=&x" (outflank7), "=&x" (outflank8), "=&x" (outflank9)
-	: "x" (PP), "x" (OO), "r" (&mask[0][pos]), "xm" (minusone)
-	: "xmm3", "xmm5");
-
-#else
 	outflank7 = _mm_andnot_si128(mask[0][pos].v2, _mm_and_si128(_mm_sub_epi64(_mm_or_si128(OO, mask[0][pos].v2), minusone.v2), PP));
 	outflank8 = _mm_andnot_si128(mask[1][pos].v2, _mm_and_si128(_mm_sub_epi64(_mm_or_si128(OO, mask[1][pos].v2), minusone.v2), PP));
 	outflank9 = _mm_andnot_si128(mask[2][pos].v2, _mm_and_si128(_mm_sub_epi64(_mm_or_si128(OO, mask[2][pos].v2), minusone.v2), PP));
@@ -423,13 +397,19 @@ unsigned long long Flip(int pos, unsigned long long P, unsigned long long O)
 	outflank8 = _mm_andnot_si128(mask[1][pos].v2, _mm_sub_epi64(outflank8, _mm_sub_epi64(flipmask(outflank8), minusone.v2)));
 	outflank9 = _mm_andnot_si128(mask[2][pos].v2, _mm_sub_epi64(outflank9, _mm_sub_epi64(flipmask(outflank9), minusone.v2)));
 	outflank7 = _mm_or_si128(_mm_or_si128(outflank7, outflank8), outflank9);
-#endif
+
 	flipped = _mm_cvtsi128_si64(outflank7) | vertical_mirror(_mm_cvtsi128_si64(_mm_unpackhi_epi64(outflank7, outflank7)));
 
 	x = pos & 7;
 	y8 = pos & 0x38;
 	index_h = OUTFLANK[((unsigned int) (O >> y8) & 0x7E) >> 1][x] & (P >> y8);
-	flipped |= ((unsigned long long) FLIPPED[index_h][x]) << y8;
+	flipped |= ((uint64_t) FLIPPED[index_h][x]) << y8;
 
 	return flipped;
 }
+
+uint64_t board_flip(const Board *board, const int x)
+{
+	return flip(x, board->player, board->opponent);
+}
+

@@ -2,10 +2,12 @@
  * @mainpage
  *
  * Edax : a strong Othello program.
- * - copyleft (c) 1998-2012
- * - version: 4.4 (2012-10-10)
+ * - copyleft (c) 1998-2024
+ * - version: 4.6 (2024-?-?)
  * - author: Richard A Delorme
  * - email: edax-reversi@orange.fr
+ * - author: Toshihiko Okuhara
+ * - email: okuhara@amy.hi-ho.ne.jp
  *
  *
  * @section lic Licence
@@ -27,6 +29,9 @@
  * @section dl Download
  * You can download the source here:
  * https://github.com/abulmo/edax-reversi
+ * https://github.com/okuhara/edax-reversi-AVX
+ * web site (Japanese): http://www.amy.hi-ho.ne.jp/okuhara/edax.htm
+
  *
  * @section pres Presentation
  * Edax is a very strong and fast Othello program.
@@ -113,10 +118,12 @@
  * event support to communicate with GUI.
  * - version 4.2.1: Several bug fixes.
  * - version 4.2.2: Several bug fixes. XBoard protocol should work OK now.
+ * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
  * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  *   Faster move generator provided by Toshihiko Okuhara.
- * - version 4.x: TODO: speed enhancement (is this possible ?). Book learning
-     using a client/server approach. New Evaluation function.
+ * - version 4.5: code vectorisation (AVXX2) for x86_64 x86_32 & ARM Neon
+ *   by Toshihiko Okuhara giving 7 to 20% faster code. 
+ * - version 4.6: Port to C17. Bug fixes. Code cleaning. Remove 32 bit support.
  *
  * \htmlonly
  * <p> Speed comparison between versions: </p>
@@ -145,16 +152,6 @@
  * Games in AI Research. p 77-96.
  * -# Feldmann R., Monien B., Mysliwietz P. Vornberger O. (1989) Distributed Game-Tree %Search. ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  *
- * \section edaxavx Edax-AVX
- *
- * This copy is SSE/AVX optimized version of Edax 4.4.0. Functionally equivalent to the parent project, provided no bugs are introduced.
- * 64 bit version solves fforum-20-39 7% to 9% faster than the original 4.4.0 on my test.
- * Thanks to AVX2, x64-modern build runs 14% faster on Haswell. 32 bit version runs 9% (Core2) to 20% (Athlon) faster than the original.
- *
- * - copyleft (c) 1998-2017
- * - version: 4.4.5 (2017-7-20)
- * - AVX2 optimization: Toshihiko Okuhara
- * - email: okuhara@amy.hi-ho.ne.jp
- * - web site (Japanese): http://www.amy.hi-ho.ne.jp/okuhara/edax.htm
- * - source files: https://github.com/okuhara/edax-reversi-AVX
  */
+
+

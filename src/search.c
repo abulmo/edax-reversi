@@ -52,9 +52,10 @@
  * -# Reinsfeld A. (1983) An Improvement Of the Scout Tree-Search Algorithm. ICCA
  *     journal, 6(4), pp. 4-14.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
- * @version 4.5
+ * @author Toshihiko Okuhara
+ * @version 4.6
  */
 
 #include "search.h"
@@ -69,16 +70,13 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
-Log search_log[1];
-
-#ifdef _MSC_VER
-#define log2(x) (log(x)/log(2.0))
-#endif
+Log search_log;
 
 /** a quadrant id for each square */
-const unsigned char QUADRANT_ID[] = {
+const uint8_t QUADRANT_ID[] = {
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
 	1, 1, 1, 1, 2, 2, 2, 2,
@@ -88,14 +86,6 @@ const unsigned char QUADRANT_ID[] = {
 	4, 4, 4, 4, 8, 8, 8, 8,
 	4, 4, 4, 4, 8, 8, 8, 8,
 	0, 0
-};
-
-/** quadrant id to move mask */
-const unsigned long long quadrant_mask[] = {
-	0x0000000000000000, 0x000000000F0F0F0F, 0x00000000F0F0F0F0, 0x00000000FFFFFFFF,
-	0x0F0F0F0F00000000, 0x0F0F0F0F0F0F0F0F, 0x0F0F0F0FF0F0F0F0, 0x0F0F0F0FFFFFFFFF,
-	0xF0F0F0F000000000, 0xF0F0F0F00F0F0F0F, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0FFFFFFFF,
-	0xFFFFFFFF00000000, 0xFFFFFFFF0F0F0F0F, 0xFFFFFFFFF0F0F0F0, 0xFFFFFFFFFFFFFFFF
 };
 
 /** level with no selectivity */
@@ -113,9 +103,13 @@ const Selectivity selectivity_table [] = {
 
 /** threshold values to try stability cutoff during NWS search */
 // TODO: better values may exist.
-static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+const uint8_t NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99,  6,  8, 10, 12,
-	  8, 10, 20, 22, 24, 26, 28, 30, // 8 & 9 lowered to work best with solid stone
+#if USE_SOLID
+	  8, 10, 20, 22, 24, 26, 28, 30,
+#else
+	 14, 16, 20, 22, 24, 26, 28, 30,
+#endif
 	 32, 34, 36, 38, 40, 42, 44, 46,
 	 48, 48, 50, 50, 52, 52, 54, 54,
 	 56, 56, 58, 58, 60, 60, 62, 62,
@@ -126,7 +120,7 @@ static const signed char NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 
 /** threshold values to try stability cutoff during PVS search */
 // TODO: better values may exist.
-const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+const uint8_t PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99, -2,  0,  2,  4,
 	  6,  8, 12, 14, 16, 18, 20, 22,
 	 24, 26, 28, 30, 32, 34, 36, 38,
@@ -139,7 +133,7 @@ const signed char PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 
 
 /** square type */
-const unsigned char SQUARE_TYPE[] = {
+const uint8_t SQUARE_TYPE[] = {
 	0, 1, 2, 3, 3, 2, 1, 0,
 	1, 4, 5, 6, 6, 5, 4, 1,
 	2, 5, 7, 8, 8, 7, 5, 2,
@@ -161,198 +155,199 @@ struct Level LEVEL[61][61];
 void search_global_init(void)
 {
 	int level, n_empties;
-	unsigned char dep, sel;
 
 	for (level = 0; level <= 60; ++level)
 	for (n_empties = 0; n_empties <= 60; ++n_empties) {
-		dep = n_empties;
-		sel = 5;
 		if (level <= 0) {
-			dep = 0;
-			// sel = 5;
+			LEVEL[level][n_empties].depth = 0;
+			LEVEL[level][n_empties].selectivity = 5;
 		} else if (level <= 10) {
-			// sel = 5;
+			LEVEL[level][n_empties].selectivity = 5;
 			if (n_empties <= 2 * level) {
-				// dep = n_empties;
+				LEVEL[level][n_empties].depth = n_empties;
 			} else {
-				dep = level;
+				LEVEL[level][n_empties].depth = level;
 			}
 		} else if (level <= 12) {
 			if (n_empties <= 21) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 24) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 18) {
 			if (n_empties <= 21) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 24) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= 27) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 21) {
 			if (n_empties <= 24) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 27) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= 30) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 24) {
 			if (n_empties <= 24) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 27) {
-				// dep = n_empties;
-				sel = 4;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= 30) {
-				// dep = n_empties;
-				sel = 2;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 2;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 0;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 0;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 27) {
 			if (n_empties <= 27) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 30) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level < 30) {
 			if (n_empties <= 27) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 30) {
-				// dep = n_empties;
-				sel = 4;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 2;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 2;
 			} else if (n_empties <= 36) {
-				// dep = n_empties;
-				sel = 0;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 0;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 31) {
 			if (n_empties <= 30) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= 36) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 33) {
 			if (n_empties <= 30) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 4;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= 36) {
-				// dep = n_empties;
-				sel = 2;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 2;
 			} else if (n_empties <= 39) {
-				// dep = n_empties;
-				sel = 0;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 0;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level <= 35) {
 			if (n_empties <= 30) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= 33) {
-				// dep = n_empties;
-				sel = 4;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= 36) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= 39) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else if (level < 60) {
 			if (n_empties <= level - 6) {
-				// dep = n_empties;
-				// sel = 5;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 5;
 			} else if (n_empties <= level - 3) {
-				// dep = n_empties;
-				sel = 4;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 4;
 			} else if (n_empties <= level) {
-				// dep = n_empties;
-				sel = 3;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 3;
 			} else if (n_empties <= level + 3) {
-				// dep = n_empties;
-				sel = 2;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 2;
 			} else if (n_empties <= level + 6) {
-				// dep = n_empties;
-				sel = 1;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 1;
 			} else if (n_empties <= level + 9) {
-				// dep = n_empties;
-				sel = 0;
+				LEVEL[level][n_empties].depth = n_empties;
+				LEVEL[level][n_empties].selectivity = 0;
 			} else {
-				dep = level;
-				sel = 0;
+				LEVEL[level][n_empties].depth = level;
+				LEVEL[level][n_empties].selectivity = 0;
 			}
 		} else {
-			// dep = n_empties;
-			// sel = 5;
+			LEVEL[level][n_empties].depth = n_empties;
+			LEVEL[level][n_empties].selectivity = 5;
 		}
-		LEVEL[level][n_empties].depth = dep;
-		LEVEL[level][n_empties].selectivity = sel;
 	}
-	search_log->f = NULL;
+	search_log.f = NULL;
 }
 
+/**
+ * @brief Resize hashtables from the option settings.
+ *
+ * @param search the Search structure with hashtables.
+ */
 void search_resize_hashtable(Search *search) {
 	if (search->options.hash_size != options.hash_table_size) {
-		const int hash_size = 1u << options.hash_table_size;
-		const int pv_shallow_size = hash_size > 16 ? hash_size >> 4 : 1;
+		const size_t hash_size = 1ull << options.hash_table_size;
+		const size_t pv_size = hash_size > 256 ? hash_size >> 4 : 16;
+		const size_t shallow_size = hash_size > 256 ? hash_size >> 4 : 16;
 
 		hash_init(&search->hash_table, hash_size);
-		hash_init(&search->pv_table, pv_shallow_size);
-		hash_init(&search->shallow_table, pv_shallow_size);
+		hash_init(&search->pv_table, pv_size);
+		hash_init(&search->shallow_table, shallow_size);
 		search->options.hash_size = options.hash_table_size;
 	}
 }
@@ -386,7 +381,7 @@ void search_init(Search *search)
 	search->player = EMPTY;
 
 	/* evaluation function */
-	// eval_init(search->eval);
+	eval_init(&search->eval);
 
 	// radom generator
 	random_seed(&search->random, real_clock());
@@ -396,7 +391,6 @@ void search_init(Search *search)
 	if (search->tasks == NULL) {
 		fatal_error("Cannot allocate a task stack\n");
 	}
-	if (options.cpu_affinity) thread_set_cpu(thread_self(), 0);
 	task_stack_init(search->tasks, options.n_task);
 	search->allow_node_splitting = (search->tasks->n > 1);
 
@@ -415,14 +409,14 @@ void search_init(Search *search)
 	search->master = search; /* main search */
 
 	/* lock */
-	spin_init(search);
+	spinlock_init(&search->spin);
 
-	/* result */
+	/* result: TODO remove allocation *result->result ? */
 	search->result = (Result*) malloc(sizeof (Result));
 	if (search->result == NULL) {
 		fatal_error("Cannot allocate a task stack\n");
 	}
-	spin_init(search->result);
+	spinlock_init(&search->result->spin);
 	search->result->move = NOMOVE;
 
 	search->n_nodes = 0;
@@ -444,7 +438,7 @@ void search_init(Search *search)
 	search->options.guess_pv = options.pv_guess;
 	search->options.multipv_depth = MULTIPV_DEPTH;
 
-	log_open(search_log, options.search_log_file);
+	log_open(&search_log, options.search_log_file);
 }
 
 /**
@@ -455,20 +449,17 @@ void search_init(Search *search)
  */
 void search_free(Search *search)
 {
-
 	hash_free(&search->hash_table);
 	hash_free(&search->pv_table);
 	hash_free(&search->shallow_table);
-	// eval_free(search->eval);
-	
+	eval_free(&search->eval);
+
 	task_stack_free(search->tasks);
 	free(search->tasks);
-	spin_free(search);
 
-	spin_free(search->result);
 	free(search->result);
 
-	log_close(search_log);
+	log_close(&search_log);
 }
 
 /**
@@ -480,8 +471,7 @@ void search_free(Search *search)
  */
 void search_setup(Search *search)
 {
-	int i, x, prev;
-	static const unsigned char presorted_x[] = {
+	static const int presorted_x[] = {
 		A1, A8, H1, H8,                    /* Corner */
 		C4, C5, D3, D6, E3, E6, F4, F5,    /* E */
 		C3, C6, F3, F6,                    /* D */
@@ -493,24 +483,22 @@ void search_setup(Search *search)
 		B2, B7, G2, G7,                    /* X */
 		D4, E4, D5, E5,                    /* center */
 	};
+	const Board *board = &search->board;
+	const uint64_t E = ~(board->player | board->opponent);
+	int i, x, prev;
 
-	const Board * const board = &search->board;
-	unsigned long long E;
-
-	// init empties, parity
-	search->eval.n_empties = 0;
-	search->eval.parity = 0;
+	search->n_empties = 0;
+	search->parity = 0;
 
 	prev = NOMOVE;
-	E = ~(board->player | board->opponent);
 	for (i = 0; i < BOARD_SIZE; ++i) {    /* add empty squares */
 		x = presorted_x[i];
 		if (E & x_to_bit(x)) {
-			search->eval.parity ^= QUADRANT_ID[x];
+			search->parity ^= QUADRANT_ID[x];
 			search->empties[prev].next = x;
 			search->empties[x].previous = prev;
 			prev = x;
-			++search->eval.n_empties;
+			++search->n_empties;
 		}
 	}
 	search->empties[prev].next = NOMOVE;	/* sentinel */
@@ -520,7 +508,7 @@ void search_setup(Search *search)
 	search->empties[PASS].previous = NOMOVE;
 
 	// init the evaluation function
-	eval_set(&search->eval, &search->board);
+	eval_set(&search->eval, board);
 }
 
 /**
@@ -531,6 +519,7 @@ void search_setup(Search *search)
  */
 void search_clone(Search *search, Search *master)
 {
+	search->id = -1;
 	search->stop = STOP_END;
 	search->player = master->player;
 	search->board = master->board;
@@ -554,10 +543,10 @@ void search_clone(Search *search, Search *master)
 	search->n_nodes = 0;
 	search->child_nodes = 0;
 	search->stability_bound = master->stability_bound;
-	spin_lock(master);
+	spinlock_lock(&master->spin);
 	assert(master->n_child < MAX_THREADS);
 	master->child[master->n_child++] = search;
-	spin_unlock(master);
+	spinlock_unlock(&master->spin);
 	search->parent = master;
 	search->master = master->master;
 }
@@ -631,18 +620,18 @@ void search_set_ponder_level(Search *search, const int level, const int n_emptie
 /**
  * @brief Compute the deepest level that can be solved given a limited time...
  *
- * This is a very approximate computation... 
+ * This is a very approximate computation...
  * SMP_W & SMP_C depends on the depth and the position.
- * The branching factor depends also of the position. 
+ * The branching factor depends also on the position.
  *
  * @param limit Time limit in ms.
  * @param n_tasks Number of parallel tasks.
  * @return Reachable depth.
  */
-int solvable_depth(const long long limit, int n_tasks)
+int solvable_depth(const int64_t limit, int n_tasks)
 {
 	int d;
-	long long t;
+	int64_t t;
 	double speed = 0.001 * (options.speed * (SMP_W + SMP_C) / (SMP_W / n_tasks + SMP_C));
 
 	for (t = 0.0, d = 15; d <= 60 && t <= limit; ++d) {
@@ -660,7 +649,7 @@ int solvable_depth(const long long limit, int n_tasks)
  * @param search Search.
  * @param t time in ms.
  */
-void search_set_game_time(Search *search, const long long t)
+void search_set_game_time(Search *search, const int64_t t)
 {
 	search->options.time_per_move = false;
 	search->options.time = t;
@@ -675,7 +664,7 @@ void search_set_game_time(Search *search, const long long t)
  * @param search Search.
  * @param t time in ms.
  */
-void search_set_move_time(Search *search, const long long t)
+void search_set_move_time(Search *search, const int64_t t)
 {
 	search->options.time_per_move = true;
 	search->options.time = t;
@@ -689,7 +678,7 @@ void search_set_move_time(Search *search, const long long t)
 void search_time_init(Search *search)
 {
 	if (search->options.time_per_move) {
-		const long long t = MAX(search->options.time - 10, 100);
+		const int64_t t = MAX(search->options.time - 10, 100);
 		search->time.extra = t;
 		search->time.maxi = t * 99 / 100;
 		search->time.mini = t * 9 / 10;
@@ -697,15 +686,15 @@ void search_time_init(Search *search)
 			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	} else {
-		long long t = search->options.time;
+		int64_t t = search->options.time;
 		const int sd = solvable_depth(t / 10, search_count_tasks(search)); // depth solvable with 10% of the time
-		const int d = MAX((search->eval.n_empties - sd) / 2, 2); // unsolvable ply to play
+		const int d = MAX((search->n_empties - sd) / 2, 2); // unsolvable ply to play
 		t = MAX(t / d - 10, 100); // keep 0.25 s./remaining move, make at least 1s. available
 		search->time.extra = t;
 		search->time.maxi = t * 3 / 4;
 		search->time.mini = t / 4;
 		if (search->options.verbosity >= 2) {
-			info("<Time-init: rt = %.2f; sd = %d; d = %d; t = %.2f>\n", 0.001 * search->options.time, sd, d, 0.001 * t);
+			info("<Time-init: remaining_time = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f>\n", 0.001 * search->options.time, sd, d, 0.001 * t);
 			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	}
@@ -723,11 +712,11 @@ void search_time_init(Search *search)
  */
 void search_time_reset(Search *search, const Board *initial_board)
 {
-	const long long spent = search_time(search);
+	const int64_t spent = search_time(search);
 	const int n_empties = board_count_empties(initial_board);
 
 	if (search->options.time_per_move) {
-		const long long t = MAX(search->options.time - 10, 100);
+		const int64_t t = MAX(search->options.time - 10, 100);
 		search->time.extra = spent + t;
 		search->time.maxi = spent + t * 99 / 100;
 		search->time.mini = spent + t * 9 / 10;
@@ -735,7 +724,7 @@ void search_time_reset(Search *search, const Board *initial_board)
 			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	} else {
-		long long t = search->options.time;
+		int64_t t = search->options.time;
 		const int sd = solvable_depth(t / 10, search_count_tasks(search)); // depth solvable with 10% of the time
 		const int d = MAX((n_empties - sd) / 2, 2); // unsolvable ply to play
 		t = MAX(t / d - 10, 100); // keep 0.25 s./remaining move, make at least 0.1 s available
@@ -743,7 +732,7 @@ void search_time_reset(Search *search, const Board *initial_board)
 		search->time.maxi = spent + t * 3 / 4;
 		search->time.mini = spent + t / 4;
 		if (search->options.verbosity >= 2) {
-			info("<Time-reset: spent = %.2f rt = %.2f; sd = %d; d = %d; t = %.2f>\n", 0.001 * spent, 0.001 * search->options.time, sd, d, 0.001 * t);
+			info("<Time-reset: spent = %.2f remaining = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f>\n", 0.001 * spent, 0.001 * search->options.time, sd, d, 0.001 * t);
 			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	}
@@ -763,7 +752,7 @@ void search_time_reset(Search *search, const Board *initial_board)
 void search_adjust_time(Search *search, const bool once)
 {
 	if (!search->options.time_per_move) {
-		const long long t = MAX(search->time.extra, MAX(search->options.time - search_time(search) - 10, 100) / 2);
+		const int64_t t = MAX(search->time.extra, MAX(search->options.time - search_time(search) - 10, 100) / 2);
 		search->time.mini = MIN(search->time.maxi, t);
 		search->time.maxi = MIN(search->time.mini * 4 / 3, t);
 		search->time.extra = MIN(search->time.maxi * 4 / 3, t);
@@ -791,7 +780,7 @@ bool search_continue(Search *search)
  */
 void search_check_timeout(Search *search)
 {
-	long long t;
+	int64_t t;
 	Search *master = search->master;
 
 	assert(master->master == master);
@@ -808,18 +797,18 @@ void search_check_timeout(Search *search)
 
 			if (!master->time.extended && master->time.can_update) {
 				Result *result = master->result;
-				spin_lock(result);
+				spinlock_lock(&result->spin);
 				if ((!master->time.extended && master->time.can_update)
 				&& (result->bound[result->move].lower < result->score || result->depth == 0)) {
 					search_adjust_time(master, true);
 				}
-				spin_unlock(result);
+				spinlock_unlock(&result->spin);
 			}
 			if (t > search->time.extra) {
 				search_stop_all(master, STOP_TIMEOUT);
 			}
 		}
-	}	
+	}
 
 	if (search->stop != STOP_TIMEOUT) {
 		t = search_time(master);
@@ -851,7 +840,7 @@ void search_set_task_number(Search *search, const int n)
  */
 void search_swap_parity(Search *search, const int x)
 {
-	search->eval.parity ^= QUADRANT_ID[x];
+	search->parity ^= QUADRANT_ID[x];
 }
 
 /**
@@ -868,25 +857,21 @@ void search_get_movelist(const Search *search, MoveList *movelist)
 {
 	Move *previous = movelist->move;
 	Move *move = movelist->move + 1;
-	V2DI vboard;
-	unsigned long long moves;
+	const Board *board = &search->board;
+	uint64_t moves = board_get_moves(board);
 	int x;
 
-	vboard.board = search->board;
-	moves = vboard_get_moves(vboard);
-	movelist->n_moves = 0;
 	foreach_bit(x, moves) {
-		move->x = x;
-		move->flipped = vboard_flip(vboard, x);
+		board_get_move(board, x, move);
 		move->cost = 0;
 		previous = previous->next = move;
 		++move;
-		++(movelist->n_moves);
 	}
 	previous->next = NULL;
+	movelist->n_moves = move - movelist->move - 1;
+	assert(movelist->n_moves == get_mobility(board->player, board->opponent));
 }
 
-#if 0	// inlined
 /**
  * @brief Update the search state after a move.
  *
@@ -898,8 +883,7 @@ void search_update_endgame(Search *search, const Move *move)
 	search_swap_parity(search, move->x);
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
-	--search->eval.n_empties;
-
+	--search->n_empties;
 }
 
 /**
@@ -913,7 +897,7 @@ void search_restore_endgame(Search *search, const Move *move)
 	search_swap_parity(search, move->x);
 	empty_restore(search->empties, move->x);
 	board_restore(&search->board, move);
-	++search->eval.n_empties;
+	++search->n_empties;
 }
 
 /**
@@ -925,7 +909,7 @@ void search_pass_endgame(Search *search)
 {
 	board_pass(&search->board);
 }
-#endif
+
 
 //static Line debug_line;
 
@@ -937,36 +921,36 @@ void search_pass_endgame(Search *search)
  */
 void search_update_midgame(Search *search, const Move *move)
 {
+	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
+
 //	line_push(&debug_line, move->x);
 
 	search_swap_parity(search, move->x);
 	empty_remove(search->empties, move->x);
 	board_update(&search->board, move);
-	eval_update(move->x, move->flipped, &search->eval);
-	assert(search->eval.n_empties > 0);
-	--search->eval.n_empties;
+	eval_update(&search->eval, move);
+	--search->n_empties;
 	++search->height;
-	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+	search->node_type[search->height] = next_node_type[search->node_type[search->height- 1]];
+	assert(search->n_empties >= 0);
 }
 
 /**
  * @brief Restore the search state as before a move.
  *
  * @param search  search.
- * @param x       played move.
- * @param backup  board/eval to restore.
+ * @param move    played move.
  */
-void search_restore_midgame(Search *search, int x, const Eval *eval0)
+void search_restore_midgame(Search *search, const Move *move)
 {
 //	line_print(&debug_line, 100, " ", stdout); putchar('\n');
 //	line_pop(&debug_line);
 
-	// search_swap_parity(search, move->x);
-	// ++search->eval.n_empties;
-	// eval_restore(search->eval, move);
-	search->eval = *eval0;
-	// board_restore(&search->board, move);
-	empty_restore(search->empties, x);
+	search_swap_parity(search, move->x);
+	empty_restore(search->empties, move->x);
+	board_restore(&search->board, move);
+	eval_restore(&search->eval);
+	++search->n_empties;
 	assert(search->height > 0);
 	--search->height;
 }
@@ -976,13 +960,14 @@ void search_restore_midgame(Search *search, int x, const Eval *eval0)
  *
  * @param search  search.
  */
-void search_update_pass_midgame(Search *search, Eval *backup)
+void search_update_pass_midgame(Search *search)
 {
-	search_pass(search);
-	backup->feature = search->eval.feature;
+	static const NodeType next_node_type[] = {CUT_NODE, ALL_NODE, CUT_NODE};
+
+	board_pass(&search->board);
 	eval_pass(&search->eval);
 	++search->height;
-	search->node_type[search->height] = (search->node_type[search->height - 1] == CUT_NODE) ? ALL_NODE : CUT_NODE;
+	search->node_type[search->height] = next_node_type[search->node_type[search->height- 1]];
 }
 
 /**
@@ -990,11 +975,10 @@ void search_update_pass_midgame(Search *search, Eval *backup)
  *
  * @param search  search.
  */
-void search_restore_pass_midgame(Search *search, const Eval *eval0)
+void search_restore_pass_midgame(Search *search)
 {
-	search_pass(search);
-	// eval_pass(&search->eval);
-	search->eval.feature = eval0->feature;
+	board_pass(&search->board);
+	eval_pass(&search->eval);
 	assert(search->height > 0);
 	--search->height;
 }
@@ -1034,18 +1018,13 @@ bool is_depth_solving(const int depth, const int n_empties)
 	    || (depth > 24 && depth + 14 >= n_empties);
 }
 
-
-
 /**
- * @brief Return the time spent by the search
+ * @brief Check is the search is solving for exact score & move
  *
- * @param search  Search.
- * @return time (in milliseconds).
+ * @param search search.
  */
-long long search_clock(Search *search)
-{
-	if (options.nps > 0) return search_count_nodes(search) / options.nps;
-	else return time_clock();
+bool search_is_solving(Search *search) {
+	return search->depth == search->n_empties && search->selectivity == NO_SELECTIVITY;
 }
 
 /**
@@ -1054,7 +1033,19 @@ long long search_clock(Search *search)
  * @param search  Search.
  * @return time (in milliseconds).
  */
-long long search_time(Search *search)
+int64_t search_clock(Search *search)
+{
+	if (options.nps > 0) return search_count_nodes(search) / options.nps;
+	else return real_clock();
+}
+
+/**
+ * @brief Return the time spent by the search
+ *
+ * @param search  Search.
+ * @return time (in milliseconds).
+ */
+int64_t search_time(Search *search)
 {
 	if (search->stop != STOP_END) return search_clock(search) + search->time.spent;
 	else return search->time.spent;
@@ -1066,7 +1057,7 @@ long long search_time(Search *search)
  * @param search  Search.
  * @return node count.
  */
-unsigned long long search_count_nodes(Search *search)
+uint64_t search_count_nodes(Search *search)
 {
 	return search->n_nodes + search->child_nodes;
 }
@@ -1108,7 +1099,7 @@ void result_print(Result *result, FILE *f)
 	const int PRINTED_WIDTH = 52;
 #endif
 
-	spin_lock(result);
+	spinlock_lock(&result->spin);
 
 	if (result->bound[result->move].lower < result->score && result->score == result->bound[result->move].upper) bound = '<';
 	else if (result->bound[result->move].lower == result->score && result->score < result->bound[result->move].upper) bound = '>';
@@ -1120,40 +1111,15 @@ void result_print(Result *result, FILE *f)
 	fprintf(f, "%c%+03d ", bound, result->score);
 	time_print(result->time, true, f);
 	if (result->n_nodes) {
-		fprintf(f, " %13lld ", result->n_nodes);
+		fprintf(f, " %13lu ", result->n_nodes);
 		if (result->time > 0) fprintf(f, "%10.0f ", 1000.0 * result->n_nodes / result->time);
 		else fprintf(f, "           ");
 	} else fputs("                          ", f);
 	line_print(&result->pv, options.width - PRINTED_WIDTH, " ", f);
 	fflush(f);
 
-	spin_unlock(result);
+	spinlock_unlock(&result->spin);
 }
-
-#if 0	// inlined in PVS_shallow
-/**
- * @brief Stability Cutoff (SC).
- *
- * @param search Current position.
- * @param alpha Alpha bound.
- * @param beta Beta bound, to adjust if necessary.
- * @param score Score to return in case of a cutoff is found.
- * @return 'true' if a cutoff is found, false otherwise.
- */
-bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
-{
-	if (USE_SC && *beta >= PVS_STABILITY_THRESHOLD[search->eval.n_empties]) {
-		CUTOFF_STATS(++statistics.n_stability_try;)
-		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
-		if (*score <= *alpha) {
-			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
-			return true;
-		}
-		else if (*score < *beta) *beta = *score;
-	}
-	return false;
-}
-#endif
 
 /**
  * @brief Stability Cutoff (SC).
@@ -1165,9 +1131,11 @@ bool search_SC_PVS(Search *search, int *alpha, int *beta, int *score)
  */
 bool search_SC_NWS(Search *search, const int alpha, int *score)
 {
-	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+	const Board *board = &search->board;
+
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
 		CUTOFF_STATS(++statistics.n_stability_try;)
-		*score = SCORE_MAX - 2 * get_stability(search->board.opponent, search->board.player);
+		*score = SCORE_MAX - 2 * get_stability(board->opponent, board->player);
 		if (*score <= alpha) {
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return true;
@@ -1175,13 +1143,47 @@ bool search_SC_NWS(Search *search, const int alpha, int *score)
 	}
 	return false;
 }
+#if USE_SOLID
+/**
+ * @brief Stability Cutoff (SC).
+ *
+ * @param search Current position.
+ * @param alpha Alpha bound.
+ * @param score Score to return in case of a cutoff is found.
+ * @param full discs on full lines.
+ * @return 'true' if a cutoff is found, false otherwise.
+ */
+bool search_SC_NWS_full(Search *search, const int alpha, int *score, uint64_t *full)
+{
+	const Board *board = &search->board;
 
-// for 4 empties (min stage)
+	if (USE_SC && alpha >= NWS_STABILITY_THRESHOLD[search->n_empties]) {
+		CUTOFF_STATS(++statistics.n_stability_try;)
+		*score = SCORE_MAX - 2 * get_stability_full(board->opponent, board->player, full);
+		if (*score <= alpha) {
+			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
+			return true;
+		}
+	}
+	return false;
+}
+#endif
+
+/**
+ * @brief Stability Cutoff (SC) at 4 empties (min stage).
+ *
+ * @param search Current position.
+ * @param alpha Alpha bound.
+ * @param score Score to return in case of a cutoff is found.
+ * @return 'true' if a cutoff is found, false otherwise.
+ */
 bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 {
+	const Board *board = &search->board;
+
 	if (USE_SC && alpha < -NWS_STABILITY_THRESHOLD[4]) {
 		CUTOFF_STATS(++statistics.n_stability_try;)
-		*score = 2 * get_stability(search->board.opponent, search->board.player) - SCORE_MAX;
+		*score = 2 * get_stability(board->opponent, board->player) - SCORE_MAX;
 		if (*score > alpha) {
 			CUTOFF_STATS(++statistics.n_stability_low_cutoff;)
 			return true;
@@ -1189,43 +1191,6 @@ bool search_SC_NWS_4(Search *search, const int alpha, int *score)
 	}
 	return false;
 }
-
-#if 0	// unused
-/**
- * @brief Transposition Cutoff (TC).
- *
- * @param data Transposition data.
- * @param depth Search depth.
- * @param selectivity Search selecticity level.
- * @param alpha Alpha bound, to adjust of necessary.
- * @param beta Beta bound, to adjust of necessary.
- * @param score Score to return in case of a cutoff is found.
- * @return 'true' if a cutoff is found, false otherwise.
- */
-bool search_TC_PVS(HashData *data, const int depth, const int selectivity, int *alpha, int *beta, int *score)
-{
-	if (USE_TC && (data->wl.c.selectivity >= selectivity && data->wl.c.depth >= depth)) {
-		CUTOFF_STATS(++statistics.n_hash_try;)
-		if (*alpha < data->lower) {
-			*alpha = data->lower;
-			if (*alpha >= *beta) {
-				CUTOFF_STATS(++statistics.n_hash_high_cutoff;)
-				*score = *alpha;
-				return true;
-			}
-		}
-		if (*beta > data->upper) {
-			*beta = data->upper;
-			if (*beta <= *alpha) {
-				CUTOFF_STATS(++statistics.n_hash_low_cutoff;)
-				*score = *beta;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-#endif
 
 /**
  * @brief Transposition Cutoff (TC).
@@ -1239,7 +1204,7 @@ bool search_TC_PVS(HashData *data, const int depth, const int selectivity, int *
  */
 bool search_TC_NWS(HashData *data, const int depth, const int selectivity, const int alpha, int *score)
 {
-	if (USE_TC && (data->wl.c.selectivity >= selectivity && data->wl.c.depth >= depth)) {
+	if (USE_TC && (data->draft.u1.selectivity >= selectivity && data->draft.u1.depth >= depth)) {
 		CUTOFF_STATS(++statistics.n_hash_try;)
 		if (alpha < data->lower) {
 			CUTOFF_STATS(++statistics.n_hash_high_cutoff;)
@@ -1271,49 +1236,45 @@ bool search_TC_NWS(HashData *data, const int depth, const int selectivity, const
  * @param score Score to return in case a cutoff is found.
  * @return 'true' if a cutoff is found, 'false' otherwise.
  */
-bool search_ETC_NWS(Search *search, MoveList *movelist, unsigned long long hash_code, const int depth, const int selectivity, const int alpha, int *score)
+bool search_ETC_NWS(Search *search, MoveList *movelist, uint64_t hash_code, const int depth, const int selectivity, const int alpha, int *score)
 {
 	if (USE_ETC && depth > ETC_MIN_DEPTH) {
 
 		Move *move;
 		Board next;
 		HashData etc;
-		HashStoreData hash_data;
-		unsigned long long etc_hash_code;
+		HashStore store;
+		uint64_t etc_hash_code;
 		HashTable *hash_table = &search->hash_table;
 		const int etc_depth = depth - 1;
 		const int beta = alpha + 1;
 
-		hash_data.data.wl.c.depth = depth;
-		hash_data.data.wl.c.selectivity = selectivity;
-		hash_data.data.wl.c.cost = 0;
-		hash_data.alpha = alpha;
-		hash_data.beta = beta;
 
 		CUTOFF_STATS(++statistics.n_etc_try;)
-		foreach_move (move, *movelist) {
+		foreach_move (move, movelist) {
+			// TODO: existing function ?
 			next.opponent = search->board.player ^ (move->flipped | x_to_bit(move->x));
 			next.player = search->board.opponent ^ move->flipped;
 			SEARCH_UPDATE_ALL_NODES(search->n_nodes);
 
-			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->eval.n_empties]) {
+			if (USE_SC && alpha <= -NWS_STABILITY_THRESHOLD[search->n_empties]) {
 				*score = 2 * get_stability(next.opponent, next.player) - SCORE_MAX;
 				if (*score > alpha) {
-					hash_data.score = *score;
-					hash_data.data.move[0] = move->x;
-					hash_store(hash_table, &search->board, hash_code, &hash_data);
+					draft_set(&store.draft, depth, selectivity, 0, hash_table->date);
+					store_set(&store,  alpha, beta, *score, move->x);
+					hash_store(hash_table, &search->board, hash_code, &store);
 					CUTOFF_STATS(++statistics.n_esc_high_cutoff;)
 					return true;
 				}
 			}
 
 			etc_hash_code = board_get_hash_code(&next);
-			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.wl.c.selectivity >= selectivity && etc.wl.c.depth >= etc_depth) {
+			if (USE_TC && hash_get(hash_table, &next, etc_hash_code, &etc) && etc.draft.u1.selectivity >= selectivity && etc.draft.u1.depth >= etc_depth) {
 				*score = -etc.upper;
 				if (*score > alpha) {
-					hash_data.score = *score;
-					hash_data.data.move[0] = move->x;
-					hash_store(hash_table, &search->board, hash_code, &hash_data);
+					draft_set(&store.draft, depth, selectivity, 0, hash_table->date);
+					store_set(&store,  alpha, beta, *score, move->x);
+					hash_store(hash_table, &search->board, hash_code, &store);
 					CUTOFF_STATS(++statistics.n_etc_high_cutoff;)
 					return true;
 				}
@@ -1357,12 +1318,12 @@ void search_stop_all(Search *search, const Stop stop)
 {
 	int i;
 
-	spin_lock(search);
+	spinlock_lock(&search->spin);
 		search->stop = stop;
 		for (i = 0; i < search->n_child; ++i) {
 			search_stop_all(search->child[i], stop);
 		}
-	spin_unlock(search);
+	spinlock_unlock(&search->spin);
 }
 
 /**
@@ -1373,9 +1334,9 @@ void search_stop_all(Search *search, const Stop stop)
  */
 void search_set_state(Search *search, const Stop stop)
 {
-	spin_lock(search);
-	search->stop = stop;
-	spin_unlock(search);
+	spinlock_lock(&search->spin);
+		search->stop = stop;
+	spinlock_unlock(&search->spin);
 }
 
 /**
@@ -1391,11 +1352,9 @@ int search_guess(Search *search, const Board *board)
 {
 	HashData hash_data;
 	int move = NOMOVE;
-	unsigned long long hash_code;
 
-	hash_code = board_get_hash_code(board);
-	if (hash_get(&search->pv_table, board, hash_code, &hash_data)) move = hash_data.move[0];
-	if (move == NOMOVE && hash_get(&search->hash_table, board, hash_code, &hash_data)) move = hash_data.move[0];
+	if (hash_get(&search->pv_table, board, board_get_hash_code(board), &hash_data)) move = hash_data.move[0];
+	if (move == NOMOVE && hash_get(&search->hash_table, board, board_get_hash_code(board), &hash_data)) move = hash_data.move[0];
 
 	return move;
 }
