@@ -115,7 +115,7 @@ bool is_pv_ok(Search *search, const int bestmove, int depth)
  * this function is used when no move is found in the position retrieved
  * from the hash table, meaning a fail-low search without a good move happened.
  * A move is guessed after a "shallow search".
- * 
+ *
  * @param search Search.
  * @param board Board to guess move from.
  * @return a best move guessed from a shallow search (depth = 4).
@@ -194,13 +194,13 @@ void record_best_move(Search *search, const Board *init_board, const Move *bestm
 		board_get_move(&board, x, &move);
 		if (board_check_move(&board, &move)) {
 			board_update(&board, &move);
-			--expected_depth; 
+			--expected_depth;
 			tmp = expected_bound.upper; expected_bound.upper = -expected_bound.lower; expected_bound.lower = -tmp;
 			fail_low = !fail_low;
 			line_push(&result->pv, move.x);
 
 			hash_code = board_get_hash_code(&board);
-			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data)) 
+			if ((hash_get(&search->pv_table, &board, hash_code, &hash_data) || hash_get(&search->hash_table, &board, hash_code, &hash_data))
 			 && (hash_data.draft.u1.depth >= expected_depth && hash_data.draft.u1.selectivity >= expected_selectivity)
 			 && (hash_data.upper <= expected_bound.upper && hash_data.lower >= expected_bound.lower)) {
 				x = hash_data.move[0];
@@ -222,7 +222,7 @@ void record_best_move(Search *search, const Board *init_board, const Move *bestm
 			log_print(&search_log, "stability bounds = [%+03d, %+03d]: ", search->stability_bound.lower, search->stability_bound.upper);
 			log_print(&search_log, "%+03d ≤ score = %+03d ≤ %+03d; time = ", result->bound[result->move].lower, result->score, result->bound[result->move].upper);
 			time_print(result->time, false, search_log.f);
-			log_print(&search_log, "; nodes = %lu N; ", result->n_nodes);
+			log_print(&search_log, "; nodes = %" PRIu64 " N; ", result->n_nodes);
 			if (result->time > 0) {log_print(&search_log, "speed = %9.0f Nps", 1000.0 * result->n_nodes / result->time);}
 			log_print(&search_log, "\n%d>    pv = ", search->id);
 			line_print(&result->pv, 200, " ", search_log.f);
@@ -242,13 +242,13 @@ void show_current_move(FILE *f, Search *search, const Move *move, const int alph
 }
 
 /**
- * @brief bound root scores according to stable squares 
+ * @brief bound root scores according to stable squares
  *
  * @param search Position to search.
  * @param score score to bound.
  * @return score;
  */
-int search_bound(const Search *search, int score) 
+int search_bound(const Search *search, int score)
 {
 	if (score < search->stability_bound.lower) score = search->stability_bound.lower;
 	if (score > search->stability_bound.upper) score = search->stability_bound.upper;
@@ -296,7 +296,7 @@ static int search_route_PVS(Search *search, int alpha, int beta, const int depth
  * The board is supposed to be updated by a move after the root position.
  *
  * @param search Search.
- * @return A search cost. 
+ * @return A search cost.
  */
 int search_get_pv_cost(Search *search)
 {
@@ -554,7 +554,7 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 				log_print(&search_log, "\n");
 			}
 			if (options.debug_cassio) {
-				printf("DEBUG: Wrong PV: "); pv_debug(search, movelist_first(&search->movelist), stdout); putchar('\n'); fflush(stdout); 
+				printf("DEBUG: Wrong PV: "); pv_debug(search, movelist_first(&search->movelist), stdout); putchar('\n'); fflush(stdout);
 				if (log_is_open(&engine_log)) {
 					fprintf(engine_log.f, "DEBUG: Wrong PV: "); pv_debug(search, movelist_first(&search->movelist), engine_log.f);
 					putc('\n', engine_log.f); fflush(engine_log.f);
@@ -571,7 +571,7 @@ int aspiration_search(Search *search, int alpha, int beta, const int depth, int 
 	}
 
 	// if (!search->stop) record_best_move(search, &search->board, movelist_first(&search->movelist), alpha, beta, depth);
-	
+
 	search->result->time = search_time(search);
 	search->result->n_nodes = search_count_nodes(search);
 	if (options.noise <= depth && search->options.verbosity >= 2) {
@@ -596,7 +596,7 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 	Move move;
 	uint64_t hash_code;
 	HashData hash_data;
-	
+
 
 	board = search->board;
 
@@ -618,7 +618,7 @@ static bool get_last_level(Search *search, int *depth, int *selectivity)
 
 		board_get_move(&board, x, &move);
 		board_update(&board, &move);
-		
+
 		if (x == PASS) --i;
 	}
 
@@ -693,7 +693,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 		mtx_lock(&search_log.mutex);
 		log_print(&search_log, "%d> ", search->id);
 	}
-	
+
 	// reuse last search ?
 	if (hash_get(&search->pv_table, board, board_get_hash_code(board), &hash_data)) {
 		char s[2][3];
@@ -803,7 +803,7 @@ void iterative_deepening(Search *search, int alpha, int beta)
 	t = (search->options.time - search_time(search));
 	has_time = (solvable_depth(t / 10, search_count_tasks(search)) > search->depth);
 	for (; search->selectivity <= search->options.selectivity; ++search->selectivity) {
-		if (search->depth == search->n_empties && 
+		if (search->depth == search->n_empties &&
 		(  (search->depth < 21 && search->selectivity >= 1)
 		|| (search->depth < 24 && search->selectivity >= 2)
 		|| (search->depth < 27 && search->selectivity >= 3)
@@ -867,7 +867,7 @@ int search_run(void *v)
 		search->result->bound[PASS].lower = SCORE_MIN;
 		search->result->bound[PASS].upper = SCORE_MAX;
 	}
-	
+
 	// search using iterative deepening (& widening).
 	iterative_deepening(search, options.alpha, options.beta);
 

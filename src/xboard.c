@@ -41,8 +41,8 @@ static void xboard_observer(Result *result)
 
 	printf("%2d ", result->depth);
 	printf("%4d ", 100 * result->score);
-	printf("%6ld ", result->time / 10);
-	printf("%10lu ", result->n_nodes);
+	printf("%6" PRId64 " ", result->time / 10);
+	printf("%10" PRIu64 " ", result->n_nodes);
 	if (result->selectivity < 5) printf("@%2d%% ", selectivity_table[result->selectivity].percent);
 	if (result->book_move) putchar('(');
 	line_print(&result->pv, -200, " ", stdout);
@@ -53,8 +53,8 @@ static void xboard_observer(Result *result)
 	if (log_is_open(&xboard_log)) {
 		fprintf(xboard_log.f, "edax> %2d ", result->depth);
 		fprintf(xboard_log.f, "%4d ", 100 * result->score);
-		fprintf(xboard_log.f, "%6ld ", result->time / 10);
-		fprintf(xboard_log.f, "%10lu ", result->n_nodes);
+		fprintf(xboard_log.f, "%6" PRId64 " ", result->time / 10);
+		fprintf(xboard_log.f, "%10" PRIu64 " ", result->n_nodes);
 		if (result->selectivity < 5) fprintf(xboard_log.f, "@%2d%% ", selectivity_table[result->selectivity].percent);
 		if (result->book_move) fputc('(', xboard_log.f);
 		line_print(&result->pv, -200, " ", xboard_log.f);
@@ -299,7 +299,7 @@ static void xboard_go(UI *ui, XBoardStats *stats)
 		else if (search->stop == STOP_PONDERING) fprintf(xboard_log.f, "edax search> BUG: stop pondering ???\n");
 		else if (search->stop == STOP_END) fprintf(xboard_log.f, "edax search> search completed!\n");
 		else  fprintf(xboard_log.f, "edax search> BUG: search stopped for no reason ???\n");
-		fprintf(xboard_log.f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %lu\n",
+		fprintf(xboard_log.f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %" PRIu64 "\n",
 			0.001 * result->time,  result->depth, selectivity_table[result->selectivity].percent, result->n_nodes);
 		fprintf(xboard_log.f, "edax search> best score = %d; pv = ", result->score);
 		line_print(&result->pv, 100, NULL, xboard_log.f);

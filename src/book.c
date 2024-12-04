@@ -24,9 +24,11 @@
 #include "util.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 
@@ -264,7 +266,7 @@ static void position_init(Position *position)
  *
  * A position is merged if its level is > to the destination position; or == and
  * its leaf move is not contains into the destination link moves.
- * 
+ *
  * Note: link moves are not copied. This can be done later with position_link().
  *
  * @param dest Destination position.
@@ -276,7 +278,7 @@ static void position_merge(Position *dest, const Position *src)
 
 	position_init(dest);		//??? dest->n_link = 0,
 	dest->board = src->board;
-	if (dest->level == src->level) { 
+	if (dest->level == src->level) {
 		foreach_link(l, dest) {	// so this does nothing
 			if (l->move == src->leaf.move) return;
 		}
@@ -893,7 +895,7 @@ static void position_prune(Position *position, Book *book, const int player_devi
 		}
 		if (book->stats.n_todo % BOOK_INFO_RESOLUTION == 0) {
 			bprint("Book prune %d to keep\r", book->stats.n_todo);
-			
+
 		}
 	}
 }
@@ -1084,7 +1086,7 @@ static bool board_fill(Board *board, Book *book, int depth)
 				book_add_board(book, board);
 				filled = true;
 			}
-			board_pass(board);							
+			board_pass(board);
 		} else {
 			foreach_move(m, &movelist) {
 				board_update(board, m);
@@ -1092,7 +1094,7 @@ static bool board_fill(Board *board, Book *book, int depth)
 					book_add_board(book, board);
 					filled = true;
 				}
-				board_restore(board, m);					
+				board_restore(board, m);
 			}
 		}
 		return filled;
@@ -1112,7 +1114,7 @@ static void position_fix(Position *position, Book *book)
 {
 	Board board;
 
-	if ((position->board.player & position->board.opponent) || 
+	if ((position->board.player & position->board.opponent) ||
 	    ((position->board.player | position->board.opponent) & 0x0000001818000000ULL) != 0x0000001818000000ULL) {
 		position_free(position);
 		position_init(position);
@@ -1558,7 +1560,7 @@ void book_export(Book *book, const char *file)
 		error("cannot open file %s", file);
 		return;
 	}
-	
+
 	info("Exporting book to %s...", file);
 	foreach_position(p, a, book) {
 		if (!position_export(p, f)) {
@@ -1687,7 +1689,7 @@ void book_fix(Book *book)
 	Position *p;
 	int i = 0;
 
-	bprint("Fixing book...\r"); 
+	bprint("Fixing book...\r");
 	foreach_position(p, a, book) {
 		if (!position_is_ok(p)) {
 			position_fix(p, book);
@@ -1711,10 +1713,10 @@ void book_deepen(Book *book)
 	int i = 0;
 	uint64_t t = real_clock();
 	char file[FILENAME_MAX + 1];
-	
+
 	file_add_ext(options.book_file, ".dep", file);
 
-	bprint("Deepening book...\r"); 
+	bprint("Deepening book...\r");
 	foreach_position(p, a, book) {
 		int n_empties = board_count_empties(&p->board);
 		if (LEVEL[p->level][n_empties].depth != LEVEL[book->options.level][n_empties].depth
@@ -1722,7 +1724,7 @@ void book_deepen(Book *book)
 			p->leaf = BAD_LINK;
 			position_search(p, book);
 			if (++i % 10 == 0) {
-				bprint("Deepening book...%d\r", i); 
+				bprint("Deepening book...%d\r", i);
 			}
 			if (real_clock() - t > HOUR) {
 				book_save(book, file); // save every hour
@@ -1750,10 +1752,10 @@ void book_correct_solved(Book *book)
 	Link old_leaf;
 	int n_error = 0;
 	char s[4];
-	
+
 	file_add_ext(options.book_file, ".err", file);
 
-	bprint("Correcting solved positions...\r"); 
+	bprint("Correcting solved positions...\r");
 	foreach_position(p, a, book) {
 		int n_empties = board_count_empties(&p->board);
 		if (LEVEL[p->level][n_empties].depth == n_empties && LEVEL[p->level][n_empties].selectivity == NO_SELECTIVITY) { // No! compare depth & selectivity;
@@ -1768,7 +1770,7 @@ void book_correct_solved(Book *book)
 				bprint("instead of <%s:%d>\n\n", s, old_leaf.score);
 			}
 			if (++i % 10 == 0 || p->leaf.score != old_leaf.score) {
-				bprint("Correcting solved positions...%d (%d error found)\r", i, n_error); 
+				bprint("Correcting solved positions...%d (%d error found)\r", i, n_error);
 			}
 			if (real_clock() - t > HOUR) {
 				book_save(book, file); // save every hour
@@ -1796,7 +1798,7 @@ static void book_expand(Book *book, const char *action, const char *tmp_file)
 	uint64_t t = real_clock();
 
 	bprint("%s...\r", action);
-	
+
 	for (a = book->array; a < book->array + book->n; ++a)
 	for (k = 0; k < a->n; ++k) { // do not use foreach_positions here! a->positions may change!
 		p = a->positions + k;
@@ -1804,7 +1806,7 @@ static void book_expand(Book *book, const char *action, const char *tmp_file)
 			position_expand(p, book);
 			bprint("%s...%d/%d done: %d positions, %d links\r", action, ++i, book->stats.n_todo, book->stats.n_nodes, book->stats.n_links);
 			if (book->search->options.verbosity >= 2) putchar('\n'); else putchar('\r');
-			
+
 			if (real_clock() - t > HOUR) {
 				book_save(book, tmp_file); // save every hour
 				t = real_clock();
@@ -1897,7 +1899,7 @@ void book_fill(Book *book, const int depth)
 				board_fill(&p->board, book, depth);
 				if (n_diffs < book->stats.n_nodes + book->stats.n_links) {
 					n_diffs = book->stats.n_nodes + book->stats.n_links;
-					bprint("Book fill...%d %d done\r", book->stats.n_nodes, book->stats.n_links); 
+					bprint("Book fill...%d %d done\r", book->stats.n_nodes, book->stats.n_links);
 				}
 			}
 		}
@@ -2128,7 +2130,7 @@ void book_show(Book *book, Board *board)
 }
 
 /**
- * @brief Get a list of moves from the book.
+ * @brief Get a list of moves from the book.<inttypes.h>
  *
  * @param book Opening book.
  * @param board Position to display.
@@ -2207,7 +2209,7 @@ void book_get_game_stats(Book *book, const Board *board, GameStats *stat)
 	assert(book != NULL);
 	assert(board !=NULL);
 	assert(stat != NULL);
-	
+
 	stat->n_wins = stat->n_losses = stat->n_draws = stat->n_lines = 0;
 
 	position = book_probe(book, board);
@@ -2216,7 +2218,7 @@ void book_get_game_stats(Book *book, const Board *board, GameStats *stat)
 			Board target;
 			Link *l;
 			GameStats child;
-			
+
 			foreach_link(l, position) {
 				board_next(&position->board, l->move, &target);
 				book_get_game_stats(book, &target, &child);
@@ -2280,7 +2282,7 @@ void book_add_game(Book *book, const Game *game)
 	const int n_stats = book->stats.n_nodes + book->stats.n_links;
 
 	file_add_ext(options.book_file, ".gam", file);
-	
+
 	board_init(&board);
 	if (!board_equal(&board, &game->initial_board)) return; // skip non standard game
 	for (i = n_moves = 0; i < 60 - book->options.n_empties && game->move[i] != NOMOVE; ++i) {
@@ -2331,7 +2333,7 @@ void book_add_base(Book *book, const Base *base)
 			t0 = t;
 		}
 		if (book->search->options.verbosity) putchar('\n');
-		
+
 	}
 	bprint("Adding games...%d/%d done: %d positions, %d links\n", i, base->n_games, book->stats.n_nodes, book->stats.n_links);
 	bprint("%d games added to book\n", i);
@@ -2417,9 +2419,9 @@ void book_check_base(Book *book, const Base *base)
 
 
 /**
- * @brief Extract book lines to a game base 
+ * @brief Extract book lines to a game base
  *
- * Recursively add move to a PV until no move are available, 
+ * Recursively add move to a PV until no move are available,
  * where we dump the PV to a game data base.
  *
  * @param book Opening book.
@@ -2437,7 +2439,7 @@ static void extract_skeleton(Book *book, Board *board, Line *pv, Base *base)
 
 	if (book_get_moves(book, board, &movelist)) {
 		bestscore = movelist_best(&movelist)->score;
-		
+
 		foreach_move(move, &movelist) {
 			if (move->score == bestscore) {
 				board_update(board, move); line_push(pv, move->x);
@@ -2456,7 +2458,7 @@ static void extract_skeleton(Book *book, Board *board, Line *pv, Base *base)
 }
 
 /**
- * @brief Extract book draws to a game base 
+ * @brief Extract book draws to a game base
  *
  * This function supposes that f5d6c4 & f5f6e6f4 are draws and the only draws, excluding the transpositions
  * f5d6c3d3c4 & f5f6e6c6 & c4..., d3..., e6...
@@ -2474,12 +2476,12 @@ void book_extract_skeleton(Book *book, Base *base)
 	board_init(&board);
 	board_next(&board, F5, &board); board_next(&board, D6, &board); board_next(&board, C4, &board);
 	extract_skeleton(book, &board, &pv, base);
-	
+
 	line_init(&pv, BLACK);
 	line_push(&pv, F5); line_push(&pv, F6); line_push(&pv, E6); line_push(&pv, F4);
 	board_init(&board);
 	board_next(&board, F5, &board); board_next(&board, F6, &board);
-	board_next(&board, E6, &board); board_next(&board, F4, &board);	
+	board_next(&board, E6, &board); board_next(&board, F4, &board);
 	extract_skeleton(book, &board, &pv, base);
 	bprint("%d games extracted   \n", base->n_games);
 }
@@ -2501,7 +2503,7 @@ void book_extract_positions(Book *book, const int n_empties, const int n_positio
 	int i = 0;
 	char s[80];
 
-	bprint("Extracting %d positions at %d ...\n", n_positions, n_empties); 
+	bprint("Extracting %d positions at %d ...\n", n_positions, n_empties);
 	foreach_position(p, a, book) {
 		if (i == n_positions) break;
 		if (board_count_empties(&p->board) == n_empties) {
@@ -2546,8 +2548,8 @@ void book_stats(Book *book)
 		else ++n_hash[255];
 	}
 	printf("index    positions\n");
-	for (i = 0; i < 255; ++i) if (n_hash[i]) printf("%5d %12lu\n", i, n_hash[i]);
-	if (n_hash[i]) printf(">%4d %12lu\n", i - 1, n_hash[i]);
+	for (i = 0; i < 255; ++i) if (n_hash[i]) printf("%5d %12" PRIu64 "\n", i, n_hash[i]);
+	if (n_hash[i]) printf(">%4d %12" PRIu64 "\n", i - 1, n_hash[i]);
 
 	printf("\nStage distribution:\n");
 	printf("stage    positions        links       leaves      terminal nodes\n");
@@ -2559,22 +2561,22 @@ void book_stats(Book *book)
 		if (p->n_link == 0) ++n_terminal[i];
 		n_link[i] += p->n_link;
 	}
-	for (i = 0; i < 61; ++i) if (n_pos[i]) printf("%5d %12lu %12lu %12lu %12lu\n", i, n_pos[i], n_link[i], n_leaf[i], n_terminal[i]);
-		
+	for (i = 0; i < 61; ++i) if (n_pos[i]) printf("%5d %12" PRIu64 " %12" PRIu64 " %12" PRIu64 " %12" PRIu64 "\n", i, n_pos[i], n_link[i], n_leaf[i], n_terminal[i]);
+
 	printf("\nBest Score Distribution:\n");
 	printf("Score    positions\n");
 	for (i = 0; i < 129; ++i) n_score[i] = 0;
 	foreach_position(p, a, book) {
 		++n_score[64 + p->score.value];
 	}
-	for (i = 0; i < 129; ++i) if (n_score[i]) printf("%+5d %12lu\n", i - 64, n_score[i]);
+	for (i = 0; i < 129; ++i) if (n_score[i]) printf("%+5d %12" PRIu64 "\n", i - 64, n_score[i]);
 	printf("\n\n");
 	fflush(stdout);
 }
 
 /**
  * @brief feed hash table from the opening book.
- * 
+ *
  * @param book Opening book.
  * @param board Position to start from.
  * @param search HashTables container.

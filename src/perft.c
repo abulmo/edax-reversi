@@ -37,7 +37,7 @@ typedef struct {
 /** initial statistics*/
 const GameStatistics GAME_STATISTICS_INIT = {0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 64, 0};
 
-/** 
+/**
  * @brief Accumulate statistics: add local data to global ones.
  * @param global Global statistics.
  * @param local Local statistics.
@@ -120,14 +120,14 @@ void count_games(const Board *board, const int depth)
 		t = -cpu_clock();
 		count_game(board, i, &stats);
 		t += cpu_clock();
-		printf("  %2d, %15lu, %12lu, %12lu, %12lu, %12lu, ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
+		printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
 		printf("  %2d - %2d, ", stats.min_mobility, stats.max_mobility);
 		n += stats.n_moves + stats.n_passes;
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(n / (0.001 * t + 0.001), "N/s\n", stdout);
 		if (stats.n_moves + stats.n_passes == 0) break;
 	}
-	printf("Total %12lu\n", n);
+	printf("Total %12" PRIu64 "\n", n);
 	puts("------------------------------------------------------------------------------------------------------------------");
 }
 
@@ -202,8 +202,8 @@ void estimate_games(const Board *board, const int64_t n)
 			em[i] += x[i - 1]; es[i] += x[i - 1] * x[i - 1];
 			EM += x[i - 1]; ES += x[i - 1] * x[i - 1];
 			en[i]++;
-		} 
-	}	
+		}
+	}
 	t += cpu_clock();
 
 	for (i = 1; m[i] || en[i]; ++i) {
@@ -253,7 +253,7 @@ static void test_mobility(const Board *board, const int ply, Random *r, int *mov
 			if (i > *max_mobility || (i == *max_mobility && e > *max_empties)) {
 				*max_mobility = i;
 				*max_empties = e;
-				printf("\n after %lu trials:\n\n", n);
+				printf("\n after %" PRIu64 " trials:\n\n", n);
 				board_print(board, ply % 2, stdout);
 				for (k = 1; k < ply; ++k) {
 					move_print(move[k], k % 2, stdout);
@@ -538,16 +538,16 @@ void quick_count_games(const Board *board, const int depth, const int size)
 		if (size == 6) quick_count_game_6x6(&hash, board, i, &stats);
 		else quick_count_game(&hash, board, i, &stats);
 		t += cpu_clock();
-		printf("  %2d, %15lu, %12lu, %12lu, %12lu, %12lu, ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
+		printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
 		printf("  %2d - %2d, ", stats.min_mobility, stats.max_mobility);
 		time_print(t, true, stdout);	printf(", ");
 		n += stats.n_moves + stats.n_passes;
 		print_scientific(n / (0.001 * t + 0.001), "moves/s,", stdout);
-		printf("  (h_tries = %lu, h_hits = %lu)\n", hash.n_tries, hash.n_hits);
+		printf("  (h_tries = %" PRIu64 ", h_hits = %" PRIu64 ")\n", hash.n_tries, hash.n_hits);
 		gamehash_delete(&hash);
 		if (stats.n_moves + stats.n_passes == 0) break;
 	}
-	printf("Total %12lu\n", n);
+	printf("Total %12" PRIu64 "\n", n);
 	puts("------------------------------------------------------------------------------------------------------------------");
 }
 
@@ -685,7 +685,7 @@ static void boardcache_append(BoardCache *hash, const Board *b)
 	Board u;
 	uint64_t h;
 	int i, j, k, l;
-	
+
 	board_unique(b, &u);
 	h = board_get_hash_code(&u);
 	i = (h & hash->mask);
@@ -840,7 +840,7 @@ void count_positions(const Board *board, const int depth, const int size)
 		if (size == 6) c += (n = count_position_6x6(&hash, &cache, board, i));
 		else c += (n = count_position(&hash, &cache, board, i));
 		t += cpu_clock();
-		printf("  %2d, %12lu, %12lu, ", i + 4, n, c);
+		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", i + 4, n, c);
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(c / (0.001 * t + 0.001), "N/s\n", stdout);
 		positionhash_delete(&hash);
@@ -854,7 +854,7 @@ void count_positions(const Board *board, const int depth, const int size)
  * @brief unique shape.
  *
  * @param shape input Shape.
- * @return 
+ * @return
  */
 uint64_t shape_unique(uint64_t shape)
 {
@@ -1070,7 +1070,7 @@ void count_shapes(const Board *board, const int depth, const int size)
 		if (size == 6) c += (n = count_shape_6x6(&hash, &cache, board, i));
 		else c += (n = count_shape(&hash, &cache, board, i));
 		t += cpu_clock();
-		printf("  %2d, %12lu, %12lu, ", i + 4, n, c);
+		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", i + 4, n, c);
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(c / (0.001 * t + 0.001), "N/s\n", stdout);
 		shapehash_delete(&hash);

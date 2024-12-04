@@ -554,7 +554,7 @@ void wthor_test(const char *file, Search *search)
 
 			if (search->options.verbosity == 0) {
 				printf("%s  game: %4d, error: %2d ; ", file, (int)(wthor - base.game) + 1, n_failure);
-				printf("%ld n, ", n_nodes); time_print(t, false, stdout); putchar('\r');
+				printf("%" PRIu64 " n, ", n_nodes); time_print(t, false, stdout); putchar('\r');
 				fflush(stdout);
 			}
 		}
@@ -965,7 +965,7 @@ void base_compare(const char *file_1, const char *file_2)
 
 	positionhash_delete(&hash);
 
-	printf("%s : %ld positions - %ld original positions\n", file_1, n_1, n_1 - (n_2- n_2_only));
-	printf("%s : %ld positions - %ld original positions\n", file_2, n_2, n_2_only);
-	printf("%ld common positions\n", n_2-n_2_only);
+	printf("%s : %" PRId64 " positions - %" PRId64 " original positions\n", file_1, n_1, n_1 - (n_2- n_2_only));
+	printf("%s : %" PRId64 " positions - %" PRId64 " original positions\n", file_2, n_2, n_2_only);
+	printf("%" PRId64 "common positions\n", n_2-n_2_only);
 }

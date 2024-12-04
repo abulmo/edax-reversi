@@ -874,7 +874,7 @@ static const PositionName NOM_POSITION[] = {
 	{{0x0000000870380800, 0x000000100c041000}, "Heath Comp'oth Buridan"},
 	{{0x0000000878180000, 0x0010707080200000}, "Heath Comp'oth Murakami au bord"},
 	{{0x0000000878200000, 0x0000001004181000}, "Heath Comp'oth (bat)"},
-	{{0x0000000c00300000, 0x00003030380c0000}, "tigre diagonale française"},
+	{{0x0000000c00300000, 0x00003030380c0000}, "tigre diagonale francaise"},
 	{{0x0000000c00302000, 0x00003030380c1000}, "orque diagonale de lille"},
 	{{0x0000000c04103000, 0x00001010782c0800}, "Heath Comp'oth plate, var. d'insertion"},
 	{{0x0000000c04103000, 0x00002010782c0800}, "Heath Comp'oth prétendante, var. d'insertion"},
@@ -1284,11 +1284,13 @@ static int to_lower_no_accent(int c)
 	if (c == L'é' || c == L'è' || c == L'ê')	return 'e';
 	if (c == L'à')	return 'a';
 	if (c == L'ï')	return 'i';
+	if (c == L'ç')	return 'i';
 #else // iso-8859-1
 	c = tolower(c);
-	if (c == 'é' || c == 'è' || c == 'ê')	return 'e';
-	if (c == 'à')	return 'a';
-	if (c == 'ï')	return 'i';
+	if (c == 0xE8 || c == 0xE9 || c == 0xEA)	return 'e';
+	if (c == 0xE0)	return 'a';
+	if (c == 0xEF)	return 'i';
+	if (c == 0xE7)	return 'c';
 #endif
 	return c;
 }

@@ -253,7 +253,7 @@ void play_go(Play *play, const bool update)
 		play->result.n_nodes = 0;
 		line_init(&play->result.pv, play->player);
 		book_get_line(play->book, &play->board, &move, &play->result.pv);
-		
+
 		if (options.verbosity) {
 			info("\n[book move]\n");
 			if (options.info) book_show(play->book, &play->board);
@@ -268,7 +268,7 @@ void play_go(Play *play, const bool update)
 				line_print(&play->result.pv, options.width - 54, " ", stdout);
 				putchar('\n');
 				if (search->options.separator) puts(search->options.separator);
-			} 
+			}
 		}
 	} else if (play->state == IS_PONDERING && board_equal(&play->board, &play->ponder.board)) {
 		play->state = IS_THINKING;
@@ -295,7 +295,7 @@ void play_go(Play *play, const bool update)
 		thrd_join(play->ponder.thread, NULL);
 		play->ponder.launched = false;
 		search->observer(search->result);
-				
+
 		play->result = *search->result;
 		play->state = IS_WAITING;
 		if (!board_get_move(&play->board, search->result->move, &move) && move.x != PASS) {
@@ -323,7 +323,7 @@ void play_go(Play *play, const bool update)
 		if (options.play_type == EDAX_TIME_PER_MOVE) search_set_move_time(search, options.time);
 		else search_set_game_time(search, play->time[play->player].left);
 
-		search_time_init(search); // redondant ? 
+		search_time_init(search); // redondant ?
 		if (log_is_open(&xboard_log)) {
 			 fprintf(xboard_log.f, "edax search> cpu: %d\n", options.n_task);
 			 fprintf(xboard_log.f, "edax search> time: left = %.2f mini = %.2f; maxi = %.2f; extra = %.2f\n",
@@ -331,7 +331,7 @@ void play_go(Play *play, const bool update)
 			 fprintf(xboard_log.f, "edax search> level: %d@%d%%\n",
 				search->options.depth, selectivity_table[search->options.selectivity].percent);
 		}
-		
+
 		search_run(search);
 		play->result = *search->result;
 		play->state = IS_WAITING;
@@ -398,7 +398,7 @@ void play_hint(Play *play, int n)
 				board_next(&play->board, m->x, &b);
 				book_get_game_stats(play->book, &b, &stat);
 				printf("book "); line_print(&pv, 10, NULL, stdout);
-				printf(" %d %lu %d\n", m->score, stat.n_lines, play->book->options.level);
+				printf(" %d %" PRIu64 " %d\n", m->score, stat.n_lines, play->book->options.level);
 			} else {
 				printf("book    %+02d                                          ", m->score);
 				line_print(&pv, options.width - 54, " ", stdout); putchar('\n');
@@ -532,7 +532,7 @@ void play_stop_pondering(Play *play)
 	char *state[] = { "IS_WAITING", "IS_PONDERING", "IS_ANALYZING", "IS_THINKING" };
 
 	info("[play->state=%s]", state[play->state]);
-	
+
 	while (play->state == IS_PONDERING) {
 		info("[stop pondering]\n");
 		search_stop_all(&play->search, STOP_PONDERING);
@@ -545,7 +545,7 @@ void play_stop_pondering(Play *play)
 			info("[stop running search?]");
 			search_stop_all(&play->search, STOP_PONDERING);
 			relax(10);
-		}			
+		}
 		thrd_join(play->ponder.thread, NULL);
 		play->ponder.launched = false;
 		info("[thread joined]\n");
@@ -639,7 +639,7 @@ void play_game(Play *play, const char *string)
 
 	// convert an opening name to a move sequence...
 	next = opening_get_line(string);
-	if (next) string = next;	
+	if (next) string = next;
 
 	while ((next = parse_move(string, &play->board, &move)) != string || move.x == PASS) {
 		string = next;
@@ -808,7 +808,7 @@ void play_analyze(Play *play, int n)
 	int n_error[2] = {0, 0}, n_rejection[2] = {0, 0};
 	int disc_error[2] = {0, 0}, disc_rejection[2] = {0, 0};
 	const char *clr = "                                                                              \r";
-	
+
 
 	play_stop_pondering(play);
 
@@ -834,7 +834,7 @@ void play_analyze(Play *play, int n)
 		if (options.verbosity == 1) fputs(clr, stdout);
 		play_write_analysis(play, move, &alternative, n_alternatives, depth, percent, stdout);
 
-		score = move->score; 
+		score = move->score;
 		if (n_alternatives > 0) {
 			if (depth == n_empties && percent == 100) ++n_exact[play->player]; else ++n_eval[play->player];
 			if (alternative.score > score) {
@@ -1202,7 +1202,7 @@ void play_symetry(Play *play, const int sym)
 }
 
 /**
- * @brief Print the opening name 
+ * @brief Print the opening name
  */
 const char* play_show_opening_name(Play *play, const char *(*opening_get_name)(const Board*))
 {

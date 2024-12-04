@@ -63,8 +63,6 @@
 
 #endif // _WIN32
 
-#if defined(__unix__) || defined(__APPLE__)
-
 /**
  * @brief Adjust the allocated size to a multiple of the alignment
  *
@@ -76,6 +74,8 @@ size_t adjust_size(const size_t alignment, const size_t size)
 {
 	return ((size / alignment) + 1) * alignment;
 }
+
+#if defined(__unix__) || defined(__APPLE__)
 
 #if defined __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300
 /**

@@ -358,7 +358,7 @@ void obf_test(Search *search, const char *obf_file, const char *wrong_file)
 
 	if (options.verbosity == 1 && search->options.separator) printf("---+%s\n", search->options.separator);
 	printf("%.30s: ", obf_file);
-	if (n_nodes) printf("%lu nodes in ", n_nodes);
+	if (n_nodes) printf("%" PRIu64 " nodes in ", n_nodes);
 	time_print(T, false, stdout);
 	printf(" (cpu = ");
 	time_print(CT, false, stdout);
@@ -526,7 +526,7 @@ void obf_speed(Search *search, const int n)
 
 	if (options.verbosity == 1 && search->options.separator) printf("---+%s\n", search->options.separator);
 	printf("%d positions solved: ", i);
-	if (n_nodes) printf("%lu nodes in ", n_nodes);
+	if (n_nodes) printf("%" PRIu64 " nodes in ", n_nodes);
 	time_print(T, false, stdout);
 	if (T > 0 && n_nodes > 0) printf(" (%8.0f nodes/s).", 1000.0 * n_nodes / T);
 	putchar('\n');

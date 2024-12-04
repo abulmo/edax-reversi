@@ -27,7 +27,7 @@ void histogram_init(uint64_t h[129][65])
 		h[i][j] = 0;
 }
 
-void histogram_print(uint64_t h[129][65]) 
+void histogram_print(uint64_t h[129][65])
 {
 	int i, j;
 	uint64_t n, N;
@@ -35,23 +35,23 @@ void histogram_print(uint64_t h[129][65])
 	double mean[65], variance[65], median[65];
 
 	for (j = 0; j < 65; ++j) printf("; %d", j * 2 - 64);
-	printf("; total; mean; error; bias; precision");  
+	printf("; total; mean; error; bias; precision");
 	for (i = 0; i < 129; ++i) {
 		printf("\n%d", i - 64);
 		n = s = s2 = 0;
 			x = (i - 64);
 		for (j = 0; j < 65; ++j) {
 			y = 2 * j - 64;
-			printf("; %ld", h[i][j]);
+			printf("; %" PRId64, h[i][j]);
 			n += h[i][j];
 			s += y * h[i][j];
 			s2 += (x - y) * (x - y) * h[i][j];
 		}
 		s /= n;
 		s2 /= (n - 1);
-		if (n > 5) printf("; %ld; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
-		else if (n > 0) printf("; %ld; %.2f; %.2f", n, s, sqrt(s2));
-		else printf("; %ld", n);
+		if (n > 5) printf("; %" PRId64 "; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
+		else if (n > 0) printf("; %" PRId64 "; %.2f; %.2f", n, s, sqrt(s2));
+		else printf("; %" PRId64, n);
 	}
 
 	printf("\n");
@@ -90,9 +90,9 @@ void histogram_print(uint64_t h[129][65])
 				}
 			}
 		}
-		printf("; %ld", n);
+		printf("; %" PRId64, n);
 	}
-	printf("; %ld\n", N);
+	printf("; %" PRId64 "\n", N);
 	printf("mean"); for (j = 0; j < 65; ++j) printf("; %.2f", mean[j]); printf("\n");
 	printf("median"); for (j = 0; j < 65; ++j) printf("; %.2f", median[j]); printf("\n");
 	printf("error"); for (j = 0; j < 65; ++j) printf("; %.2f", sqrt(variance[j])); printf("\n");
@@ -169,7 +169,7 @@ void histogram_to_ppm(const char *file, uint64_t histogram[129][65])
 	}
 
 	// compute max_value
-	max = 0; 
+	max = 0;
 	for (i = 0; i < 129; ++i)
 	for (j = 0; j < 65; ++j) {
 		if (histogram[i][j] > max) max = histogram[i][j];
@@ -186,7 +186,7 @@ void histogram_to_ppm(const char *file, uint64_t histogram[129][65])
 	// header;
 	fprintf(f, "P3\n%d %d\n%d\n", 516, 520, 255);
 
-	// data		
+	// data
 	for (i = 64; i >= 0; --i) {
 		for (i_k = 0; i_k < 8; ++i_k) {
 			for (j = 0; j < 129; ++j) {

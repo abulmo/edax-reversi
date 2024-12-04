@@ -48,12 +48,14 @@ bool ui_switch(UI *ui, const char *ui_type)
 		ui->free = ui_free_xboard;
 		ui->loop = ui_loop_xboard;
 		return true;
+#ifndef _MSC_VER
 	} else if (strcmp(ui_type, "ggs") == 0) {
 		ui->type = UI_GGS;
 		ui->init = ui_init_ggs;
 		ui->free = ui_free_ggs;
 		ui->loop = ui_loop_ggs;
 		return true;
+#endif
 	} else if (strcmp(ui_type, "cassio") == 0) {
 		ui->type = UI_CASSIO;
 		return true;

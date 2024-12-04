@@ -1111,7 +1111,7 @@ void result_print(Result *result, FILE *f)
 	fprintf(f, "%c%+03d ", bound, result->score);
 	time_print(result->time, true, f);
 	if (result->n_nodes) {
-		fprintf(f, " %13lu ", result->n_nodes);
+		fprintf(f, " %13" PRIu64 " ", result->n_nodes);
 		if (result->time > 0) fprintf(f, "%10.0f ", 1000.0 * result->n_nodes / result->time);
 		else fprintf(f, "           ");
 	} else fputs("                          ", f);

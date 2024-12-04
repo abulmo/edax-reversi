@@ -1239,7 +1239,7 @@ static void ui_ggs_play(UI *ui, int turn) {
 		else if (result->bound[result->move].lower == result->score && result->score < result->bound[result->move].upper) bound = ">=";
 		else bound = "==";
 
-		info("<%s plays %s in game %s ; score = %d at %d@%d%% ; %lu nodes in %.1fs (%.0f nodes/s.)>\n",
+		info("<%s plays %s in game %s ; score = %d at %d@%d%% ; %" PRIu64 " nodes in %.1fs (%.0f nodes/s.)>\n",
 			ui->ggs->me, move, ui->ggs->board.id,
 			result->score, result->depth, selectivity_table[result->selectivity].percent,
 			result->n_nodes, 0.001 * real_time, (result->n_nodes / (0.001 * real_time + 0.001))

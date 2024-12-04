@@ -120,48 +120,48 @@ void statistics_print(FILE *f)
 	if (statistics.n_split_success) {
 		uint64_t n_helper_nodes = statistics.n_parallel_nodes;
 		fprintf(f, "YBWC:\n");
-		fprintf(f, "nodes splitted:      %12lu (%6.2f%%)\n", statistics.n_split_success, 100.0 * statistics.n_split_success / statistics.n_split_try);
-		fprintf(f, "master helper tasks: %12lu (%6.2f%%)\n", statistics.n_master_helper, 100.0 * statistics.n_master_helper / statistics.n_split_success);
-		fprintf(f, "slave nodes stopped: %12lu (%6.2f%%)\n", statistics.n_stopped_slave, 100.0 * statistics.n_stopped_slave / statistics.n_split_success);
-		fprintf(f, "slave master stopped:%12lu (%6.2f%%) = %12lu\n", statistics.n_stopped_master, 100.0 * statistics.n_stopped_master / statistics.n_split_success, statistics.n_wake_up);
-		fprintf(f, "slave nodes waited:  %12lu (%6.2f%%)\n", statistics.n_waited_slave, 100.0 * statistics.n_waited_slave / statistics.n_split_success);
-		fprintf(f, "main thread (%lu nodes)\n", statistics.n_nodes);
+		fprintf(f, "nodes splitted:      %12" PRIu64 " (%6.2f%%)\n", statistics.n_split_success, 100.0 * statistics.n_split_success / statistics.n_split_try);
+		fprintf(f, "master helper tasks: %12" PRIu64 " (%6.2f%%)\n", statistics.n_master_helper, 100.0 * statistics.n_master_helper / statistics.n_split_success);
+		fprintf(f, "slave nodes stopped: %12" PRIu64 " (%6.2f%%)\n", statistics.n_stopped_slave, 100.0 * statistics.n_stopped_slave / statistics.n_split_success);
+		fprintf(f, "slave master stopped:%12" PRIu64 " (%6.2f%%) = %12" PRIu64 "\n", statistics.n_stopped_master, 100.0 * statistics.n_stopped_master / statistics.n_split_success, statistics.n_wake_up);
+		fprintf(f, "slave nodes waited:  %12" PRIu64 " (%6.2f%%)\n", statistics.n_waited_slave, 100.0 * statistics.n_waited_slave / statistics.n_split_success);
+		fprintf(f, "main thread (%" PRIu64 " nodes)\n", statistics.n_nodes);
 		for (i = 1; i < options.n_task; ++i) {
-			fprintf(f, "task %d called %lu times (%lu nodes)\n", i, statistics.n_task[i], statistics.n_task_nodes[i]);
+			fprintf(f, "task %d called %" PRIu64 " times (%" PRIu64 " nodes)\n", i, statistics.n_task[i], statistics.n_task_nodes[i]);
 			n_helper_nodes -= statistics.n_task_nodes[i];
 		}
-		fprintf(f, "helper (%lu nodes)\n", n_helper_nodes);
+		fprintf(f, "helper (%" PRIu64 " nodes)\n", n_helper_nodes);
 		fprintf(f, "\n\n");
 	}
-	
+
 
 	if (statistics.n_PVS_root) {
 		fprintf(f, "Search:\n");
-		fprintf(f, "PVS_root          = %12lu\n", statistics.n_PVS_root);
-		fprintf(f, "PVS+NWS_midgame   = %12lu + %12lu\n", statistics.n_PVS_midgame, statistics.n_NWS_midgame);
-		fprintf(f, "PVS+NWS_shallow   = %12lu + %12lu\n", statistics.n_PVS_shallow, statistics.n_NWS_shallow);
-		fprintf(f, "search_eval_2     = %12lu\n", statistics.n_search_eval_2);
-		fprintf(f, "search_eval_1     = %12lu\n", statistics.n_search_eval_1);
-		fprintf(f, "search_eval_0     = %12lu\n\n", statistics.n_search_eval_0);
-		fprintf(f, "NWS_endgame       = %12lu\n", statistics.n_NWS_endgame);
-		fprintf(f, "NWS_solve_4       = %12lu\n", statistics.n_search_solve_4);
-		fprintf(f, "NWS_solve_3       = %12lu\n", statistics.n_solve_3);
-		fprintf(f, "NWS_solve_2       = %12lu\n", statistics.n_solve_2);
-		fprintf(f, "NWS_solve_1       = %12lu\n", statistics.n_solve_1);
-		fprintf(f, "solve_0           = %12lu\n", statistics.n_solve_0);
-		fprintf(f, "solve             = %12lu\n\n\n", statistics.n_solve);
+		fprintf(f, "PVS_root          = %12" PRIu64 "\n", statistics.n_PVS_root);
+		fprintf(f, "PVS+NWS_midgame   = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_midgame, statistics.n_NWS_midgame);
+		fprintf(f, "PVS+NWS_shallow   = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_shallow, statistics.n_NWS_shallow);
+		fprintf(f, "search_eval_2     = %12" PRIu64 "\n", statistics.n_search_eval_2);
+		fprintf(f, "search_eval_1     = %12" PRIu64 "\n", statistics.n_search_eval_1);
+		fprintf(f, "search_eval_0     = %12" PRIu64 "\n\n", statistics.n_search_eval_0);
+		fprintf(f, "NWS_endgame       = %12" PRIu64 "\n", statistics.n_NWS_endgame);
+		fprintf(f, "NWS_solve_4       = %12" PRIu64 "\n", statistics.n_search_solve_4);
+		fprintf(f, "NWS_solve_3       = %12" PRIu64 "\n", statistics.n_solve_3);
+		fprintf(f, "NWS_solve_2       = %12" PRIu64 "\n", statistics.n_solve_2);
+		fprintf(f, "NWS_solve_1       = %12" PRIu64 "\n", statistics.n_solve_1);
+		fprintf(f, "solve_0           = %12" PRIu64 "\n", statistics.n_solve_0);
+		fprintf(f, "solve             = %12" PRIu64 "\n\n\n", statistics.n_solve);
 	}
 
 	if (statistics.n_hash_found) {
 		fprintf(f, "HashTable (all):\n");
-		fprintf(f, "Probe: %lu   found: %lu (%6.2f%%)\n", statistics.n_hash_search, statistics.n_hash_found, 100.0 * statistics.n_hash_found / statistics.n_hash_search);
-		fprintf(f, "New: %lu   Update: %lu   Ugrade: %lu   Remove: %lu\n",
+		fprintf(f, "Probe: %" PRIu64 "   found: %" PRIu64 " (%6.2f%%)\n", statistics.n_hash_search, statistics.n_hash_found, 100.0 * statistics.n_hash_found / statistics.n_hash_search);
+		fprintf(f, "New: %" PRIu64 "   Update: %" PRIu64 "   Ugrade: %" PRIu64 "   Remove: %" PRIu64 "\n",
 			statistics.n_hash_new, statistics.n_hash_update, statistics.n_hash_upgrade, statistics.n_hash_remove);
 	}
 
 	if (statistics.n_hash_n) {
 		fprintf(f, "HashTable collision:\n");
-		fprintf(f, "Probes: %lu   Collisions: %lu (%6.2f%%)\n", statistics.n_hash_n, statistics.n_hash_collision, 100.0 * statistics.n_hash_collision / statistics.n_hash_n);
+		fprintf(f, "Probes: %" PRIu64 "   Collisions: %" PRIu64 " (%6.2f%%)\n", statistics.n_hash_n, statistics.n_hash_collision, 100.0 * statistics.n_hash_collision / statistics.n_hash_n);
 	}
 	if (SQUARE_STATS(1) +0) {
 		for (j = 0; j < BOARD_SIZE; ++j) {
@@ -177,20 +177,20 @@ void statistics_print(FILE *f)
 	if (CUTOFF_STATS(1) +0) {
 		if (statistics.n_hash_try) {
 			fprintf(f, "Transposition cutoff:\n");
-			fprintf(f, "try = %lu, low cutoff = %lu (%6.2f%%), high cutoff = %lu (%6.2f%%)\n",
+			fprintf(f, "try = %" PRIu64 ", low cutoff = %" PRIu64 " (%6.2f%%), high cutoff = %" PRIu64 " (%6.2f%%)\n",
 				statistics.n_hash_try,
 				statistics.n_hash_low_cutoff, 100.0 * statistics.n_hash_low_cutoff / statistics.n_hash_try,
 				statistics.n_hash_high_cutoff, 100.0 * statistics.n_hash_high_cutoff / statistics.n_hash_try);
 		}
 		if (statistics.n_stability_try) {
 			fprintf(f, "Stability cutoff:\n");
-			fprintf(f, "try = %lu, low cutoff = %lu (%6.2f%%)\n",
+			fprintf(f, "try = %" PRIu64 ", low cutoff = %" PRIu64 " (%6.2f%%)\n",
 				statistics.n_stability_try,
 				statistics.n_stability_low_cutoff, 100.0 * statistics.n_stability_low_cutoff / statistics.n_stability_try);
 		}
 		if (statistics.n_etc_try) {
 			fprintf(f, "(E)nhance (T)ransposition & (S)tability (C)utoff:\n");
-			fprintf(f, "try = %lu, high ETC = %lu (%6.2f%%), high ESC = %lu (%6.2f%%)\n",
+			fprintf(f, "try = %" PRIu64 ", high ETC = %" PRIu64 " (%6.2f%%), high ESC = %" PRIu64 " (%6.2f%%)\n",
 				statistics.n_etc_try,
 				statistics.n_etc_high_cutoff, 100.0 * statistics.n_etc_high_cutoff / statistics.n_etc_try,
 				statistics.n_esc_high_cutoff, 100.0 * statistics.n_esc_high_cutoff / statistics.n_etc_try);
@@ -200,7 +200,7 @@ void statistics_print(FILE *f)
 
 	if (statistics.n_probcut_try) {
 		fprintf(f, "Probcut:\n");
-		fprintf(f, "\ttry = %lu,\n\tlow cutoff = %lu try (%6.2f%%) %lu success (%6.2f%% (%6.2f%%)),\n\thigh cutoff = %lu try (%6.2f%%) %lu success (%6.2f%% (%6.2f%%))\n",
+		fprintf(f, "\ttry = %" PRIu64 ",\n\tlow cutoff = %" PRIu64 " try (%6.2f%%) %" PRIu64 " success (%6.2f%% (%6.2f%%)),\n\thigh cutoff = %" PRIu64 " try (%6.2f%%) %" PRIu64 " success (%6.2f%% (%6.2f%%))\n",
 			statistics.n_probcut_try,
 			statistics.n_probcut_low_try, 100.0 * statistics.n_probcut_low_try / statistics.n_probcut_try,
 			statistics.n_probcut_low_cutoff, 100.0 * statistics.n_probcut_low_cutoff / statistics.n_probcut_try, 100.0 * statistics.n_probcut_low_cutoff / statistics.n_probcut_low_try,
@@ -210,7 +210,7 @@ void statistics_print(FILE *f)
 
 	if (statistics.n_NWS_candidate) {
 		fprintf(f, "NWS candidate as best root move:\n");
-		fprintf(f, "Candidate: %lu, Best Move: %lu (%6.2f%%), Bad Candidate: %lu (%6.2f%%)\n",
+		fprintf(f, "Candidate: %" PRIu64 ", Best Move: %" PRIu64 " (%6.2f%%), Bad Candidate: %" PRIu64 " (%6.2f%%)\n",
 			statistics.n_NWS_candidate,
 			statistics.n_NWS_candidate - statistics.n_NWS_bad_candidate, (100.0 * (statistics.n_NWS_candidate - statistics.n_NWS_bad_candidate) / statistics.n_NWS_candidate),
 			statistics.n_NWS_bad_candidate, (100.0 * statistics.n_NWS_bad_candidate / statistics.n_NWS_candidate)
