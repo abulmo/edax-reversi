@@ -11,12 +11,14 @@
 #ifndef EDAX_UTIL_H
 #define EDAX_UTIL_H
 
+#include <errno.h>
+#include <inttypes.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h> 
-#include <errno.h>
+#include <string.h>
 
 struct Board;
 struct Move;
@@ -26,7 +28,20 @@ struct Line;
  * Memory
  */
 size_t adjust_size(const size_t, const size_t);
+#if defined __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300
+
 void* aligned_alloc(size_t, size_t);
+
+#elif defined(_MSC_VER)
+
+#include <malloc.h>
+
+#define aligned_alloc(alignment, size) _aligned_malloc((size), (alignment))
+#define free _aligned_free
+#define malloc(size) aligned_alloc((size), 16)
+#define realloc(ptr, size) _aligned_realloc((ptr), (size), 16)
+
+#endif
 
 /*
  * Time management
@@ -133,7 +148,7 @@ char* parse_skip_word(const char*);
  * File.
  */
 void path_get_dir(const char*, char*);
-char* file_add_ext(const char*, const char*, char*); 
+char* file_add_ext(const char*, const char*, char*);
 bool is_stdin_keyboard(void);
 
 /*
@@ -158,10 +173,10 @@ void random_seed(Random*, const uint64_t);
 /** Constrain a variable to a range of values. */
 #define BOUND(var, min, max, name) do {\
 	if (var < min && min <= max) {\
-		if (name) fprintf(stderr, "\nWARNING: %s = %ld is out of range. Set to %ld\n", name, (int64_t)var, (int64_t)min);\
+		if (name) fprintf(stderr, "\nWARNING: %s = %" PRId64 " is out of range. Set to %" PRId64 "\n", name, (int64_t)var, (int64_t)min);\
 		var = min;\
 	} else if (var > max) {\
-		if (name) fprintf(stderr, "\nWARNING: %s = %ld is out of range. Set to %ld\n", name, (int64_t)var, (int64_t)max);\
+		if (name) fprintf(stderr, "\nWARNING: %s = %" PRId64 "is out of range. Set to %" PRId64 "\n", name, (int64_t)var, (int64_t)max);\
 		var = max;\
 	}\
 } while (0)
@@ -262,7 +277,6 @@ typedef struct Log {
 #define info(...) if (options.info) { \
 	extern Log ggs_log; \
 	fprintf(stderr, __VA_ARGS__); \
-	log_print(&ggs_log, __VA_ARGS__); \
 } else (void) 0
 
 /**
