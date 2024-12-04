@@ -46,7 +46,9 @@
 #include "ui.c"
 #include "edax.c"
 #include "cassio.c"
+#ifndef _MSC_VER
 #include "ggs.c"
+#endif
 #include "gtp.c"
 #include "nboard.c"
 #include "xboard.c"
