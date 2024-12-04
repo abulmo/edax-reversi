@@ -122,7 +122,7 @@ int bit_count_32(const uint32_t b)
 
 	#elif defined(_MSC_VER)
 
-		return __popcnt32(b);           // Microsoft Visual C/C++ version
+		return __popcnt(b);           // Microsoft Visual C/C++ version
 
 	#elif defined(__GNUC__)
 
@@ -331,7 +331,7 @@ int last_bit(uint64_t b)
 
 #elif defined(_MSC_VER)
 
-	uint64_t index;
+	DWORD index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
 
@@ -374,7 +374,7 @@ int last_bit(uint64_t b)
 
 uint64_t transpose(uint64_t b)
 {
-#if USE_SIMD && defined(__AVX2__)
+#if USE_SIMD && !defined(_MSC_VER) && defined(__AVX2__) // ms c compiler is buggy here
 
 	__m256i	v = _mm256_sllv_epi64(_mm256_broadcastq_epi64(_mm_cvtsi64_si128(b)), _mm256_set_epi64x(0, 1, 2, 3));
 	return ((uint64_t) _mm256_movemask_epi8(v) << 32) | (uint32_t) _mm256_movemask_epi8(_mm256_slli_epi64(v, 4));
@@ -404,7 +404,7 @@ uint16_t bswap_16(uint16_t b)
 {
 #if defined(_MSC_VER)
 
-	return _byteswap_ushort(b):
+	return _byteswap_ushort(b);
 
 #elif defined(__GNUC__)
 
@@ -426,7 +426,7 @@ uint32_t bswap_32(uint32_t b)
 {
 #if defined(_MSC_VER)
 
-	return _byteswap_ulong(b):
+	return _byteswap_ulong(b);
 
 #elif defined(__GNUC__)
 
@@ -445,7 +445,7 @@ uint64_t bswap_64(uint64_t b)
 {
 #if defined(_MSC_VER)
 
-	return _byteswap_u64(b):
+	return _byteswap_uint64(b);
 
 #elif defined(__GNUC__)
 
@@ -486,7 +486,7 @@ uint64_t horizontal_mirror(uint64_t b)
  {
 	 assert(0 < n && n < 8);
 	#if defined(_MSC_VER)
-		return _rotl8(b, n):
+		return _rotl8(b, n);
 	#else
 		return (b << n) | (b >> (8 - n));
 	#endif
@@ -503,7 +503,7 @@ uint64_t horizontal_mirror(uint64_t b)
  {
 	 assert(0 < n && n < 16);
 	#if defined(_MSC_VER)
-		return _rotl16(b, n):
+		return _rotl16(b, n);
 	#else
 		return (b << n) | (b >> (16 - n));
 	#endif
@@ -520,7 +520,7 @@ uint64_t horizontal_mirror(uint64_t b)
  {
 	assert(0 < n && n < 32);
 	#if defined(_MSC_VER)
-		return _rotl(b, n):
+		return _rotl(b, n);
 	#else
 		return (b << n) | (b >> (32 - n));
 	#endif
@@ -537,7 +537,7 @@ uint64_t bit_rotate_left_64(const uint64_t b, const int n)
 {
 	assert(0 < n && n < 64);
 	#if defined(_MSC_VER)
-		return _rotl64(b, n):
+		return _rotl64(b, n);
 	#else
 		return (b << n) | (b >> (64 - n));
 	#endif
