@@ -14,12 +14,12 @@
 #include "board.h"
 #include "settings.h"
 
-#if defined(__x86_64__)
+#if defined(_MSC_VER)
+	#include <intrin.h>
+#elif defined(__x86_64__)
 	#include <x86intrin.h>
 #elif defined(__ARM_NEON)
 	#include <arm_neon.h>
-#elif defined(__ARM64)
-	
 #endif
 #include <stdalign.h>
 #include <stdint.h>
@@ -74,4 +74,3 @@ typedef union {
 #endif
 
 #endif /* EDAX_SIMD_H */
-
