@@ -38,7 +38,7 @@ void* aligned_alloc(size_t, size_t);
 
 #define aligned_alloc(alignment, size) _aligned_malloc((size), (alignment))
 #define free _aligned_free
-#define malloc(size) aligned_alloc((size), 16)
+#define malloc(size) _aligned_malloc((size), 16)
 #define realloc(ptr, size) _aligned_realloc((ptr), (size), 16)
 
 #endif
