@@ -17,15 +17,17 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2024
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.5
+ * @version 4.6
  * 
  */
 
 #include <arm_neon.h>
 #include <stdio.h>
+
+#define	COUNT_LAST_FLIP_NEON_VADDVQ
 
 /** precomputed count flip array */
 const unsigned char COUNT_FLIP[8][256] = {
@@ -111,7 +113,7 @@ const unsigned char COUNT_FLIP[8][256] = {
 	},
 };
 
-#ifdef HAS_CPU_64
+#ifdef COUNT_LAST_FLIP_NEON_VADDVQ
 /* bit masks for diagonal lines (interleaved) */
 const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x000000000000ff01, 0x0000000000000000 }, { 0x0801040102010101, 0x8001400120011001 }},
@@ -264,9 +266,21 @@ int count_last_flip(int pos, uint64_t P)
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 	uint64x2_t	PP = vdupq_n_u64(P);
 	uint64x2_t	II;
+#ifdef COUNT_LAST_FLIP_NEON_VADDVQ	// vaddvq
+	unsigned int t;
+	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
 
-// removed the buggy vaddvq code
+	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(PP)));
+	II = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
+	t = vaddvq_u16(vreinterpretq_u16_u64(II));
+	n_flips  = COUNT_FLIP_X[t >> 8];
+	n_flips += COUNT_FLIP_X[t & 0xFF];
+	II = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
+	t = vaddvq_u16(vreinterpretq_u16_u64(II));
+	n_flips += COUNT_FLIP_Y[t >> 8];
+	n_flips += COUNT_FLIP_Y[t & 0xFF];
 
+#else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
 	uint64x2_t	PP = vdupq_n_u64(P);
 	n_flips = 0;
@@ -277,6 +291,6 @@ int count_last_flip(int pos, uint64_t P)
 	II = vpaddlq_u32(vmulq_u32(vreinterpretq_u32_u64(dmask), vreinterpretq_u32_u64(II)));
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
 	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
-
+#endif
 	return n_flips;
 }

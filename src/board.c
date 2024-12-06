@@ -412,7 +412,7 @@ static uint64x2_t transpose_neon(const uint64x2_t board)
  */
 void board_horizontal_mirror(const Board *board, Board *sym)
 {
-#if defined(__ARM_NEON)
+#if USE_SIMD & defined(__ARM_NEON)
 	vst1q_u64((uint64_t *) sym, horizontal_mirror_neon(vld1q_u64((uint64_t *) board)));
 #else
 	sym->player = horizontal_mirror(board->player);
@@ -428,7 +428,7 @@ void board_horizontal_mirror(const Board *board, Board *sym)
  */
 void board_vertical_mirror(const Board *board, Board *sym)
 {
-#if defined(__ARM_NEON)
+#if USE_SIMD & defined(__ARM_NEON)
 	vst1q_u64((uint64_t *) sym, vertical_mirror_neon(vld1q_u64((uint64_t *) board)));
 #else
 	sym->player = vertical_mirror(board->player);
@@ -716,7 +716,7 @@ static inline uint64_t get_some_moves(const uint64_t P, const uint64_t mask, con
 	const uint64x2_t PP = vdupq_n_u64(P);
 	const uint64x2_t MM = vdupq_n_u64(mask);
 	const uint64x2_t moves = get_some_moves_neon(PP, MM, dir);
-	return 	vget_low_u64(moves) | vget_high_u64(moves);
+	return 	vgetq_lane_u64(moves, 0) | vgetq_lane_u64(moves, 1);
 
 #elif PARALLEL_PREFIX & 1
 
@@ -831,7 +831,7 @@ uint64_t get_moves(const uint64_t P, const uint64_t O)
 	moves = vorrq_u64(moves, get_some_moves_neon(PP, OO, 8));    // vertical
 	moves = vorrq_u64(moves, get_some_moves_neon(PP, MM, 7)); // diagonals
 	moves = vorrq_u64(moves, get_some_moves_neon(PP, MM, 9));
-	return (vget_low_u64(moves) | vget_high_u64(moves)) & E; // mask with empties
+	return (vgetq_lane_u64(moves, 0) | vgetq_lane_u64(moves, 1)) & E; // mask with empties
 
 #else
 
