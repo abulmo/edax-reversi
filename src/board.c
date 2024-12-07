@@ -293,7 +293,7 @@ bool board_lesser(const Board *b1, const Board *b2)
  * @param b the bitboard
  * @return a 128 bitboard mirrored
  */
-static __m128i horizontal_mirror_mm(const __m128i b)
+static vectorcall __m128i horizontal_mirror_mm(const __m128i b)
 {
 	const __m128i mask = _mm_set1_epi16(0x0F0F);
 	const __m128i rev  = _mm_set_epi8(H_MIRROR);
@@ -306,7 +306,7 @@ static __m128i horizontal_mirror_mm(const __m128i b)
  * @param b the bitboard
  * @return a 128 bitboard mirrored
  */
-static __m128i vertical_mirror_mm(const __m128i b)
+static vectorcall __m128i vertical_mirror_mm(const __m128i b)
 {
 	return _mm_shuffle_epi8(b, _mm_set_epi8(V_MIRROR));
 }
@@ -317,7 +317,7 @@ static __m128i vertical_mirror_mm(const __m128i b)
  * @param b the bitboard
  * @return a 128 bitboard transposed
  */
-static __m128i transpose_mm(__m128i b)
+static vectorcall __m128i transpose_mm(__m128i b)
 {
 	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
 	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
@@ -342,7 +342,7 @@ static __m128i transpose_mm(__m128i b)
  * @param b input boards
  * @param sym output boards
  */
-static void horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
+static vectorcall void horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
 {
 	const __m256i mask = _mm256_set1_epi16(0x0F0F);
 	const __m256i rev  = _mm256_set_epi8(H_MIRROR, H_MIRROR);
@@ -356,7 +356,7 @@ static void horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
  * @param b input boards
  * @param sym output boards
  */
-static void vertical_mirror_avx2(const __m256i *b, __m256i *sym)
+static vectorcall void vertical_mirror_avx2(const __m256i *b, __m256i *sym)
 {
 	const __m256i mask = _mm256_set_epi8( V_MIRROR, V_MIRROR);
 	*sym = _mm256_shuffle_epi8(*b, mask);
@@ -1273,7 +1273,7 @@ uint64_t get_full_lines(const uint64_t disc, uint64_t full[4])
 // too slow on zen3 cpu
 #if 0 && USE_SIMD && defined(__AVX2__)
 
-static uint64_t get_stable_by_contact(const uint64_t central_mask, const uint64_t previous_stable, const __m256i full)
+static uint64_t vectorcall get_stable_by_contact(const uint64_t central_mask, const uint64_t previous_stable, const __m256i full)
 {
 	__m128i	stable, old_stable, central_mask_v2;
 	__m256i	stable_v4;
