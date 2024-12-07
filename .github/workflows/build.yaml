@@ -32,7 +32,7 @@ jobs:
         cd src
         ${{ matrix.build_command }}
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: artifact_${{ runner.os }}
         path: bin
