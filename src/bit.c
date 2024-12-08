@@ -82,7 +82,7 @@ int bit_count_64(const uint64_t b)
 
 		return stdc_count_ones_ul(b);      // C23 version
 
-	#elif defined(_MSC_VER)
+	#elif defined(_MSC_VER) && defined(__POPCNT__)
 
 		return __popcnt64(b);           // Microsoft Visual C/C++ version
 
@@ -120,7 +120,7 @@ int bit_count_32(const uint32_t b)
 
 		return stdc_count_ones_ui(b);      // C23 version
 
-	#elif defined(_MSC_VER)
+	#elif defined(_MSC_VER) && defined(__POPCNT__)
 
 		return __popcnt(b);           // Microsoft Visual C/C++ version
 
@@ -150,14 +150,21 @@ int bit_leading_zeros_64(uint64_t b)
 
 		return stdc_leading_zeros_ul(b);      // C23 version
 
+	#elif defined(_MSC_VER) && defined(__AVX2__)
+
+		return __lzcnt64(b);           // Microsoft Visual C/C++ BMI1 version
+
 	#elif defined(_MSC_VER)
 
-		return __lzcnt64(b);           // Microsoft Visual C/C++ version
+		unsigned long index;
+		if (_BitScanReverse64(&index, b))
+			return 63 - (int) index;
+		return 64;
 
 	#elif defined(__GNUC__)
 
-//		return b ? __builtin_clzl(b) : 64; // GNUC/CLANG version
-		return __builtin_clzl(b); // GNUC/CLANG version
+//		return b ? __builtin_clzll(b) : 64; // GNUC/CLANG version
+		return __builtin_clzll(b); // GNUC/CLANG version
 
 	#else
 
@@ -170,7 +177,7 @@ int bit_leading_zeros_64(uint64_t b)
 	c = b >>  4; if (c != 0) { n = n - 4; b = c; }
 	c = b >>  2; if (c != 0) { n = n - 2; b = c; }
 	c = b >>  1; if (c != 0) return n - 2;
-	return n - x;
+	return n - b;
 
 
 	#endif
@@ -188,9 +195,16 @@ int bit_leading_zeros_32(uint32_t b)
 
 		return stdc_leading_zeros_ui(b);      // C23 version
 
+	#elif defined(_MSC_VER) && defined(__AVX2__)
+
+		return __lzcnt(b);           // Microsoft Visual C/C++ BMI1 version
+
 	#elif defined(_MSC_VER)
 
-		return __lzcnt(b);           // Microsoft Visual C/C++ version
+		unsigned long index;
+		if (_BitScanReverse(&index, b))
+			return 31 - (int) index;
+		return 32;
 
 	#elif defined(__GNUC__)
 
@@ -207,7 +221,7 @@ int bit_leading_zeros_32(uint32_t b)
 	c = b >>  4; if (c != 0) { n = n - 4; b = c; }
 	c = b >>  2; if (c != 0) { n = n - 2; b = c; }
 	c = b >>  1; if (c != 0) return n - 2;
-	return n - x;
+	return n - b;
 
 
 	#endif
