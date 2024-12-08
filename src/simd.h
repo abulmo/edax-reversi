@@ -18,7 +18,8 @@
 	#include <intrin.h>
 #elif defined(__x86_64__)
 	#include <x86intrin.h>
-#elif defined(__ARM_NEON)
+#endif
+#if defined(__ARM_NEON)
 	#include <arm_neon.h>
 #endif
 #include <stdalign.h>
