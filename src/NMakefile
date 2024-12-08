@@ -19,10 +19,10 @@ vc-x64-v3:
 	cl $(VC_FLAGS) /arch:AVX2 /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
 
 vc-x64-v2:
-	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE__ /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE2__ /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
 
 vc-x64:
-	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE2__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
 
 vc-a64:
 #	vcvarsamd64_arm64.bat
