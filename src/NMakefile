@@ -19,20 +19,26 @@ vc-x64-v3:
 	cl $(VC_FLAGS) /arch:AVX2 /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
 
 vc-x64-v2:
-	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE__ /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
 
 vc-x64:
-	cl $(VC_FLAGS) /experimental:c11atomics /GL all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
 
 vc-a64:
 #	vcvarsamd64_arm64.bat
 	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__ARM_NEON all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.6
 
+clang-x64-v4:
+	clang-cl -mprefer-vector-width=256 $(VC_FLAGS) /U__STDC_NO_THREADS__ /arch:AVX512 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v4.exe /link /VERSION:4.6
+
 clang-x64-v3:
 	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /arch:AVX2 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
 
+clang-x64-v2:
+	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__SSE__ /arch:AVX2 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+
 clang-x64:
-	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__SSE__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
 
 clang-a64:
 	clang-cl --target=aarch64-win32-msvc $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__ARM_NEON all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.6
