@@ -86,8 +86,8 @@ static const uint64_t FLIPPED_4_H[19] = {	// ...cbahg
 #if __has_builtin(__builtin_subcll)
 static inline uint64_t OutflankToFlipmask(uint64_t outflank) {
 	uint64_t flipmask, cy;
-	flipmask = __builtin_subcl(outflank, 1, 0, &cy);
-	return __builtin_addcl(flipmask, 0, cy, &cy);
+	flipmask = __builtin_subcll(outflank, 1, 0, &cy);
+	return __builtin_addcll(flipmask, 0, cy, &cy);
 }
 #else
 	#define OutflankToFlipmask(outflank)	((outflank) - (uint32_t) ((outflank) != 0))
