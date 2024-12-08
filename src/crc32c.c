@@ -11,16 +11,16 @@
 #include "settings.h"
 
 #if !USE_CRC32C || (!defined(__CRC32__) && !defined(__ARM_FEATURE_CRC32))
-	#define SOFT_CRC32C true
+	#define SOFT_CRC32C 1	/* true */
 #else 
-	#define SOFT_CRC32C false
+	#define SOFT_CRC32C 0	/* false */
 #endif
 
 #include <assert.h>
 #ifdef __ARM_FEATURE_CRC32
 	#include <arm_acle.h>
 #elif defined(__CRC32__)
-	#ifdef __MSC_VER
+	#ifdef _MSC_VER
 		#include <intrin.h>
 	#else
 		#include <x86intrin.h>
