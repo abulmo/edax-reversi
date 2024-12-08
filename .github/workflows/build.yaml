@@ -4,6 +4,7 @@ on:
   pull_request:
     paths: ['src/**', 'include/**', '.github/workflows/build.yaml']
   push:
+    branches: [ master ]
     paths: ['src/**', 'include/**', '.github/workflows/build.yaml']
 
 jobs:
@@ -18,7 +19,7 @@ jobs:
           - os: ubuntu-latest
             build_command: make build ARCH=x86-64-v3 COMP=gcc OS=linux
           - os: windows-latest
-            build_command: nmake -fnmakefile vc-x64-v3
+            build_command: make build ARCH=x86-64-v3 COMP=gcc OS=windows
           - os: macos-latest
             build_command: make build ARCH=armv8.5-a COMP=gcc OS=osx
 
