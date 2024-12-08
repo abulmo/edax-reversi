@@ -35,10 +35,10 @@ clang-x64-v3:
 	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /arch:AVX2 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
 
 clang-x64-v2:
-	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__SSE__ /arch:AVX2 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+	clang-cl -march=x86-64-v2 $(VC_FLAGS) /U__STDC_NO_THREADS__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
 
 clang-x64:
-	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__SSE__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
 
 clang-a64:
 	clang-cl --target=aarch64-win32-msvc $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__ARM_NEON all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.6
