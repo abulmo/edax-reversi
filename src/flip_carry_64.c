@@ -374,11 +374,11 @@ static const uint64_t  FLIPPED_5_U[137] = {
 /*
  * Set all bits below the sole outflank bit if outfrank != 0
  */
-#if __has_builtin(__builtin_subcl)
+#if __has_builtin(__builtin_subcll)
 static inline uint64_t OutflankToFlipmask(uint64_t outflank) {
 	uint64_t flipmask, cy;
-	flipmask = __builtin_subcl(outflank, 1, 0, &cy);
-	return __builtin_addcl(flipmask, 0, cy, &cy);
+	flipmask = __builtin_subcll(outflank, 1, 0, &cy);
+	return __builtin_addcll(flipmask, 0, cy, &cy);
 }
 #elif (defined(_M_X64) && (_MSC_VER >= 1800)) || (defined(__x86_64__) && defined(__GNUC__) && (__GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)))
 static inline uint64_t OutflankToFlipmask(uint64_t outflank) {
