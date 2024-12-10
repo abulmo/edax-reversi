@@ -1,0 +1,70 @@
+#
+# makefile
+#
+# Compilation options for Microsoft Visual C++ for Windows & nmake.
+#
+#  x64-v4       x64 with sse2, avx, sse4.2 & popcount & avx2 & avx512 support
+#  x64-v3       x64 with sse2, avx, sse4.2 & popcount & avx2 support
+#  x64-v2       with sse2, avx, sse4.2 & popcount support
+#  x64          x64 with sse2 support
+#  a64          ARM v8
+
+VC_FLAGS = /std:c17 /DUNICODE /utf-8 /D_CRT_SECURE_NO_DEPRECATE /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /MT
+
+vc-x64-v4:
+# remove /vlen=256 for cl earlier than 14.42
+	cl $(VC_FLAGS) /arch:AVX512 /experimental:c11atomics /GL /vlen=256 /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v4.exe /link /VERSION:4.6
+
+vc-x64-v3:
+	cl $(VC_FLAGS) /arch:AVX2 /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
+
+vc-x64-v2:
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE2__ /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+
+vc-x64:
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__SSE2__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+
+vc-a64:
+#	vcvarsamd64_arm64.bat
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__ARM_NEON all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.6
+
+clang-x64-v4:
+	clang-cl -mprefer-vector-width=256 $(VC_FLAGS) /U__STDC_NO_THREADS__ /arch:AVX512 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v4.exe /link /VERSION:4.6
+
+clang-x64-v3:
+	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ /arch:AVX2 all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /VERSION:4.6
+
+clang-x64-v2:
+	clang-cl -march=x86-64-v2 $(VC_FLAGS) /U__STDC_NO_THREADS__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v2.exe /link /VERSION:4.6
+
+clang-x64:
+	clang-cl $(VC_FLAGS) /U__STDC_NO_THREADS__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /VERSION:4.6
+
+clang-a64:
+	clang-cl --target=aarch64-win32-msvc $(VC_FLAGS) /U__STDC_NO_THREADS__ /D__ARM_NEON all.c ws2_32.lib /Fe..\bin\wEdax-a64.exe /link /VERSION:4.6
+
+vc-pgo-x64-v3:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /arch:AVX2 /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64-v3.exe /link /ltcg:pgi /VERSION:4.6
+	cd ..\bin
+	wEdax-x64-v3 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x64-v3 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj ws2_32.lib /out:..\bin\wEdax-x64-v3.exe /ltcg:pgo /VERSION:4.6
+	del *.pgc ..\bin\*.pgd
+
+vc-pgo-x64:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /experimental:c11atomics /GL /D__POPCNT__ /D__CRC32__ all.c ws2_32.lib /Fe..\bin\wEdax-x64.exe /link /ltcg:pgi /VERSION:4.6
+	cd ..\bin
+	wEdax-x64 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x64 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj ws2_32.lib /out:..\bin\wEdax-x64.exe /ltcg:pgo /VERSION:4.6
+	del *.pgc ..\bin\*.pgd
+
+clean:
+	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj
+
