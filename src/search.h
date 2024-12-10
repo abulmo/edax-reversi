@@ -131,8 +131,8 @@ struct Node;
 extern const uint8_t QUADRANT_ID[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
-extern const uint8_t NWS_STABILITY_THRESHOLD[];
-extern const uint8_t PVS_STABILITY_THRESHOLD[];
+extern const int8_t NWS_STABILITY_THRESHOLD[];
+extern const int8_t PVS_STABILITY_THRESHOLD[];
 extern const uint8_t SQUARE_TYPE[];
 
 /* function definition */

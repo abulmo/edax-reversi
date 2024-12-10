@@ -103,7 +103,7 @@ const Selectivity selectivity_table [] = {
 
 /** threshold values to try stability cutoff during NWS search */
 // TODO: better values may exist.
-const uint8_t NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
+const int8_t NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99,  6,  8, 10, 12,
 #if USE_SOLID
 	  8, 10, 20, 22, 24, 26, 28, 30,
