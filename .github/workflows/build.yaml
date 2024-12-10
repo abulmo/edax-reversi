@@ -18,16 +18,13 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            build_command: make build ARCH=x86-64-v3 COMP=gcc OS=linux
-            build_shell: bash
+            build_command: make build ARCH=x86-64-v3 OS=linux
           - os: windows-latest
-            build_command: |
+            build_command: |-
               call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
               nmake -fnmakefile vc-x64
-            build_shell: cmd
           - os: macos-latest
-            build_command: make build ARCH=armv8.5-a COMP=gcc OS=osx
-            build_shell: bash
+            build_command: make build ARCH=armv8.5-a OS=osx
 
     steps:
     - uses: actions/checkout@v2
@@ -37,7 +34,7 @@ jobs:
         mkdir -p bin
         cd src
         ${{ matrix.build_command }}
-      shell: ${{ matrix.build_shell }}
+      shell: cmd
 
     - uses: actions/upload-artifact@v4
       with:
