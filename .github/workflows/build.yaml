@@ -14,23 +14,41 @@ jobs:
     strategy:
       fail-fast: false # We want results from all OSes even if one fails.
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
             build_command: make build ARCH=x86-64-v3 COMP=gcc OS=linux
-          - os: windows-latest
-            build_command: make build ARCH=x86-64-v3 COMP=gcc OS=windows
           - os: macos-latest
             build_command: make build ARCH=armv8.5-a COMP=gcc OS=osx
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: build
       run: |-
         mkdir -p bin
         cd src
         ${{ matrix.build_command }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: artifact_${{ runner.os }}
+        path: bin
+
+  windows-build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: build
+      run: |-
+        mkdir -p bin
+        cd src
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        nmake -fnmakefile vc-x64
+      shell: cmd
 
     - uses: actions/upload-artifact@v4
       with:
