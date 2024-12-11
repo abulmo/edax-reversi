@@ -27,10 +27,12 @@
 #include "ybwc.h"
 #include "stats.h"
 #include "util.h"
-#include <assert.h>
 
-#include <stdarg.h>
+#include <assert.h>
+#include <inttypes.h>
 #include <math.h>
+#include <stdarg.h>
+#include <stdint.h>
 
 Log engine_log;
 
