@@ -257,18 +257,28 @@ static void data_new(HashData *data, const HashStore *store)
 }
 
 /**
- * @brief Initialize a new hash table item.
+ * @brief Prefetch the hash entry.
  *
- * This implementation tries to be robust against concurrency. Data are first
- * set up in a local thread-safe structure, before being copied into the
- * hashtable entry. Then the hashcode of the entry is xored with the thread
- * safe structure ; so that any corrupted entry won't be readable.
+ * The hash entry may not be in the CPU cache and take long to read, so
+ * prefetch it as soon as the hash code is available.
+ *
+ * @param hashtable Hash table to fetch from.
+ * @param hashcode Hash code.
 */
 void hash_prefetch(HashTable *hashtable, const uint64_t hashcode) {
-	#if defined(__GNUC__)
 	Hash *hash = hashtable->hash + (hashcode & hashtable->hash_mask);
-	__builtin_prefetch(hash);
-	__builtin_prefetch(hash + HASH_N_WAY - 1);
+	#if defined(__GNUC__)
+		__builtin_prefetch(hash);
+		__builtin_prefetch(hash + HASH_N_WAY - 1);
+	#elif defined(__SSE2__)
+		_mm_prefetch((char const *) hash, _MM_HINT_T0);
+		_mm_prefetch((char const *)(hash + HASH_N_WAY - 1), _MM_HINT_T0);
+	#elif defined(__ARM_ACLE)
+		__pld(hash);
+		__pld(hash + HASH_N_WAY - 1);
+	#elif defined(_M_ARM64)
+		__prefetch(hash);
+		__prefetch(hash + HASH_N_WAY - 1);
 	#endif
 }
 
