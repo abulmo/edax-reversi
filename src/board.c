@@ -94,6 +94,8 @@
 	#include "count_last_flip_sse.c"
 #elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON
 	#include "count_last_flip_neon.c"
+#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON_VADDVQ
+	#include "count_last_flip_neon.c"
 #elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_SVE_LZCNT
 	#include "count_last_flip_sve_lzcnt.c"
 #else
