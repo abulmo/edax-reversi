@@ -27,8 +27,6 @@
 #include <arm_neon.h>
 #include <stdio.h>
 
-#define	COUNT_LAST_FLIP_NEON_VADDVQ
-
 /** precomputed count flip array */
 const unsigned char COUNT_FLIP[8][256] = {
 	{
@@ -113,7 +111,7 @@ const unsigned char COUNT_FLIP[8][256] = {
 	},
 };
 
-#ifdef COUNT_LAST_FLIP_NEON_VADDVQ
+#if COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON_VADDVQ
 /* bit masks for diagonal lines (interleaved) */
 const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x000000000000ff01, 0x0000000000000000 }, { 0x0801040102010101, 0x8001400120011001 }},
@@ -266,7 +264,8 @@ int count_last_flip(int pos, uint64_t P)
 	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
 	uint64x2_t	PP = vdupq_n_u64(P);
 	uint64x2_t	II;
-#ifdef COUNT_LAST_FLIP_NEON_VADDVQ	// vaddvq
+	// vaddvq
+#if COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON_VADDVQ
 	unsigned int t;
 	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
 
@@ -282,8 +281,6 @@ int count_last_flip(int pos, uint64_t P)
 
 #else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
-	uint64x2_t	PP = vdupq_n_u64(P);
-	n_flips = 0;
 	II = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
 	n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 2)];
 	n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 0)];

@@ -15,7 +15,7 @@
 
 #include "simd.h"
 
-extern const uint64x2_t MASK_LR_v4[66][4] = {
+extern const uint64x2_t MASK_LR_v4[66][4];
 
 /**
  * Compute flipped discs when playing on square pos.
@@ -35,25 +35,25 @@ uint64x2_t mm_flip(uint64x2_t OP, int pos)
 	uint64x2_t OO = vdupq_lane_u64(vget_high_u64(OP), 0);
 
 	mask0 = MASK_LR_v4[pos][2];					mask1 = MASK_LR_v4[pos][3];
-		// isolate non-opponent MS1B
+	// isolate non-opponent MS1B
 	oflank0 = vbicq_u64(mask0, OO);					oflank1 = vbicq_u64(mask1, OO);
-		// outflank = (0x8000000000000000ULL >> lzcnt) & P
+	// outflank = (0x8000000000000000ULL >> lzcnt) & P
 	clz0 = vclzq_s32(vreinterpretq_s32_u64(oflank0));		clz1 = vclzq_s32(vreinterpretq_s32_u64(oflank1));
-		// set loword's MSB if hiword = 0
+	// set loword's MSB if hiword = 0
 	msb0 = vreinterpretq_u32_u64(vshrq_n_u64(oflank0, 32));		msb1 = vreinterpretq_u32_u64(vshrq_n_u64(oflank1, 32));
 	msb0 = vshlq_n_u32(vceqzq_u32(msb0), 31);			msb1 = vshlq_n_u32(vceqzq_u32(msb1), 31);
 	msb0 = vshlq_u32(msb0, vnegq_s32(clz0));			msb1 = vshlq_u32(msb1, vnegq_s32(clz1));
-		// 0 if outflank is P, otherwise oflank = msb
+	// 0 if outflank is P, otherwise oflank = msb
 	oflank0 = vbicq_u64(vreinterpretq_u64_u32(msb0), PP);		oflank1 = vbicq_u64(vreinterpretq_u64_u32(msb1), PP);
-		// set all bits higher than outflank
+	// set all bits higher than outflank
 	oflank0 = vsubq_u64(oflank0, vreinterpretq_u64_u32(msb0));	oflank1 = vsubq_u64(oflank1, vreinterpretq_u64_u32(msb1));
 	flip = vandq_u64(vbslq_u64(mask1, oflank1, vandq_u64(mask0, oflank0)), OO);
 
 	mask0 = MASK_LR_v4[pos][0];					mask1 = MASK_LR_v4[pos][1];
-		// get outflank with carry-propagation
+	// get outflank with carry-propagation
 	oflank0 = vaddq_u64(vornq_u64(OO, mask0), one);			oflank1 = vaddq_u64(vornq_u64(OO, mask1), one);
 	oflank0 = vandq_u64(vandq_u64(PP, mask0), oflank0);		oflank1 = vandq_u64(vandq_u64(PP, mask1), oflank1);
-		// set all bits lower than oflank, using satulation if oflank = 0
+	// set all bits lower than oflank, using satulation if oflank = 0
 	oflank0 = vqsubq_u64(oflank0, one);				oflank1 = vqsubq_u64(oflank1, one);
 	flip = vbslq_u64(mask1, oflank1, vbslq_u64(mask0, oflank0, flip));
 
