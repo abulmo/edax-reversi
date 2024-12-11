@@ -18,8 +18,10 @@
 #include "util.h"
 #include "perft.h"
 
-#include <stdlib.h>
+#include <inttypes.h>
 #include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 /**
  * Gathered statistiscs

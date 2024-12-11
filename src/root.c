@@ -13,13 +13,15 @@
 
 #include "bit.h"
 #include "options.h"
+#include "settings.h"
 #include "stats.h"
 #include "util.h"
 #include "ybwc.h"
-#include "settings.h"
 
-#include <stdlib.h>
 #include <assert.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 extern Log search_log;
 extern Log engine_log;

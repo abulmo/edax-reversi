@@ -68,7 +68,9 @@
 #include "settings.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

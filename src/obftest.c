@@ -24,6 +24,8 @@
 #include "const.h"
 #include "settings.h"
 
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 /** OBF structure: Othello Board File */

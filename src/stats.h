@@ -16,6 +16,8 @@
 
 #include <stdatomic.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 /* To turn on a statistics, add an x to the end of the line starting with #define .*/
 

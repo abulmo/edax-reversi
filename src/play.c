@@ -19,6 +19,8 @@
 #include "settings.h"
 
 #include <assert.h>
+#include <inttypes.h>
+#include <stdint.h>
 
 /**
  * @brief Initialization.
