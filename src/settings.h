@@ -18,11 +18,11 @@
  * @brief The list of move generator
  *
  * x86-64 code tested on an AMD Ryzen 9 5950x @ 4.2 Ghz using the command "-bench 20 -n 1 -q"
- * ARM code has been tested on a rpi 5 @ 2.4 Ghz
+ * ARM code has been tested on a rpi 5 @ 2.7 Ghz
  */
 // standard C only                         // x86-64-v3 | v2        |  ARM neon
-#define MOVE_GENERATOR_KINDERGARTEN   1    // 61.9 Mnps | 53.4 Mnps | 30.2 Mnps
-#define MOVE_GENERATOR_ROXANE         2    // 59.4 Mnps | 51.0      | 31.1 Mnps
+#define MOVE_GENERATOR_KINDERGARTEN   1    // 61.9 Mnps | 53.4 Mnps | 33.9 Mnps
+#define MOVE_GENERATOR_ROXANE         2    // 59.4 Mnps | 51.0      | 34.7 Mnps
 
 // simd for X86-64
 // need sse support                        // v3        | v2
@@ -41,15 +41,15 @@
 // need avx512 support
 #define MOVE_GENERATOR_AVX512CD      13    // untested (unsupported on Zen 3 cpus)
 // ARM64                                   // ARM neon
-#define MOVE_GENERATOR_NEON_BITSCAN  14    // 33.7 Mnps
-#define MOVE_GENERATOR_NEON_LZCNT    15    // 29.9 Mnps
-#define MOVE_GENERATOR_NEON_PPFILL   16    // 28.9 Mnps
-#define MOVE_GENERATOR_NEON_RBIT     17    // 30.2 Mnps
+#define MOVE_GENERATOR_NEON_BITSCAN  14    // 37.7 Mnps
+#define MOVE_GENERATOR_NEON_LZCNT    15    // 32.8 Mnps
+#define MOVE_GENERATOR_NEON_PPFILL   16    // 31.9 Mnps
+#define MOVE_GENERATOR_NEON_RBIT     17    // 33.1 Mnps
 #define MOVE_GENERATOR_SVE_LZCNT     19    // untested
 
 // standard C                              // x86-64-v3 | v2      | ARM neon
-#define COUNT_LAST_FLIP_KINDERGARTEN  1    // 69.5 Mnps | 56.4    | 34.1
-#define COUNT_LAST_FLIP_CARRY_64      2    // 69.9 Mnps | 56.0    | 34.1
+#define COUNT_LAST_FLIP_KINDERGARTEN  1    // 69.5 Mnps | 56.4    | 37.7
+#define COUNT_LAST_FLIP_CARRY_64      2    // 69.9 Mnps | 56.0    | 37.6
 #define COUNT_LAST_FLIP_PLAIN         3    // 70.3 Mnps | 58.3    | 33.7
 // simd for x86-64
 // need sse
@@ -63,8 +63,9 @@
 // need avx512
 #define COUNT_LAST_FLIP_AVX512CD     10    // untested (unsupported on Zen 3 cpus)
 // ARM64 neon
-#define COUNT_LAST_FLIP_NEON         11    // BUGGY | 32.8
-#define COUNT_LAST_FLIP_SVE_LZCNT    12    // untested (unsupported on ARM-cortex-A76)
+#define COUNT_LAST_FLIP_NEON         11    // 36.6
+#define COUNT_LAST_FLIP_NEON_VADDVQ  12    // 36.7
+#define COUNT_LAST_FLIP_SVE_LZCNT    13    // untested (unsupported on ARM-cortex-A76)
 
 /**move generation. */
 #ifndef MOVE_GENERATOR
@@ -84,9 +85,11 @@
 #ifndef COUNT_LAST_FLIP
 	#if defined(__BMI2__) && !defined(SLOW_BMI2)
 		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_BMI2
-/*	#elif defined __ARM_NEON
-		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_NEON
-*/	#else
+	#elif defined(__SSE__)
+		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_SSE
+	#elif defined __ARM_NEON
+		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_KINDERGARTEN
+	#else
 		#define COUNT_LAST_FLIP COUNT_LAST_FLIP_PLAIN
 	#endif
 #endif
