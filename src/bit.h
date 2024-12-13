@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#ifndef __has_builtin  // Compatibility with non-clang compilers.
+	#define __has_builtin(x) 0
+#endif
+
 struct Random;
 
 /* declaration */

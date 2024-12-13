@@ -18,7 +18,8 @@
 	#include <intrin.h>
 #elif defined(__x86_64__)
 	#include <x86intrin.h>
-#elif defined(__ARM_NEON)
+#endif
+#if defined(__ARM_NEON)
 	#include <arm_neon.h>
 #endif
 #include <stdalign.h>
@@ -26,7 +27,7 @@
 
 typedef union {
 	alignas(64) uint64_t v1[8];
-	#ifdef __SSE__
+	#ifdef __SSE2__
 		__m128i	v2[4];
 	#endif
 	#ifdef __AVX2__
@@ -39,7 +40,7 @@ typedef union {
 
 typedef union {
 	alignas(32) uint64_t v1[4];
-	#ifdef __SSE__
+	#ifdef __SSE2__
 		__m128i	v2[2];
 	#endif
 	#ifdef __AVX2__
@@ -49,7 +50,7 @@ typedef union {
 
 typedef union {
 	alignas(16) uint64_t v1[2];
-	#ifdef __SSE__
+	#ifdef __SSE2__
 		__m128i	v2;
 	#endif
 } V2DI;
