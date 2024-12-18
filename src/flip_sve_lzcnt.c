@@ -87,7 +87,3 @@ uint64_t board_flip(const Board *board, const int x)
 	return flip(x, board->player, board->opponent);
 }
 
-uint64x2_t mm_flip(uint64x2_t OP, int pos)
-{
-	return vdupq_n_u64(Flip(pos, vgetq_lane_u64(OP, 0), vgetq_lane_u64(OP, 1)));
-}
