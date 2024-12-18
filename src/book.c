@@ -1591,6 +1591,11 @@ void book_save(Book *book, const char *file)
 	PositionArray *a;
 	Position *p;
 
+	if (f == NULL) {
+		error("Cannot open file: %s", file);
+		return;
+	}
+
 	info("Saving book to %s...", file);
 	book_set_date(book);
 
