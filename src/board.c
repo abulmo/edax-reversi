@@ -295,7 +295,7 @@ bool board_lesser(const Board *b1, const Board *b2)
  * @param b the bitboard
  * @return a 128 bitboard mirrored
  */
-static vectorcall __m128i horizontal_mirror_mm(const __m128i b)
+static __m128i vectorcall horizontal_mirror_mm(const __m128i b)
 {
 	const __m128i mask = _mm_set1_epi16(0x0F0F);
 	const __m128i rev  = _mm_set_epi8(H_MIRROR);
@@ -308,7 +308,7 @@ static vectorcall __m128i horizontal_mirror_mm(const __m128i b)
  * @param b the bitboard
  * @return a 128 bitboard mirrored
  */
-static vectorcall __m128i vertical_mirror_mm(const __m128i b)
+static __m128i vectorcall vertical_mirror_mm(const __m128i b)
 {
 	return _mm_shuffle_epi8(b, _mm_set_epi8(V_MIRROR));
 }
@@ -319,7 +319,7 @@ static vectorcall __m128i vertical_mirror_mm(const __m128i b)
  * @param b the bitboard
  * @return a 128 bitboard transposed
  */
-static vectorcall __m128i transpose_mm(__m128i b)
+static __m128i vectorcall transpose_mm(__m128i b)
 {
 	const __m128i mask00AA = _mm_set1_epi16(0x00AA);
 	const __m128i maskCCCC = _mm_set1_epi32(0x0000CCCC);
@@ -344,7 +344,7 @@ static vectorcall __m128i transpose_mm(__m128i b)
  * @param b input boards
  * @param sym output boards
  */
-static vectorcall void horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
+static void vectorcall horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
 {
 	const __m256i mask = _mm256_set1_epi16(0x0F0F);
 	const __m256i rev  = _mm256_set_epi8(H_MIRROR, H_MIRROR);
@@ -358,7 +358,7 @@ static vectorcall void horizontal_mirror_avx2(const __m256i *b, __m256i *sym)
  * @param b input boards
  * @param sym output boards
  */
-static vectorcall void vertical_mirror_avx2(const __m256i *b, __m256i *sym)
+static void vectorcall vertical_mirror_avx2(const __m256i *b, __m256i *sym)
 {
 	const __m256i mask = _mm256_set_epi8( V_MIRROR, V_MIRROR);
 	*sym = _mm256_shuffle_epi8(*b, mask);
@@ -1713,12 +1713,10 @@ void board_test(void) {
 
 	Board board = { 18304334016151747588ul, 142410057557804025ul };
 	int n_flip = count_last_flip(B1, board.player);
-	board_print(&board, 0, stderr);
-	fprintf(stderr, "n_flip = %d\n", n_flip);
-	Move move;
-	board_get_move(&board, B1, &move);
-	board_update(&board, &move);
-	board_print(&board, 1, stderr);
+	if (n_flip != 2) {
+		board_print(&board, 0, stderr);
+		fprintf(stderr, "n_flip = %d != 2\n", n_flip);
+	}
 
 	fprintf(stderr, "board_test done\n");
 }
