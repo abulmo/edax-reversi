@@ -24,11 +24,11 @@ typedef struct Game {
 	Board initial_board;
 	struct {
 		int16_t year;
-		int8_t month;
-		int8_t day;
-		int8_t hour;
-		int8_t minute;
-		int8_t second;
+		uint8_t month;
+		uint8_t day;
+		uint8_t hour;
+		uint8_t minute;
+		uint8_t second;
 	} date;
 	char name[2][32];
 	uint8_t move[60];
@@ -39,14 +39,14 @@ typedef struct Game {
 typedef struct WthorGame {
 	short tournament, black, white;
 	int8_t score, theoric_score;
-	char x[60];
+	uint8_t x[60];
 } WthorGame;
 
 typedef struct OkoGame {
-	char n;
+	uint8_t n;
 	int8_t score;
-	char flag;
-	char move[61];
+	uint8_t flag;
+	uint8_t move[61];
 } OkoGame;
 
 /* function declarations */
