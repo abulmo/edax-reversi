@@ -132,7 +132,7 @@ static inline int solve_1(const uint64_t player, const int alpha, const int x)
  * @param search Search.
  * @return The final score, as a disc difference.
  */
-static inline int solve_2(const uint64_t player, const uint64_t opponent, const int alpha, const int x1, const int x2, uint64_t *n_nodes)
+static inline int solve_2(const uint64_t player, const uint64_t opponent, const int alpha, const int x1, const int x2, int64_t *n_nodes)
 {
 	uint64_t flipped;
 	int score, bestscore, nodes = 1;
@@ -181,7 +181,7 @@ static inline int solve_2(const uint64_t player, const uint64_t opponent, const 
  * @param alpha Alpha bound.
  * @return The final score, as a disc difference.
  */
-static int solve_3(const uint64_t player, const uint64_t opponent, const int alpha, int x1, int x2, int x3, const int parity, uint64_t *n_nodes)
+static int solve_3(const uint64_t player, const uint64_t opponent, const int alpha, int x1, int x2, int x3, const int parity, int64_t *n_nodes)
 {
 	uint64_t flipped, next_player, next_opponent;
 	int score, bestscore;
@@ -261,7 +261,8 @@ static int solve_3(const uint64_t player, const uint64_t opponent, const int alp
 static int search_solve_4(Search *search, const int alpha)
 {
 	const uint64_t player = search->board.player, opponent = search->board.opponent;
-	uint64_t flipped, next_player, next_opponent, *n_nodes = &search->n_nodes;
+	uint64_t flipped, next_player, next_opponent;
+	int64_t *n_nodes = &search->n_nodes;
 	SquareList *empties = search->empties;
 	int x1 = empties[NOMOVE].next;
 	int x2 = empties[x1].next;

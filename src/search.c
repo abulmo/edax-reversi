@@ -1059,7 +1059,7 @@ int64_t search_time(Search *search)
  * @param search  Search.
  * @return node count.
  */
-uint64_t search_count_nodes(Search *search)
+int64_t search_count_nodes(Search *search)
 {
 	return search->n_nodes + search->child_nodes;
 }

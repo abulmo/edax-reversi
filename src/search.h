@@ -121,8 +121,8 @@ typedef struct Search {
 
 	void (*observer)(Result*);                    /**< call back function to print search result */
 
-	uint64_t n_nodes;                             /**< node counter */
-	uint64_t child_nodes;                         /**< node counter */
+	int64_t n_nodes;                              /**< node counter */
+	int64_t child_nodes;                          /**< node counter */
 
 } Search;
 
@@ -168,7 +168,7 @@ void search_update_pass_midgame(Search*);
 void search_restore_pass_midgame(Search*);
 int64_t search_clock(Search*);
 int64_t search_time(Search*);
-uint64_t search_count_nodes(Search*);
+int64_t search_count_nodes(Search*);
 void search_print_pv(Search*, const int, const char*, FILE*);
 void search_print(Search*, const int, const int, const char, FILE*);
 int get_pv_extension(const int, const int);
