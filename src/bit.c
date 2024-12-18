@@ -163,8 +163,7 @@ int bit_leading_zeros_64(uint64_t b)
 
 	#elif defined(__GNUC__)
 
-//		return b ? __builtin_clzll(b) : 64; // GNUC/CLANG version
-		return __builtin_clzll(b); // GNUC/CLANG version
+		return __builtin_clzl(b); // GNUC/CLANG version
 
 	#else
 
@@ -208,7 +207,6 @@ int bit_leading_zeros_32(uint32_t b)
 
 	#elif defined(__GNUC__)
 
-//		return b ? __builtin_clz(b) : 32; // GNUC/CLANG version
 		return __builtin_clz(b); // GNUC/CLANG version
 
 	#else
@@ -345,7 +343,7 @@ int last_bit(uint64_t b)
 
 #elif defined(_MSC_VER)
 
-	DWORD index;
+	unsigned long index;
 	_BitScanReverse64(&index, b);
 	return (int) index;
 
