@@ -55,7 +55,7 @@ typedef union {
 	#endif
 } V2DI;
 
-// slow bmi on old AMD cpu 
+// slow bmi on old AMD cpu
 #if defined(__bdver4__) || defined(__znver1__) || defined(__znver2__)
 	#define SLOW_BMI2
 #endif
