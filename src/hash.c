@@ -10,7 +10,7 @@
  * the analysis and the best move found.
  * The implementation is now a multi-way (or bucket based) hashtable. It both
  * tries to keep the deepest records and to always add the latest one.
- * The following implementation store the whole board to avoid collision. 
+ * The following implementation store the whole board to avoid collision.
  * When doing parallel search with a shared hashtable, a spined implementation
  * avoid concurrency collisions.
  *
@@ -68,7 +68,7 @@ void hash_init(HashTable *hash_table, const size_t size)
 	hash_table->spin_mask = hash_table->n_spin - 1;
 	hash_table->spin = (SpinLock*) malloc(hash_table->n_spin * sizeof (SpinLock));
 	for (uint32_t i = 0; i < hash_table->n_spin; ++i) spinlock_init(hash_table->spin + i);
-	
+
 	HASH_STATS(hash_table->n_try   = 0;)
 	HASH_STATS(hash_table->n_found = 0;)
 	HASH_STATS(hash_table->n_store = 0;)
@@ -106,7 +106,7 @@ void hash_cleanup(HashTable *hash_table)
 			_mm256_stream_si256(h + 1, h1);
 			_mm256_stream_si256(h + 2, h2);
 		}
-		
+
 	#else // __SSE2__
 
 		Hash hash_init[2] = {HASH_INIT, HASH_INIT};
@@ -172,7 +172,7 @@ void hash_free(HashTable *hash_table)
  * @param data Hash data.
  * @param move move to add.
  */
-static void data_add_move(HashData *data, const bool good_move, const int move) 
+static void data_add_move(HashData *data, const bool good_move, const int move)
 {
 	if (good_move && data->move[0] != move) {
 		data->move[1] = data->move[0];
@@ -252,7 +252,7 @@ static void data_new(HashData *data, const HashStore *store)
 	if (store->score > store->alpha) data->lower = store->score; else data->lower = SCORE_MIN;
 	data->move[0] = data->move[1] = NOMOVE;
 	data_add_move(data, (store->score > store->alpha || store->score == SCORE_MIN), store->move);
-	data->draft.u4 = store->draft.u4;	
+	data->draft.u4 = store->draft.u4;
 	assert(data->upper >= data->lower);
 }
 
@@ -303,7 +303,7 @@ void hash_prefetch(HashTable *hashtable, const uint64_t hashcode) {
  * @param move Best move.
  */
 #if (HASH_COLLISIONS(1)+0)
-static void hash_new(Hash *hash, SpinLock *spin, const uint64_t hash_code, const HashStore *store)
+static void hash_new(Hash *hash, SpinLock *spin, const uint64_t hash_code, const Board *board, const HashStore *store)
 #else
 static void hash_new(Hash *hash, SpinLock *spin, const Board* board, const HashStore *store)
 #endif
@@ -381,7 +381,7 @@ static bool hash_update(Hash *hash, SpinLock *spin, const Board *board, const Ha
 			else data_upgrade(&hash->data, store);
 			if (hash->data.lower > hash->data.upper) data_new(&hash->data, store);
 			ok = true;
-		} 
+		}
 		spinlock_unlock(spin);
 	}
 	return ok;
@@ -409,7 +409,7 @@ static bool hash_update(Hash *hash, SpinLock *spin, const Board *board, const Ha
 static bool hash_replace(Hash *hash, SpinLock *spin, const Board *board, const HashStore *store)
 {
 	bool ok = false;
-	
+
 	if (board_equal(&hash->board, board)) {
 		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
@@ -437,7 +437,7 @@ static bool hash_replace(Hash *hash, SpinLock *spin, const Board *board, const H
 static bool hash_reset(Hash *hash, SpinLock *spin, const Board *board, const HashData *data)
 {
 	bool ok = false;
-	
+
 	if (board_equal(&hash->board, board)) {
 		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
@@ -469,7 +469,7 @@ static bool hash_reset(Hash *hash, SpinLock *spin, const Board *board, const Has
 void hash_feed(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashData *data)
 {
 	Hash *hash, *worst;
-	SpinLock *spin; 
+	SpinLock *spin;
 	int i;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
@@ -483,9 +483,9 @@ void hash_feed(HashTable *hash_table, const Board *board, const uint64_t hash_co
 	}
 
 	// new entry
-#if (HASH_COLLISIONS(1)+0) 
+#if (HASH_COLLISIONS(1)+0)
 	hash_set(worst, spin, hash_code, board, data);
-#else 
+#else
 	hash_set(worst, spin, board, data);
 #endif
 }
@@ -522,7 +522,7 @@ void hash_store(HashTable *hash_table, const Board *board, const uint64_t hash_c
 {
 	int i;
 	Hash *worst, *hash;
-	SpinLock *spin; 
+	SpinLock *spin;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
@@ -533,9 +533,9 @@ void hash_store(HashTable *hash_table, const Board *board, const uint64_t hash_c
 		if (hash_update(hash, spin, board, store)) return;
 		if (worst->data.draft.u4 > hash->data.draft.u4) worst = hash;
 	}
-#if (HASH_COLLISIONS(1)+0) 
+#if (HASH_COLLISIONS(1)+0)
 	hash_new(worst, spin, hash_code, board, store);
-#else 
+#else
 	hash_new(worst, spin, board, store);
 #endif
 	HASH_STATS(hash_table->n_store++;)
@@ -561,7 +561,7 @@ void hash_force(HashTable *hash_table, const Board *board, const uint64_t hash_c
 {
 	int i;
 	Hash *worst, *hash;
-	SpinLock *spin; 
+	SpinLock *spin;
 
 	worst = hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	spin = hash_table->spin + (hash_code & hash_table->spin_mask);
@@ -572,10 +572,10 @@ void hash_force(HashTable *hash_table, const Board *board, const uint64_t hash_c
 		if (hash_replace(hash, spin, board, store)) return;
 		if (worst->data.draft.u4 > hash->data.draft.u4) worst = hash;
 	}
-	
-#if (HASH_COLLISIONS(1)+0) 
+
+#if (HASH_COLLISIONS(1)+0)
 	hash_new(worst, spin, hash_code, board, store);
-#else 
+#else
 	hash_new(worst, spin, board, store);
 #endif
 }
@@ -605,7 +605,7 @@ bool hash_get(HashTable *hash_table, const Board *board, const uint64_t hash_cod
 		HASH_COLLISIONS(	spinlock_lock(spin);)
 		HASH_COLLISIONS(	if (hash->key == hash_code && !board_equal(&hash->board, board)) {)
 		HASH_COLLISIONS(		++statistics.n_hash_collision;)
-		HASH_COLLISIONS(		printf("key = %llu\n", hash_code);)
+		HASH_COLLISIONS(		printf("key = %" PRIu64 "\n", hash_code);)
 		HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
 		HASH_COLLISIONS(		board_print(&hash->board, WHITE, stdout);)
 		HASH_COLLISIONS(	})
