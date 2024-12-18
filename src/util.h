@@ -275,7 +275,7 @@ typedef struct Log {
  * @brief Display a message.
  */
 #define info(...) if (options.info) { \
-	/* extern Log ggs_log; */\
+	extern Log ggs_log; \
 	fprintf(stderr, __VA_ARGS__); \
 } else (void) 0
 
