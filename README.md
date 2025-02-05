@@ -62,7 +62,6 @@ version 4.6 is an evolution of version 4.4 that tried to incorporate changes mad
  - the code switch from c99 to c17 and use stdatomic.h threads.h (if available) stdalign.h
  - remove bench.c: most of the functions get optimized out and could not be measured.
  - support only 64 bit OSes. 
- - this version is still in development and may change before I release it.
 
 ## makefile
 the major change is that the ARCH options are no longer the same, as they are too many possible options to enable avx2, avx512, CRC32c, etc.
