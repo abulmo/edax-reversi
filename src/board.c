@@ -122,7 +122,7 @@ void board_swap_players(Board *board)
 /**
  * @brief Set a board from a string description.
  *
- * Read a standardized string (See http://www.nada.kth.se/~gunnar/download2.html
+ * Read a standardized string (See https://web.archive.org/web/20040615001419/https://www.nada.kth.se/~gunnar/download2.html
  * for details) and translate it into our internal Board structure.
  *
  * @param board the board to set
