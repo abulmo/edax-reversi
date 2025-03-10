@@ -51,12 +51,16 @@ const HashData HASH_DATA_INIT = {{{0, 0, 0, 0}}, -SCORE_INF, SCORE_INF, {NOMOVE,
  */
 void hash_init(HashTable *hash_table, const size_t size)
 {
+	const size_t ALIGNMENT = 32;
+
 	assert(hash_table != NULL);
 	assert(bit_is_single(size));
+	assert(HASH_N_WAY + 1 <= ALIGNMENT);
+	assert(((size + ALIGNMENT) * sizeof (Hash)) % ALIGNMENT == 0);
 
 	info("< init hashtable of %zu entries>\n", size);
 	if (hash_table->hash != NULL) free(hash_table->hash);
-	hash_table->hash = aligned_alloc(32, (size + HASH_N_WAY + 1) * sizeof (Hash));
+	hash_table->hash = aligned_alloc(ALIGNMENT, (size + ALIGNMENT) * sizeof (Hash));
 	if (hash_table->hash == NULL) {
 		fatal_error("hash_init: cannot allocate the hash table\n");
 	}
