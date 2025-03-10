@@ -326,9 +326,9 @@ const GameHash GAME_HASH_INIT = {{0ULL, 0ULL}, {0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 64
 
 /** HashTable */
 typedef struct {
-	GameHash *array; /**< array of hash entries */
-	uint64_t n_tries; /**< n_tries */
-	uint64_t n_hits;  /**< n_tries */
+	GameHash *array;   /**< array of hash entries */
+	uint64_t n_tries;  /**< n_tries */
+	uint64_t n_hits;   /**< n_tries */
 	int size;          /**< size */
 	int mask;          /**< mask */
 } GameHashTable;
