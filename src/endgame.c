@@ -184,7 +184,7 @@ static inline int solve_2(const uint64_t player, const uint64_t opponent, const 
 static int solve_3(const uint64_t player, const uint64_t opponent, const int alpha, int x1, int x2, int x3, const int parity, int64_t *n_nodes)
 {
 	uint64_t flipped, next_player, next_opponent;
-	int score, bestscore;
+	int score, bestscore, tmp;
 	const int beta = alpha + 1;
 
 
@@ -194,9 +194,26 @@ static int solve_3(const uint64_t player, const uint64_t opponent, const int alp
 	// parity based move sorting
 	if (!(parity & QUADRANT_ID[x1])) {
 		if (parity & QUADRANT_ID[x2]) { // case 1(x2) 2(x1 x3)
-			int tmp = x1; x1 = x2; x2 = tmp;
+				tmp = x1; x1 = x2;
+			if (SQUARE_VALUE[x3] > SQUARE_VALUE[tmp]) {
+				x2 = x3; x3 = tmp;
+			} else {
+				x2 = tmp;
+			}
 		} else { // case 1(x3) 2(x1 x2)
-			int tmp = x1; x1 = x3; x3 = x2; x2 = tmp;
+			tmp = x1; x1 = x3;
+			if (SQUARE_VALUE[x2] > SQUARE_VALUE[tmp]) {
+				x3 = tmp;
+			} else {
+				x3 = x2; x2 = tmp;
+			}
+		}
+	} else {
+		if (SQUARE_VALUE[x3] > SQUARE_VALUE[x2]) {
+			tmp = x2; x2 = x3; x3 = tmp;
+		}
+		if (SQUARE_VALUE[x2] > SQUARE_VALUE[x1]) {
+			tmp = x2; x2 = x3; x3 = tmp;
 		}
 	}
 
