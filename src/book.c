@@ -928,7 +928,7 @@ static void position_remove_links(Position *position, Book *book)
  *
  * This is the important part of the opening book code, where it finds the best moves to add to the book.
  * Considering the current position, it will deviate a child position or expand a move if:
- * - move_score < best_score - player_deviation
+ * - move_score > best_score - player_deviation
  * - lower <= move_score <= upper.
  * So a good candidate move for expansion need to have a score close to the best move, and not too far
  * from the root score from where we deviates, in order to not derive to very bad positions.
@@ -963,6 +963,80 @@ static void position_deviate(Position *position, Book *book, const int player_de
 		if (position->score.value - position->leaf.score <= player_deviation && lower <= position->leaf.score && position->leaf.score <= upper) {
 			position->todo = true; book->stats.n_todo++;
 			if (book->stats.n_todo % 10 == 0) bprint("Book deviate %d todo\r", book->stats.n_todo);
+		}
+	}
+}
+
+/**
+ * @brief Extend a position.
+ *
+ * Here we look for all the positions with a leaf better or equal to the bestscore and mark it to be expanded.
+ *
+ * @param position Position to expand.
+ * @param book Opening book.
+ * @param player_deviation Player's error.
+ * @param opponent_deviation Opponent's error.
+ * @param lower Error lower bound.
+ * @param upper Error upper bound.
+ */
+static void position_extend(Position *position, Book *book)
+{
+	Link *l;
+	Board target;
+	Position *child;
+
+	// if position is not done yet & good enough & inside the book height limit
+	if (!position->done && board_count_empties(&position->board) >= book->options.n_empties && !board_is_game_over(&position->board)) {
+		position->done = true;
+
+		// seek for all children with a better leaf
+		foreach_link(l, position) {
+			board_next(&position->board, l->move, &target);
+			child = book_probe(book, &target);
+			position_extend(child, book);
+		}
+
+		// expand the leaf is it has the best score
+		if (position->leaf.score >= position->score.value) {
+			position->todo = true; book->stats.n_todo++;
+			if (book->stats.n_todo % 10 == 0) bprint("Book extend %d todo\r", book->stats.n_todo);
+		}
+	}
+}
+
+/**
+ * @brief Play a position.
+ *
+ * Here we look for all the positions with no link and mark it to be expanded.
+ *
+ * @param position Position to expand.
+ * @param book Opening book.
+ * @param player_deviation Player's error.
+ * @param opponent_deviation Opponent's error.
+ * @param lower Error lower bound.
+ * @param upper Error upper bound.
+ */
+static void position_play(Position *position, Book *book)
+{
+	Link *l;
+	Board target;
+	Position *child;
+
+	// if position is not done yet & good enough & inside the book height limit
+	if (!position->done && board_count_empties(&position->board) >= book->options.n_empties && !board_is_game_over(&position->board)) {
+		position->done = true;
+
+		// seek for all children with no link
+		foreach_link(l, position) {
+			board_next(&position->board, l->move, &target);
+			child = book_probe(book, &target);
+			position_play(child, book);
+		}
+
+		// expand the leaf is it has no link
+		if (position->n_link == 0) {
+			position->todo = true; book->stats.n_todo++;
+			if (book->stats.n_todo % 10 == 0) bprint("Book play %d todo\r", book->stats.n_todo);
 		}
 	}
 }
@@ -1839,46 +1913,6 @@ void book_sort(Book *book)
 }
 
 /**
- * @brief Play.
- *
- * Add positions to the opening book by adding links
- * to position with no links.
- *
- * @param book opening book.
- */
-void book_play(Book *book)
-{
-	PositionArray *a;
-	Position *p;
-	int n_diffs;
-	char file[FILENAME_MAX + 1];
-
-	file_add_ext(options.book_file, ".play", file);
-	do {
-		n_diffs = 0;
-		book->stats.n_nodes = book->stats.n_links = book->stats.n_todo = 0;
-		foreach_position(p, a, book) {
-			if (p->n_link == 0 && board_count_empties(&p->board) >= book->options.n_empties && !board_is_game_over(&p->board)) {
-				p->todo = true; ++book->stats.n_todo;
-			} else {
-				p->todo = false;
-			}
-			if (book->stats.n_todo && book->stats.n_todo % BOOK_INFO_RESOLUTION == 0) bprint("Book play...%d todo\r", book->stats.n_todo);
-		}
-		bprint("Book play...%d todo\n", book->stats.n_todo);
-
-		book_expand(book, "Book play", file);
-
-		n_diffs = book->stats.n_nodes + book->stats.n_links;
-		if (n_diffs) {
-			book_negamax(book);
-			book_save(book, file);
-		}
-	} while (n_diffs);
-	bprint("Book play... finished\n");
-}
-
-/**
  * @brief Fill a book.
  *
  * @param book opening book.
@@ -1925,7 +1959,7 @@ void book_fill(Book *book, const int depth)
  * @param relative_error Error relative to the current position's score.
  * @param absolute_error Error relative to the root position's score.
  */
-void book_deviate(Book *book, Board *board, const int relative_error, const int absolute_error)
+void book_deviate(Book *book, const Board *board, const int relative_error, const int absolute_error)
 {
 	Position *root = book_probe(book, board);
 	if (root) {
@@ -1964,6 +1998,80 @@ void book_deviate(Book *book, Board *board, const int relative_error, const int 
 		bprint("Book deviate %d %d...finished\n", relative_error, absolute_error);
 	}
 }
+
+/**
+ * @brief Extend a book.
+ *
+ * @param book opening book.
+ * @param board Position to start from.
+ * @param midgame_error Error in midgame search.
+ * @param endcut_error Error in endgame search.
+ */
+void book_extend(Book *book, const Board *board)
+{
+	Position *root = book_probe(book, board);
+	if (root) {
+		int n_diffs;
+		char file[FILENAME_MAX + 1];
+
+		file_add_ext(options.book_file, ".ext", file);
+		book_clean(book);
+		position_negamax(root, book);
+		do {
+
+			bprint("Book extend...:\n");
+			book_clean(book);
+			position_extend(root, book);
+			bprint("Book extend %d todo\n", book->stats.n_todo);
+
+			book_expand(book, "Book extend", file);
+			n_diffs = book->stats.n_nodes + book->stats.n_links;
+
+			root = book_probe(book, board);
+			book_clean(book);
+			position_negamax(root, book);
+			if (n_diffs) book_save(book, file);
+		} while (n_diffs);
+		bprint("Book extend... finished\n");
+	}
+}
+/**
+ * @brief Play.
+ *
+ * Add positions to the opening book by expanding positions witht zero link.
+ *
+ * @param book opening book.
+ */
+void book_play(Book *book, const Board *board)
+{
+	Position *root = book_probe(book, board);
+	if (root) {
+		int n_diffs;
+		char file[FILENAME_MAX + 1];
+
+		file_add_ext(options.book_file, ".play", file);
+		book_clean(book);
+		position_negamax(root, book);
+		do {
+
+			bprint("Book play...:\n");
+			book_clean(book);
+			position_play(root, book);
+			bprint("Book play %d todo\n", book->stats.n_todo);
+
+			book_expand(book, "Book play", file);
+			n_diffs = book->stats.n_nodes + book->stats.n_links;
+
+			root = book_probe(book, board);
+			book_clean(book);
+			position_negamax(root, book);
+			if (n_diffs) book_save(book, file);
+		} while (n_diffs);
+		bprint("Book play... finished\n");
+	}
+}
+
+
 
 /**
  * @brief Prune a book.
