@@ -64,6 +64,8 @@
  *   -deviate <n1> <n2>   add positions by deviating with a relative error <n1> and an absolute error <n2>.
  *   -enhance <n1> <n2>   add positions by improving score accuracy with a midgame error <n1> and an endcut error <n2>.
  *   -fill [n]            add positions between existing positions.
+ *   -play                add positions by expanding positions without child positions.
+ *   -extend              add positions by expanding positions where the leaf has the best score.
  *   -prune               remove unreachable positions.
  *   -add [file]          add positions from a game base file (txt, ggf, sgf or wthor format).
  *
@@ -87,9 +89,9 @@
  *   -count shapes [d]    compute the number of shapes from the current position up\n  to depth [d].
  *
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7.dev
  *
  */
 #include "book.h"
@@ -222,28 +224,30 @@ void help_book(void)
 {
 	printf(	"\nBook Commands:\n"
 		"Book Commands must be entered in the form 'b|book <command> <parameters>'.\n"
-		"  new <n1> <n2>       create a new empty book with level <n1> and depth <n2>.\n"
-		"  load [file]         load an opening book from a binary opening file.\n"
-		"  merge [file]        merge an opening book with the current opening book.\n"
-		"  save [file]         save an opening book to a binary opening file.\n"
-		"  import [file]       load an opening book from a portable text file.\n"
-		"  export [file]       save an opening book to a portable text file.\n"
-		"  on                  use the opening book.\n"
-		"  off                 do not use the opening book.\n"
-		"  show                display details about the current position.\n"
-		"  info                display book general information.\n"
-		"  a|analyze [n]       retro-analyze the game using the opening book.\n"
-		"  randomness [n]      play more various but worse move from the opening book.\n"
-		"  depth [n]           change book depth (up to which to add positions).\n"
-		"  deepen [n]          change book level & reevaluate the whole book (very slow!).\n"
-		"  fix                 fix the opening book: add missing links and negamax the\n  whole book tree.\n"
-		"  store               add the last played game to the opening book.\n"
-		"  deviate <n1> <n2>   add positions by deviating with a relative error <n1> and\n" SPACES "an absolute error <n2>.\n"
-		"  enhance <n1> <n2>   add positions by improving score accuracy with a midgame\n" SPACES "error <n1> and an endcut error <n2>.\n"
-		"  fill [n]            add positions between existing positions.\n"
-		"  prune               remove unreachable positions.\n"
-		"  subtree             only keep positions from the current position.\n"
-		"  add [file]          add positions from a game base file (txt, ggf, sgf or\n" SPACES "wthor format).\n");
+		"  new <n1> <n2>        create a new empty book with level <n1> and depth <n2>.\n"
+		"  load [file]          load an opening book from a binary opening file.\n"
+		"  merge [file]         merge an opening book with the current opening book.\n"
+		"  save [file]          save an opening book to a binary opening file.\n"
+		"  import [file]        load an opening book from a portable text file.\n"
+		"  export [file]        save an opening book to a portable text file.\n"
+		"  on                   use the opening book.\n"
+		"  off                  do not use the opening book.\n"
+		"  show                 display details about the current position.\n"
+		"  info                 display book general information.\n"
+		"  a|analyze [n]        retro-analyze the game using the opening book.\n"
+		"  randomness [n]       play more various but worse move from the opening book.\n"
+		"  depth [n]            change book depth (up to which to add positions).\n"
+		"  deepen [n]           change book level & reevaluate the whole book (very slow!).\n"
+		"  fix                  fix the opening book: add missing links and negamax the\n" SPACES "whole book tree.\n"
+		"  store                add the last played game to the opening book.\n"
+		"  deviate <n1> <n2>    add positions by deviating with a relative error <n1> and\n" SPACES "an absolute error <n2>.\n"
+		"  enhance <n1> <n2>    add positions by improving score accuracy with a midgame\n" SPACES "error <n1> and an endcut error <n2>.\n"
+		"  fill [n]             add positions between existing positions.\n"
+		"  play                 add positions by expanding leaves of positions without links\n" SPACES "to next positions.\n"
+		"  extend               add positions by expanding leaves with a best score.\n"
+		"  prune                remove unreachable positions.\n"
+		"  subtree              only keep positions from the current position.\n"
+		"  add [file]           a dd positions from a game base file (txt, ggf, sgf or\n" SPACES "wthor format).\n");
 }
 
 /**
