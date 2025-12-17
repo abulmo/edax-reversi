@@ -3,15 +3,16 @@
  *
  * Bitwise operations header file.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_BIT_H
 #define EDAX_BIT_H
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -64,6 +65,7 @@ uint64_t bit_rotate_left_64(const uint64_t, const int);
 	unsigned long:bit_rotate_left_64(64 - (b), n), \
 	unsigned long long:bit_rotate_left_64(64 - (b), n))
 
+bool bit_is_single(uint64_t);
 int first_bit(uint64_t);
 int next_bit(uint64_t*);
 int last_bit(uint64_t);
@@ -84,4 +86,3 @@ extern const uint64_t X_TO_BIT[];
 //#define x_to_bit(x) (1ULL << (x)) // 1% slower on Sandy Bridge
 
 #endif
-
