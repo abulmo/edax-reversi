@@ -3,9 +3,9 @@
  *
  * Header file for opening book management
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_BOOK_H
@@ -78,10 +78,11 @@ void book_link(Book*);
 void book_fix(Book*);
 void book_fill(Book *book, const int);
 void book_deviate(Book*, const Board*, const int, const int);
-void book_subtree(Book*, const Board*); 
+void book_subtree(Book*, const Board*);
 void book_enhance(Book*, Board*, const int, const int);
 void book_extend(Book*, const Board*);
-void book_play(Book*, const Board*);
+void book_play(Book*, const Board*, const int);
+void book_exhaust(Book*, Board*);
 
 void book_info(Book*);
 void book_show(Book*, Board*);
@@ -98,8 +99,8 @@ void book_check_base(Book*, const Base*);
 
 void book_extract_skeleton(Book*, Base*);
 void book_extract_positions(Book*, const int, const int);
+void book_extract_all(Book*, Base*);
 
 void book_feed_hash(const Book*, Board*, Search*);
 
 #endif /* EDAX_BOOK_H */
-
