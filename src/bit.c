@@ -6,13 +6,14 @@
  * a macro needs to be defined to chose between different flavors of the
  * algorithm.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
 #include "util.h"
+#include "simd.h"
 
 #include <assert.h>
 #if __STDC_VERSION__ >= 202311L
@@ -91,13 +92,14 @@ int bit_count_64(const uint64_t b)
 		return __builtin_popcountll(b); // GNUC/CLANG version
 
 	#else
+
 		uint64_t c = b
 			- ((b >> 1) & 0x7777777777777777)
 			- ((b >> 2) & 0x3333333333333333)
 			- ((b >> 3) & 0x1111111111111111);
 		c = ((c + (c >> 4)) & 0x0F0F0F0F0F0F0F0F) * 0x0101010101010101;
-
 		return  (int)(c >> 56);
+
 	#endif
 }
 
@@ -129,12 +131,13 @@ int bit_count_32(const uint32_t b)
 		return __builtin_popcount(b); // GNUC/CLANG version
 
 	#else
+
 		uint32_t c = b
 			- ((b >> 1) & 0x33333333)
 			- ((b >> 1) & 0x11111111);
 		c = ((c + (c >> 3)) & 0x0F0F0F0F) * 0x01010101;
-
 		return  (int)(c >> 28);
+
 	#endif
 }
 
@@ -376,11 +379,9 @@ int last_bit(uint64_t b)
 #endif
 }
 
-
-
 /**
  * @brief Transpose the uint64_t (symetry % A1-H8 diagonal).
- * @param b An uint64_t
+ * @param b An uint64_t.
  * @return The transposed uint64_t.
  */
 
@@ -566,12 +567,23 @@ uint64_t bit_rotate_left_64(const uint64_t b, const int n)
  */
 int get_rand_bit(uint64_t b, Random *r)
 {
-	int n = bit_count(b), x;
+	int n = bit_count(b);
 
 	if (n == 0) return -1;
 
 	n = random_get(r) % n;
-	foreach_bit(x, b) if (n-- == 0) return x;
+
+	#if defined(USE_SIMD) && defined(__BMI2__) && !defined(SLOW_BMI2)
+
+		return first_bit(_pdep_u64(1ull << n, b));
+
+	#else
+
+		int x;
+
+		foreach_bit(x, b) if (n-- == 0) return x;
+
+	#endif
 
 	return -2; // impossible.
 }
@@ -623,4 +635,3 @@ void bit_test(void) {
 
 	printf("bit_test done\n");
 }
-
