@@ -11,16 +11,15 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "board.h"
 
 #include "bit.h"
 #include "crc32c.h"
-#include "hash.h"
 #include "move.h"
 #include "settings.h"
 #include "util.h"
@@ -431,10 +430,14 @@ void board_horizontal_mirror(const Board *board, Board *sym)
 void board_vertical_mirror(const Board *board, Board *sym)
 {
 #if USE_SIMD & defined(__ARM_NEON)
+
 	vst1q_u64((uint64_t *) sym, vertical_mirror_neon(vld1q_u64((uint64_t *) board)));
+
 #else
+
 	sym->player = vertical_mirror(board->player);
 	sym->opponent = vertical_mirror(board->opponent);
+
 #endif
 }
 
@@ -447,7 +450,9 @@ void board_vertical_mirror(const Board *board, Board *sym)
 void board_transpose(const Board *board, Board *sym)
 {
 #if defined(_ARM_NEON)
+
 	vst1q_u64((uint64_t *) sym, transpose_neon(vld1q_u64((uint64_t *) board)));
+
 #else
 	sym->player = transpose(board->player);
 	sym->opponent = transpose(board->opponent);
@@ -464,6 +469,7 @@ void board_transpose(const Board *board, Board *sym)
  */
 void board_symetry(const Board *board, const int s, Board *sym)
 {
+
 #if USE_SIMD && defined(__AVX__)
 
 	__m128i	b = _mm_lddqu_si128((__m128i *) board);
@@ -514,8 +520,7 @@ int board_unique(const Board *board, Board *unique)
 	int i, s = 0;
 	static const int reorder[8] = { 0, 4, 1, 6, 2, 5, 3, 7 };
 
-	sym[0] = *board;
-	board_transpose(board, &sym[1]);
+	sym[0] = *board; board_transpose(board, &sym[1]);
 	horizontal_mirror_avx2((__m256i *) &sym[0], (__m256i *) &sym[2]);
 	vertical_mirror_avx2((__m256i *) &sym[0], (__m256i *) &sym[4]);
 	vertical_mirror_avx2((__m256i *) &sym[2], (__m256i *) &sym[6]);
@@ -655,6 +660,7 @@ void board_restore(Board *board, const Move *move)
 void board_pass(Board *board)
 {
 	board_swap_players(board);
+
 	board_check(board);
 }
 
@@ -714,7 +720,9 @@ uint64_t board_next(const Board *board, const int x, Board *next)
 
 static inline uint64_t get_some_moves(const uint64_t P, const uint64_t mask, const int dir)
 {
+
 #if USE_SIMD && defined(__ARM_NEON)
+
 	const uint64x2_t PP = vdupq_n_u64(P);
 	const uint64x2_t MM = vdupq_n_u64(mask);
 	const uint64x2_t moves = get_some_moves_neon(PP, MM, dir);
@@ -1631,7 +1639,7 @@ char* board_to_FEN(const Board *board, const int player, char *string)
 	const char *color = "bw";
 	int n_empties = 0;
 	char *s = string;
-	static char local_string[128];
+	static thread_local char local_string[128];
 
 	if (s == NULL) s = string = local_string;
 
@@ -1677,7 +1685,7 @@ char* board_to_FEN(const Board *board, const int player, char *string)
  * @param expected board expected
  * @param test function tested *
  */
-void board_test_check(Board *out, Board *expected, char *test)
+void board_test_check(const Board *out, const Board *expected, char *test)
 {
 	if (!board_equal(out, expected)) {
 		fprintf(stderr, "%s failed. Got:\n", test);
@@ -1688,6 +1696,12 @@ void board_test_check(Board *out, Board *expected, char *test)
 	}
 }
 
+/**
+ * @brief simple unit ttest for the board module.
+ *
+ * Test board sym functions & count_last_flip.
+ * TODO: test other functions....
+ */
 void board_test(void) {
 	Board in = {0x000804000b030120, 0x0004113ef41c1c14}, out;
 	Board sym[] = {
@@ -1720,4 +1734,3 @@ void board_test(void) {
 
 	fprintf(stderr, "board_test done\n");
 }
-
