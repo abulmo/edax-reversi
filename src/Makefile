@@ -1,9 +1,9 @@
 #
 # makefile to Compile Edax
 #
-# Copyright 1998 - 2024
+# Copyright 1998 - 2025
 # Richard Delorme
-# Version 4.6
+# Version 4.7
 #
 
 # Default settings
@@ -33,7 +33,7 @@ endif
 
 #clang
 ifeq ($(CC),clang)
-	CFLAGS = -std=c17 -pedantic -W -Wall -Wno-invalid-source-encoding -D_GNU_SOURCE=1
+	CFLAGS = -std=c17 -pedantic -W -Wall -Wextra -Wno-invalid-source-encoding -D_GNU_SOURCE=1
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
@@ -48,10 +48,10 @@ ifeq ($(CC),clang)
 	endif
 	ifeq ($(BUILD),profile)
 		CFLAGS += -O2 -g -DNDEBUG -fno-inline-functions
-	endif	
+	endif
 	ifeq ($(BUILD),coverage)
 		CFLAGS += -O2 -fprofile-instr-generate -fcoverage-mapping -mllvm -runtime-counter-relocation -DNDEBUG
-	endif	
+	endif
 	ifeq ($(BUILD),debug)
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -68,16 +68,16 @@ ifeq ($(CC),gcc)
 	CFLAGS = -std=c17 -pedantic -W -Wall -Wextra -pipe -D_GNU_SOURCE=1
 	PGO_GEN = -fprofile-generate
 	PGO_USE = -fprofile-correction -fprofile-use
-	
+
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -Ofast -fwhole-program -flto=auto -fomit-frame-pointer -DNDEBUG
 	endif
 	ifeq ($(BUILD),profile)
 		CFLAGS += -O2 -inline-level=0 -g -DNDEBUG
-	endif	
+	endif
 	ifeq ($(BUILD),coverage)
 		CFLAGS += -O2 -fcov -g -DNDEBUG
-	endif	
+	endif
 	ifeq ($(BUILD),debug)
 		CFLAGS += -O0 -g -DDEBUG
 	endif
@@ -112,7 +112,7 @@ endif
 #SRC
 SRC= bit.c board.c move.c crc32c.c hash.c ybwc.c eval.c endgame.c midgame.c root.c search.c \
 book.c opening.c game.c base.c perft.c obftest.c util.c event.c histogram.c \
-stats.c options.c play.c ui.c edax.c cassio.c gtp.c ggs.c nboard.c xboard.c main.c   
+stats.c options.c play.c ui.c edax.c cassio.c gtp.c ggs.c nboard.c xboard.c main.c
 
 # RULES
 help:
@@ -154,11 +154,16 @@ pgo-build:
 	@echo "building edax with pgo..."
 	$(MAKE) clean
 	$(CC) $(CFLAGS) $(PGO_GEN) $(DFLAGS) all.c -o $(BIN)/$(EXE) $(LIBS)
-	cd $(BIN); ./$(EXE) -l 60 -bench 10 -n 1
-#	cd $(BIN); ./$(EXE) -l 60 -solve problem/fforum-20-39.obf -n 4
-#	cd $(BIN); ./$(EXE) -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
-	rm -f ../bin/book.pgo ../bin/book.pgo.store
-	$(PGO)	
+	cd $(BIN); LLVM_PROFILE_FILE=bench.profraw $(EXE) -l 60 -bench 10 -n 1
+	cd $(BIN); LLVM_PROFILE_FILE=solve.profraw $(EXE) -l 60 -solve problem/fforum-20-39.obf -n 4
+	-cd $(BIN); LLVM_PROFILE_FILE=autoplay.profraw $(EXE) -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	cd $(BIN); LLVM_PROFILE_FILE=count-games.profraw $(EXE) count games 8
+	cd $(BIN); LLVM_PROFILE_FILE=count-positions.profraw $(EXE) count positions 8
+	cd $(BIN); LLVM_PROFILE_FILE=count-shapes.profraw $(EXE) count shapes 8
+	@echo "F5F4G3D6C4D3C6B5D7D8E6" > $(BIN)/pgo-load.txt;
+	cd $(BIN); LLVM_PROFILE_FILE=base.profraw $(EXE) -l 18 -n 4 -complete pgo-load.txt pgo-save.txt
+	@rm -f $(BIN)/book.pgo $(BIN)/book.pgo.store $(BIN)/pgo-load.txt $(BIN)/pgo-save.txt
+	$(PGO)
 #	$(CC) $(CFLAGS) $(PGO_USE) $(DFLAGS) -S all.c
 	$(CC) $(CFLAGS) $(PGO_USE) $(DFLAGS) all.c -o $(BIN)/$(EXE) $(LIBS)
 
@@ -181,7 +186,7 @@ android:
 	$(MAKE) build ARCH=armv8 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
 
 clean:
-	rm -f pgopti* *.dyn *.gc* *~ *.o *.prof*
+	rm -f pgopti* *.dyn *.gc* *~ *.o *.prof* $(BIN)/*.profraw
 
 default:
 	help
