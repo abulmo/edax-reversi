@@ -3,14 +3,13 @@
  *
  * Event management.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "event.h"
 #include "util.h"
-#include "options.h"
 
 #include <stdlib.h>
 
@@ -90,7 +89,7 @@ void event_free(Event *event)
  * @param event Event.
  * @param message New message.
  */
-void event_add_message(Event *event, char *message) 
+void event_add_message(Event *event, char *message)
 {
 	char **new_ring;
 	int new_size, i;
@@ -105,7 +104,7 @@ void event_add_message(Event *event, char *message)
 		new_size = event->size * 2;
 		new_ring = (char**) malloc(new_size * sizeof (char*));
 		if (new_ring == NULL) fatal_error("cannot allocate event buffers\n");
-		for (i = 0; i < event->size; ++i) 
+		for (i = 0; i < event->size; ++i)
 			new_ring[i] = event->ring[(i + event->first) % event->size];
 		for (; i < new_size; ++i) new_ring[i] = NULL;
 		event->first = 0;
@@ -117,7 +116,7 @@ void event_add_message(Event *event, char *message)
 	}
 
 	event->ring[last] = message;
-	info("<event add [%d]: %s>\n", last, message);
+	info("[event add [%d]: %s]\n", last, message);
 
 	mtx_unlock(&event->mutex);
 }
@@ -144,7 +143,7 @@ void event_wait(Event *event, char **cmd, char **param)
 	free(*cmd);
 	free(*param);
 
-	info("<event wait: %s>\n", message);
+	info("[event wait: %s]\n", message);
 
 	n = strlen(message);
 	*cmd = (char*) malloc(n + 1);
@@ -202,4 +201,3 @@ char *event_peek_message(Event *event)
 
 	return message;
 }
-
