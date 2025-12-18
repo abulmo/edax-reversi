@@ -14,19 +14,18 @@
  * When doing parallel search with a shared hashtable, a spined implementation
  * avoid concurrency collisions.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
 #include "hash.h"
-#include "options.h"
-#include "stats.h"
-#include "search.h"
-#include "util.h"
+#include "move.h"
 #include "settings.h"
+#include "stats.h"
+#include "util.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -58,14 +57,13 @@ void hash_init(HashTable *hash_table, const size_t size)
 	assert(HASH_N_WAY + 1 <= ALIGNMENT);
 	assert(((size + ALIGNMENT) * sizeof (Hash)) % ALIGNMENT == 0);
 
-	info("< init hashtable of %zu entries>\n", size);
+	info("[ init hashtable of %zu entries]\n", size);
 	if (hash_table->hash != NULL) free(hash_table->hash);
 	hash_table->hash = aligned_alloc(ALIGNMENT, (size + ALIGNMENT) * sizeof (Hash));
 	if (hash_table->hash == NULL) {
 		fatal_error("hash_init: cannot allocate the hash table\n");
 	}
 	hash_table->hash_mask = size - 1;
-
 	hash_cleanup(hash_table);
 
 	hash_table->n_spin = 256 * MAX(get_cpu_number(), 1);
@@ -90,7 +88,7 @@ void hash_cleanup(HashTable *hash_table)
 
 	size_t i = 0, hash_size = hash_table->hash_mask + HASH_N_WAY + 1;
 
-	info("< cleaning hashtable >\n");
+	info("[Cleaning hashtable]\n");
 
 #if defined (__SSE2__) && !(HASH_COLLISIONS(1)+0)
 
@@ -150,7 +148,7 @@ void hash_clear(HashTable *hash_table)
 
 	if (hash_table->date == 127) hash_cleanup(hash_table);
 	++hash_table->date;
-	info("< clearing hashtable -> date = %d>\n", hash_table->date);
+	info("[clearing hashtable -> date = %d]\n", hash_table->date);
 	assert(hash_table->date > 0 && hash_table->date <= 127);
 }
 
@@ -414,6 +412,7 @@ static bool hash_replace(Hash *hash, SpinLock *spin, const Board *board, const H
 {
 	bool ok = false;
 
+	// double check locking.
 	if (board_equal(&hash->board, board)) {
 		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
@@ -442,6 +441,7 @@ static bool hash_reset(Hash *hash, SpinLock *spin, const Board *board, const Has
 {
 	bool ok = false;
 
+	// double check locking.
 	if (board_equal(&hash->board, board)) {
 		spinlock_lock(spin);
 		if (board_equal(&hash->board, board)) {
@@ -648,15 +648,13 @@ void hash_exclude_move(HashTable *hash_table, const Board *board, const uint64_t
 	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
 	for (i = 0; i < HASH_N_WAY; ++i) {
 		if (board_equal(&hash->board, board)) {
-			if (board_equal(&hash->board, board)) {
-				if (hash->data.move[0] == move) {
-					hash->data.move[0] = hash->data.move[1];
-					hash->data.move[1] = NOMOVE;
-				} else if (hash->data.move[1] == move) {
-					hash->data.move[1] = NOMOVE;
-				}
-				hash->data.lower = SCORE_MIN;
+			if (hash->data.move[0] == move) {
+				hash->data.move[0] = hash->data.move[1];
+				hash->data.move[1] = NOMOVE;
+			} else if (hash->data.move[1] == move) {
+				hash->data.move[1] = NOMOVE;
 			}
+			hash->data.lower = SCORE_MIN;
 			return;
 		}
 		++hash;
@@ -674,7 +672,7 @@ void hash_copy(const HashTable *src, HashTable *dest)
 	unsigned int i;
 
 	assert(src->hash_mask == dest->hash_mask);
-	info("<hash copy>\n");
+	info("[hash copy]\n");
 	for (i = 0; i <= src->hash_mask + HASH_N_WAY; ++i) {
 		dest->hash[i] = src->hash[i];
 	}
@@ -697,4 +695,3 @@ void hash_print(const HashData *data, FILE *f)
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
 	fprintf(f, "draft = %2d:%2d:%2d@%d%%", data->draft.u1.date, data->draft.u1.cost, data->draft.u1.depth, p_selectivity[data->draft.u1.selectivity]);
 }
-
