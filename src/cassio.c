@@ -13,9 +13,10 @@
  *  - With "-follow-cassio" Edax will follow more closely Cassio's search request. By default, it
  * searches with settings that make it better in tournament mode against Roxane, Cassio, etc.
  *
-  * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @author Stéphane Nicolet
+ * @version 4.7
  */
 
 #include "cassio.h"
@@ -23,8 +24,6 @@
 #include "event.h"
 #include "options.h"
 #include "search.h"
-#include "settings.h"
-#include "ybwc.h"
 #include "stats.h"
 #include "util.h"
 
@@ -275,7 +274,7 @@ static int engine_open(Search *search, const Board *board, const int player, con
 	int score = 0;
 
 	search->time.spent = -real_clock();
-	search->stop = RUNNING;
+	search_set_state(search, RUNNING);
 
 	// set alphabeta bounds
 	options.alpha = alpha;
@@ -363,9 +362,9 @@ static void engine_close(Search *search)
 	statistics_sum_nodes(search);
 
 	// in case nothing have been sent yet...
-	if (*last_line_sent == '\0' && search->stop == RUNNING) engine_observer(search->result);
+	if (*last_line_sent == '\0' && search_get_state(search) == RUNNING) engine_observer(search->result);
 
-	search->stop = STOP_END;
+	search_set_state(search, STOP_END);
 }
 
 /**
@@ -704,7 +703,7 @@ void engine_loop(void)
 			engine_send("ready.");
 
 		} else if (strcmp(cmd, "get-version") == 0) {
-			engine_send("version: Edax %s", VERSION_STRING);
+			engine_send("version: %s", EDAX_NAME);
 			engine_send("ready.");
 
 		} else if (strcmp(cmd, "new-position") == 0) {
@@ -816,4 +815,3 @@ void engine_loop(void)
 		}
 	}
 }
-
