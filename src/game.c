@@ -3,9 +3,9 @@
  *
  * Game management
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
@@ -772,18 +772,18 @@ static int game_parse_sgf(FILE *f, char *tag, char *value)
 	for (i = 0; i < 3; i++) {
 		c = fgetc(f);
 		if (c == EOF) return 0;
-		 else  if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == ';') {
+		else  if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == ';') {
 			i--;
 			continue;
 		}
-		 else  if (c == '[') break;
-		 else  if ('A' <= c && c <= 'Z') tag[i] = (char)c;
-		 else  if (i == 0 && (c == '(' || c == ')')) {
+		else  if (c == '[') break;
+		else  if ('A' <= c && c <= 'Z') tag[i] = (char)c;
+		else  if (i == 0 && (c == '(' || c == ')')) {
  			tag[0] = (char)c;
  			tag[1] = '\0';
 			return 1;
 		}
-		 else  return 0;
+		else  return 0;
 
 	}
 	if (c != '[') return 0;
@@ -883,7 +883,7 @@ void game_save_sgf(const Game *game, FILE *f, const bool multiline)
 	const int score = game_score(game);
 
 	// game info
-	fprintf(f, "(;FF[4]GM[2]AP[edax:%s]", VERSION_STRING);
+	fprintf(f, "(;FF[4]GM[2]AP[edax:%s]", EDAX_VERSION);
 	if (multiline) fputc('\n',f);
 	fputs("PC[Edax]", f);
 	fprintf(f,"DT[%04d-%02d-%02d]", 1900 + date->tm_year, 1 + date->tm_mon, date->tm_mday);
@@ -1274,7 +1274,7 @@ void game_export_eps(const Game *game, FILE *f)
 	char s[8];
 
 	fputs(	"%!PS-Adobe-3.0 EPSF-3.0\n"
-		"%%Creator: Edax-3.0\n", f);
+		"%%Creator: Edax-" EDAX_VERSION "\n", f);
 	fprintf(f, "%%%%CreationDate:  %d/%d/%d %d:%d:%d\n", date->tm_year + 1900, date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min, date->tm_sec);
 	fputs(	"%%BoundingBox: 0 0 200 200\n\n"
 		"%%BeginProlog\n\n"
@@ -1393,19 +1393,21 @@ void game_export_eps(const Game *game, FILE *f)
 		}
 	}
 
-	fputs(	"\n\t% draw the moves\n"
-		"\t/Utopia-Bold findfont 12 scalefont setfont\n", f);
-	player = game->player;
-	for (i = 0; i < 60 && game->move[i] != NOMOVE; ++i) {
-		if (!can_move(board.player, board.opponent)) {
-			player = !player;
+	if (game->move[0]) {
+		fputs( "\n\t% draw the moves\n"
+		       "\t/Utopia-Bold findfont 12 scalefont setfont\n", f);
+		player = game->player;
+		for (i = 0; i < 60 && game->move[i] != NOMOVE; ++i) {
+			if (!can_move(board.player, board.opponent)) {
+				player = !player;
+			}
+			if (game_update_board(&board, game->move[i])) {
+				fprintf(f, "\t(%d) %s move_%s\n", i + 1,  move_to_string(game->move[i], BLACK, s), s_player[player]);
+				player = !player;
+			}
 		}
-		if (game_update_board(&board, game->move[i])) {
-			fprintf(f, "\t(%d) %s move_%s\n", i + 1,  move_to_string(game->move[i], BLACK, s), s_player[player]);
-			player = !player;
-		}
+		fputc('\n', f);
 	}
-	fputc('\n', f);
 	fputs("grestore\n", f);
 }
 
@@ -1625,7 +1627,7 @@ int game_analyze(Game *game, Search *search, const int n_empties, const bool app
  * @param search Search analyzer.
  * @return number of iterations to terminate the game.
  */
-int game_complete(Game *game, Search *search)
+int game_complete(Game *game, Search *search, const int level)
 {
 	Board board;
 	const int verbosity = search->options.verbosity;
@@ -1652,14 +1654,12 @@ int game_complete(Game *game, Search *search)
 		}
 
 		search_set_board(search, &board, player);
+		search_set_level(search, level, search->n_empties);
 		search_run(search);
 		if (search->result->depth == search->n_empties && search->result->selectivity == NO_SELECTIVITY) {
 			game_append_line(game, &search->result->pv, i);
 		} else {
 			game->move[i] = search->result->move;
-		}
-		if (search->result->score != 0) {
-			putchar('\n'); search->observer(search->result);
 		}
 	}
 
@@ -1667,4 +1667,3 @@ int game_complete(Game *game, Search *search)
 
 	return n;
 }
-
