@@ -3,16 +3,17 @@
  *
  * Search near the end of the game.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 
 #include "search.h"
 
 #include "bit.h"
+#include "const.h"
 #include "hash.h"
 #include "settings.h"
 #include "stats.h"
@@ -465,7 +466,7 @@ int NWS_endgame(Search *search, const int alpha)
 	int score, bestscore, bestmove;
 	uint64_t cost;
 
-	if (search->stop) return alpha;
+	if (search_get_state(search) != RUNNING) return alpha;
 
 	assert(search->n_empties == bit_count(~(search->board.player | search->board.opponent)));
 	assert(SCORE_MIN <= alpha && alpha <= SCORE_MAX);
@@ -531,7 +532,7 @@ int NWS_endgame(Search *search, const int alpha)
 				if (bestscore >= beta) break;
 			}
 		}
-		if (!search->stop) {
+		if (search_get_state(search) == RUNNING) {
 			cost += search->n_nodes;
 			draft_set(&store.draft, search->n_empties, NO_SELECTIVITY, last_bit(cost), search->hash_table.date);
 #if USE_SOLID
@@ -566,4 +567,3 @@ int NWS_endgame(Search *search, const int alpha)
  	assert(SCORE_MIN <= bestscore && bestscore <= SCORE_MAX);
 	return bestscore;
 }
-
