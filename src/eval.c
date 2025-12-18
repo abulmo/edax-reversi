@@ -3,9 +3,9 @@
  *
  * Evaluation function.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "eval.h"
@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 
 /** coordinate to feature conversion */
 typedef struct CoordinateToFeature {
@@ -483,10 +484,6 @@ static const uint32_t EVAL_N_FEATURE = 47;
 /** eval weight load status */
 static int EVAL_LOADED = 0;
 
-/** evaluation function error coefficient parameters */
-static double EVAL_A, EVAL_B, EVAL_C, EVAL_a, EVAL_b, EVAL_c;
-
-
 /**
  * @brief Opponent feature.
  *
@@ -516,7 +513,7 @@ static uint32_t opponent_feature(uint32_t l, uint32_t d)
  */
 static uint32_t player_feature(const int sym[], uint32_t n, uint32_t l)
 {
-	uint32_t power3[] = {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
+	static const uint32_t power3[] = {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 	uint32_t f, i;
 
 	for (f = i = 0; i < n; ++i) {
@@ -529,8 +526,11 @@ static uint32_t player_feature(const int sym[], uint32_t n, uint32_t l)
 static int** alloc_pack(size_t size)
 {
 	int **pack = (int**) malloc (2 * sizeof (int*));
+	if (pack == NULL) fatal_error("Cannot allocate evaluation packed weights.\n");
 	pack[0] = (int*) malloc(size * sizeof (int));
+	if (pack[0] == NULL) fatal_error("Cannot allocate evaluation packed weights.\n");
 	pack[1] = (int*) malloc(size * sizeof (int));
+	if (pack[1] == NULL) fatal_error("Cannot allocate evaluation packed weights.\n");
 	return pack;
 }
 
@@ -730,13 +730,13 @@ void eval_open(const char* file)
 	free_pack(EVAL_S5);
 	free_pack(EVAL_S4);
 
-	/*if (version == 3 && release == 2 && build == 5)*/ {
-		EVAL_A = -0.10026799, EVAL_B = 0.31027733, EVAL_C = -0.57772603;
-		EVAL_a = 0.07585621, EVAL_b = 1.16492647, EVAL_c = 5.4171698;
+	info("[Evaluation function weights version %u.%u.%u loaded, date: ", version, release, build);
+	if (options.info) {
+		date_print((time_t) date, stderr);
+		fprintf(stderr, "]\n");
 	}
-
-	info("<Evaluation function weights version %u.%u.%u loaded>\n", version, release, build);
 }
+
 
 /**
  * @brief Free global resources allocated to the evaluation function.
@@ -808,7 +808,6 @@ static void eval_swap(Eval *eval)
 {
 	eval->player ^= 1;
 }
-
 
 /**
  * @brief Update the features after a player's move.
@@ -1056,7 +1055,7 @@ int eval_accumulate(const Eval *eval) {
 	int *w_0 = (int*) EVAL_WEIGHT[eval->ply][eval->player];
 	int *w_1 = (int*) (EVAL_WEIGHT[eval->ply][eval->player] + WEIGHT_OFFSET[4] - 1);
 	const __m128i *f = eval->feature[eval->ply].v8;
-	const __m256i o[] = {
+	static const __m256i o[] = {
 		_mm256_set_epi32( 19682,  19682,  19682,  19682,     -1,     -1,     -1,     -1),
 		_mm256_set_epi32(137780, 137780, 137780, 137780,  78731,  78731,  78731,  78731),
 	};
@@ -1118,6 +1117,9 @@ int eval_accumulate(const Eval *eval) {
 
 #endif
 
+	if (sum > 0) sum += 64; else if (sum < 0) sum -= 64;
+	sum /= 128;
+
 	return sum;
 }
 
@@ -1137,6 +1139,9 @@ int eval_accumulate(const Eval *eval) {
  */
 double eval_sigma(const int n_empty, const int depth, const int probcut_depth)
 {
+	static const double EVAL_A = -0.10026799, EVAL_B = 0.31027733, EVAL_C = -0.57772603;
+	static const double EVAL_a = 0.07585621, EVAL_b = 1.16492647, EVAL_c = 5.4171698;
+
 	double sigma;
 
 	sigma = EVAL_A * n_empty + EVAL_B * depth + EVAL_C * probcut_depth;
