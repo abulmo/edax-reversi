@@ -33,17 +33,18 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * If the OUTFLANK search is in LSB to MSB direction, carry propagation 
+ * If the OUTFLANK search is in LSB to MSB direction, carry propagation
  * can be used to determine contiguous opponent discs.
- * If the OUTFLANK search is in MSB to LSB direction, lzcnt64 is used if 
+ * If the OUTFLANK search is in MSB to LSB direction, lzcnt64 is used if
  * available, or __builtin_bswap is used to use carry propagation backwards.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "board.h"
 #include "bit.h"
 
 #define LODWORD(l) ((uint32_t)(l))
@@ -113,7 +114,7 @@ static const uint64_t FLIPPED_3_V[21] = {
 	0x00ffffff00000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
 	0x0000000000ffff00, 0x000000ff00ffff00, 0x0000ffff00ffff00, 0x0000000000000000,
 	0x00ffffff00ffff00, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
-	0x0000000000ff0000, 0x000000ff00ff0000, 0x0000ffff00ff0000, 0x0000000000000000, 
+	0x0000000000ff0000, 0x000000ff00ff0000, 0x0000ffff00ff0000, 0x0000000000000000,
 	0x00ffffff00ff0000
 };
 
@@ -1880,12 +1881,11 @@ uint64_t (*FLIP[])(const uint64_t, const uint64_t) = {
 	flip_pass, flip_pass
 };
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	return FLIP[x](board->player, board->opponent);
 }
 
 uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	return FLIP[x](P, O);
-}	
-
+}

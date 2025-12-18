@@ -7,15 +7,15 @@
  * contiguous opponent discs.
  * For MSB to LSB directions, CLZ is used to isolate MS1B.
  *
- * @date 2024
+ * @date 2024-2025
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
-#include "arm_neon.h"
 
-extern const V8DI MASK_LR[66]
+extern const V8DI MASK_LR[66];
 
 /**
  * Compute flipped discs when playing on square pos.
@@ -36,7 +36,7 @@ uint64_t flip(const int pos, const uint64_t P, const uint64_t O)
 	svuint64_t	PP, OO, flip, oflank, mask, msb;
 	svbool_t	pg;
 	const uint64_t	(*pmask)[8];
-	
+
 
 	PP = svdup_u64(P);
 	OO = svdup_u64(O);
@@ -86,4 +86,3 @@ uint64_t board_flip(const Board *board, const int x)
 {
 	return flip(x, board->player, board->opponent);
 }
-

@@ -33,17 +33,20 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * If the OUTFLANK search is in LSB to MSB direction, carry propagation 
+ * If the OUTFLANK search is in LSB to MSB direction, carry propagation
  * (with Neon if appropriate) can be used to determine contiguous opponent discs.
  * If the OUTFLANK search is in MSB to LSB direction, lzcnt64 is used.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "simd.h"
+#include "board.h"
+
+#include <stdint.h>
 
 // included from board.c or linked in Android Arm32 dispatch build
 /** rotated outflank array (indexed with inner 6 bits) */
@@ -1928,13 +1931,11 @@ uint64_t (*FLIP[])(const uint64_t, const uint64_t) = {
 	flip_pass, flip_pass
 };
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	return FLIP[x](board->player, board->opponent);
 }
 
 uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	return FLIP[x](P, O);
-}	
-
-
+}

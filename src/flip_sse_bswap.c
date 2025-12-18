@@ -32,17 +32,18 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * If the OUTFLANK search is in LSB to MSB direction, carry propagation 
+ * If the OUTFLANK search is in LSB to MSB direction, carry propagation
  * can be used to determine contiguous opponent discs.
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
 
 /** outflank array (indexed with inner 6 bits) */
@@ -412,4 +413,3 @@ uint64_t board_flip(const Board *board, const int x)
 {
 	return flip(x, board->player, board->opponent);
 }
-

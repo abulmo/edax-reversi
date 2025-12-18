@@ -8,12 +8,13 @@
  * For MSB to LSB directions, parallel prefix fill is used to isolate
  * MS1B.
  *
- * @date 2024
+ * @date 2024-2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
 
 extern const uint64x2_t MASK_LR_v4[66][4];
@@ -59,7 +60,7 @@ uint64x2_t mm_flip(uint64x2_t OP, int pos)
 	return vorrq_u64(flip, vextq_u64(flip, flip, 1));
 }
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	uint64x2_t flip = mm_flip(vld1q_u64((uint64_t *) board), x);
 	return vgetq_lane_u64(flip, 0);
@@ -69,5 +70,4 @@ uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	uint64x2_t OP = vcombine_u64(vcreate_u64(P), vcreate_u64(O));
 	uint64x2_t flip = mm_flip(OP, x);
 	return vgetq_lane_u64(flip, 0);
-}	
-
+}

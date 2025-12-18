@@ -3,14 +3,13 @@
  *
  * Various constants shared by the move generators.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include <stdint.h>
 #include <stdalign.h>
-#include "simd.h"
 #include "settings.h"
 
 #if MOVE_GENERATOR == MOVE_GENERATOR_BMI2 || COUNT_LAST_FLIP == COUNT_LAST_FLIP_BMI2

@@ -17,7 +17,7 @@
  *  - ARRAY[x][8-bits disc pattern].
  * The problem is thus to convert any line of a 64-bits disc pattern into an
  * 8-bits disc pattern. A fast way to do this is to select the right line,
- * with a bit-mask, to gather the masked-bits into a continuous set by the 
+ * with a bit-mask, to gather the masked-bits into a continuous set by the
  * BMI2 PEXT instruction.
  * Once we get our 8-bits disc patterns,a first array (OUTFLANK) is used to
  * get the player's discs that surround the opponent discs:
@@ -29,11 +29,12 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
 
 extern const uint64_t MASK_X[66][4];
@@ -188,7 +189,7 @@ uint64_t flip(const int x, uint64_t P, const uint64_t O)
 	uint64_t flipped, mask;
 	const int h = x & 7;
 	int v = (x & 56);
-	
+
 	P &= MASK_X[x][3];
 
 	index = OUTFLANK[h][_bextr_u32((O >> v), 1, 6)] & (P >> v);

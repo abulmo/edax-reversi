@@ -7,11 +7,12 @@
  * contiguous opponent discs.
  * For MSB to LSB directions, MS1B using floating point conversion is used.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Toshihiko Okuhara
- * @version 4.5
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
 
 const V8DI LR_MASK[66] = {
@@ -128,7 +129,7 @@ __m128i vectorcall mm_flip(const __m128i OP, int pos)
 	return _mm_or_si128(_mm256_castsi256_si128(flip), _mm256_extracti128_si256(flip, 1));
 }
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
@@ -139,5 +140,4 @@ uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
-}	
-
+}

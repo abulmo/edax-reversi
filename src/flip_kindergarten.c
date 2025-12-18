@@ -30,10 +30,13 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
+
+#include "board.h"
+#include <stdint.h>
 
 /** outflank array */
 const unsigned char OUTFLANK[8][64] = {
@@ -2657,14 +2660,11 @@ uint64_t (*FLIP[])(const uint64_t, const uint64_t) = {
 	flip_pass, flip_pass
 };
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	return FLIP[x](board->player, board->opponent);
 }
 
 uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	return FLIP[x](P, O);
-}	
-
-
-
+}

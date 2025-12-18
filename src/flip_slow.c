@@ -3,12 +3,14 @@
  *
  * This module verifies if the move generator is correct.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
+#include "board.h"
+#include "move.h"
 
 #ifndef NDEBUG
 
@@ -57,4 +59,3 @@ bool test_generator(const uint64_t flipped, const uint64_t P, const uint64_t O, 
 }
 
 #endif
-

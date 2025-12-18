@@ -33,17 +33,18 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * If the OUTFLANK search is in LSB to MSB direction, LS1B or carry propagation 
+ * If the OUTFLANK search is in LSB to MSB direction, LS1B or carry propagation
  * can be used to determine contiguous opponent discs.
  * If the OUTFLANK search is in MSB to LSB direction, MS1B using int-float
  * conversion can be used.
  *
- * @date 1998 - 2020
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.4
+ * @version 4.7
  */
 
+#include "board.h"
 #include "simd.h"
 
 /** rotated outflank array (indexed with inner 6 bits) */
@@ -2009,7 +2010,7 @@ __m128i (vectorcall *MM_FLIP[])(const __m128i) = {
 	flip_pass, flip_pass
 };
 
-uint64_t board_flip(const Board *board, const int x) 
+uint64_t board_flip(const Board *board, const int x)
 {
 	__m128i flip = MM_FLIP[x](_mm_loadu_si128((__m128i *) board));
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
@@ -2020,5 +2021,4 @@ uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	__m128i flip = MM_FLIP[x](_mm_set_epi64x(O, P));
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
-}	
-
+}
