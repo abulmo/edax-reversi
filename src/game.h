@@ -3,10 +3,10 @@
  *
  * Header file for game management
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_GAME_H
@@ -78,7 +78,7 @@ void game_import_oko(Game*, FILE*);
 void game_import_gam(Game*, FILE *);
 void game_rand(Game*, int, struct Random*);
 int game_analyze(Game*, struct Search*, const int, const bool);
-int game_complete(Game*, struct Search*);
+int game_complete(Game*, struct Search*, const int);
 void line_to_game(const Board*, const Line*, Game*);
 int game_score(const Game*);
 int move_from_wthor(int);
