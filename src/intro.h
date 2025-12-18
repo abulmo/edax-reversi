@@ -2,8 +2,8 @@
  * @mainpage
  *
  * Edax : a strong Othello program.
- * - copyleft (c) 1998-2024
- * - version: 4.6 (2024-?-?)
+ * - copyleft (c) 1998-2025
+ * - version: 4.7 (2024-10-?)
  * - author: Richard A Delorme
  * - email: edax-reversi@orange.fr
  * - author: Toshihiko Okuhara
@@ -118,12 +118,13 @@
  * event support to communicate with GUI.
  * - version 4.2.1: Several bug fixes.
  * - version 4.2.2: Several bug fixes. XBoard protocol should work OK now.
- * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support. 
+ * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  *   Faster move generator provided by Toshihiko Okuhara.
  * - version 4.5: code vectorisation (AVXX2) for x86_64 x86_32 & ARM Neon
- *   by Toshihiko Okuhara giving 7 to 20% faster code. 
+ *   by Toshihiko Okuhara giving 7 to 20% faster code.
  * - version 4.6: Port to C17. Bug fixes. Code cleaning. Remove 32 bit support.
+ * - version 4.7: Bug fixes. A few new commands. Enhance parallel support: ~10% faster multithreaded code.
  *
  * \htmlonly
  * <p> Speed comparison between versions: </p>
@@ -153,5 +154,3 @@
  * -# Feldmann R., Monien B., Mysliwietz P. Vornberger O. (1989) Distributed Game-Tree %Search. ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  *
  */
-
-
