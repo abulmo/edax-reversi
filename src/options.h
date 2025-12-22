@@ -3,9 +3,9 @@
  *
  * Options header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_OPTIONS_H
@@ -28,7 +28,7 @@ typedef struct {
 	int inc_sort_depth[3];                /**< increment sorting depth */
 
 	int n_task;                           /**< search in parallel, using n_tasks */
-	bool cpu_affinity;                    /**< set one cpu/thread to diminish context change */
+	bool cpu_affinity;                    /**< set one thread per core (logical or physical) to diminish context change */
 
 	int verbosity;                        /**< search display */
  	int noise;                            /**< search display min depth */
@@ -48,7 +48,7 @@ typedef struct {
 	int mode;                             /**< mode play (human/edax, etc.) */
 
 	double speed;                         /**< edax speed in N/S (for a more accurate time management) */
-	double nps;                           /**< edax assumed speed (for nps based timing */                           
+	double nps;                           /**< edax assumed speed (for nps based timing */
 
 	int alpha;                            /**< alpha bound */
 	int beta;                             /**< beta bound */
