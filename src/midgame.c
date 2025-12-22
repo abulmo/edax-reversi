@@ -3,9 +3,9 @@
  *
  * Search near the end of the game.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "search.h"
@@ -35,11 +35,8 @@ int search_eval_0(Search *search)
 
 	score = eval_accumulate(&search->eval);
 
-	if (score > 0) score += 64; else score -= 64;
-	score /= 128;
-
-	if (score <= SCORE_MIN) score = SCORE_MIN + 1;
-	else if (score >= SCORE_MAX) score = SCORE_MAX - 1;
+	if (score <= EVAL_MIN) score = EVAL_MIN;
+	else if (score >= EVAL_MAX) score = EVAL_MAX;
 
 	return score;
 }
@@ -68,7 +65,7 @@ int search_eval_1(Search *search, const int alpha, int beta)
 
 	if (moves) {
 		bestscore = -SCORE_INF;
-		if (beta >= SCORE_MAX) beta = SCORE_MAX - 1;
+		if (beta >= EVAL_MAX) beta = EVAL_MAX;
 		foreach_empty (x, search->empties) {
 			if (moves & x_to_bit(x)) {
 				board_get_move(board, x, &move);
@@ -78,17 +75,14 @@ int search_eval_1(Search *search, const int alpha, int beta)
 					score = -eval_accumulate(eval);
 				eval_restore(eval);
 
-				if (score > 0) score += 64; else score -= 64;
-				score /= 128;
-
 				if (score > bestscore) {
 					bestscore = score;
 					if (bestscore >= beta) break;
 				}
 			}
 		}
-		if (bestscore <= SCORE_MIN) bestscore = SCORE_MIN + 1;
-		else if (bestscore >= SCORE_MAX) bestscore = SCORE_MAX - 1;
+		if (bestscore <= EVAL_MIN) bestscore = EVAL_MIN;
+		else if (bestscore >= EVAL_MAX) bestscore = EVAL_MAX;
 	} else {
 		if (can_move(board->opponent, board->player)) {
 			search_update_pass_midgame(search);
@@ -467,7 +461,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	assert(parent != NULL);
 
 	search_check_timeout(search);
-	if (search->stop) return alpha;
+	if (search_get_state(search) != RUNNING) return alpha;
 	else if (search->n_empties == 0) return search_solve_0(search);
 	else if (depth <= 3 && depth < search->n_empties) return NWS_shallow(search, alpha, depth, hash_table);
 	else if (search->n_empties <= depth && depth < DEPTH_MIDGAME_TO_ENDGAME) return NWS_endgame(search, alpha);
@@ -528,7 +522,7 @@ int NWS_midgame(Search *search, const int alpha, int depth, Node *parent)
 	}
 
 	// save the best result in hash tables
-	if (!search->stop) {
+	if (search_get_state(search) == RUNNING) {
 		cost += search->n_nodes + search->child_nodes;
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_selectivity = NO_SELECTIVITY; // hack
 		else hash_selectivity = search->selectivity;
@@ -592,7 +586,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 
 	// end of search ?
 	search_check_timeout(search);
-	if (search->stop) return alpha;
+	if (search_get_state(search) != RUNNING) return alpha;
 	else if (search->n_empties == 0) return search_solve_0(search);
 	else if (USE_PV_EXTENSION && depth < search->n_empties && search->n_empties <= search->depth_pv_extension) return PVS_midgame(search, alpha, beta, search->n_empties, parent);
 	else if (depth == 2 && search->n_empties > 2) return search_eval_2(search, alpha, beta);
@@ -608,7 +602,6 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	// move list & node initialization
 	search_get_movelist(search, &movelist);
 	node_init(&node, search, alpha, beta, depth, movelist.n_moves, parent);
-	node.pv_node = true;
 
 	// special cases
 	if (movelist_is_empty(&movelist)) {
@@ -660,7 +653,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 					const int alpha = node.alpha;
 					search_update_midgame(search, move);
 						move->score = -NWS_midgame(search, -alpha - 1, depth - 1, &node);
-						if (!search->stop && alpha < move->score && move->score < beta) {
+						if (search_get_state(search) == RUNNING && alpha < move->score && move->score < beta) {
 							search->node_type[search->height] = PV_NODE;
 							move->score = -PVS_midgame(search, -beta, -alpha, depth - 1, &node);
 						}
@@ -673,7 +666,7 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 	}
 
 	// save the best result in hash tables
-	if (!search->stop) {
+	if (search_get_state(search) == RUNNING) {
 		cost += search_count_nodes(search);
 		if (search->n_empties < depth && depth <= DEPTH_MIDGAME_TO_ENDGAME) hash_selectivity = NO_SELECTIVITY;
 		else hash_selectivity = search->selectivity;
@@ -696,4 +689,3 @@ int PVS_midgame(Search *search, const int alpha, const int beta, int depth, Node
 
 	return node.bestscore;
 }
-
