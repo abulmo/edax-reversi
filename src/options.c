@@ -3,19 +3,17 @@
  *
  * Options reader.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
+#include "const.h"
 #include "options.h"
-#include "stats.h"
 #include "util.h"
-#include "search.h"
 
 #include <string.h>
-#include <ctype.h>
 #include <stdlib.h>
 #include <limits.h>
 
@@ -36,7 +34,7 @@ Options options = {
 	false, // debug cassio
 	true, // transgress cassio
 
-	21, // default level
+	24, // default level
 	TIME_MAX, // infinite time
 	EDAX_FIXED_LEVEL, // play-type
 	true, // can ponder
@@ -225,38 +223,12 @@ int options_read(const char *option, const char *value)
 	}
 
 	if (read) {
-		info("<set option %s %s>\n", option, value);
+		info("[set option %s %s]\n", option, value);
 	}
 
 	return read;
 }
 
-
-/**
- * @brief parse an option from a string
- *
- * A line of the form:  <code>"[set] option [=] value"</code>
- * is parse into two strings: <code>option</code> and <code>value</code>.
- * The "set" and "=" are optionnal.
- * This function assume all string sizes are sufficient.
- *
- * @param line The string to parse.
- * @param option A string to be filled with the option name.
- * @param value A string to be filled with the option value.
- * @param size option & value string capacity.
- * @return remaining of the string.
- */
-static const char* option_parse(const char *line, char *option, char *value, int size)
-{
-	line = parse_word(line, option, size);
-	if (strcmp(option, "set") == 0) line = parse_word(line, option, size);
-	line = parse_word(line, value, size);
-	if (strcmp(value, "=") == 0) line = parse_word(line, value, size);
-
-	options_read(option, value);
-
-	return line;
-}
 
 /**
  * @brief parse options from a file
@@ -265,16 +237,24 @@ static const char* option_parse(const char *line, char *option, char *value, int
  */
 void options_parse(const char *file)
 {
-	char *line, *option, *value;
+	char *line, *option, *value, *word;
 	FILE *f = fopen(file, "r");
 
 	if (f != NULL) {
 
 		while ((line = string_read_line(f)) != NULL) {
-			size_t n = strlen(line);
-			option = (char*) malloc(n + 1);
-			value = (char*) malloc(n + 1);
-			option_parse(line, option, value, n);
+			size_t size = strlen(line);
+			option = (char*) malloc(size + 1);
+			if (option == NULL) fatal_error("Cannot allocate option string.\n");
+			value = (char*) malloc(size + 1);
+			if (value == NULL) fatal_error("Cannot allocate value string.\n");
+
+			word = parse_word(line, option, size);
+			if (strcmp(option, "set") == 0) word = parse_word(word, option, size);
+			word = parse_word(word, value, size);
+			if (strcmp(value, "=") == 0) word = parse_word(word, value, size);
+			options_read(option, value);
+
 			free(line); free(option); free(value);
 		}
 
@@ -411,4 +391,3 @@ void options_free(void)
 	free(options.book_file);
 	free(options.eval_file);
 }
-
