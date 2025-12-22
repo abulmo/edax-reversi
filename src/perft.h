@@ -3,27 +3,29 @@
  *
  * @brief Move generator test header file.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_PERFT_H
 #define EDAX_PERFT_H
 
+#include "board.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 struct Board;
 struct Line;
-void count_games(const struct Board*, const int);
-void quick_count_games(const struct Board*, const int, const int);
-void count_positions(const struct Board*, const int, const int);
-void count_shapes(const struct Board*, const int, const int);
-void estimate_games(const struct Board*, const int64_t);
-void seek_highest_mobility(const struct Board*, const uint64_t);
-bool seek_position(const struct Board*, const struct Board*, struct Line*);
+void divide(const Board*, const int depth, const bool count_pass);
+void count_games(const Board*, const int, const bool);
+void quick_count_games(const Board*, const int, const bool, const int);
+void count_positions(const Board*, const int, const bool, const int);
+void count_shapes(const Board*, const int, const bool, const int);
+void estimate_games(const Board*, const int64_t, const bool, const int);
+void seek_highest_mobility(const Board*, const uint64_t);
+bool seek_position(const Board*, const Board*, struct Line*);
 
 /** HashTable of positions */
 typedef struct PositionHash {
