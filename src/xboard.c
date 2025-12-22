@@ -5,16 +5,14 @@
  *
  * Of course, only the "reversi" variant is supported.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  *
  */
 
 #include "bit.h"
-#include "event.h"
 #include "options.h"
-#include "opening.h"
 #include "play.h"
 #include "search.h"
 #include "stats.h"
@@ -173,7 +171,7 @@ static void xboard_move(const int x)
 	}
 	fflush(stdout);
 	if (log_is_open(&xboard_log)) {
-		if (x == PASS) printf("edax> move @@@@\n");
+		if (x == PASS) fprintf(xboard_log.f, "edax> move @@@@\n");
 		else {
 			fprintf(xboard_log.f, "edax> move P@");
 			move_print(x, 1, xboard_log.f);
@@ -294,10 +292,10 @@ static void xboard_go(UI *ui, XBoardStats *stats)
 	stats->n_nodes += result->n_nodes;
 
 	if (log_is_open(&xboard_log)) {
-		if (search->stop == STOP_TIMEOUT) fprintf(xboard_log.f, "edax search> stop on time-out\n");
-		else if (search->stop == STOP_ON_DEMAND) fprintf(xboard_log.f, "edax search> stop on user demand\n");
-		else if (search->stop == STOP_PONDERING) fprintf(xboard_log.f, "edax search> BUG: stop pondering ???\n");
-		else if (search->stop == STOP_END) fprintf(xboard_log.f, "edax search> search completed!\n");
+		if (search_get_state(search) == STOP_TIMEOUT) fprintf(xboard_log.f, "edax search> stop on time-out\n");
+		else if (search_get_state(search) == STOP_ON_DEMAND) fprintf(xboard_log.f, "edax search> stop on user demand\n");
+		else if (search_get_state(search) == STOP_PONDERING) fprintf(xboard_log.f, "edax search> BUG: stop pondering ???\n");
+		else if (search_get_state(search) == STOP_END) fprintf(xboard_log.f, "edax search> search completed!\n");
 		else  fprintf(xboard_log.f, "edax search> BUG: search stopped for no reason ???\n");
 		fprintf(xboard_log.f, "edax search> time spent = %.2f; depth reached = %d@%d%%; nodes = %" PRIu64 "\n",
 			0.001 * result->time,  result->depth, selectivity_table[result->selectivity].percent, result->n_nodes);
