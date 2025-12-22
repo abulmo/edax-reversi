@@ -3,10 +3,9 @@
  *
  * @brief Parallel search header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
- *
+ * @version 4.7
  */
 
 #ifndef EDAX_YBWC_H
@@ -59,12 +58,10 @@ typedef struct Node {
 	int beta;           /**< beta upper bound (is constant after initialisation) */
 	int n_slave;	    /**< number of slaves splitted flag */
 	int depth;          /**< depth */
-	int height;         /**< height */
 	int n_moves_done;   /**< search done */
 	int n_moves_todo;   /**< search todo */
-	bool is_helping;    /**< waiting flag */
-	bool pv_node;       /**< pv_node */
 	bool stop_point;    /**< stop point flag */
+	bool is_helping;    /**< waiting flag */
 	bool is_waiting;	/**< waiting flag */
 } Node;
 
@@ -81,6 +78,7 @@ struct Move * node_next_move(Node*);
 /* task function declaration */
 int task_loop(void*);
 int task_help(void*);
+void task_set(Task*, Node*, Move*);
 void task_init(Task*);
 void task_free(Task*);
 void task_update(Task*);
@@ -109,4 +107,3 @@ void task_stack_clear(TaskStack*);
 uint64_t task_stack_count_nodes(TaskStack*);
 
 #endif
-
