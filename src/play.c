@@ -3,10 +3,10 @@
  *
  * Edax play control.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
@@ -388,7 +388,7 @@ void play_hint(Play *play, int n)
 	search_set_board(search, &play->board, play->player);
 	search_set_level(search, options.level, search->n_empties);
 	if (n > search->movelist.n_moves) n = search->movelist.n_moves;
-	info("<hint %d moves>\n", n);
+	info("[hint %d moves]\n", n);
 
 	if (options.book_allowed && book_get_moves(play->book, &play->board, &book_moves)) {
 		foreach_move (m, &book_moves) if (n) {
@@ -420,7 +420,7 @@ void play_hint(Play *play, int n)
 		} else {
 			if (options.verbosity == 0) search->observer(search->result);
 		}
-		if (search->stop != STOP_END) break;
+		if (search_get_state(search) != STOP_END) break;
 		movelist_exclude(&search->movelist, search->result->move);
 	}
 	if (options.verbosity) {
@@ -472,9 +472,9 @@ int play_ponder_run(void *v)
 				search_set_level(search, options.level, search->n_empties);
 				search_run(search);
 				if (options.info && play->state == IS_PONDERING) {
-					printf("[ponder after %s id.%d: ", move_to_string(move.x, player, m), search->id);
-					result_print(search->result, stdout);
-					printf("]\n");
+					fprintf(stderr, "[ponder after %s id.%d: ", move_to_string(move.x, player, m), search->id);
+					result_print(search->result, stderr);
+					fprintf(stderr, "]\n");
 				}
 			board_restore(&board, &move);
 		} else {
@@ -485,9 +485,9 @@ int play_ponder_run(void *v)
 			search_run(search);
 			log_print(&xboard_log, "edax (ponder)> search ended\n");
 			if (options.info && play->state == IS_PONDERING) {
-				printf("[ponder (without move) id.%d: ", search->id);
-				result_print(search->result, stdout);
-				printf("]\n");
+				fprintf(stderr, "[ponder (without move) id.%d: ", search->id);
+				result_print(search->result, stderr);
+				fprintf(stderr, "]\n");
 			}
 		}
 
@@ -1222,4 +1222,3 @@ const char* play_show_opening_name(Play *play, const char *(*opening_get_name)(c
 
 	return last;
 }
-
