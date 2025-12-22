@@ -3,10 +3,10 @@
  *
  * @brief User interface header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 
@@ -31,6 +31,7 @@ typedef struct UI {
 	int type;                  /**< type of UI */
 	int mode;                  /**< computer's color mode TODO: remove me*/
 	Event event;               /**< event */
+	bool is_running;           /**< ui status */
 
 	void (*init)(struct UI*);  /**< init function */
 	void (*loop)(struct UI*);  /**< main loop function */
@@ -72,4 +73,3 @@ void ui_free_cassio(UI*);
 void ui_book_init(UI*);
 
 #endif
-
