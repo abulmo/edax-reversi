@@ -3,9 +3,9 @@
  *
  * Various macro / constants to control algorithm usage.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 
@@ -175,10 +175,10 @@
 #define SORT_ALPHA_DELTA 8
 
 /** Try Node splitting (for parallel search) down to that depth. */
-#define SPLIT_MIN_DEPTH 5
+#define SPLIT_MIN_DEPTH 8
 
 /** Stop Node splitting (for parallel search) when few move remains.  */
-#define SPLIT_MIN_MOVES_TODO 1
+#define SPLIT_MIN_MOVES_TODO 4
 
 /** Stop Node splitting (for parallel search) after a few splitting.  */
 #define SPLIT_MAX_SLAVES 3
@@ -199,4 +199,3 @@
 #define MULTIPV_DEPTH 10
 
 #endif /* EDAX_SETTINGS_H */
-
