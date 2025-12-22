@@ -52,10 +52,10 @@
  * -# Reinsfeld A. (1983) An Improvement Of the Scout Tree-Search Algorithm. ICCA
  *     journal, 6(4), pp. 4-14.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "search.h"
@@ -119,20 +119,6 @@ const int8_t NWS_STABILITY_THRESHOLD[] = { // 99 = unused value...
 	 99, 99, 99, 99, 99, 99, 99, 99, // no stable square at those depths
 	 99, 99, 99, 99, 99, 99, 99, 99
 };
-
-/** threshold values to try stability cutoff during PVS search */
-// TODO: better values may exist.
-const int8_t PVS_STABILITY_THRESHOLD[] = { // 99 = unused value...
-	 99, 99, 99, 99, -2,  0,  2,  4,
-	  6,  8, 12, 14, 16, 18, 20, 22,
-	 24, 26, 28, 30, 32, 34, 36, 38,
-	 40, 40, 42, 42, 44, 44, 46, 46,
-	 48, 48, 50, 50, 52, 52, 54, 54,
-	 56, 56, 58, 58, 60, 60, 62, 62,
-	 99, 99, 99, 99, 99, 99, 99, 99, // no stable square at those depths
-	 99, 99, 99, 99, 99, 99, 99, 99
-};
-
 
 /** square type */
 const uint8_t SQUARE_TYPE[] = {
@@ -366,7 +352,7 @@ void search_init(Search *search)
 	search->id = 0;
 
 	/* running state */
-	search->stop = STOP_END;
+	search_set_state(search, STOP_END);
 
 	/* hash_table */
 	search->options.hash_size = 0;
@@ -522,7 +508,7 @@ void search_setup(Search *search)
 void search_clone(Search *search, Search *master)
 {
 	search->id = -1;
-	search->stop = STOP_END;
+	search_set_state(search, STOP_END);
 	search->player = master->player;
 	search->board = master->board;
 	search_setup(search);
@@ -597,7 +583,7 @@ void search_set_level(Search *search, const int level, const int n_empties)
 	// post-condition:
 	assert(0 <= search->options.depth && search->options.depth <= 60);
 	assert(0 <= search->options.selectivity && search->options.selectivity <= 5);
-	info("<set level (game level=%d, empties=%d) => position level=%d@%d>\n", level, n_empties, search->options.depth, selectivity_table[search->options.selectivity].percent);
+	info("[set level (game level=%d, empties=%d) => position level=%d@%d]\n", level, n_empties, search->options.depth, selectivity_table[search->options.selectivity].percent);
 }
 
 /**
@@ -685,7 +671,7 @@ void search_time_init(Search *search)
 		search->time.maxi = t * 99 / 100;
 		search->time.mini = t * 9 / 10;
 		if (search->options.verbosity >= 2) {
-			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
+			info("[Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f]\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	} else {
 		int64_t t = search->options.time;
@@ -696,8 +682,8 @@ void search_time_init(Search *search)
 		search->time.maxi = t * 3 / 4;
 		search->time.mini = t / 4;
 		if (search->options.verbosity >= 2) {
-			info("<Time-init: remaining_time = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f>\n", 0.001 * search->options.time, sd, d, 0.001 * t);
-			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
+			info("[Time-init: remaining_time = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f]\n", 0.001 * search->options.time, sd, d, 0.001 * t);
+			info("[Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f]\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	}
 	search->time.extended = false;
@@ -723,7 +709,7 @@ void search_time_reset(Search *search, const Board *initial_board)
 		search->time.maxi = spent + t * 99 / 100;
 		search->time.mini = spent + t * 9 / 10;
 		if (search->options.verbosity >= 2) {
-			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
+			info("[Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f]\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	} else {
 		int64_t t = search->options.time;
@@ -734,8 +720,8 @@ void search_time_reset(Search *search, const Board *initial_board)
 		search->time.maxi = spent + t * 3 / 4;
 		search->time.mini = spent + t / 4;
 		if (search->options.verbosity >= 2) {
-			info("<Time-reset: spent = %.2f remaining = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f>\n", 0.001 * spent, 0.001 * search->options.time, sd, d, 0.001 * t);
-			info("<Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f>\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
+			info("[Time-reset: spent = %.2f remaining = %.2f; solvable_depth = %d; unsolving_plies = %d => time = %.2f]\n", 0.001 * spent, 0.001 * search->options.time, sd, d, 0.001 * t);
+			info("[Time-alloted: mini = %.2f; maxi = %.2f; extra = %.2f]\n", 0.001 * search->time.mini,  0.001 * search->time.maxi,  0.001 * search->time.extra);
 		}
 	}
 	search->time.extended = false;
@@ -772,7 +758,7 @@ void search_adjust_time(Search *search, const bool once)
  */
 bool search_continue(Search *search)
 {
-	return search->stop == RUNNING && search_time(search) <= search->time.mini;
+	return search_get_state(search) == RUNNING && search_time(search) <= search->time.mini;
 }
 
 /**
@@ -787,14 +773,14 @@ void search_check_timeout(Search *search)
 
 	assert(master->master == master);
 
-	if (master->stop != STOP_TIMEOUT) {
+	if (search_get_state(master) != STOP_TIMEOUT) {
 
 		t = search_time(master);
 
 		if (t > master->time.extra) {
 
-			if (master->stop != RUNNING) {
-				printf("*** MASTER ALREADY STOPPED FOR ANOTHER REASON (%d) ***\n", master->stop);
+			if (search_get_state(master) != RUNNING) {
+				printf("*** MASTER ALREADY STOPPED FOR ANOTHER REASON (%d) ***\n", search_get_state(master));
 			}
 
 			if (!master->time.extended && master->time.can_update) {
@@ -812,11 +798,11 @@ void search_check_timeout(Search *search)
 		}
 	}
 
-	if (search->stop != STOP_TIMEOUT) {
+	if (search_get_state(search) != STOP_TIMEOUT) {
 		t = search_time(master);
 		if (t > master->time.extra) {
-			printf("*** SEARCH STILL RUNNING ? (%d) ***\n", search->stop);
-			search->stop = STOP_TIMEOUT;
+			printf("*** SEARCH STILL RUNNING ? (%d) ***\n", search_get_state(search));
+			search_set_state(search, STOP_TIMEOUT);
 		}
 	}
 }
@@ -1049,7 +1035,7 @@ int64_t search_clock(Search *search)
  */
 int64_t search_time(Search *search)
 {
-	if (search->stop != STOP_END) return search_clock(search) + search->time.spent;
+	if (search_get_state(search) != STOP_END) return search_clock(search) + search->time.spent;
 	else return search->time.spent;
 }
 
@@ -1297,6 +1283,7 @@ void search_share(const Search *src, Search *dest)
 {
 	hash_copy(&src->pv_table, &dest->pv_table);
 	hash_copy(&src->hash_table, &dest->hash_table);
+	hash_copy(&src->shallow_table, &dest->shallow_table);
 }
 
 /**
@@ -1320,26 +1307,12 @@ void search_stop_all(Search *search, const Stop stop)
 {
 	int i;
 
-	spinlock_lock(&search->spin);
-		search->stop = stop;
+		search_set_state(search, stop);
 		for (i = 0; i < search->n_child; ++i) {
 			search_stop_all(search->child[i], stop);
 		}
-	spinlock_unlock(&search->spin);
 }
 
-/**
- * @brief Set the search running/waiting state.
- *
- * @param search Search.
- * @param stop State.
- */
-void search_set_state(Search *search, const Stop stop)
-{
-	spinlock_lock(&search->spin);
-		search->stop = stop;
-	spinlock_unlock(&search->spin);
-}
 
 /**
  * @brief Guess the bestmove of a given board.
