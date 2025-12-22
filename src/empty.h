@@ -3,9 +3,9 @@
  *
  * List of empty squares.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_EMPTY_H
@@ -54,4 +54,3 @@ static inline void empty_restore(SquareList *empty, int x)
 	for ((x) = (empty)[NOMOVE].next; (x) != NOMOVE; (x) = (empty)[(x)].next) if (((parity) & QUADRANT_ID[(x)]))
 
 #endif
-

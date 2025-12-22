@@ -3,10 +3,10 @@
  *
  * Go Text Protocol
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "options.h"
@@ -161,7 +161,7 @@ void ui_loop_gtp(UI *ui)
 			gtp_send("Edax", id, has_id);
 
 		} else if (strcmp(cmd, "version") == 0) {
-			gtp_send(VERSION_STRING, id, has_id);
+			gtp_send(EDAX_VERSION, id, has_id);
 
 		} else if (strcmp(cmd, "known_command") == 0) {
 			if (strcmp(param, "protocol_version") == 0 ||
@@ -332,5 +332,3 @@ void ui_loop_gtp(UI *ui)
 		}
 	}
 }
-
-

@@ -27,12 +27,14 @@
  * For top to bottom flip, LS1B isolation (http://chessprogramming.wikispaces.com/
  * General+Setwise+Operations) is used to get the outflank bit.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
- * 
+ * @version 4.7
+ *
  */
+
+#include <stdint.h>
 
 /** precomputed count flip array */
 static const char COUNT_FLIP_R[128] = {
@@ -1284,4 +1286,3 @@ int count_last_flip(const int x, const uint64_t P)
 {
 	return last_flip[x](P);
 }
-

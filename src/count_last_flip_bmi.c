@@ -8,10 +8,10 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2018
+ * @date 1998 - 2025
  * @author Toshihiko Okuhara
- * @version 4.4
- * 
+ * @version 4.7
+ *
  */
 
 #include "bit.h"

@@ -3,13 +3,15 @@
  *
  * @brief Miscellaneous utilities header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_UTIL_H
 #define EDAX_UTIL_H
+
+#include "options.h"
 
 #include <errno.h>
 #include <inttypes.h>
@@ -51,6 +53,7 @@ int64_t cpu_clock(void);
 void time_print(int64_t, bool, FILE*);
 int64_t time_read(FILE*);
 void time_stamp(FILE*);
+void date_print(const time_t, FILE*);
 void relax(int);
 void rest(void);
 
@@ -93,6 +96,8 @@ int cnd_signal(cnd_t *);
 int cnd_timedwait(cnd_t *__restrict, mtx_t *__restrict, const struct timespec *__restrict);
 int cnd_wait(cnd_t *, mtx_t *);
 
+#define thread_local __thread
+
 #else
 	#include <threads.h>
 #endif
@@ -100,9 +105,7 @@ int cnd_wait(cnd_t *, mtx_t *);
 /*
  * spin lock
  */
-typedef struct SpinLock {
-	int _Atomic lock;
-} SpinLock;
+typedef atomic_int SpinLock ;
 void spinlock_init(SpinLock*);
 void spinlock_lock(SpinLock*);
 void spinlock_unlock(SpinLock*);
@@ -138,6 +141,7 @@ char* parse_move(const char*, const struct Board*, struct Move*);
 char* parse_game(const char*, const struct Board*, struct Line*);
 char* parse_boolean(const char*, bool*);
 char* parse_int(const char*, int*);
+char* parse_int64(const char*, int64_t*);
 char* parse_real(const char*, double*);
 char* parse_command(const char*, char*, char*, const unsigned int);
 char* parse_find(const char*, const int);
@@ -275,7 +279,6 @@ typedef struct Log {
  * @brief Display a message.
  */
 #define info(...) if (options.info) { \
-	extern Log ggs_log; \
 	fprintf(stderr, __VA_ARGS__); \
 } else (void) 0
 

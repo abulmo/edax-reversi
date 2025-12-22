@@ -7,10 +7,10 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 2024
+ * @date 2025
  * @author Toshihiko Okuhara
- * @version 4.6
- * 
+ * @version 4.7
+ *
  */
 
 #include "simd.h"

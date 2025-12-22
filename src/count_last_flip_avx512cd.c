@@ -7,13 +7,14 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 2023 - 2024
+ * @date 2023 - 2025
  * @author Toshihiko Okuhara
- * @version 4.5
- * 
+ * @version 4.7
+ *
  */
 
 #include "simd.h"
+#include "bit.h"
 
 extern const V8DI MASK_LR[66];
 

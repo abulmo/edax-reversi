@@ -3,10 +3,10 @@
  *
  * Opening Name aliasing.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "opening.h"
@@ -1387,4 +1387,3 @@ const char *opening_get_french_name(const Board *board)
 
 	return p->name;
 }
-

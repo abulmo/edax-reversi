@@ -3,9 +3,9 @@
  *
  * @brief Edax play control - header file.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 
@@ -100,4 +100,3 @@ void play_symetry(Play*, const int);
 const char* play_show_opening_name(Play*, const char *(*opening_get_name)(const Board*));
 
 #endif
-

@@ -3,10 +3,10 @@
  *
  * Hash table's header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_HASH_H
@@ -138,4 +138,3 @@ static inline void store_set(HashStore *store, const int alpha, const int beta, 
 
 
 #endif
-

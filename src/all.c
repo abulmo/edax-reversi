@@ -3,9 +3,9 @@
  *
  * @brief Gather all other files to facilitate compiler inter-procedural optimization.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 /* miscellaneous utilities */
@@ -53,4 +53,3 @@
 
 /* main */
 #include "main.c"
-

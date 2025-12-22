@@ -18,12 +18,14 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
- * 
+ * @version 4.7
+ *
  */
+
+#include <stdint.h>
 
 /** precomputed count flip array */
 static const unsigned char COUNT_FLIP[8][256] = {

@@ -3,9 +3,9 @@
  *
  * @brief Problem solver.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_OPDTEST_H
@@ -20,4 +20,3 @@ void obf_filter(const char*, const char *);
 void obf_speed(struct Search*, const int);
 
 #endif /* EDAX_OPDTEST_H */
-

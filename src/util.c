@@ -3,17 +3,16 @@
  *
  * @brief Various utilities.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "bit.h"
 #include "board.h"
 #include "move.h"
 #include "util.h"
-#include "options.h"
 #include "const.h"
 
 #include <assert.h>
@@ -26,7 +25,6 @@
 #include <string.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <signal.h>
 #include <time.h>
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -82,8 +80,8 @@ size_t adjust_size(const size_t alignment, const size_t size)
  * @brief aligned_alloc for old mac (MAC_OS_X < 10.13)
  *
  * @param memory_alignment: required alignment as a power of two.
- * @param size: size of memory top allocate. 
- * @return a pointer to the allocated memory. 
+ * @param size: size of memory top allocate.
+ * @return a pointer to the allocated memory.
  */
 void* aligned_alloc(size_t memory_alignment, size_t size)
 {
@@ -214,16 +212,25 @@ int64_t time_read(FILE *f)
 }
 
 /**
+ * @brief Print a time_t as YYYY/MM/DD HH:MM:SS.
+ * @param f Output stream.
+ */
+void date_print(const time_t t, FILE *f) {
+	struct tm *tm = localtime(&t);
+
+	fprintf(f, "%4d/%02d/%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+}
+
+/**
  * @brief Print local time.
  * @param f Output stream.
  */
 void time_stamp(FILE *f)
 {
-	time_t t = time(NULL);
-	struct tm *tm;
-	tm = localtime(&t);
-
-	fprintf(f, "[%4d/%2d/%2d %2d:%2d:%2d] ", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+	putc('[', f);
+	date_print(time(NULL), f);
+	putc(']', f);
+	putc(' ', f);
 }
 
 /**
@@ -262,8 +269,28 @@ void rest(void)
 #ifdef __STDC_NO_THREADS__
 
 /**
+ * A wrapper to call C11 thread function through POSIX format
+ */
+typedef struct C11Function {
+    thrd_start_t function; // C11 function pointer to call
+    void *arg; // argument for the function
+    int r; // return value of the function
+} C11Function;
+
+/**
+ *  @brief  Call the function using C11 expected format
+ *  @param arg the Startfunc struct.
+ */
+static void* posix_function(void *arg) {
+    C11Function *c11_function = arg;
+    c11_function->r = c11_function->function(c11_function->arg);
+
+    return arg;
+}
+
+/**
  * @brief create a new thread
- * 
+ *
  * @param thread thread to create.
  * @param function the function to start
  * @param arg the argument for the function.
@@ -271,14 +298,16 @@ void rest(void)
  */
 int thrd_create (thrd_t *thread, thrd_start_t function, void *arg)
 {
-	typedef void *(*start_function) (void *);
+	C11Function c11_func;
+	c11_func.function = function;
+	c11_func.arg = arg;
 
-	return pthread_create(thread, NULL, (start_function) function, arg);
+	return pthread_create(thread, NULL, posix_function, &c11_func);
 }
 
 /**
  * @brief detach a thread.
- * 
+ *
  * @param thread thread to detach.
  * @return thrd_success on success an error otherwise.
  */
@@ -288,7 +317,7 @@ int thrd_detach(thrd_t thread) {
 
 /**
  * @brief join a thread
- * 
+ *
  * @param thr thread.
  * @param res the result of the function.
  * @return thrd_success on success an error otherwise.
@@ -299,20 +328,20 @@ int	thrd_join(thrd_t thread, int *res) {
 
 /**
  * @brief create a new mutex
- * 
+ *
  * @param mutex mutex to create.
  * @param type (unused in Edax).
  * @return thrd_success on success, an error otherwise.
  */
 int mtx_init(mtx_t *mutex, int type)
 {
-	(void) type; // unused in Eda, ie always mtx_plainx	
+	(void) type; // unused in Edax, ie always mtx_plain
 	return pthread_mutex_init(mutex, NULL);
 }
 
 /**
  * @brief free an unlocked mutex.
- * 
+ *
  * @param mutex mutex to free.
  */
 void mtx_destroy(mtx_t *mutex)
@@ -322,7 +351,7 @@ void mtx_destroy(mtx_t *mutex)
 
 /**
  * @brief lock a mutex
- * 
+ *
  * @param mutex mutex to lock.
  * @return thrd_success on success, an error otherwise.
  */
@@ -333,29 +362,29 @@ int mtx_lock(mtx_t *mutex)
 
 /**
  * @brief unlock a mutex
- * 
+ *
  * @param mutex mutex to unlock.
  * @return thrd_success on success, an error otherwise.
  */
 int mtx_unlock(mtx_t *mutex)
 {
-	return pthread_mutex_unlock(mutex);	
+	return pthread_mutex_unlock(mutex);
 }
 
 /**
  * @brief create a new condition
- * 
+ *
  * @param cond the condition to create.
  * @return thrd_success on success, an error otherwise.
  */
-int cnd_init(cnd_t *cond) 
+int cnd_init(cnd_t *cond)
 {
 	 return pthread_cond_init(cond, NULL);
 }
 
 /**
  * @brief free a condition
- * 
+ *
  * @param cond the condition to delete.
  */
 void cnd_destroy(cnd_t *cond)
@@ -365,7 +394,7 @@ void cnd_destroy(cnd_t *cond)
 
 /**
  * @brief wake up all threads attached to the condition.
- * 
+ *
  * @param cond the condition.
  * @return thrd_success on success, an error otherwise.
  */
@@ -376,19 +405,19 @@ int cnd_broadcast(cnd_t *cond)
 
 /**
  * @brief wake up one thread attached to the condition.
- * 
+ *
  * @param cond the condition.
  * @return thrd_success on success, an error otherwise.
  */
 int cnd_signal(cnd_t *cond)
 {
-	return pthread_cond_signal(cond);	
+	return pthread_cond_signal(cond);
 }
 
 /**
  * @brief unlock the mutex & wait for a signal, making the thread
  * associated asleep.
- * 
+ *
  * @param cond the condition.
  * @param mutex a mutex.
  * @return thrd_success on success, an error otherwise.
@@ -405,32 +434,32 @@ enum {SL_FREE = 0, SL_BUSY = 1};
 
 /**
  * @brief Initialise a lock
- * @param lock lock to initialise
+ * @param spin spinlock to initialise
  */
 void spinlock_init(SpinLock *spin)
 {
-	spin->lock = SL_FREE;
+	*spin = SL_FREE;
 }
 
 /**
  * @brief Lock a spinlock
- * @param lock spinlock to lock
+ * @param spin spinlock to lock
  */
 void spinlock_lock(SpinLock *spin)
 {
 	for(;;) {
-		if (atomic_exchange_explicit(&spin->lock, SL_BUSY, memory_order_acquire) == SL_FREE) return;
-		while (atomic_load_explicit(&spin->lock, memory_order_relaxed)) rest();
+		if (atomic_exchange_explicit(spin, SL_BUSY, memory_order_acquire) == SL_FREE) return;
+		while (atomic_load_explicit(spin, memory_order_relaxed)) rest();
 	}
 }
 
 /**
  * @brief Unlock a spinlock
- * @param lock spinlock to unlock
+ * @param spin spinlock to unlock
  */
 void spinlock_unlock(SpinLock *spin)
 {
-	atomic_store_explicit(&spin->lock, SL_FREE, memory_order_release);
+	atomic_store_explicit(spin, SL_FREE, memory_order_release);
 }
 
 
@@ -494,7 +523,7 @@ void print_scientific(double v, const char *unit, FILE *f)
 char* string_read_line(FILE *f)
 {
 	int c, i, n;
-	char *line;
+	char *line, *new_line;
 
 	n = 256; i = 0;
 	line = (char*) malloc(n);
@@ -504,8 +533,12 @@ char* string_read_line(FILE *f)
 		line[i++] = (char) c;
 		if (i == n) {
 			n *= 2;
-			line = (char*) realloc(line, n);
-			if (line == NULL) fatal_error("Allocation error\n");
+			new_line = (char*) realloc(line, n);
+			if (new_line == NULL) {
+				free(line);
+				fatal_error("Allocation error\n");
+			}
+			line = new_line	;
 		}
 	}
 	line[i] = '\0';
@@ -1016,6 +1049,33 @@ char* parse_int(const char *string, int *result)
 }
 
 /**
+ * @brief Parse an integer.
+ *
+ * @param string String to parse
+ * @param result Integer output value.
+ * @return The remaining of the input string.
+ */
+char* parse_int64(const char *string, int64_t *result)
+{
+	if (string) {
+		char *s = parse_skip_spaces(string);
+		char *end = s;
+		int64_t n = 0;
+
+		if (*s) n = strtol(s, &end, 10);
+
+		if (end == s) {
+			errno = EINVAL;
+			n = *result;
+		}
+		*result = n;
+
+		return end;
+	}
+	return (char*) string;
+}
+
+/**
  * @brief Parse a real number (as a double floating point).
  *
  * @param string String to parse.
@@ -1056,7 +1116,7 @@ char* parse_time(const char *string, int64_t *t)
 	double x = 0.0;
 
 	*t = 0;
-	
+
 	if (string) {
 		const char *s = parse_skip_spaces(string);
 		s = parse_int(s, &n);
@@ -1127,7 +1187,7 @@ void path_get_dir(const char *path, char *dir)
 
 /**
  * @brief Add an extension to a string.
- * 
+ *
  * @param base Base name.
  * @param ext  Extension (.dat, .ext, .bin, etc.)
  * @param file Output file name.
@@ -1177,7 +1237,7 @@ int get_cpu_number(void)
 #elif defined(__APPLE__) /* should also works on any bsd system */
 
 	int mib[4];
-	size_t len; 
+	size_t len;
 
 	mib[0] = CTL_HW;
 	mib[1] = HW_AVAILCPU;

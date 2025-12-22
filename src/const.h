@@ -3,10 +3,10 @@
  *
  * Constants as macros, enums, or global consts.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_CONST_H
@@ -14,20 +14,45 @@
 
 #include <stdint.h>
 
+/** Version number */
+#define VERSION 4
+
+/** Release Number */
+#define RELEASE 7
+
+/** "VERSION.RELEASE" as a string */
+#define EDAX_VERSION "4.7"
+
+#define EDAX_NAME "Edax 4.7"
+
+/** 'BOOK' as a 32-bit integer */
+#define BOOK 0x424f4f4b
+
+/** 'EDAX' as a 32-bit integer */
+#define EDAX 0x45444158
+
+/** 'EVAL' as a 32-bit integer */
+#define EVAL 0x4556414c
+
+/** 'XADE' as a 32-bit integer */
+#define XADE 0x58414445
+
+/** 'LAVE' as a 32-bit integer */
+#define LAVE 0x4c415645
+
 /** maximal number of threads */
 #define MAX_THREADS 256
 
 /**
- * Maximal number of moves is 33.
+ * Maximal number of moves is 33 in legal positions, 34 in random positions.
  * For a proof, see: https://doi.org/10.51094/jxiv.480
  */
-#define MAX_MOVE 33
+#define MAX_MOVE 34
 
 /** size of the board */
 #define BOARD_SIZE 64
 
-/** size of the game including passing moves. We use here an arbitrary big
- enough value */
+/** size of the game including passing moves. We use here an arbitrary big enough value */
 #define GAME_SIZE 80
 
 /** constants for square coordinates */
@@ -53,6 +78,7 @@ enum {
 
 extern const uint64_t X_TO_BIT[];
 extern const uint64_t NEIGHBOUR[];
+extern const uint8_t SQUARE_VALUE[];
 
 /** infinite score: a huge value unreachable as a score and fitting in a char */
 #define SCORE_INF 127
@@ -62,6 +88,12 @@ extern const uint64_t NEIGHBOUR[];
 
 /** maximal score */
 #define SCORE_MAX 64
+
+/** minimal evaluation */
+#define EVAL_MIN -63
+
+/** maximal evaluation */
+#define EVAL_MAX +63
 
 /** maximal time (1 millenium) */
 #define TIME_MAX 31557600000000LL
@@ -88,16 +120,6 @@ typedef enum {
 	CUT_NODE,
 	ALL_NODE
 } NodeType;
-
-#define VERSION 4
-#define RELEASE 6
-#define VERSION_STRING "4.6"
-#define EDAX_NAME "Edax 4.6"
-#define BOOK 0x424f4f4b
-#define EDAX 0x45444158
-#define EVAL 0x4556414c
-#define XADE 0x58414445
-#define LAVE 0x4c415645
 
 /**
  * Edax state.

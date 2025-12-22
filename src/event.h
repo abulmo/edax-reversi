@@ -3,9 +3,9 @@
  *
  * Event management.
  *
-  * @date 1998 - 2024
+  * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_EVENT_H
@@ -37,4 +37,3 @@ void event_wait(Event*, char**, char**);
 void event_wait_enter(Event*);
 
 #endif /* EDAX_EVENT_H */
-

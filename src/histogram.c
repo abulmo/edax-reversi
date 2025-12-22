@@ -3,16 +3,15 @@
  *
  * Histogram management.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #include "util.h"
 
 #include <stdio.h>
 #include <math.h>
-#include <stdlib.h>
 
 #ifndef RCD
 #define RCD 0.5
@@ -200,4 +199,3 @@ void histogram_to_ppm(const char *file, uint64_t histogram[129][65])
 	// end
 	fclose(f);
 }
-

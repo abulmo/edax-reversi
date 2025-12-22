@@ -3,9 +3,9 @@
  *
  * @brief Statistics header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_STATS_H
@@ -128,4 +128,3 @@ void statistics_sum_nodes(struct Search*);
 void statistics_print(FILE*);
 
 #endif
-

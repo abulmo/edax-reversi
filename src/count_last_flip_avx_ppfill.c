@@ -7,16 +7,16 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 2024
- * @author Toshihiko Okuhara
- * @version 4.6
- * 
+ * @date 2024-2025
+ * @author Toshihiko Okuhara - Richard Delorme
+ * @version 4.7
+ *
  */
 
 #include "simd.h"
+#include "bit.h"
 
 extern const V8DI MASK_LR[66];
-
 
 /**
  * Count last flipped discs when playing on the last empty.

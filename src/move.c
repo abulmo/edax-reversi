@@ -3,10 +3,10 @@
  *
  * @brief Move & list of moves management.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "move.h"
@@ -725,4 +725,3 @@ bool movehash_append(MoveHash *hash, const Board *b, const int x)
 	h = board_get_hash_code(&u);
 	return movearray_append(hash->array + (h & hash->mask), &u, y);
 }
-

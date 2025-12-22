@@ -6,10 +6,10 @@
  * The purpose of these functions is to gather performance
  * statistics on some algorithms or code.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "stats.h"
@@ -219,4 +219,3 @@ void statistics_print(FILE *f)
 		);
 	}
 }
-

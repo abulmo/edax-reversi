@@ -9,7 +9,7 @@
  *  - COUNT_FLIP[square where we play][8-bits disc pattern].
  * The problem is thus to convert any line of a 64-bits disc pattern into an
  * 8-bits disc pattern. A fast way to do this is to select the right line,
- * with a bit-mask, to gather the masked-bits into a continuous set by the 
+ * with a bit-mask, to gather the masked-bits into a continuous set by the
  * BMI2 PEXT instruction.
  * Once we get our 8-bits disc patterns, we directly get the number of
  * flipped discs from the precomputed array, and add them from each flipping
@@ -17,11 +17,11 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2023
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.5
- * 
+ * @version 4.7
+ *
  */
 
 #include "simd.h"

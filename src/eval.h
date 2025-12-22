@@ -3,9 +3,9 @@
  *
  * Evaluation function's header.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_EVAL_H
@@ -56,4 +56,3 @@ int eval_accumulate(const Eval*);
 double eval_sigma(const int, const int, const int);
 
 #endif
-

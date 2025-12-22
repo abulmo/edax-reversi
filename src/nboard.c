@@ -3,10 +3,10 @@
  *
  * Chris Welty's NBoard Protocol
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #include "options.h"
@@ -183,5 +183,3 @@ void ui_loop_nboard(UI *ui)
 		}
 	}
 }
-
-

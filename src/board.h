@@ -3,10 +3,10 @@
  *
  * Board management header file.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_BOARD_H
@@ -85,4 +85,3 @@ int get_corner_stability(const uint64_t);
 void board_test(void);
 
 #endif // EDAX_BOARD_H
-
