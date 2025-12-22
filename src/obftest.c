@@ -14,14 +14,16 @@
  * </ul>
  *
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
  * @author Toshihiko Okuhara
- * @version 4.6
+ * @version 4.7
  */
-#include "search.h"
-#include "options.h"
+
+
 #include "const.h"
+#include "options.h"
+#include "search.h"
 #include "settings.h"
 
 #include <inttypes.h>
