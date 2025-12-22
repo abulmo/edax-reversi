@@ -3,25 +3,21 @@
  *
  * @brief Move generator test.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
+#include "perft.h"
 #include "bit.h"
 #include "board.h"
 #include "crc32c.h"
 #include "move.h"
-#include "hash.h"
-#include "options.h"
-#include "settings.h"
 #include "util.h"
-#include "perft.h"
 
 #include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 /**
  * Gathered statistiscs
@@ -55,27 +51,56 @@ static inline void game_statistics_cumulate(GameStatistics *global, const GameSt
 	if (global->max_mobility < local->max_mobility) global->max_mobility = local->max_mobility;
 }
 
+/**
+ * Return "discs" or "ply" according to the way counts are handle.
+ *
+ * @param count_pass  Count passes as a move.
+ * @return a string with "discs" or "ply".
+ */
+static const char* ply_string(const bool count_pass) {
+	static const char *(s[]) = {"discs", "ply"};
+	return s[count_pass];
+}
+
+/**
+ * Return ply as a halfmove number or a number of discs.
+ *
+ * @param ply to modify.
+ * @param count_pass  Count passes as a move.
+ * @return ply or disc count.
+ */
+static int ply_value(const int ply, const bool count_pass, const int increment) {
+	return ply + (count_pass ? 0 : 3 + increment);
+}
+
 
 /**
  * @brief Move generator performance test function.
  *
- * @param board
- * @param depth
+ * @param board board to count moves from
+ * @param depth depth up to count moves
+ * @param count_pass Count passes as a move.
  * @param global_stats statistics
  */
-static void count_game(const Board *board, const int depth, GameStatistics *global_stats)
+static void count_game(const Board *board, const int depth, const bool count_pass, GameStatistics *global_stats)
 {
 	GameStatistics stats = GAME_STATISTICS_INIT;
 	uint64_t moves;
 	int x;
 	Board next;
 
+	moves = board_get_moves(board);
 	if (depth == 1) {
-		moves = board_get_moves(board);
 		stats.n_moves = stats.max_mobility = stats.min_mobility = bit_count(moves);
 		if (moves == 0) {
 			if (can_move(board->opponent, board->player)) {
-				stats.n_passes = 1;
+				next = *board; board_pass(&next);
+				if (can_move(next.player, next.opponent)) {
+					stats.n_passes = 1;
+					if (!count_pass) {
+						stats.n_moves = stats.max_mobility = stats.min_mobility = bit_count(board_get_moves(&next));
+					}
+				}
 			} else {
 				const int n_player = bit_count(board->player);
 				const int n_opponent = bit_count(board->opponent);
@@ -85,46 +110,64 @@ static void count_game(const Board *board, const int depth, GameStatistics *glob
 			}
 		}
 	} else {
-		moves = board_get_moves(board);
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				count_game(&next, depth - 1, &stats);
+				count_game(&next, depth - 1, count_pass, &stats);
 			}
 		} else {
-			board_next(board, PASS, &next);
-			if (can_move(next.player, next.opponent)) {
-				count_game(&next, depth - 1, &stats);
+			if (can_move(board->opponent, board->player)) {
+				next = *board; board_pass(&next);
+				count_game(&next, depth - count_pass, count_pass, &stats);
 			}
 		}
 	}
 	game_statistics_cumulate(global_stats, &stats);
 }
 
+
 /**
  * @brief Move generator performance test
  *
  * @param board
  * @param depth
+ * @param count_pass Count passes as a move.
  */
-void count_games(const Board *board, const int depth)
+void count_games(const Board *init_board, const int depth, const bool count_pass)
 {
 	int i;
 	uint64_t t, n;
 	GameStatistics stats;
+	Board board;
+	bool is_initial_board;
 
-	board_print(board, BLACK, stdout);
-	puts("\n  ply           moves        passes          wins         draws        losses    mobility        time   speed");
+	board_init(&board);
+	is_initial_board = board_equal(&board, init_board);
+	board = *init_board;
+
+	board_print(&board, BLACK, stdout);
+	printf("\n %s           moves        passes          wins         draws        losses    mobility        time   speed\n", ply_string(count_pass));
 	puts("------------------------------------------------------------------------------------------------------------------");
 	n = 1;
 	for (i = 1; i <= depth; ++i) {
 		stats = GAME_STATISTICS_INIT;
 		t = -cpu_clock();
-		count_game(board, i, &stats);
+		count_game(&board, i, count_pass, &stats);
+		if (is_initial_board) {
+			if (i == 1) {
+				board_next(init_board, F5, &board);
+			} else {
+				stats.n_moves *= 4;
+		 		stats.n_passes *= 4;
+				stats.n_wins *= 4;
+				stats.n_draws *= 4;
+			 	stats.n_losses *= 4;
+			}
+		}
 		t += cpu_clock();
-		printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
+		printf("   %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", ply_value(i, count_pass, 0), stats.n_moves + count_pass * stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
 		printf("  %2d - %2d, ", stats.min_mobility, stats.max_mobility);
-		n += stats.n_moves + stats.n_passes;
+		n += stats.n_moves + count_pass * stats.n_passes;
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(n / (0.001 * t + 0.001), "N/s\n", stdout);
 		if (stats.n_moves + stats.n_passes == 0) break;
@@ -134,15 +177,67 @@ void count_games(const Board *board, const int depth)
 }
 
 /**
+ * @brief Move generator test for a single move
+ *
+ * @param x A move
+ * @param board A board
+ * @param depth A depth
+ * @param count_pass Count passes as a move
+ */
+void count_divide(int x, const Board *board, const int depth, const bool count_pass) {
+	Board next;
+	GameStatistics stats =  GAME_STATISTICS_INIT;;
+	uint64_t t, n;
+	char s[4];
+
+	t = -cpu_clock();
+		board_next(board, x, &next);
+		if (depth >= 1) count_game(&next, depth, count_pass, &stats);
+	t += cpu_clock();
+	printf("%s   ", move_to_string(x, BLACK, s));
+	printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", ply_value(depth, count_pass, 0), stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
+	printf("  %2d - %2d, ", stats.min_mobility, stats.max_mobility);
+	n = stats.n_moves + (count_pass ? stats.n_passes : 0);
+	time_print(t, true, stdout);	printf(", ");
+	print_scientific(n / (0.001 * t + 0.001), "N/s\n", stdout);
+}
+
+/**
+ * @brief Move generator debug test
+ *
+ * @param board
+ * @param depth
+ * @param count_pass Count passes as a move.
+ */
+void divide(const Board *board, const int depth, const bool count_pass)
+{
+	uint64_t moves;
+	int x;
+
+	board_print(board, BLACK, stdout);
+	printf("divide %d %d\n", depth, count_pass);
+	printf("\nmove %4s           moves        passes          wins         draws        losses    mobility        time   speed\n", ply_string(count_pass));
+	puts("------------------------------------------------------------------------------------------------------------------");
+	moves = board_get_moves(board);
+	if (moves) {
+		foreach_bit (x, moves) count_divide(x, board, depth - 1, count_pass);
+	} else {
+		count_divide(PASS, board, depth - count_pass, count_pass);
+	}
+	puts("------------------------------------------------------------------------------------------------------------------");
+}
+
+
+/**
  * @brief Estimate move counts from a single game.
  *
  * @param board Board
  * @param depth Depth.
+ * @param count_pass Count passes as a move.
  * @param r random generator
  * @param n node counter array.
  */
-
-static void estimate_game(const Board *board, const int depth, Random *r, double *n)
+static void estimate_game(const Board *board, const int depth, const bool count_pass, Random *r, double *n)
 {
 	uint64_t moves;
 	int x, i, j, k;
@@ -156,13 +251,51 @@ static void estimate_game(const Board *board, const int depth, Random *r, double
 		n[depth] = 1;
 		if (i == 0) {
 			board_next(board, PASS, &next);
-			estimate_game(&next, depth + 1, r, n);
+			estimate_game(&next, depth + count_pass, count_pass, r, n);
 		} else {
 			j = random_get(r) % i;
 			foreach_bit (x, moves) {
 				if (j == 0) {
 					board_next(board, x, &next);
-					estimate_game(&next, depth + 1, r, n);
+					estimate_game(&next, depth + 1, count_pass, r, n);
+					for (k = depth; n[k]; ++k) n[k] *= i;
+					break;
+				} else --j;
+			}
+		}
+	}
+}
+
+/**
+ * @brief Estimate move counts from a single game.
+ *
+ * @param board Board
+ * @param depth Depth.
+ * @param count_pass Count passes as a move.
+ * @param r random generator
+ * @param n node counter array.
+ */
+static void estimate_game_6x6(const Board *board, const int depth, const bool count_pass, Random *r, double *n)
+{
+	uint64_t moves;
+	int x, i, j, k;
+	Board next;
+
+	moves = get_moves_6x6(board->player, board->opponent);
+	i = bit_count(moves);
+	if (i == 0 && !can_move_6x6(board->opponent, board->player)) {
+		n[depth] = 0;
+	} else {
+		n[depth] = 1;
+		if (i == 0) {
+			board_next(board, PASS, &next);
+			estimate_game_6x6(&next, depth + count_pass, count_pass, r, n);
+		} else {
+			j = random_get(r) % i;
+			foreach_bit (x, moves) {
+				if (j == 0) {
+					board_next(board, x, &next);
+					estimate_game_6x6(&next, depth + 1, count_pass, r, n);
 					for (k = depth; n[k]; ++k) n[k] *= i;
 					break;
 				} else --j;
@@ -176,14 +309,16 @@ static void estimate_game(const Board *board, const int depth, Random *r, double
  *
  * @param board
  * @param n Number of trials
+ * @param count_pass Count passes as a move.
  */
-void estimate_games(const Board *board, const int64_t n)
+void estimate_games(const Board *board, const int64_t n, const bool count_pass, const int size)
 {
 	int i, j;
 	uint64_t t;
 	double x[128], m[128], s[128], em[128], es[128], en[128];
 	double M, S, EM, ES;
 	Random r;
+	const char *(bool_string[2]) = {"false", "true"};
 
 	random_seed(&r, real_clock());
 	M = S = EM = ES = 0.0;
@@ -191,11 +326,13 @@ void estimate_games(const Board *board, const int64_t n)
 	for (i = 0; i < 128; ++i) em[i] = es[i] = en[i] = 0.0;
 
 	board_print(board, BLACK, stdout);
+	printf("estimate games: trials %ld, pass %s, size %dx%d\n", n, bool_string[count_pass], size, size);
 
 	t = -cpu_clock();
 	for (j = 1; j <= n; ++j) {
 		for (i = 0; i < 128; ++i) x[i] = 0.0;
-		estimate_game(board, 1, &r, x);
+		if (size == 6)  estimate_game_6x6(board, 1, count_pass, &r, x);
+		else estimate_game(board, 1, count_pass, &r, x);
 		for (i = 1; x[i]; ++i) {
 			m[i] += x[i]; s[i] += x[i] * x[i];
 			M += x[i]; S += x[i] * x[i];
@@ -208,10 +345,12 @@ void estimate_games(const Board *board, const int64_t n)
 	}
 	t += cpu_clock();
 
+	printf("%5s           moves         accuracy         games         accuracy\n", ply_string(count_pass));
+	puts("------------------------------------------------------------------");
 	for (i = 1; m[i] || en[i]; ++i) {
 		m[i] /= n;
 		s[i] = sqrt((s[i] / n - m[i] * m[i])/n);
-		printf("%2d: %e +/- %e; ", i, m[i], s[i]);
+		printf("%5d: %e +/- %e; ", i, m[i], s[i]);
 
 		if (en[i]) {
 			em[i] /= n;
@@ -224,7 +363,7 @@ void estimate_games(const Board *board, const int64_t n)
 	S = sqrt((S / n - M * M)/n);
 	EM /= n;
 	ES = sqrt((ES / n - EM * EM)/n);
-	printf("Total %e +/- %e: %e +/- %e en", M, S, EM, ES);
+	printf("Total %e +/- %e: %e +/- %e in ", M, S, EM, ES);
 	time_print(t, false, stdout); printf("\n");
 }
 
@@ -377,10 +516,10 @@ static void gamehash_store(GameHashTable *hash, const Board *b, const int depth,
 	if (depth > 2) {
 		board_unique(b, &u);
 		i = j = hash->array + (board_get_hash_code(&u) & hash->mask);
+		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
+		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
+		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
 
-		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
-		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
-		++j; if (i->stats.n_moves > j->stats.n_moves) i = j;
 		i->board = u;
 		i->stats = *stats;
 		i->depth = depth;
@@ -426,9 +565,10 @@ static bool gamehash_fail(GameHashTable *hash, const Board *b, const int depth, 
  * @param hash Hash table.
  * @param board position.
  * @param depth Depth.
+ * @param count_pass Count passes as a move.
  * @param global_stats Game's statistics.
  */
-static void quick_count_game_6x6(GameHashTable *hash, const Board *board, const int depth, GameStatistics *global_stats)
+static void quick_count_game_6x6(GameHashTable *hash, const Board *board, const int depth, const bool count_pass, GameStatistics *global_stats)
 {
 	GameStatistics stats = GAME_STATISTICS_INIT;
 	uint64_t moves;
@@ -441,6 +581,10 @@ static void quick_count_game_6x6(GameHashTable *hash, const Board *board, const 
 		if (moves == 0) {
 			if (can_move_6x6(board->opponent, board->player)) {
 				stats.n_passes = 1;
+				if (!count_pass) {
+					next = *board; board_pass(&next);
+					stats.n_moves = stats.max_mobility = stats.min_mobility = bit_count(board_get_moves(&next));
+				}
 			} else {
 				const int n_player = bit_count(board->player);
 				const int n_opponent = bit_count(board->opponent);
@@ -454,12 +598,12 @@ static void quick_count_game_6x6(GameHashTable *hash, const Board *board, const 
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				quick_count_game_6x6(hash, &next, depth - 1, &stats);
+				quick_count_game_6x6(hash, &next, depth - 1, count_pass, &stats);
 			}
 		} else {
-			board_next(board, PASS, &next);
+			next = *board; board_pass(&next);
 			if (can_move_6x6(next.player, next.opponent)) {
-				quick_count_game_6x6(hash, &next, depth - 1, &stats);
+				quick_count_game_6x6(hash, &next, depth - count_pass, count_pass, &stats);
 			}
 		}
 		gamehash_store(hash, board, depth, &stats);
@@ -473,9 +617,10 @@ static void quick_count_game_6x6(GameHashTable *hash, const Board *board, const 
  * @param  hash Hash table.
  * @param board position.
  * @param depth Depth.
+ * @param count_pass Count passes as a move.
  * @param global_stats Game's statistics.
  */
-static void quick_count_game(GameHashTable *hash, const Board *board, const int depth, GameStatistics *global_stats)
+static void quick_count_game(GameHashTable *hash, const Board *board, const int depth, const bool count_pass,  GameStatistics *global_stats)
 {
 	GameStatistics stats = GAME_STATISTICS_INIT;
 	uint64_t moves;
@@ -488,6 +633,10 @@ static void quick_count_game(GameHashTable *hash, const Board *board, const int 
 		if (moves == 0) {
 			if (can_move(board->opponent, board->player)) {
 				stats.n_passes = 1;
+				if (!count_pass) {
+					next = *board; board_pass(&next);
+					stats.n_moves = stats.max_mobility = stats.min_mobility = bit_count(board_get_moves(&next));
+				}
 			} else {
 				const int n_player = bit_count(board->player);
 				const int n_opponent = bit_count(board->opponent);
@@ -501,12 +650,12 @@ static void quick_count_game(GameHashTable *hash, const Board *board, const int 
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				quick_count_game(hash, &next, depth - 1, &stats);
+				quick_count_game(hash, &next, depth - 1, count_pass, &stats);
 			}
 		} else {
-			board_next(board, PASS, &next);
+			next = *board; board_pass(&next);
 			if (can_move(next.player, next.opponent)) {
-				quick_count_game(hash, &next, depth - 1, &stats);
+				quick_count_game(hash, &next, depth - count_pass, count_pass, &stats);
 			}
 		}
 		gamehash_store(hash, board, depth, &stats);
@@ -519,9 +668,10 @@ static void quick_count_game(GameHashTable *hash, const Board *board, const int 
  *
  * @param board position.
  * @param depth Depth.
+ * @param count_pass Count passes as a move.
  * @param size Size of the board (6 or 8).
  */
-void quick_count_games(const Board *board, const int depth, const int size)
+void quick_count_games(const Board *board, const int depth, const bool count_pass, const int size)
 {
 	int i;
 	int64_t t;
@@ -530,17 +680,17 @@ void quick_count_games(const Board *board, const int depth, const int size)
 	uint64_t n;
 
 	board_print(board, BLACK, stdout);
-	puts("\n  ply           moves        passes          wins         draws        losses    mobility        time   speed");
+	printf("\n%5s           moves        passes          wins         draws        losses    mobility        time   speed\n", ply_string(count_pass));
 	puts("------------------------------------------------------------------------------------------------------------------");
 	n = 1;
 	for (i = 1; i <= depth; ++i) {
 		gamehash_init(&hash, options.hash_table_size);
 		stats = GAME_STATISTICS_INIT;
 		t = -cpu_clock();
-		if (size == 6) quick_count_game_6x6(&hash, board, i, &stats);
-		else quick_count_game(&hash, board, i, &stats);
+		if (size == 6) quick_count_game_6x6(&hash, board, i, count_pass, &stats);
+		else quick_count_game(&hash, board, i, count_pass, &stats);
 		t += cpu_clock();
-		printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", i, stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
+		printf("  %2d, %15" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", %12" PRIu64 ", ", ply_value(i, count_pass, 0), stats.n_moves + stats.n_passes, stats.n_passes, stats.n_wins, stats.n_draws, stats.n_losses);
 		printf("  %2d - %2d, ", stats.min_mobility, stats.max_mobility);
 		time_print(t, true, stdout);	printf(", ");
 		n += stats.n_moves + stats.n_passes;
@@ -660,7 +810,7 @@ static void boardcache_delete(BoardCache *hash)
 }
 
 /**
- * @brief Append a shape to the hash table.
+ * @brief Append a unique board to the hash table.
  * @param hash Hash table.
  * @param b Position.
  */
@@ -757,7 +907,7 @@ bool positionhash_append(PositionHash *hash, const Board *b)
  * @param board position.
  * @param depth depth.
  */
-static uint64_t count_position(PositionHash *hash, BoardCache *cache, const Board *board, const int depth)
+static uint64_t count_position(PositionHash *hash, BoardCache *cache, const Board *board, const int depth, const bool count_pass)
 {
 	uint64_t nodes = 0;
 	uint64_t moves;
@@ -771,11 +921,11 @@ static uint64_t count_position(PositionHash *hash, BoardCache *cache, const Boar
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				nodes += count_position(hash, cache, &next, depth - 1);
+				nodes += count_position(hash, cache, &next, depth - 1, count_pass);
 			}
 		} else if (can_move(board->opponent, board->player)) {
 			board_next(board, PASS, &next);
-			nodes += count_position(hash, cache, &next, depth);
+			nodes += count_position(hash, cache, &next, depth - count_pass, count_pass);
 		}
 		boardcache_append(cache, board);
 	}
@@ -790,7 +940,7 @@ static uint64_t count_position(PositionHash *hash, BoardCache *cache, const Boar
  * @param board position.
  * @param depth depth.
  */
-static uint64_t count_position_6x6(PositionHash *hash, BoardCache *cache, const Board *board, const int depth)
+static uint64_t count_position_6x6(PositionHash *hash, BoardCache *cache, const Board *board, const int depth, const bool count_pass)
 {
 	uint64_t nodes = 0;
 	uint64_t moves;
@@ -804,11 +954,11 @@ static uint64_t count_position_6x6(PositionHash *hash, BoardCache *cache, const 
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				nodes += count_position_6x6(hash, cache, &next, depth - 1);
+				nodes += count_position_6x6(hash, cache, &next, depth - 1, count_pass);
 			}
 		} else if (can_move_6x6(board->opponent, board->player)) {
 			board_next(board, PASS, &next);
-			nodes += count_position_6x6(hash, cache, &next, depth);
+			nodes += count_position_6x6(hash, cache, &next, depth - count_pass, count_pass);
 		}
 		boardcache_append(cache, board);
 	}
@@ -822,7 +972,7 @@ static uint64_t count_position_6x6(PositionHash *hash, BoardCache *cache, const 
  * @param depth depth.
  * @param size board_size (8 or 6).
  */
-void count_positions(const Board *board, const int depth, const int size)
+void count_positions(const Board *board, const int depth, const bool count_pass, const int size)
 {
 	int i;
 	uint64_t n, c;
@@ -832,17 +982,17 @@ void count_positions(const Board *board, const int depth, const int size)
 
 
 	board_print(board, BLACK, stdout);
-	puts("\n discs       nodes         total            time   speed");
+	printf("\n %5s       nodes         total            time   speed\n", ply_string(count_pass));
 	puts("----------------------------------------------------------");
 	c = 0;
-	for (i = 0; i <= depth; ++i) {
+	for (i = 1; i <= depth; ++i) {
 		positionhash_init(&hash, options.hash_table_size);
 		boardcache_init(&cache, options.hash_table_size);
 		t = -cpu_clock();
-		if (size == 6) c += (n = count_position_6x6(&hash, &cache, board, i));
-		else c += (n = count_position(&hash, &cache, board, i));
+		if (size == 6) c += (n = count_position_6x6(&hash, &cache, board, i, count_pass));
+		else c += (n = count_position(&hash, &cache, board, i, count_pass));
 		t += cpu_clock();
-		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", i + 4, n, c);
+		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", ply_value(i, count_pass, 1), n, c);
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(c / (0.001 * t + 0.001), "N/s\n", stdout);
 		positionhash_delete(&hash);
@@ -850,7 +1000,6 @@ void count_positions(const Board *board, const int depth, const int size)
 	}
 	puts("----------------------------------------------------------");
 }
-
 
 /**
  * @brief unique shape.
@@ -983,7 +1132,7 @@ static bool shapehash_append(ShapeHash *hash, const Board *b)
  * @param board shape.
  * @param depth depth.
  */
-static uint64_t count_shape(ShapeHash *hash, BoardCache *cache, const Board *board, const int depth)
+static uint64_t count_shape(ShapeHash *hash, BoardCache *cache, const Board *board, const int depth, const bool count_pass)
 {
 	uint64_t nodes = 0;
 	uint64_t moves;
@@ -997,12 +1146,12 @@ static uint64_t count_shape(ShapeHash *hash, BoardCache *cache, const Board *boa
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				nodes += count_shape(hash, cache, &next, depth - 1);
+				nodes += count_shape(hash, cache, &next, depth - 1, count_pass);
 			}
 		} else {
 			board_next(board, PASS, &next);
 			if (can_move(board->player, board->opponent)) {
-				nodes += count_shape(hash, cache, &next, depth);
+				nodes += count_shape(hash, cache, &next, depth - count_pass, count_pass);
 			}
 		}
 		boardcache_append(cache, board);
@@ -1018,7 +1167,7 @@ static uint64_t count_shape(ShapeHash *hash, BoardCache *cache, const Board *boa
  * @param board Board.
  * @param depth depth.
  */
-static uint64_t count_shape_6x6(ShapeHash *hash, BoardCache *cache, const Board *board, const int depth)
+static uint64_t count_shape_6x6(ShapeHash *hash, BoardCache *cache, const Board *board, const int depth, const bool count_pass)
 {
 	uint64_t nodes = 0;
 	uint64_t moves;
@@ -1032,12 +1181,12 @@ static uint64_t count_shape_6x6(ShapeHash *hash, BoardCache *cache, const Board 
 		if (moves) {
 			foreach_bit (x, moves) {
 				board_next(board, x, &next);
-				nodes += count_shape_6x6(hash, cache, &next, depth - 1);
+				nodes += count_shape_6x6(hash, cache, &next, depth - 1, count_pass);
 			}
 		} else {
 			board_next(board, PASS, &next);
 			if (can_move_6x6(board->player, board->opponent)) {
-				nodes += count_shape_6x6(hash, cache, &next, depth);
+				nodes += count_shape_6x6(hash, cache, &next, depth - count_pass, count_pass);
 			}
 		}
 		boardcache_append(cache, board);
@@ -1053,7 +1202,7 @@ static uint64_t count_shape_6x6(ShapeHash *hash, BoardCache *cache, const Board 
  * @param depth depth.
  * @param size size (8 or 6).
  */
-void count_shapes(const Board *board, const int depth, const int size)
+void count_shapes(const Board *board, const int depth, const bool count_pass, const int size)
 {
 	int i;
 	uint64_t n, c;
@@ -1062,17 +1211,17 @@ void count_shapes(const Board *board, const int depth, const int size)
 	BoardCache cache;
 
 	board_print(board, BLACK, stdout);
-	puts("\n discs       nodes         total            time   speed");
+	printf("\n %5s       nodes         total            time   speed\n", ply_string(count_pass));
 	puts("----------------------------------------------------------");
 	c = 0;
 	for (i = 0; i <= depth; ++i) {
 		shapehash_init(&hash, options.hash_table_size);
 		boardcache_init(&cache, options.hash_table_size);
 		t = -cpu_clock();
-		if (size == 6) c += (n = count_shape_6x6(&hash, &cache, board, i));
-		else c += (n = count_shape(&hash, &cache, board, i));
+		if (size == 6) c += (n = count_shape_6x6(&hash, &cache, board, i, count_pass));
+		else c += (n = count_shape(&hash, &cache, board, i, count_pass));
 		t += cpu_clock();
-		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", i + 4, n, c);
+		printf("  %2d, %12" PRIu64 ", %12" PRIu64 ", ", ply_value(i, count_pass, 1), n, c);
 		time_print(t, true, stdout);	printf(", ");
 		print_scientific(c / (0.001 * t + 0.001), "N/s\n", stdout);
 		shapehash_delete(&hash);
@@ -1116,4 +1265,3 @@ bool seek_position(const Board *target, const Board *board, Line *line) {
 
 	return false;
 }
-
