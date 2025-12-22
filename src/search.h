@@ -3,9 +3,9 @@
  *
  * Search's header file.
  *
- * @date 1998 - 2024
+ * @date 1998 - 2025
  * @author Richard Delorme
- * @version 4.6
+ * @version 4.7
  */
 
 #ifndef EDAX_SEARCH_H
@@ -94,7 +94,7 @@ typedef struct Search {
 	MoveList movelist;                            /**< list of moves */
 	NodeType node_type[GAME_SIZE];                /**< node type (pv node, cut node, all node) */
 	Bound stability_bound;                        /**< score bounds according to stable squares */
-	Stop stop;                                    /**< thinking status */
+	_Atomic Stop stop;                            /**< thinking status */
 	int depth;                                    /**< depth level */
 	int selectivity;                              /**< selectivity level */
 	int probcut_level;                            /**< probcut recursivity level */
@@ -132,7 +132,6 @@ extern const uint8_t QUADRANT_ID[];
 extern const Selectivity selectivity_table[];
 extern const int NO_SELECTIVITY;
 extern const int8_t NWS_STABILITY_THRESHOLD[];
-extern const int8_t PVS_STABILITY_THRESHOLD[];
 extern const uint8_t SQUARE_TYPE[];
 
 /* function definition */
@@ -154,6 +153,7 @@ void search_time_reset(Search*, const Board*);
 void search_adjust_time(Search*, const bool);
 bool search_continue(Search *);
 void search_check_timeout(Search *search);
+bool search_is_solving(Search *search);
 
 void search_set_task_number(Search*, const int);
 
@@ -175,13 +175,10 @@ int get_pv_extension(const int, const int);
 
 void result_print(Result*, FILE*);
 
-bool search_SC_PVS(Search*, int*, int*, int*);
 bool search_SC_NWS(Search*, const int, int*);
 bool search_SC_NWS_full(Search*, const int, int*, uint64_t*);
 bool search_SC_NWS_4(Search*, const int, int*);
-bool search_TC_PVS(HashData*, const int, const int, int*, int*, int*);
 bool search_TC_NWS(HashData*, const int, const int, const int, int*);
-bool search_ETC_PVS(Search*, MoveList*, uint64_t, const int, const int, int*, int*, int*);
 bool search_ETC_NWS(Search*, MoveList*, uint64_t, const int, const int, const int, int*);
 
 NodeType next_node_type(const NodeType parent, const bool first_move);
@@ -206,7 +203,6 @@ void iterative_deepening(Search*, int, int);
 int search_run(void*);
 int search_guess(Search*, const Board*);
 void search_stop_all(Search*, const Stop);
-void search_set_state(Search*, const Stop);
 
 void search_observer(Result*);
 void search_set_observer(Search*, void (*Observer)(Result*));
@@ -221,5 +217,29 @@ int search_get_pv_cost(Search*);
 void show_current_move(FILE *f, Search*, const Move*, const int, const int, const bool);
 int search_bound(const Search*, int);
 
-#endif
+/**
+ * @brief Atomicly set the search running/waiting state.
+ *
+ * @param search Search.
+ * @param stop State.
+ */
+static inline void search_set_state(Search *search, const Stop stop)
+{
+	atomic_store_explicit(&search->stop, stop, memory_order_release);
+}
 
+/**
+ * @brief Atomicly get the search running/waiting state.
+ *
+ * @param search Search.
+ * @param stop State.
+ */
+static inline Stop search_get_state(Search *search)
+{
+	Stop stop;
+	stop = atomic_load_explicit(&search->stop, memory_order_acquire);
+	return stop;
+}
+
+
+#endif
