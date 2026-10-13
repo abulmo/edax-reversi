@@ -3,7 +3,7 @@
  *
  * @brief User interface.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -59,6 +59,9 @@ bool ui_switch(UI *ui, const char *ui_type)
 #endif
 	} else if (strcmp(ui_type, "cassio") == 0) {
 		ui->type = UI_CASSIO;
+		ui->init = ui_init_cassio;
+		ui->free = ui_free_cassio;
+		ui->loop = ui_loop_cassio;
 		return true;
 	}
 

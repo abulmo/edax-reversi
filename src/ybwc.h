@@ -3,7 +3,7 @@
  *
  * @brief Parallel search header.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -78,7 +78,7 @@ struct Move * node_next_move(Node*);
 /* task function declaration */
 int task_loop(void*);
 int task_help(void*);
-void task_set(Task*, Node*, Move*);
+void task_set(Task*, Node*, struct Move*);
 void task_init(Task*);
 void task_free(Task*);
 void task_update(Task*);

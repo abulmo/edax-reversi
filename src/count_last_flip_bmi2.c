@@ -2,7 +2,7 @@
  * @file count_last_flip_bmi2.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
@@ -17,7 +17,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -116,22 +116,22 @@ const uint8_t COUNT_FLIP[8][256] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-int count_last_flip(int x, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
-	uint_fast8_t	n_flipped;
-	int	h = x & 7;
-	int	v = x >> 3;
+	uint_fast8_t n_flipped;
+	const uint8_t *COUNT_FLIP_H = COUNT_FLIP[x & 7];
+	const uint8_t *COUNT_FLIP_V = COUNT_FLIP[x >> 3];
 
-	P &= MASK_X[x][3];	// mask out unrelated bits to make dummy 0 bits for outside
-	// n_flipped  = COUNT_FLIP[x][_bextr_u64(P, pos & 0x38, 8)];
-	n_flipped  = COUNT_FLIP[h][(P >> (x & 0x38)) & 0xFF];
-	n_flipped += COUNT_FLIP[v][_pext_u64(P, MASK_X[x][0])];
-	n_flipped += COUNT_FLIP[v][_pext_u64(P, MASK_X[x][1])];
-	n_flipped += COUNT_FLIP[v][_pext_u64(P, MASK_X[x][2])];
+
+	const uint64_t flip_dir = P & MASK_X[x][3];	// mask out unrelated bits to make dummy 0 bits for outside
+	n_flipped  = COUNT_FLIP_H[(flip_dir >> (x & 0x38)) & 0xFF];
+	n_flipped += COUNT_FLIP_V[_pext_u64(flip_dir, MASK_X[x][0])];
+	n_flipped += COUNT_FLIP_V[_pext_u64(flip_dir, MASK_X[x][1])];
+	n_flipped += COUNT_FLIP_V[_pext_u64(flip_dir, MASK_X[x][2])];
 
 	return n_flipped;
 }

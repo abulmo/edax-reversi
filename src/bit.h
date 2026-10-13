@@ -3,7 +3,7 @@
  *
  * Bitwise operations header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -55,7 +55,7 @@ uint64_t bit_rotate_left_64(const uint64_t, const int);
 	unsigned char: bit_rotate_left_8(b, n), \
 	unsigned short: bit_rotate_left_16(b, n), \
 	unsigned int:bit_rotate_left_32(b, n), \
-	unsigned long:bit_rotate_left_(b, n), \
+	unsigned long:bit_rotate_left_64(b, n), \
 	unsigned long long:bit_rotate_left_64(b, n))
 
 #define bit_rotate_right(b, n) _Generic((b), \
@@ -79,7 +79,9 @@ void bit_test(void);
 /** Loop over each bit set. */
 #define foreach_bit(i, b) for (i = first_bit(b); b; i = next_bit(&b))
 
+/** Bitboard for each square (1 << i */
 extern const uint64_t X_TO_BIT[];
+
 /** Return a bitboard with bit x set. */
 #define x_to_bit(x) X_TO_BIT[x]
 

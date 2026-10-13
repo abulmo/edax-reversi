@@ -3,7 +3,7 @@
  *
  * Header file for game base management.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -33,7 +33,7 @@ typedef struct WthorHeader {
 	uint8_t reserved;          /**< reserved */
 	uint16_t n;                /**< number of player or tournaments */
 	uint16_t game_year;        /**< year of the game */
-	int32_t n_games;          /**< number of games*/
+	uint32_t n_games;          /**< number of games*/
 } WthorHeader;
 
 /**
@@ -47,7 +47,7 @@ typedef struct WthorBase {
 	char (*player)[20];        /** players */
 	int32_t n_players;         /** tournament players */
 	WthorGame *game;           /** games */
-	int32_t n_games;           /** n_games */
+	uint32_t n_games;           /** n_games */
 } WthorBase;
 
 /**
@@ -56,8 +56,8 @@ typedef struct WthorBase {
  */
 typedef struct Base {
 	Game *game;
-	int32_t n_games;
-	int32_t size;
+	size_t n_games;
+	size_t size;
 } Base;
 
 /* function declarations */

@@ -3,7 +3,7 @@
  *
  * Opening Name aliasing.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -246,7 +246,7 @@ static const OpeningName OPENING_NAME[] = {
 	{"f5d6c4d3c5f4e3f3c2c6e6d2g4b6b5g3c7a5", "chat russe"},
 	{"f5d6c4d3c5f4e3f3c2c6e6d2g4b6b5g3c7a5f2", "romaine des minis diagos"},
 	{"f5d6c4d3c5f4e3f3c2c6e6d2g4b6b5g3d1c3", "chat svirskiy"},
-	{"f5d6c4d3c5f4e3f3g4", "chat americaine"},
+	{"f5d6c4d3c5f4e3f3g4", "chat américaine"},
 	{"f5d6c4d3e6", "italienne"},
 	{"f5d6c4g5", "ganglion"},
 	{"f5d6c5", "perpendiculaire classique"},
@@ -256,11 +256,11 @@ static const OpeningName OPENING_NAME[] = {
 	{"f5d6c5f4d3c4c3c6e3", "crochet en coin"},
 	{"f5d6c5f4d3c4c3c6e3b5", "crochet tastet"},
 	{"f5d6c5f4d3c4c3c6e3f6", "crochet pseudo-rose"},
-	{"f5d6c5f4d3c4c3c6e6b5", "crochet interieur"},
+	{"f5d6c5f4d3c4c3c6e6b5", "crochet intérieur"},
 	{"f5d6c5f4d3c4e3", "cheval muller"},
-	{"f5d6c5f4d3c4e3c3", "muller d'ete symetrique"},
+	{"f5d6c5f4d3c4e3c3", "muller d'été symétrique"},
 	{"f5d6c5f4d3c4e3e6", "muller en coins"},
-	{"f5d6c5f4d3c4e3e6f6g5c3e7", "muller fusee"},
+	{"f5d6c5f4d3c4e3e6f6g5c3e7", "muller fusée"},
 	{"f5d6c5f4d3c4e3e6f6g5c3g6", "muller en coins décalée"},
 	{"f5d6c5f4d3e3", "cheval transversale"},
 	{"f5d6c5f4d3e3g4g3", "cheval daunas"},
@@ -1296,10 +1296,11 @@ static int to_lower_no_accent(int c)
 }
 
 /**
- * Compare two string, ignoring accents, font case, etc.
+ * Compare two strings, ignoring accents, font case, etc.
  *
  * @param s1 first string.
  * @param s2 second string.
+ * @return true when the string are equal, false otherwise.
  */
 static bool match(const char *s1, const char *s2)
 {
@@ -1354,7 +1355,7 @@ const char *opening_get_line(const char *opening_name)
  * @brief Check if a board has got an english opening name.
  *
  * @param board Board.
- * return An opening name, or NULL if none has been found.
+ * @return An opening name, or NULL if none has been found.
  */
 const char *opening_get_english_name(const Board *board)
 {
@@ -1373,7 +1374,7 @@ const char *opening_get_english_name(const Board *board)
  * @brief Check if a board has got a french opening name.
  *
  * @param board Board.
- * return An opening name, or NULL if none has been found.
+ * @return An opening name, or NULL if none has been found.
  */
 const char *opening_get_french_name(const Board *board)
 {

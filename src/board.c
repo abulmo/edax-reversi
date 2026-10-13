@@ -11,7 +11,7 @@
  * some board properties. Most of the functions are optimized to be as fast as
  * possible, while remaining readable.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -69,36 +69,6 @@
 	#include "flip_sve_lzcnt.c"
 #else
 	#error "You need to provide a file to compute which discs a move shall flip"
-#endif
-
-#if COUNT_LAST_FLIP == COUNT_LAST_FLIP_KINDERGARTEN
-	#include "count_last_flip_kindergarten.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_PLAIN
-	#include "count_last_flip_plain.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_AVX512CD
-	#include "count_last_flip_avxx512cd.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_AVX_PPFILL
-	#include "count_last_flip_avx_ppfill.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_BITSCAN
-	#include "count_last_flip_bitscan.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_BMI2
-	#include "count_last_flip_bmi2.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_BMI
-	#include "count_last_flip_bmi.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_CARRY_64
-	#include "count_last_flip_carry_64.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_LZCNT
-	#include "count_last_flip_lzcnt.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_SSE
-	#include "count_last_flip_sse.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON
-	#include "count_last_flip_neon.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON_VADDVQ
-	#include "count_last_flip_neon.c"
-#elif COUNT_LAST_FLIP == COUNT_LAST_FLIP_SVE_LZCNT
-	#include "count_last_flip_sve_lzcnt.c"
-#else
-	#error "You need to provide a file to compute which flipped discs to count"
 #endif
 
 /** edge stability global data */
@@ -209,6 +179,9 @@ int board_from_FEN(Board *board, const char *string)
 			return EMPTY;
 		}
 	}
+
+	// check for truncated FEN
+	if (i != 8) return EMPTY;
 
 	s = parse_skip_spaces(s);
 	if (*s == 'b') {
@@ -379,7 +352,7 @@ static uint64x2_t horizontal_mirror_neon(const uint64x2_t board)
 }
 
 /**
- * @brief Mirror a board vertcally using Neon's instructions.
+ * @brief Mirror a board vertically using Neon's instructions.
  *
  * @param b input boards
  * @param sym output boards
@@ -409,7 +382,7 @@ static uint64x2_t transpose_neon(const uint64x2_t board)
  * @brief Mirror a board  horizontally
  *
  * @param board input board
- * @param sym output board, horrizontally mirrored
+ * @param sym output board, horizontally mirrored
  */
 void board_horizontal_mirror(const Board *board, Board *sym)
 {
@@ -422,10 +395,10 @@ void board_horizontal_mirror(const Board *board, Board *sym)
 }
 
 /**
- * @brief Mirror a board  horizontally
+ * @brief Mirror a board vertically
  *
  * @param board input board
- * @param sym output board, horrizontally mirrored
+ * @param sym output board, vertically mirrored
  */
 void board_vertical_mirror(const Board *board, Board *sym)
 {
@@ -449,7 +422,7 @@ void board_vertical_mirror(const Board *board, Board *sym)
  */
 void board_transpose(const Board *board, Board *sym)
 {
-#if defined(_ARM_NEON)
+#if USE_SIMD && defined(__ARM_NEON)
 
 	vst1q_u64((uint64_t *) sym, transpose_neon(vld1q_u64((uint64_t *) board)));
 
@@ -461,13 +434,13 @@ void board_transpose(const Board *board, Board *sym)
 
 
 /**
- * @brief symetric board
+ * @brief symmetric board
  *
  * @param board input board
- * @param s symetry
- * @param sym symetric output board
+ * @param s symmetry
+ * @param sym symmetric output board
  */
-void board_symetry(const Board *board, const int s, Board *sym)
+void board_symmetry(const Board *board, const int s, Board *sym)
 {
 
 #if USE_SIMD && defined(__AVX__)
@@ -541,7 +514,7 @@ int board_unique(const Board *board, Board *unique)
 
 	*unique = *board;
 	for (i = 1; i < 8; ++i) {
-		board_symetry(board, i, &sym);
+		board_symmetry(board, i, &sym);
 		if (board_lesser(&sym, unique)) {
 			*unique = sym;
 			s = i;
@@ -683,17 +656,14 @@ uint64_t board_next(const Board *board, const int x, Board *next)
 }
 
 /**
- * @brief Get a part of the moves.
+ * @brief Get a part of the moves for ARM/Neon CPU.
  *
  * Partially compute a bitboard where each coordinate with a legal move is set to one.
  *
- * Three variants of the algorithm are provided, one based on Kogge-Stone parallel
- * prefix.
- *
- * @param P bitboard with player's discs.
- * @param mask bitboard with flippable opponent's discs.
+ * @param PO 2 bitboard with player's discs.
+ * @param MM 2 bitboard with flippable opponent's discs.
  * @param dir flipping direction.
- * @return some legal moves in a 64-bit unsigned integer.
+ * @return some legal moves in 2 64-bit unsigned integer.
  */
 #if USE_SIMD && defined(__ARM_NEON)
 
@@ -718,6 +688,19 @@ uint64_t board_next(const Board *board, const int x, Board *next)
 
 #endif
 
+/**
+ * @brief Get a part of the moves.
+ *
+ * Partially compute a bitboard where each coordinate with a legal move is set to one.
+ *
+ * Three variants of the algorithm are provided, one based on Kogge-Stone parallel
+ * prefix.
+ *
+ * @param P bitboard with player's discs.
+ * @param mask bitboard with flippable opponent's discs.
+ * @param dir flipping direction.
+ * @return some legal moves in a 64-bit unsigned integer.
+ */
 static inline uint64_t get_some_moves(const uint64_t P, const uint64_t mask, const int dir)
 {
 
@@ -967,7 +950,7 @@ uint64_t get_potential_moves(const uint64_t P, const uint64_t O)
  *
  * @param PP broadcasted bitboard with player's discs.
  * @param OO broadcasted bitboard with opponent's discs.
- * @return potential moves in a higner 64-bit, real moves in a lower 64-bit.
+ * @return potential moves in a higher 64-bit, real moves in a lower 64-bit.
  */
 __m128i vectorcall get_moves_and_potential(__m256i PP, __m256i OO)
 {
@@ -1278,7 +1261,7 @@ uint64_t get_full_lines(const uint64_t disc, uint64_t full[4])
  *
  * @param P bitboard with player's discs.
  * @param O bitboard with opponent's discs.
- * @return the number of stable discs.
+ * @return A bitboard of stable discs.
  */
 // too slow on zen3 cpu
 #if 0 && USE_SIMD && defined(__AVX2__)
@@ -1534,7 +1517,7 @@ bool board_is_game_over(const Board *board)
  * @brief Check if the game is over.
  *
  * @param board board.
- * @return true if game is over, false otherwise.
+ * @return the number of empty squares.
  */
 int board_count_empties(const Board *board)
 {
@@ -1719,18 +1702,11 @@ void board_test(void) {
 	board_test_check(&in, &out, "board_set");
 
 	for (int i = 0; i < 8; ++i) {
-		board_symetry(&in, i, &out);
-		board_test_check(&out, &sym[i], "board_symetry");
+		board_symmetry(&in, i, &out);
+		board_test_check(&out, &sym[i], "board_symmetry");
 	}
 	board_unique(&in, &out);
 	board_test_check(&out, &sym[4], "board_unique");
-
-	Board board = { 18304334016151747588ul, 142410057557804025ul };
-	int n_flip = count_last_flip(B1, board.player);
-	if (n_flip != 2) {
-		board_print(&board, 0, stderr);
-		fprintf(stderr, "n_flip = %d != 2\n", n_flip);
-	}
 
 	fprintf(stderr, "board_test done\n");
 }

@@ -2,7 +2,7 @@
  * @file count_last_flip_sse.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
@@ -17,7 +17,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -182,43 +182,29 @@ const V4DI mask_dvhd[64] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-
-int count_last_flip(int pos, uint64_t P)
+static inline int count_last_flip(int x, uint64_t P)
 {
-	uint_fast8_t	n_flips;
-	unsigned int	t;
-	const uint8_t *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const uint8_t *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-  #ifdef AVXLASTFLIP	// no gain
-	__m256i PP = _mm256_set1_epi64x(P);
+	uint_fast8_t n_flips;
+	uint32_t t;
+	const uint8_t *COUNT_FLIP_H = COUNT_FLIP[x & 7];
+	const uint8_t *COUNT_FLIP_V = COUNT_FLIP[x >> 3];
+ 	__m128i PP = _mm_set1_epi64x(P);
+	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[x].v2[0]), _mm_setzero_si128());
 
-	n_flips  = COUNT_FLIP_X[(P >> (pos & 0x38)) & 0xFF];
+	n_flips  = COUNT_FLIP_H[_mm_extract_epi16(II, 4)];
+	n_flips += COUNT_FLIP_H[_mm_cvtsi128_si32(II)];
     #ifdef __AVX512VL__
-    	t = _cvtmask32_u32(_mm256_test_epi8_mask(PP, mask_dvhd[pos].v4));
+    	t = _cvtmask16_u32(_mm_test_epi8_mask(PP, mask_dvhd[x].v2[1]));
     #else
-	t = _mm256_movemask_epi8(_mm256_sub_epi8(_mm256_setzero_si256(), _mm256_and_si256(PP, mask_dvhd[pos].v4)));
+    	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[x].v2[1])));
     #endif
-	n_flips += COUNT_FLIP_Y[t & 0xFF];
-	t >>= 16;
 
-  #else
-	__m128i PP = _mm_set1_epi64x(P);
-	__m128i II = _mm_sad_epu8(_mm_and_si128(PP, mask_dvhd[pos].v2[0]), _mm_setzero_si128());
-
-	n_flips  = COUNT_FLIP_X[_mm_extract_epi16(II, 4)];
-	n_flips += COUNT_FLIP_X[_mm_cvtsi128_si32(II)];
-    #ifdef __AVX512VL__
-    	t = _cvtmask16_u32(_mm_test_epi8_mask(PP, mask_dvhd[pos].v2[1]));
-    #else
-	t = _mm_movemask_epi8(_mm_sub_epi8(_mm_setzero_si128(), _mm_and_si128(PP, mask_dvhd[pos].v2[1])));
-    #endif
-  #endif
-	n_flips += COUNT_FLIP_Y[t >> 8];
-	n_flips += COUNT_FLIP_Y[t & 0xFF];
+	n_flips += COUNT_FLIP_V[t >> 8];
+    n_flips += COUNT_FLIP_V[t & 0xFF];
 
 	return n_flips;
 }

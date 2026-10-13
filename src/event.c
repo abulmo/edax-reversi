@@ -3,7 +3,7 @@
  *
  * Event management.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -33,6 +33,8 @@ void event_init(Event *event)
 	mtx_init(&event->cond_mutex, mtx_plain);
 	cnd_init(&event->condition);
 
+	debug("event_init");
+
 	event->loop = true;
 }
 
@@ -55,6 +57,8 @@ void event_clear_messages(Event *event)
 	event->end = 0;
 
 	mtx_unlock(&event->mutex);
+
+	debug("event_clear_messages");
 }
 
 
@@ -116,7 +120,7 @@ void event_add_message(Event *event, char *message)
 	}
 
 	event->ring[last] = message;
-	info("[event add [%d]: %s]\n", last, message);
+	info("[event add [%d]: \"%s\"]\n", last, message);
 
 	mtx_unlock(&event->mutex);
 }
@@ -140,14 +144,11 @@ void event_wait(Event *event, char **cmd, char **param)
 	}
 	mtx_unlock(&event->cond_mutex);
 
-	free(*cmd);
-	free(*param);
-
-	info("[event wait: %s]\n", message);
+	info("[event wait: \"%s\"]\n", message);
 
 	n = strlen(message);
-	*cmd = (char*) malloc(n + 1);
-	*param = (char*) malloc(n + 1);
+	*cmd = (char*) realloc(*cmd, n + 1);
+	*param = (char*) realloc(*param, n + 1);
 	parse_command(message, *cmd, *param, n);
 	free(message);
 }
@@ -183,7 +184,7 @@ bool event_exist(Event *event)
  * @param event Event;
  * @return the message.
  */
-char *event_peek_message(Event *event)
+char* event_peek_message(Event *event)
 {
 	char *message;
 

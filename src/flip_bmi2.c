@@ -29,7 +29,7 @@
  * 64-bits disc pattern, and the flipped squares for each line are gathered and
  * returned to generate moves.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Toshihiko Okuhara
  * @version 4.7
  */
@@ -183,35 +183,54 @@ const uint8_t FLIPPED[8][144] = {
 	},
 };
 
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
 uint64_t flip(const int x, uint64_t P, const uint64_t O)
 {
 	int	index;
 	uint64_t flipped, mask;
 	const int h = x & 7;
-	int v = (x & 56);
+	const int v = x >> 3;
+	const int vx8 = x & 56;
+	const uint64_t *MASK = MASK_X[x];
+	const uint8_t *FLIPPED_H = FLIPPED[h];
+	const uint8_t *FLIPPED_V = FLIPPED[v];
+	const uint8_t *OUTFLANK_H = OUTFLANK[h];
+	const uint8_t *OUTFLANK_V = OUTFLANK[v];
 
-	P &= MASK_X[x][3];
+	P &= MASK[3];
 
-	index = OUTFLANK[h][_bextr_u32((O >> v), 1, 6)] & (P >> v);
-	flipped = ((uint64_t) FLIPPED[h][index]) << v;
+	index = OUTFLANK_H[_bextr_u32((O >> vx8), 1, 6)] & (P >> vx8);
+	flipped = ((uint64_t) FLIPPED_H[index]) << vx8;
 
-	v >>= 3;
-	mask = MASK_X[x][0];
-	index = OUTFLANK[v][_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
-	flipped |= _pdep_u64(FLIPPED[v][index], mask);
+	mask = MASK[0];
+	index = OUTFLANK_V[_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
+	flipped |= _pdep_u64(FLIPPED_V[index], mask);
 
-	mask = MASK_X[x][1];
-	index = OUTFLANK[v][_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
-	flipped |= _pdep_u64(FLIPPED[v][index], mask);
+	mask = MASK[1];
+	index = OUTFLANK_V[_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
+	flipped |= _pdep_u64(FLIPPED_V[index], mask);
 
-	mask = MASK_X[x][2];
-	index = OUTFLANK[v][_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
-	flipped |= _pdep_u64(FLIPPED[v][index], mask);
+	mask = MASK[2];
+	index = OUTFLANK_V[_bextr_u32(_pext_u64(O, mask), 1, 6)] & _pext_u64(P, mask);
+	flipped |= _pdep_u64(FLIPPED_V[v][index], mask);
 
 	return flipped;
 }
 
-
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
 uint64_t board_flip(const Board *board, const int x)
 {
 	return flip(x, board->player, board->opponent);

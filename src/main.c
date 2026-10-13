@@ -3,7 +3,7 @@
  *
  * @brief Main file.
  *
-  * @date 1998 - 2025
+  * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -35,7 +35,7 @@ void version(void)
 #elif defined(__APPLE__)
 		" for Apple"
 #endif
-		"\ncopyright 1998 - 2025 Richard Delorme, Toshihiko Okuhara\n\n");
+		"\ncopyright 1998 - 2026 Richard Delorme, Toshihiko Okuhara\n\n");
 }
 
 /**
@@ -54,7 +54,8 @@ void usage(void)
 		" -solve <problem_file>    Automatic problem solver/checker.\n"
 		" -wtest <wthor_file>      Test edax using WThor's theoric score.\n"
 		" -count <level>           Count positions up to <level>.\n"
-		" -complete <in> <out>     Complete a database.\n");
+		" -complete <in> <out>     Complete a database.\n"
+		" -test                    Run some basic unit test.\n");
 	options_usage();
 }
 
@@ -127,7 +128,6 @@ int main(int argc, char **argv)
 	edge_stability_init();
 	statistics_init();
 	eval_open(options.eval_file);
-	search_global_init();
 
 	// solver & tester
 	if (problem_file || wthor_file || n_bench) {
@@ -138,9 +138,9 @@ int main(int argc, char **argv)
 		if (problem_file) obf_test(&search, problem_file, NULL);
 		if (wthor_file) wthor_test(wthor_file, &search);
 		if (n_bench) obf_speed(&search, n_bench);
-		HASH_STATS(printf("pv_table     : %12llu stores %12llu probes %12llu found probes\n", search.pv_table.n_store, search.pv_table.n_try, search.pv_table.n_found);)
-		HASH_STATS(printf("hash_table   : %12llu stores %12llu probes %12llu found probes\n", search.hash_table.n_store, search.hash_table.n_try, search.hash_table.n_found);)
-		HASH_STATS(printf("shallow_table: %12llu stores %12llu probes %12llu found probes\n", search.shallow_table.n_store, search.shallow_table.n_try, search.shallow_table.n_found);)
+		HASH_STATS(printf("pv_table     : %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", search.pv_table.n_store, search.pv_table.n_try, search.pv_table.n_found);)
+		HASH_STATS(printf("hash_table   : %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", search.hash_table.n_store, search.hash_table.n_try, search.hash_table.n_found);)
+		HASH_STATS(printf("shallow_table: %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", search.shallow_table.n_store, search.shallow_table.n_try, search.shallow_table.n_found);)
 		search_free(&search);
 	} else if (base_in && base_out){
 		search_init(&search);
@@ -159,10 +159,10 @@ int main(int argc, char **argv)
 
 	} else if (test) {
 		// TODO: add more complete unit test
-		bit_test();
+		bit_test();	} else if (ui->type == UI_CASSIO) {
+			engine_loop();
+
 		board_test();
-	} else if (ui->type == UI_CASSIO) {
-		engine_loop();
 
 	// other protocols
 	} else {

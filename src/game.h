@@ -3,7 +3,7 @@
  *
  * Header file for game management
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -20,8 +20,9 @@
 /* structures */
 struct Random;
 
+/** Game struct */
 typedef struct Game {
-	Board initial_board;
+	Board initial_board;  //< initial position.
 	struct {
 		int16_t year;
 		uint8_t month;
@@ -29,24 +30,26 @@ typedef struct Game {
 		uint8_t hour;
 		uint8_t minute;
 		uint8_t second;
-	} date;
-	char name[2][32];
-	uint8_t move[60];
-	uint8_t player;
-	uint64_t hash;
+	} date;              //< date.
+	char name[2][32];    //< players' name.
+	uint8_t move[60];    //< list of moves (without passes).
+	uint8_t player;      //< starting color.
+	uint64_t hash;       //< hash value.
 } Game;
 
+/** Wthor game struct */
 typedef struct WthorGame {
-	short tournament, black, white;
-	int8_t score, theoric_score;
-	uint8_t x[60];
+	short tournament, black, white; //< indexes
+	int8_t score, theoric_score; //< score
+	uint8_t x[60]; //< moves
 } WthorGame;
 
+/** Oko game struct */
 typedef struct OkoGame {
-	uint8_t n;
-	int8_t score;
-	uint8_t flag;
-	uint8_t move[61];
+	uint8_t n;        //< Move number.
+	int8_t score;     //< Score.
+	uint8_t flag;     //< Flag (unused here).
+	uint8_t move[61]; //< list of moves.
 } OkoGame;
 
 /* function declarations */

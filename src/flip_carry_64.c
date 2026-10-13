@@ -37,7 +37,7 @@
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -2065,7 +2065,7 @@ static uint64_t flip_H8(const uint64_t P, const uint64_t O)
 }
 
 /**
- * Compute (zero-) flipped discs when plassing.
+ * Compute (zero-) flipped discs when passing.
  *
  * @param P player's disc pattern.
  * @param O opponent's disc pattern.
@@ -2091,11 +2091,26 @@ uint64_t (*FLIP[])(const uint64_t, const uint64_t) = {
 	flip_pass, flip_pass
 };
 
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	return FLIP[x](P, O);
+}
+
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
 uint64_t board_flip(const Board *board, const int x)
 {
 	return FLIP[x](board->player, board->opponent);
-}
-
-uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
-	return FLIP[x](P, O);
 }

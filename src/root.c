@@ -3,7 +3,7 @@
  *
  * Search near the end of the game.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -214,8 +214,6 @@ void record_best_move(Search *search, const Board *init_board, const Move *bestm
 	result->time = search_time(search);
 	result->n_nodes = search_count_nodes(search);
 
-	spinlock_unlock(&result->spin);
-
 	if (log_is_open(&search_log)) {
 		mtx_lock(&search_log.mutex);
 			log_print(&search_log, "%d> => BEST MOVE FOUND! ", search->id);
@@ -225,13 +223,16 @@ void record_best_move(Search *search, const Board *init_board, const Move *bestm
 			log_print(&search_log, "%+03d ≤ score = %+03d ≤ %+03d; time = ", result->bound[result->move].lower, result->score, result->bound[result->move].upper);
 			time_print(result->time, false, search_log.f);
 			log_print(&search_log, "; nodes = %" PRIu64 " N; ", result->n_nodes);
-			if (result->time > 0) {log_print(&search_log, "speed = %9.0f Nps", 1000.0 * result->n_nodes / result->time);}
+			if (result->time > 0) { log_print(&search_log, "speed = %9.0f Nps", 1000.0 * result->n_nodes / result->time); }
 			log_print(&search_log, "\n%d>    pv = ", search->id);
 			line_print(&result->pv, 200, " ", search_log.f);
 			log_print(&search_log, "\n%d>    pv-debug = ", search->id);
 			pv_debug(search, bestmove, search_log.f);
 		mtx_unlock(&search_log.mutex);
 	}
+
+	spinlock_unlock(&result->spin);
+
 
 	if (has_changed && options.noise <= depth && search->options.verbosity == 3) search->observer(search->result);
 }

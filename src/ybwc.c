@@ -22,7 +22,7 @@
  * ICCA Journal, Vol. 12, No. 2, pp. 65-73.
  * -# Feldmann R. (1993) Game-Tree Search on Massively Parallel System - PhD Thesis, Paderborn (English version).
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -108,13 +108,13 @@ void node_free(Node *node)
  * @param parent A parent node
  * @param node Searched node.
  * @param move Searched move.
- * @return true if an helper task has been launch, false otherwise.
+ * @return true if a helper task has been launched, false otherwise.
  */
 static Task* get_helper(Node *parent, Node *node, Move *move)
 {
 	Task *task = NULL;
 
-	if (parent) {
+	while (parent && task == NULL) {
 		// is parent available ?
 		if (parent->n_slave < SPLIT_MAX_SLAVES && parent->is_waiting && !parent->is_helping) {
 			mtx_lock(&parent->mutex);
@@ -127,8 +127,8 @@ static Task* get_helper(Node *parent, Node *node, Move *move)
 			}
 			mtx_unlock(&parent->mutex);
 		}
-		// if parent nosde is not available seek for an helper node from grand-parent node
-		if (task == NULL) task = get_helper(parent->parent, node, move);
+		// if parent node is not available seek for an helper node from grand-parent node
+		parent = parent->parent;
 	}
 
 	return task;
@@ -215,7 +215,7 @@ void node_wait_slaves(Node* node)
 		cnd_wait(&node->condition, &node->mutex);
 
 		if (node->is_helping) {
-			assert(node->help.run);
+			assert(node->help.run == false);
 			task_search(&node->help);
 			task_free(&node->help);
 			node->is_helping = false;
@@ -260,7 +260,7 @@ void node_update(Node* node, Move *move)
 			}
 			if (score > node->alpha) node->alpha = score;
 		}
-		if (node->alpha >= node->beta  && node->n_slave) { // stop slave ?
+		if (node->alpha >= node->beta && node->n_slave) { // stop slave ?
 			for (i = 0; i < node->n_slave; ++i) {
 				search_stop_all(node->slave[i], STOP_PARALLEL_SEARCH);
 				YBWC_STATS(atomic_fetch_add(&statistics.n_stopped_slave, 1);)
@@ -339,7 +339,7 @@ Move* node_next_move(Node *node)
 	return move;
 }
 
-/*
+/**
  * @brief task_set copy the search state to the task.
  *
  * @param task The task to setup.
@@ -446,7 +446,7 @@ void task_search(Task *task)
 
 
 /**
- * @brief The main loop runned by a task.
+ * @brief The main loop run by a task.
  *
  * When task->run is set to true, the task starts a parallel search.
  * In order to diminish the parallelism overhead, we do not launch a new
@@ -500,6 +500,7 @@ static Search* task_search_create(Task *task)
 	spinlock_init(&search->spin);
 	search->task = task;
 	search_set_state(search, STOP_END);
+	hash_init_thread_local(&search->thread_table, 1 << THREAD_LOCAL_HASH_SIZE);
 
 	return search;
 }
@@ -512,6 +513,7 @@ static Search* task_search_create(Task *task)
 static void task_search_destroy(Search *search)
 {
 	eval_free(&search->eval);
+	hash_free(&search->thread_table);
 	free(search);
 }
 

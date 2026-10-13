@@ -3,7 +3,7 @@
  *
  * Constants as macros, enums, or global consts.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -95,7 +95,7 @@ extern const uint8_t SQUARE_VALUE[];
 /** maximal evaluation */
 #define EVAL_MAX +63
 
-/** maximal time (1 millenium) */
+/** maximal time (1 millennium) */
 #define TIME_MAX 31557600000000LL
 
 /** 1 hour */

@@ -3,14 +3,14 @@
  *
  * File for opening book management.
  *
- * Edax book is a set of positions. Each position is unique concerning all possible symetries.
+ * Edax book is a set of positions. Each position is unique concerning all possible symmetries.
  * A position is made of an othello board, a set of moves leading to other positions in the book,
  * called here "link", and the best remaining move, as evaluated by a search at fixed depth, called
  * here leaf. It also contains win/draw/loss statistics, which is actually useless, and a score
  * with two bounds from retropropagated error.
- * Several algorithms are present to add positions in the book, in the most usefull way.
+ * Several algorithms are present to add positions in the book, in the most useful way.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -56,7 +56,8 @@ static void bprint(const char *format, ...)
 	}
 }
 
-/** struct Link
+/**
+ * struct Link
  * @brief a move (with its score) linking to another Position.
  */
 typedef struct Link {
@@ -71,6 +72,7 @@ const Link BAD_LINK = {-SCORE_INF, NOMOVE};
  *
  * @param link link to read in.
  * @param f input stream.
+ * @return true on success.
  */
 static inline bool link_read(Link *link, FILE *f)
 {
@@ -85,6 +87,7 @@ static inline bool link_read(Link *link, FILE *f)
  *
  * @param link link to write out.
  * @param f output stream.
+ * @return true on success.
  */
 static inline bool link_write(const Link *link, FILE *f)
 {
@@ -261,36 +264,6 @@ static void position_init(Position *position)
 }
 
 /**
- * @brief Merge a position with another one.
- *
- * A position is merged if its level is > to the destination position; or == and
- * its leaf move is not contains into the destination link moves.
- *
- * Note: link moves are not copied. This can be done later with position_link().
- *
- * @param dest Destination position.
- * @param src Source position.
- */
-static void position_merge(Position *dest, const Position *src)
-{
-	Link *l;
-
-	position_init(dest);		//??? dest->n_link = 0,
-	dest->board = src->board;
-	if (dest->level == src->level) {
-		foreach_link(l, dest) {	// so this does nothing
-			if (l->move == src->leaf.move) return;
-		}
-		dest->leaf = src->leaf;
-	} else if (dest->level > src->level) {
-		return;
-	} else {
-		dest->leaf = src->leaf;
-		dest->level = src->level;
-	}
-}
-
-/**
  * @brief Free resources used by a position.
  *
  * @param position Position.
@@ -305,6 +278,7 @@ static void position_free(Position *position)
  *
  * @param position Position to read in.
  * @param f Input stream.
+ * @return true on success.
  */
 static bool position_read(Position *position, FILE *f)
 {
@@ -349,6 +323,7 @@ static bool position_read(Position *position, FILE *f)
  *
  * @param position Position to read in.
  * @param f Input stream.
+ * @return true on success.
  */
 static bool position_import(Position *position, FILE *f)
 {
@@ -403,6 +378,7 @@ static bool position_import(Position *position, FILE *f)
  *
  * @param position position to write out.
  * @param f output stream.
+ * @return true on success.
  */
 static bool position_write(const Position *position, FILE* f)
 {
@@ -438,6 +414,7 @@ static bool position_write(const Position *position, FILE* f)
  *
  * @param p position to write out.
  * @param f output stream.
+ * @return true on success.
  */
 static bool position_export(const Position *p, FILE* f)
 {
@@ -449,7 +426,7 @@ static bool position_export(const Position *p, FILE* f)
 }
 
 /**
- * @brief Make position unique, regarding symetries.
+ * @brief Make position unique, regarding symmetries.
  *
  * @param position position.
  */
@@ -461,9 +438,9 @@ static void position_unique(Position *position)
 	board = position->board;
 	if ((s = board_unique(&board, &position->board)) != 0) {
 		for (i = 0; i < position->n_link; ++i) {
-			position->link[i].move = symetry(position->link[i].move, s);
+			position->link[i].move = symmetry(position->link[i].move, s);
 		}
-		position->leaf.move = symetry(position->leaf.move, s);
+		position->leaf.move = symmetry(position->leaf.move, s);
 	}
 }
 
@@ -473,6 +450,7 @@ static void position_unique(Position *position)
  * @param position position to get moves from.
  * @param board board.
  * @param movelist movelist.
+ * @return the symmetry of the board found compared to the actual board.
  */
 static int position_get_moves(const Position *position, const Board *board, MoveList *movelist)
 {
@@ -482,17 +460,17 @@ static int position_get_moves(const Position *position, const Board *board, Move
 	int i, x, s;
 
 	for (s = 0; s < 8; ++s) {
-		board_symetry(&position->board, s, &sym);
+		board_symmetry(&position->board, s, &sym);
 
 		if (board_equal(&sym, board)) {
 			for (i = 0; i < position->n_link; ++i) {
-				x = symetry(position->link[i].move, s);
+				x = symmetry(position->link[i].move, s);
 				board_get_move(board, x, move);
 				move->score = position->link[i].score;
 				previous = previous->next = move;
 				++move;
 			}
-			x = symetry(position->leaf.move, s);
+			x = symmetry(position->leaf.move, s);
 			if (x != NOMOVE) {
 				board_get_move(board, x, move);
 				move->score = position->leaf.score;
@@ -514,7 +492,7 @@ static int position_get_moves(const Position *position, const Board *board, Move
  * @brief print a position in a readable format.
  *
  * @param position position to print out.
- * @param board Symetrical board to use.
+ * @param board Symmetrical board to use.
  * @param f output stream.
  */
 static void position_show(const Position *position, const Board *board, FILE *f)
@@ -534,7 +512,7 @@ static void position_show(const Position *position, const Board *board, FILE *f)
 	sym = position_get_moves(position, board, &movelist);
 	foreach_move(move, &movelist) {
 		move_to_string(move->x, color, s);
-		if (symetry(position->leaf.move, sym) == move->x) {
+		if (symmetry(position->leaf.move, sym) == move->x) {
 			fprintf(f, " <%s:%+02d>", s, move->score);
 		} else {
 			fprintf(f, " [%s:%+02d]", s, move->score);
@@ -546,7 +524,7 @@ static void position_show(const Position *position, const Board *board, FILE *f)
  * @brief print a position in a compact but readable format.
  *
  * @param position position to print out.
- * @param board Symetrical board to use.
+ * @param board Symmetrical board to use.
  * @param f output stream.
  */
 static void position_print(const Position *position, const Board *board, FILE *f)
@@ -564,7 +542,7 @@ static void position_print(const Position *position, const Board *board, FILE *f
 	sym = position_get_moves(position, board, &movelist);
 	foreach_move(move, &movelist) {
 		move_to_string(move->x, color, m);
-		if (symetry(position->leaf.move, sym) == move->x) {
+		if (symmetry(position->leaf.move, sym) == move->x) {
 			fprintf(f, " <%s:%+02d>", m, move->score);
 		} else {
 			fprintf(f, " [%s:%+02d]", m, move->score);
@@ -574,9 +552,9 @@ static void position_print(const Position *position, const Board *board, FILE *f
 }
 
 /**
- * @brief Chose a move at random from the position.
+ * @brief Choose a move at random from the position.
  *
- * @param position Position to chose a move from.
+ * @param position Position to choose a move from.
  * @param board Correctly rotated/mirrored board.
  * @param move Chosen move.
  * @param r Random data.
@@ -615,7 +593,7 @@ static void position_get_random_move(const Position *position, const Board *boar
 /**
  * @brief Add a link to this position.
  *
- * @param position Position to chose a move from.
+ * @param position Position to choose a move from.
  * @param link Link to add.
  * @return true if the link has been added, false if it was already present.
  */
@@ -800,6 +778,7 @@ static void position_expand(Position *position, Book *book)
  *
  * @param position Position to expand.
  * @param book Opening book.
+ * @return The score value of the position.
  */
 static int position_negamax(Position *position, Book *book)
 {
@@ -811,7 +790,7 @@ static int position_negamax(Position *position, Book *book)
 		GameStats stat = {0,0,0,0};
 		const int n_empties = board_count_empties(&position->board);
 		const int search_depth = LEVEL[position->level][n_empties].depth;
-		const int bias = (search_depth & 1) - (n_empties & 1);
+		const int bias = (search_depth & 1) - (n_empties & 1); // error adjustment when search depth parity differs from the number of empties parity
 
 		position->done = 1;
 
@@ -902,7 +881,7 @@ static void position_prune(Position *position, Book *book, const int player_devi
 /**
  * @brief Mark a position to play.
  *
- * Here we look for all the positions with no link and maark them todo them.
+ * Here we look for all the positions with no link and mark them todo them.
  *
  * @param position Position to expand.
  * @param book Opening book.
@@ -1044,7 +1023,7 @@ static void position_extend(Position *position, Book *book)
  *
  * @param position Position to expand.
  * @param book Opening book.
- * @param depth Number of moves to play.
+ * @param n_empties Number of empties to reach.
  */
 static void position_play(Position *position, Book *book, const int n_empties)
 {
@@ -1164,6 +1143,7 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 {
 	Position *position;
 	const uint64_t hash_code = board_get_hash_code(board);
+	HashDraft draft;
 	MoveList movelist;
 	Move *m;
 
@@ -1182,11 +1162,9 @@ static void board_feed_hash(Board *board, const Book *book, Search *search, cons
 				board_feed_hash(board, book, search, is_pv && m->score == score);
 			board_restore(board, m);
 		}
-	#ifdef __BIG_ENDIAN__
-		HashData data = {{{search->hash_table.date, 0, depth, selectivity}}, score, score, {move, 0}};
-	#else
-		HashData data = {{{selectivity, depth, 0, search->hash_table.date}}, score, score, {move, 0}};
-	#endif
+
+		draft_set(&draft, depth, selectivity, 0, search->hash_table.date);
+		HashData data = {draft, score, score, {move, 0}};
 		hash_feed(&search->hash_table, board, hash_code, &data);
 		if (is_pv) hash_feed(&search->pv_table, board, hash_code, &data);
 	}
@@ -1354,7 +1332,7 @@ static void position_array_free(PositionArray *a)
  *
  * @param a Positions' array.
  * @param board Board to find in the array.
- * @return a position containg the board (or a symetry) or NULL is no position is found.
+ * @return a position containing the board (or a symmetry) or NULL if no position is found.
  */
 static Position* position_array_probe(PositionArray *a, const Board *board)
 {
@@ -1416,7 +1394,7 @@ static double book_get_age(Book *book)
  *
  * @param book Opening book.
  * @param board Board to find in the array.
- * @return a position containg the board (or a symetry) or NULL is no position is found.
+ * @return a position containing the board (or a symmetry) or NULL if no position is found.
  */
 static Position* book_probe(const Book *book, const Board *board)
 {
@@ -1479,7 +1457,7 @@ static void book_clean(Book *book)
  * recall this function each time as necessary.
  *
  * @param book Opening book.
- * @return the inital position.
+ * @return the initial position.
  */
 static Position *book_root(Book *book)
 {
@@ -1764,9 +1742,12 @@ void book_merge(Book *dest, const Book *src)
 	const Position *p_src;
 	Position p_dest;
 
+	position_init(&p_dest);
 	foreach_position(p_src, a, src) {
 		if (!book_probe(dest, &p_src->board)) {
-			position_merge(&p_dest, p_src);
+			p_dest.board = p_src->board;
+			p_dest.leaf = p_src->leaf;
+			p_dest.level = p_src->level;
 			book_add(dest, &p_dest);
 		}
 	}
@@ -2093,9 +2074,11 @@ void book_extend(Book *book, const Board *board)
 /**
  * @brief Play.
  *
- * Add positions to the opening book by expanding positions witht zero link.
+ * Add positions to the opening book by expanding positions with zero link.
  *
  * @param book opening book.
+ * @param board The boardd positioin to add.
+ * @param n_empties PLay moves until this number of empty squares on the board.
  */
 void book_play(Book *book, const Board *board, const int n_empties)
 {
@@ -2280,7 +2263,7 @@ void book_exhaust(Book *book, Board *board) {
 }
 
 /**
- * @brief display some book's informations.
+ * @brief display some book's information.
  *
  * @param book opening book.
  */
@@ -2348,11 +2331,12 @@ void book_show(Book *book, Board *board)
 }
 
 /**
- * @brief Get a list of moves from the book.<inttypes.h>
+ * @brief Get a list of moves from the book.
  *
  * @param book Opening book.
  * @param board Position to display.
  * @param movelist List of moves.
+ * @return true on success.
  */
 bool book_get_moves(Book *book, const Board *board, MoveList *movelist)
 {
@@ -2371,7 +2355,7 @@ bool book_get_moves(Book *book, const Board *board, MoveList *movelist)
  * @param book Opening book.
  * @param board Position.
  * @param move First move;
- * @param line Bariation.
+ * @param line Variation.
  */
 void book_get_line(Book *book, const Board *board, const Move *move, Line *line)
 {
@@ -2397,6 +2381,7 @@ void book_get_line(Book *book, const Board *board, const Move *move, Line *line)
  * @param board Position to find a move from.
  * @param move Chosen move.
  * @param randomness Randomness.
+ * @return true on success.
  */
 bool book_get_random_move(Book *book, const Board *board, Move *move, const int randomness)
 {
@@ -2530,7 +2515,7 @@ void book_add_game(Book *book, const Game *game)
  */
 void book_add_base(Book *book, const Base *base)
 {
-	int i;
+	size_t i;
 	char file[FILENAME_MAX + 1];
 	int64_t t0, t;
 
@@ -2618,7 +2603,7 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
  */
 void book_check_base(Book *book, const Base *base)
 {
-	int i;
+	size_t i;
 	BookCheckGame stat = {0, 0, 0};
 	MoveHash hash;
 
@@ -2704,7 +2689,7 @@ void book_extract_skeleton(Book *book, Base *base)
 /**
  * @brief print a set of position.
  *
- * @param book Opening book.
+4 * @param book Opening book.
  * @param n_empties Game stage.
  * @param n_positions Number of positions to extract.
  */
@@ -2780,7 +2765,7 @@ static void extract_all(Book *book, Board *board, Line *pv, Base *base)
 /**
  * @brief Extract book to a game base
  *
- * This function only consider games starting by F5, the other lines being symetrical.
+ * This function only consider games starting by F5, the other lines being symmetrical.
  *
  * @param book Opening book.
  * @param base game database.

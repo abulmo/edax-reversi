@@ -3,7 +3,7 @@
  *
  * @brief Various utilities.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -322,7 +322,7 @@ int thrd_detach(thrd_t thread) {
  * @param res the result of the function.
  * @return thrd_success on success an error otherwise.
  */
-int	thrd_join(thrd_t thread, int *res) {
+int thrd_join(thrd_t thread, int *res) {
 	return pthread_join(thread, (void **) &res);
 }
 
@@ -472,13 +472,8 @@ void spinlock_unlock(SpinLock *spin)
  */
 char* format_scientific(double v, const char *unit, char *f)
 {
-#ifdef UNICODE
 	static const wchar_t multiple[] = L"EPTGMK mμnpfa"; // μ:U+03BC
 	static const char fmt[] = " %5.*f %lc%s";
-#else
-	static const char multiple[] = "EPTGMK mμnpfa"; // μ:B5@CP1252
-	static const char fmt[] = " %5.*f %c%s";
-#endif
 	int u, d;
 
 	if (fabs(v) < 1e-24) {

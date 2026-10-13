@@ -3,7 +3,7 @@
  *
  * @brief Move & list of moves management.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -56,13 +56,13 @@ enum {
 };
 
 /**
- * @brief Get a symetric square coordinate
+ * @brief Get a symmetric square coordinate
  *
  * @param x Square coordinate.
- * @param sym Symetry.
- * @return Symetric square coordinate.
+ * @param sym Symmetry.
+ * @return Symmetric square coordinate.
  */
-int symetry(int x, const int sym)
+int symmetry(int x, const int sym)
 {
 	if (A1 <= x && x <= H8) {
 
@@ -396,7 +396,7 @@ void movelist_evaluate(MoveList *movelist, Search *search, const HashData *hash_
 				if (search->parity & QUADRANT_ID[move->x]) score += w_parity;
 
 				search_update_midgame(search, move);
-					SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
+					SEARCH_UPDATE_ALL_NODES(search->n_nodes);
 #if USE_SIMD && defined(__AVX2__)
 					const __m128i m_pm =  get_moves_and_potential(_mm256_set1_epi64x(board->player), _mm256_set1_epi64x(board->opponent));
 					score += (36 - bit_weighted_count(_mm_extract_epi64(m_pm, 1))) * W_POTENTIAL_MOBILITY; // potential mobility
@@ -713,7 +713,7 @@ void movehash_delete(MoveHash *hash)
  * @param hash Hash table.
  * @param b Position.
  * @param x Move.
- * @return true if a position is added to the hash table, false otherwsise.
+ * @return true if a position is added to the hash table, false otherwise.
  */
 bool movehash_append(MoveHash *hash, const Board *b, const int x)
 {
@@ -721,7 +721,7 @@ bool movehash_append(MoveHash *hash, const Board *b, const int x)
 	int y;
 	uint64_t h;
 
-	y = symetry(x, board_unique(b, &u));
+	y = symmetry(x, board_unique(b, &u));
 	h = board_get_hash_code(&u);
 	return movearray_append(hash->array + (h & hash->mask), &u, y);
 }

@@ -3,7 +3,7 @@
  *
  * @brief Miscellaneous utilities header.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -39,7 +39,7 @@ void* aligned_alloc(size_t, size_t);
 #include <malloc.h>
 
 #define aligned_alloc(alignment, size) _aligned_malloc((size), (alignment))
-#define free _aligned_free
+#define free(ptr) _aligned_free((ptr))
 #define malloc(size) _aligned_malloc((size), 16)
 #define realloc(ptr, size) _aligned_realloc((ptr), (size), 16)
 
@@ -155,8 +155,8 @@ void path_get_dir(const char*, char*);
 char* file_add_ext(const char*, const char*, char*);
 bool is_stdin_keyboard(void);
 
-/*
- * random
+/**
+ * @brief strict random
  */
 typedef struct Random {
 	uint64_t x;
@@ -166,7 +166,7 @@ uint64_t random_get(Random*);
 void random_seed(Random*, const uint64_t);
 
 /*
- * Usefull macros
+ * Useful macros
  */
 /** Maximum of two values */
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -184,7 +184,6 @@ void random_seed(Random*, const uint64_t);
 		var = max;\
 	}\
 } while (0)
-
 
 void cpu(void);
 int get_cpu_number(void);
@@ -304,7 +303,7 @@ typedef struct Log {
 } while (0)
 
 /**
- * @brief Display a debuging message as "DEBUG : ... "
+ * @brief Display a debugging message as "DEBUG : ... "
  */
 #define debug(...) do { \
 	fprintf(stderr, "\nDEBUG : "); \

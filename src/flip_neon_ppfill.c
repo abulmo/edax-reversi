@@ -60,14 +60,29 @@ uint64x2_t mm_flip(uint64x2_t OP, int pos)
 	return vorrq_u64(flip, vextq_u64(flip, flip, 1));
 }
 
-uint64_t board_flip(const Board *board, const int x)
-{
-	uint64x2_t flip = mm_flip(vld1q_u64((uint64_t *) board), x);
-	return vgetq_lane_u64(flip, 0);
-}
-
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
 uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
 	uint64x2_t OP = vcombine_u64(vcreate_u64(P), vcreate_u64(O));
 	uint64x2_t flip = mm_flip(OP, x);
+	return vgetq_lane_u64(flip, 0);
+}
+
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
+uint64_t board_flip(const Board *board, const int x)
+{
+	uint64x2_t flip = mm_flip(vld1q_u64((uint64_t *) board), x);
 	return vgetq_lane_u64(flip, 0);
 }

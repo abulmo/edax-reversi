@@ -3,7 +3,7 @@
  *
  * Search near the end of the game.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -252,10 +252,10 @@ static bool search_probcut(Search *search, const int alpha, const int depth, Nod
  * order to diminish the size of the tree to analyse, but at the expense of a
  * slower speed.
  *
- * @param search     search.
- * @param alpha      lower bound.
+ * @param search Search.
+ * @param alpha Lower bound.
  * @param depth Search remaining depth.
- * @param hash_table Hash Table to use.
+ * @param hash_table Hashtable to use.
  * @return An evaluated score, as a disc difference.
  */
 int NWS_shallow(Search *search, const int alpha, int depth, HashTable *hash_table)
@@ -272,7 +272,7 @@ int NWS_shallow(Search *search, const int alpha, int depth, HashTable *hash_tabl
 
 	if (depth == 2) return search_eval_2(search, alpha, beta);
 
-	SEARCH_STATS(++statistics.n_NWS_midgame);
+	SEARCH_STATS(++statistics.n_NWS_shallow);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
 	assert(search->n_empties == bit_count(~(board->player | board->opponent)));

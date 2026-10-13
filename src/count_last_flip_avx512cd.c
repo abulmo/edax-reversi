@@ -1,7 +1,7 @@
 /**
  * @file count_last_flip_avx512cd.c
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * Count last flip using the flip_avx512cd way.
  * For optimization purpose, the value returned is twice the number of flipped
@@ -21,19 +21,18 @@ extern const V8DI MASK_LR[66];
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-
-int last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
 	__m256i PP = _mm256_set1_epi64x(P);
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2;
 
 	// left: look for player LS1B
-	lmask = MASK_LR[pos].v4[0];
+	lmask = MASK_LR[x].v4[0];
 	outflank = _mm256_and_si256(PP, lmask);
 	// set below LS1B if P is in lmask
 	flip = _mm256_maskz_add_epi64(_mm256_test_epi64_mask(PP, lmask), outflank, _mm256_set1_epi64x(-1));
@@ -41,7 +40,7 @@ int last_flip(int pos, uint64_t P)
 	flip = _mm256_ternarylogic_epi64(outflank, flip, lmask, 0x08);
 
 	// right: look for player bit with lzcnt
-	rmask = MASK_LR[pos].v4[1];
+	rmask = MASK_LR[x].v4[1];
 	eraser = _mm256_srlv_epi64(_mm256_set1_epi64x(-1), _mm256_maskz_lzcnt_epi64(_mm256_test_epi64_mask(PP, rmask), _mm256_and_si256(PP, rmask)));
 	// flip = _mm256_or_si256(flip, _mm256_andnot_si256(eraser, rmask));
 	flip = _mm256_ternarylogic_epi64(flip, eraser, rmask, 0xf2);

@@ -38,7 +38,7 @@
  * If the OUTFLANK search is in MSB to LSB direction, MS1B using int-float
  * conversion can be used.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -1826,7 +1826,8 @@ static __m128i vectorcall flip_D8(const __m128i OP)
 	__m128i	flipped, index_d;
 	unsigned int outflank_h, outflank_d;
 	const __m128i mask = _mm_set_epi64x(0x0008080808080808, 0x0814224180000000);	// A5D8H4
-#if 1	// TLU x 2 - 42(gcc)/45(VC)
+
+	// TLU x 2 - 42(gcc)/45(VC)
 	unsigned int outflank_v, index_v;
 
 	index_v = _mm_movemask_epi8(_mm_slli_epi64(OP, 4));
@@ -1837,45 +1838,11 @@ static __m128i vectorcall flip_D8(const __m128i OP)
 
 	flipped = _mm_and_si128(mask, load64x2(&FLIPPED_3_H[outflank_d], &FLIPPED_7_V[outflank_v]));
 
-#else	// TLU + MS1B - 45(gcc)/52(VC)
-	__m128i	outflank_v;
-
-	index_d = _mm_sad_epu8(_mm_and_si128(OP, _mm_shuffle_epi32(mask, DUPLO)), _mm_setzero_si128());
-	outflank_d = OUTFLANK_3[(_mm_extract_epi16(index_d, 4) >> 1) & 0x3f] & rotl8(_mm_cvtsi128_si32(index_d), 3);
-	flipped = _mm_loadl_epi64((__m128i *) &FLIPPED_3_H[outflank_d]);
-
-	outflank_v = _mm_and_si128(MS1B_epu52(_mm_andnot_si128(OP, mask)), _mm_slli_si128(OP, 8));
-	flipped = _mm_and_si128(mask, _mm_sub_epi64(flipped, _mm_add_epi64(outflank_v, outflank_v)));
-#endif
-
 	outflank_h = OUTFLANK_3[(_mm_extract_epi16(OP, 7) >> 9) & 0x3f] & rotl8(_mm_extract_epi16(OP, 3) >> 8, 3);
 	flipped = _mm_or_si128(flipped, _mm_slli_epi64(_mm_loadl_epi64((__m128i *) &FLIPPED_3_H[outflank_h]), 56));
 
 	return _mm_or_si128(flipped, _mm_shuffle_epi32(flipped, SWAP64));
 }
-
-#if 0	// MS1B x 2 - 51(gcc)/52(VC)
-static __m128i vectorcall flip_D8(const __m128i OP)
-{
-	__m128i PP = _mm_shuffle_epi32(OP, DUPLO);
-	__m128i OO = _mm_shuffle_epi32(OP, DUPHI);
-	__m128i	flipped, outflank, next_h;
-	const __m128i mask1 = _mm_set_epi64x(0x0008080808080808, 0x0010204080000000);
-	const __m128i mask2 = _mm_set_epi64x(0x0700000000000000, 0x0004020100000000);
-
-	outflank = _mm_and_si128(_mm_slli_epi64(MS1B_epu52(_mm_srli_epi64(_mm_andnot_si128(OO, mask1), 1)), 1), PP);
-	flipped = _mm_and_si128(mask1, _mm_sub_epi64(_mm_setzero_si128(), _mm_add_epi64(outflank, outflank)));
-
-	outflank = _mm_and_si128(MS1B_epu31(_mm_andnot_si128(OO, mask2)), PP);
-	flipped = _mm_or_si128(flipped, _mm_and_si128(mask2, _mm_sub_epi64(_mm_setzero_si128(), _mm_add_epi64(outflank, outflank))));
-
-	next_h = _mm_loadl_epi64((__m128i *) &X_TO_BIT[60]);
-	outflank = _mm_and_si128(_mm_add_epi8(OO, next_h), PP);
-	flipped = _mm_or_si128(flipped, _mm_subs_epu8(outflank, next_h));
-
-	return _mm_or_si128(flipped, _mm_shuffle_epi32(flipped, SWAP64));
-}
-#endif
 
 /**
  * Compute flipped discs when playing on square E8.
@@ -1984,7 +1951,7 @@ static __m128i vectorcall flip_H8(const __m128i OP)
 }
 
 /**
- * Compute (zero-) flipped discs when plassing.
+ * Compute (zero-) flipped discs when passing.
  *
  * @param P player's disc pattern.
  * @param O opponent's disc pattern.
@@ -2010,15 +1977,30 @@ __m128i (vectorcall *MM_FLIP[])(const __m128i) = {
 	flip_pass, flip_pass
 };
 
-uint64_t board_flip(const Board *board, const int x)
-{
-	__m128i flip = MM_FLIP[x](_mm_loadu_si128((__m128i *) board));
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = MM_FLIP[x](_mm_set_epi64x(O, P));
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
 }
 
-uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
-	__m128i flip = MM_FLIP[x](_mm_set_epi64x(O, P));
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
+uint64_t board_flip(const Board *board, const int x)
+{
+	__m128i flip = MM_FLIP[x](_mm_loadu_si128((__m128i *) board));
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
 }

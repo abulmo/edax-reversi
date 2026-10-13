@@ -3,7 +3,7 @@
  *
  * List of empty squares.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -13,27 +13,29 @@
 
 /** double linked list of squares */
 typedef struct SquareList {
-	int previous;   /*!< link to previous square */
-	int next;       /*!< link to next square */
+	uint8_t previous;   /*!< link to previous square */
+	uint8_t next;       /*!< link to next square */
 } SquareList;
 
 /**
- * @brief remove an empty square from the list.
+ * @brief Remove an empty square from the list.
  *
  * @param empty  empty square.
+ * @param x Square to remove.
  */
 static inline void empty_remove(SquareList *empty, int x)
 {
-	int next = empty[x].next;
-	int prev = empty[x].previous;
+	uint8_t next = empty[x].next;
+	uint8_t prev = empty[x].previous;
 	empty[prev].next = next;
 	empty[next].previous = prev;
 }
 
 /**
- * @brief restore the list of empty squares
+ * @brief Restore an empty square into the list of empty squares.
  *
  * @param empty  empty square.
+ * @param x Square to restore.
  */
 static inline void empty_restore(SquareList *empty, int x)
 {

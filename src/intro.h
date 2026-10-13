@@ -22,15 +22,15 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * aint with this program; if not, write to the Free Software
+ * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
  * @section dl Download
  * You can download the source here:
- * https://github.com/abulmo/edax-reversi
- * https://github.com/okuhara/edax-reversi-AVX
- * web site (Japanese): http://www.amy.hi-ho.ne.jp/okuhara/edax.htm
+ * - https://github.com/abulmo/edax-reversi
+ * - https://github.com/okuhara/edax-reversi-AVX
+ * - web site (Japanese): http://www.amy.hi-ho.ne.jp/okuhara/edax.htm
 
  *
  * @section pres Presentation
@@ -121,26 +121,31 @@
  * - version 4.3: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  * - version 4.4: Bug fixes. Cleaner code. Enhancement of GGS protocol support.
  *   Faster move generator provided by Toshihiko Okuhara.
- * - version 4.5: code vectorisation (AVXX2) for x86_64 x86_32 & ARM Neon
+ * - version 4.5: 2023 code vectorisation (AVXX2) for x86_64 x86_32 & ARM Neon
  *   by Toshihiko Okuhara giving 7 to 20% faster code.
- * - version 4.6: Port to C17. Bug fixes. Code cleaning. Remove 32 bit support.
- * - version 4.7: Bug fixes. A few new commands. Enhance parallel support: ~10% faster multithreaded code.
+ * - version 4.6: 10/2024 Port to C17. Bug fixes. Code cleaning. Remove 32 bit support.
+ * - version 4.7: Bug fixes. Code cleaning. A few new commands. Enhanced parallel search: ~10% faster multithreaded code.
  *
  * \htmlonly
  * <p> Speed comparison between versions: </p>
  * <table>
- * <tr> <th> Version </th> <th> fforum-20-39 </th> <th> fforum-40-59 </th> <th> speed </th> </tr>
- *  <tr> <td> 2.3 </td> <td> 0:32.5 </td> <td> 2:33.05.5 </td> <td>  4.4 MN/s </td> </tr>
- *  <tr> <td> 3.0 </td> <td> 0:21.0 </td> <td> 2:05:00.5 </td> <td>  7.5 MN/s </td> </tr>
- *  <tr> <td> 3.1 </td> <td> 0:17.4 </td> <td> 1:52:43.2 </td> <td>  8.1 MN/s </td> </tr>
- *  <tr> <td> 3.2 </td> <td> 0:14.8 </td> <td> 1:13:16.3 </td> <td> 12.5 MN/s </td> </tr>
- *  <tr> <td> 3.3 </td> <td> 0:15.1 </td> <td> 1:08:53.1 </td> <td> 12.3 MN/s </td> </tr>
- *  <tr> <td> 4.0 &times; 1 </td> <td> 0:05.14 </td> <td> 0:20:24.63 </td> <td> 20.4 MN/s </td> </tr>
- *  <tr> <td> 4.0 &times; 4 </td> <td> 0:02.13 </td> <td> 0:05:24.59 </td> <td> 75.4 MN/s </td> </tr>
- *  <tr> <td> 4.1 &times; 4 </td> <td> 0:01.98 </td> <td> 0:05:05.44 </td> <td> 82.9 MN/s </td> </tr>
+ *  <tr> <th> Version </th> <th> fforum-20-39 </th> <th> fforum-40-59 </th> <th> speed </th> </tr>
+ *  <tr> <td> 2.3 </td> <td> 0:24.1 </td> <td> 1:34:21.4 </td> <td>  7.3 MN/s </td> </tr>
+ *  <tr> <td> 3.0 </td> <td> 0:14.8 </td> <td> 1:37:41.0 </td> <td>  7.5 MN/s </td> </tr>
+ *  <tr> <td> 3.3 </td> <td> 0:10.8 </td> <td> 0:51:00.1 </td> <td> 17.3 MN/s </td> </tr>
+ *  <tr> <td> 4.0</td> <td> 0:03.35 </td> <td> 0:13:07.9 </td> <td> 32.2 MN/s </td> </tr>
+ *  <tr> <td> 4.4</td> <td> 0:03.0 </td> <td> 0:11:08.2 </td> <td> 37.1 MN/s </td> </tr>
+ *  <tr> <td> 4.6</td> <td> 0:01.99 </td> <td> 0:07:21.8 </td> <td> 56.9 MN/s </td> </tr>
+ *  <tr> <td> 4.7</td> <td> 0:01.91 </td> <td> 0:07:13.8 </td> <td> 57.9 MN/s </td> </tr>
+ *  <tr> <th> Version </th> <th> fforum-20-39 </th> <th> fforum-40-59 </th> <th> speed </th> </tr>
+ *  <tr> <td> 4.0 × 32</td> <td> 0:00.98 </td> <td> 01:11.46 </td> <td> 399 MN/s </td> </tr>
+ *  <tr> <td> 4.4 × 32</td> <td> 0:00.53 </td> <td> 00:45.83 </td> <td> 604 GN/s </td> </tr>
+ *  <tr> <td> 4.6 × 32</td> <td> 0:00.53 </td> <td> 00:31.46 </td> <td> 882 GN/s </td> </tr>
+ *  <tr> <td> 4.7 × 32</td> <td> 0:00.46 </td> <td> 00:27.26 </td> <td> 1031 GN/s </td> </tr>
  * </table>
- * <p>The test has been done on a Q9650 3.6GHz Quad core Intel CPU with 8GiB of memory,
- * running under Fedora 11.0-x86_64 on 2009 september 6.</p>
+ * <p>The test has been done on an AMD Ryzen 9 5950X 16/32 cores CPU running at 4 Ghz with 64GiB of memory,
+ * running under Fedora 44.0-x86_64 on 2026 october 10.</p>
+ *
  * \endhtmlonly
  *
  * \section ref Reference

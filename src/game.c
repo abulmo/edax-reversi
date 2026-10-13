@@ -3,7 +3,7 @@
  *
  * Game management
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -97,7 +97,7 @@ void game_init(Game *game)
 /**
  * @brief Game copy.
  *
- * TODO: check if parameter's order is consistant all over the program
+ * TODO: check if parameter's order is consistent all over the program
  * @param dest Destination Game.
  * @param src Source Game.
  */
@@ -150,6 +150,9 @@ bool wthor_equals(const WthorGame *game_1, const WthorGame *game_2)
 /**
  * @brief update a board.
  *
+ * @param board Board to update.
+ * @param x Square to move on.
+ * @return true on success.
  */
 bool game_update_board(Board *board, int x)
 {
@@ -167,7 +170,9 @@ bool game_update_board(Board *board, int x)
 
 /**
  * @brief update a player.
- *
+ * @param board Board to update.
+ * @param x Square to move on.
+ * @return true on success.
  */
 static bool game_update_player(Board *board, int x)
 {
@@ -289,7 +294,7 @@ void text_to_game(const char *line, Game *game)
 
 /**
  * @brief Convert game to a text (ascii).
- * @param game The intput game.
+ * @param game The input game.
  * @param line A move sequence in ascii.
  */
 void game_to_text(const Game *game, char *line)
@@ -305,7 +310,7 @@ void game_to_text(const Game *game, char *line)
 /**
  * @brief convert an allinf.oko game to a Game.
  *
- * This was a serie of games played by early M. Buro's logistello
+ * This was a series of games played by early M. Buro's logistello
  * against I. Durdanovic's programs.
  *
  * @param oko A single input game.
@@ -356,7 +361,7 @@ void wthor_to_game(const WthorGame *thor, Game *game)
 }
 
 /**
- * @brief convert a Game to a Whor game.
+ * @brief convert a Game to a Wthor game.
  *
  * The wthor format is famous as all main event
  * games are recorded into this format.
@@ -1222,8 +1227,8 @@ void game_export_pgn(const Game *game, FILE *f)
 	if (game->date.year == 0) fprintf(f, "[Date \"%d.??.??\"]\n", date->tm_year + 1900);
 	else if (game->date.month == 0) fprintf(f, "[Date \"%d.??.??\"]\n", game->date.year);
 	else if (game->date.day == 0) fprintf(f, "[Date \"%d.%d.??\"]\n", game->date.year, game->date.month);
-	fprintf(f, "[Date \"%d.%d.%d\"]\n", game->date.year, game->date.month, game->date.day);
-	if (game->date.hour >= 0) fprintf(f, "[Time \"%d.%d.%d\"]\n", game->date.hour, game->date.minute, game->date.second);
+	else fprintf(f, "[Date \"%d.%d.%d\"]\n", game->date.year, game->date.month, game->date.day);
+	fprintf(f, "[Time \"%d.%d.%d\"]\n", game->date.hour, game->date.minute, game->date.second);
 	fputs("[Round \"?\"]\n", f);
 	fprintf(f, "[Black \"%s\"]\n", game->name[BLACK]);
 	fprintf(f, "[White \"%s\"]\n", game->name[WHITE]);

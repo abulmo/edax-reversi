@@ -7,7 +7,7 @@
  * contiguous opponent discs.
  * For MSB to LSB directions, isolate MS1B by comparing high and low halves.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Toshihiko Okuhara
  * @version 4.7
  */
@@ -129,15 +129,30 @@ __m256i vectorcall mm_flip(const __m128i OP, int pos)
 	return flip;
 }
 
-uint64_t board_flip(const Board *board, const int x)
-{
-	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
 }
 
-uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
-	__m128i flip = mm_flip(_mm_set_epi64x((O), (P)), x);
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
+uint64_t board_flip(const Board *board, const int x)
+{
+	__m128i flip = mm_flip(_mm_loadu_si128((__m128i *) board), x);
 	__m128i rflip = _mm_or_si128(flip, _mm_shuffle_epi32(flip, 0x4e));
 	return (uint64_t) _mm_cvtsi128_si64(rflip);
 }

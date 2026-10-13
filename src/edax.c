@@ -9,7 +9,7 @@
  * Options must be entered in the form '[set] <option> [=] <value>', with [set] and\n[=] being optional.
  *   -verbose [n]          set Edax verbosity (default 1).
  *   -noise [n]            start displaying Edax search result from this depth\n  (default 5).
- *   -witdh [n]            display edax search results using <width> characters\n  (default 80).
+ *   -width [n]            display edax search results using <width> characters\n  (default 80).
  *   -hash-table-size [n]  set hashtable size (default 21 bits).
  *   -n-tasks [n]          control the number of parallel threads used in searching\n  (default 1).
  *   -l|level [n]          search using limited depth (default 21).
@@ -89,7 +89,7 @@
  *   -count shapes [d]    compute the number of shapes from the current position up\n  to depth [d].
  *
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  *
@@ -117,8 +117,8 @@ extern bool book_verbose;
 void version(void);
 
 /**
- * @brief default search oberver.
- * @param result Search Result.
+ * @brief default search observer.
+ * @param result Search result.
  */
 static void edax_observer(Result *result)
 {
@@ -433,11 +433,11 @@ void ui_loop_edax(UI *ui)
 
 			// vertical mirror
 			} else if (strcmp(cmd, "vmirror") == 0) {
-				play_symetry(play, 2);
+				play_symmetry(play, 2);
 
 			// horizontal mirror
 			} else if (strcmp(cmd, "hmirror") == 0) {
-				play_symetry(play, 1);
+				play_symmetry(play, 1);
 
 			// rotate
 			} else if (strcmp(cmd, "rotate") == 0) {
@@ -445,27 +445,27 @@ void ui_loop_edax(UI *ui)
 				if (angle < 0) angle += 360;
 				switch (angle) {
 				case 90:
-					play_symetry(play, 5);
+					play_symmetry(play, 5);
 					break;
 				case 180:
-					play_symetry(play, 3);
+					play_symmetry(play, 3);
 					break;
 				case 270:
-					play_symetry(play, 6);
+					play_symmetry(play, 6);
 					break;
 				default:
 					warn("Rotate angle should be 90°, 180° or 270°");
 					break;
 				}
 
-			// direct symetry...
-			} else if (strcmp(cmd, "symetry") == 0) {
+			// direct symmetry...
+			} else if (strcmp(cmd, "symmetry") == 0) {
 				int sym = string_to_int(param, 1);
 				if (sym < 0 || sym >= 16) {
-					warn("symetry parameter should be a number between 0 and 15\n");
+					warn("symmetry parameter should be a number between 0 and 15\n");
 				} else {
 					if (sym & 8) play->player ^= 1;
-					play_symetry(play, sym & 7);
+					play_symmetry(play, sym & 7);
 				}
 
 			// play a serie of moves
@@ -1009,10 +1009,14 @@ void ui_loop_edax(UI *ui)
 
 			} else if (strcmp(cmd, "engine-protocol") == 0 && strcmp(param, "init") == 0) {
 				free(cmd); free(param);
-				play_stop_pondering(play);
+/*				play_stop_pondering(play);
 				ui->free(ui);
+				debug("switch to Cassio!");
 				ui_switch(ui, "cassio");
-				engine_loop();
+				ui->init(ui);
+				ui->loop(ui);
+*/
+				warn("Please, launch Edax with the -cassio argument.");
 				return;
 
 			} else if (strcmp(cmd, "protocol_version") == 0) {
@@ -1045,7 +1049,8 @@ void ui_loop_edax(UI *ui)
 	info("[Edax termination]\n");
 
 	/* dispay hash statistics */
-	HASH_STATS(printf("pv_table     : %12llu stores %12llu probes %12llu found probes\n", play->search.pv_table.n_store, play->search.pv_table.n_try, play->search.pv_table.n_found);)
-	HASH_STATS(printf("hash_table   : %12llu stores %12llu probes %12llu found probes\n", play->search.hash_table.n_store, play->search.hash_table.n_try, play->search.hash_table.n_found);)
-	HASH_STATS(printf("shallow_table: %12llu stores %12llu probes %12llu found probes\n", play->search.shallow_table.n_store, play->search.shallow_table.n_try, play->search.shallow_table.n_found);)
+	HASH_STATS(printf("pv_table     : %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", play->search.pv_table.n_store, play->search.pv_table.n_try, play->search.pv_table.n_found);)
+	HASH_STATS(printf("hash_table   : %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", play->search.hash_table.n_store, play->search.hash_table.n_try, play->search.hash_table.n_found);)
+	HASH_STATS(printf("shallow_table: %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", play->search.shallow_table.n_store, play->search.shallow_table.n_try, play->search.shallow_table.n_found);)
+	HASH_STATS(printf("thread_table: %12" PRIu64 " stores %12" PRIu64 " probes %12" PRIu64 " found probes\n", play->search.thread_table.n_store, play->search.thread_table.n_try, play->search.thread_table.n_found);)
 }

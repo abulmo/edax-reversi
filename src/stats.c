@@ -6,7 +6,7 @@
  * The purpose of these functions is to gather performance
  * statistics on some algorithms or code.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -24,7 +24,7 @@
 Statistics statistics;
 
 /**
- * @brief Intialization of the statistics.
+ * @brief Initialization of the statistics.
  */
 void statistics_init(void)
 {
@@ -59,6 +59,8 @@ void statistics_init(void)
 	statistics.n_NWS_endgame = 0;
 	statistics.n_PVS_shallow = 0;
 	statistics.n_NWS_shallow = 0;
+	statistics.n_NWS_shallow_endgame = 0;
+	statistics.n_NWS_local_endgame = 0;
 	statistics.n_solve = 0;
 	statistics.n_solve_0 = 0;
 	statistics.n_solve_1 = 0;
@@ -136,22 +138,23 @@ void statistics_print(FILE *f)
 		fprintf(f, "\n\n");
 	}
 
-
 	if (statistics.n_PVS_root) {
 		fprintf(f, "Search:\n");
-		fprintf(f, "PVS_root          = %12" PRIu64 "\n", statistics.n_PVS_root);
-		fprintf(f, "PVS+NWS_midgame   = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_midgame, statistics.n_NWS_midgame);
-		fprintf(f, "PVS+NWS_shallow   = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_shallow, statistics.n_NWS_shallow);
-		fprintf(f, "search_eval_2     = %12" PRIu64 "\n", statistics.n_search_eval_2);
-		fprintf(f, "search_eval_1     = %12" PRIu64 "\n", statistics.n_search_eval_1);
-		fprintf(f, "search_eval_0     = %12" PRIu64 "\n\n", statistics.n_search_eval_0);
-		fprintf(f, "NWS_endgame       = %12" PRIu64 "\n", statistics.n_NWS_endgame);
-		fprintf(f, "NWS_solve_4       = %12" PRIu64 "\n", statistics.n_search_solve_4);
-		fprintf(f, "NWS_solve_3       = %12" PRIu64 "\n", statistics.n_solve_3);
-		fprintf(f, "NWS_solve_2       = %12" PRIu64 "\n", statistics.n_solve_2);
-		fprintf(f, "NWS_solve_1       = %12" PRIu64 "\n", statistics.n_solve_1);
-		fprintf(f, "solve_0           = %12" PRIu64 "\n", statistics.n_solve_0);
-		fprintf(f, "solve             = %12" PRIu64 "\n\n\n", statistics.n_solve);
+		fprintf(f, "PVS_root            = %12" PRIu64 "\n", statistics.n_PVS_root);
+		fprintf(f, "PVS+NWS_midgame     = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_midgame, statistics.n_NWS_midgame);
+		fprintf(f, "PVS+NWS_shallow     = %12" PRIu64 " + %12" PRIu64 "\n", statistics.n_PVS_shallow, statistics.n_NWS_shallow);
+		fprintf(f, "search_eval_2       = %12" PRIu64 "\n", statistics.n_search_eval_2);
+		fprintf(f, "search_eval_1       = %12" PRIu64 "\n", statistics.n_search_eval_1);
+		fprintf(f, "search_eval_0       = %12" PRIu64 "\n\n", statistics.n_search_eval_0);
+		fprintf(f, "NWS_endgame         = %12" PRIu64 "\n", statistics.n_NWS_endgame);
+		fprintf(f, "NWS_local_endgame   = %12" PRIu64 "\n", statistics.n_NWS_local_endgame);
+		fprintf(f, "NWS_shallow_endgame = %12" PRIu64 "\n", statistics.n_NWS_shallow_endgame);
+		fprintf(f, "NWS_solve_4         = %12" PRIu64 "\n", statistics.n_search_solve_4);
+		fprintf(f, "NWS_solve_3         = %12" PRIu64 "\n", statistics.n_solve_3);
+		fprintf(f, "NWS_solve_2         = %12" PRIu64 "\n", statistics.n_solve_2);
+		fprintf(f, "NWS_solve_1         = %12" PRIu64 "\n", statistics.n_solve_1);
+		fprintf(f, "solve_0             = %12" PRIu64 "\n", statistics.n_solve_0);
+		fprintf(f, "solve               = %12" PRIu64 "\n\n\n", statistics.n_solve);
 	}
 
 	if (statistics.n_hash_found) {

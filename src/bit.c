@@ -6,7 +6,7 @@
  * a macro needs to be defined to chose between different flavors of the
  * algorithm.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -69,7 +69,7 @@ const uint64_t NEIGHBOUR[] = {
  *
  * This is the classical popcount function.
  * Since 2007, it is part of the instruction set of some modern CPU,
- * (>= barcelona for AMD or >= nelhacem for Intel). Alternatively,
+ * (>= barcelona for AMD or >= nehalem for Intel). Alternatively,
  * a fast SWAR algorithm, adding bits in parallel is provided here.
  * This function is massively used to count discs on the board,
  * the mobility, or the stability.
@@ -108,7 +108,7 @@ int bit_count_64(const uint64_t b)
  *
  * This is the classical popcount function.
  * Since 2007, it is part of the instruction set of some modern CPU,
- * (>= barcelona for AMD or >= nelhacem for Intel). Alternatively,
+ * (>= barcelona for AMD or >= nehalem for Intel). Alternatively,
  * a fast SWAR algorithm, adding bits in parallel is provided here.
  * This function is massively used to count discs on the board,
  * the mobility, or the stability.
@@ -132,11 +132,93 @@ int bit_count_32(const uint32_t b)
 
 	#else
 
-		uint32_t c = b
-			- ((b >> 1) & 0x33333333)
-			- ((b >> 1) & 0x11111111);
-		c = ((c + (c >> 3)) & 0x0F0F0F0F) * 0x01010101;
-		return  (int)(c >> 28);
+		uint32_t c = (b & 0x49249249) + ((b >> 1) & 0x49249249) + ((b >> 2) & 0x49249249);
+     	c = (c & 0xC30C30C3) + ((c >> 3) & 0x030C30C3);
+
+      return 0x3F & ((c * 0x41041041ull)  >> 30);
+
+	#endif
+}
+
+/**
+ *  @brief count leading zeros for uint64_t
+ *
+ * @param b 64-bit integer
+ * @return number of zeroes
+ */
+int bit_leading_zeros_64(uint64_t b)
+{
+	#if __STDC_VERSION__ >= 202311L
+
+		return stdc_leading_zeros_ul(b);      // C23 version
+
+	#elif defined(__AVX2__) // microsoft lack __LZCNT__
+
+		return _lzcnt_u64(b);
+
+	#elif defined(_MSC_VER)
+
+		unsigned long index;
+		if (_BitScanReverse64(&index, b))
+			return 63 - (int) index;
+		else return 64;
+
+	#elif defined(__GNUC__)
+
+		return b ? __builtin_clzl(b) : 64; // GNUC/CLANG version
+
+	#else
+
+		int n = 64;
+		uint64_t c;
+
+		c = b >> 32; if (c != 0) { n = n -32; b = c; }
+		c = b >> 16; if (c != 0) { n = n -16; b = c; }
+		c = b >>  8; if (c != 0) { n = n - 8; b = c; }
+		c = b >>  4; if (c != 0) { n = n - 4; b = c; }
+		c = b >>  2; if (c != 0) { n = n - 2; b = c; }
+		c = b >>  1; if (c != 0) return n - 2;
+		return n - b;
+
+	#endif
+}
+
+/**
+ *  @brief count leading zeros for uint32_t
+ *
+ * @param b 64-bit integer
+ * @return number of zeroes
+ */
+int bit_leading_zeros_32(uint32_t b)
+{
+	#if __STDC_VERSION__ >= 202311L
+
+		return stdc_leading_zeros_ui(b);      // C23 version
+
+	#elif defined(__AVX2__)
+
+		return _lzcnt_u32(b);
+
+	#elif defined(_MSC_VER)
+
+		unsigned long index;
+		return _BitScanReverse(&index, b) ? 31 - (int) index : 32;
+
+	#elif defined(__GNUC__)
+
+		return b ? __builtin_clz(b) : 32; // GNUC/CLANG version with undefined behaviour for zero
+
+		#else
+
+		int n = 32;
+		uint32_t c;
+
+		c = b >> 16; if (c != 0) { n = n -16; b = c; }
+		c = b >>  8; if (c != 0) { n = n - 8; b = c; }
+		c = b >>  4; if (c != 0) { n = n - 4; b = c; }
+		c = b >>  2; if (c != 0) { n = n - 2; b = c; }
+		c = b >>  1; if (c != 0) return n - 2;
+		return n - b;
 
 	#endif
 }
@@ -147,86 +229,45 @@ int bit_count_32(const uint32_t b)
  * @param b 64-bit integer
  * @ return number of zeroes
  */
-int bit_leading_zeros_64(uint64_t b)
+static inline int bit_trailing_zeros_64(uint64_t b)
 {
 	#if __STDC_VERSION__ >= 202311L
 
-		return stdc_leading_zeros_ul(b);      // C23 version
+		return stdc_trailing_zeros_ul(b);      // C23 version
 
-	#elif defined(_MSC_VER) && defined(__AVX2__)
+	#elif defined(__AVX2__) // microsoft lack __LZCNT__
 
-		return __lzcnt64(b);           // Microsoft Visual C/C++ BMI1 version
+		return _tzcnt_u64(b);
 
 	#elif defined(_MSC_VER)
 
 		unsigned long index;
-		if (_BitScanReverse64(&index, b))
-			return 63 - (int) index;
-		return 64;
+		if (_BitScanForward64(&index, b))
+			return (int) index;
+		else return 64;
 
 	#elif defined(__GNUC__)
 
-		return __builtin_clzl(b); // GNUC/CLANG version
+		return b ? __builtin_ctzll(b) : 64; // GNUC/CLANG version
 
 	#else
 
-	int n = 64;
-	uint64_t c;
+	static const unsigned char magic[64] = {
+		63, 0, 58, 1, 59, 47, 53, 2,
+		60, 39, 48, 27, 54, 33, 42, 3,
+		61, 51, 37, 40, 49, 18, 28, 20,
+		55, 30, 34, 11, 43, 14, 22, 4,
+		62, 57, 46, 52, 38, 26, 32, 41,
+		50, 36, 17, 19, 29, 10, 13, 21,
+		56, 45, 25, 31, 35, 16, 9, 12,
+		44, 24, 15, 8, 23, 7, 6, 5
+	};
 
-	c = b >> 32; if (c != 0) { n = n -32; b = c; }
-	c = b >> 16; if (c != 0) { n = n -16; b = c; }
-	c = b >>  8; if (c != 0) { n = n - 8; b = c; }
-	c = b >>  4; if (c != 0) { n = n - 4; b = c; }
-	c = b >>  2; if (c != 0) { n = n - 2; b = c; }
-	c = b >>  1; if (c != 0) return n - 2;
-	return n - b;
-
+	return b ? magic[((b & (-b)) * 0x07EDD5E59A4E28C2ULL) >> 58] : 64;
 
 	#endif
 }
 
-/**
- *  @brief count leading zeros for uint32_t
- *
- * @param b 64-bit integer
- * @ return number of zeroes
- */
-int bit_leading_zeros_32(uint32_t b)
-{
-	#if __STDC_VERSION__ >= 202311L
-
-		return stdc_leading_zeros_ui(b);      // C23 version
-
-	#elif defined(_MSC_VER) && defined(__AVX2__)
-
-		return __lzcnt(b);           // Microsoft Visual C/C++ BMI1 version
-
-	#elif defined(_MSC_VER)
-
-		unsigned long index;
-		if (_BitScanReverse(&index, b))
-			return 31 - (int) index;
-		return 32;
-
-	#elif defined(__GNUC__)
-
-		return __builtin_clz(b); // GNUC/CLANG version
-
-	#else
-
-	int n = 32;
-	uint32_t c;
-
-	c = b >> 16; if (c != 0) { n = n -16; b = c; }
-	c = b >>  8; if (c != 0) { n = n - 8; b = c; }
-	c = b >>  4; if (c != 0) { n = n - 4; b = c; }
-	c = b >>  2; if (c != 0) { n = n - 2; b = c; }
-	c = b >>  1; if (c != 0) return n - 2;
-	return n - b;
-
-
-	#endif
-}
 
 
 /**
@@ -263,7 +304,7 @@ bool bit_is_single(uint64_t b)
 
 	#else
 
-		return (b & (b - 1)) == 0;
+		return b && (b & (b - 1)) == 0;
 
 	#endif
 }
@@ -282,36 +323,7 @@ bool bit_is_single(uint64_t b)
  */
 int first_bit(uint64_t b)
 {
-#if __STC_VERSION__ >= 202311L  // C23 version
-
-	return std_first_leading_one(b);
-
-#elif defined(_MSC_VER)        // Microsoft C/C++ version
-
-	unsigned long index;
-	_BitScanForward64(&index, b);
-	return (int) index;
-
-#elif defined(__GNUC__)        // GCC/Clang version
-
-	return __builtin_ctzll(b);
-
-#else                         // generic version
-
-	static const unsigned char magic[64] = {
-		63, 0, 58, 1, 59, 47, 53, 2,
-		60, 39, 48, 27, 54, 33, 42, 3,
-		61, 51, 37, 40, 49, 18, 28, 20,
-		55, 30, 34, 11, 43, 14, 22, 4,
-		62, 57, 46, 52, 38, 26, 32, 41,
-		50, 36, 17, 19, 29, 10, 13, 21,
-		56, 45, 25, 31, 35, 16, 9, 12,
-		44, 24, 15, 8, 23, 7, 6, 5
-	};
-
-	return magic[((b & (-b)) * 0x07EDD5E59A4E28C2ULL) >> 58];
-
-#endif
+	return bit_trailing_zeros_64(b);
 }
 
 /**
@@ -331,56 +343,16 @@ int next_bit(uint64_t *b)
 /**
  * @brief Search the last bit set (same as log2()).
  *
- * On CPU with AMD64 or EMT64 instructions, a fast asm
- * code is provided. Alternatively, a fast algorithm based on
- * magic numbers is provided.
- *
  * @param b 64-bit integer.
  * @return the index of the last bit set.
  */
 int last_bit(uint64_t b)
 {
-#if __STC_VERSION__ >= 202311L  // C23 version
-
-	return std_first_trailing_one(b);
-
-#elif defined(_MSC_VER)
-
-	unsigned long index;
-	_BitScanReverse64(&index, b);
-	return (int) index;
-
-#elif defined(__GNUC__)
-
-	return 63 - __builtin_clzl(b);
-
-#else
-	static const unsigned char magic[64] = {
-		63, 0, 58, 1, 59, 47, 53, 2,
-		60, 39, 48, 27, 54, 33, 42, 3,
-		61, 51, 37, 40, 49, 18, 28, 20,
-		55, 30, 34, 11, 43, 14, 22, 4,
-		62, 57, 46, 52, 38, 26, 32, 41,
-		50, 36, 17, 19, 29, 10, 13, 21,
-		56, 45, 25, 31, 35, 16, 9, 12,
-		44, 24, 15, 8, 23, 7, 6, 5
-	};
-
-	b |= b >> 1;
-	b |= b >> 2;
-	b |= b >> 4;
-	b |= b >> 8;
-	b |= b >> 16;
-	b |= b >> 32;
-	b = (b >> 1) + 1;
-
-	return magic[(b * 0x07EDD5E59A4E28C2ULL) >> 58];
-
-#endif
+	return 63 - bit_leading_zeros_64(b);
 }
 
 /**
- * @brief Transpose the uint64_t (symetry % A1-H8 diagonal).
+ * @brief Transpose the uint64_t (symmetry % A1-H8 diagonal).
  * @param b An uint64_t.
  * @return The transposed uint64_t.
  */
@@ -617,18 +589,24 @@ void bitboard_print(const uint64_t b, FILE *f)
 }
 
 /**
- * @brief test the functions above
- *
+ * @brief test some of the functions above
+ * TODO: test more functions
  */
 void bit_test(void) {
 	expect_eq(bit_count(0x123), 4, "bit_count(0x123) == 4");
 	expect_eq(bit_count(0x123456), 9, "bit_count(0x123456) == 9");
+	expect_eq(bit_count(0x123456789abcdef), 32, "bit_count(0x123456789abcdef) == 32");
+	expect_eq(bit_is_single(0x123456), false, "bit_is_single(0x123456) == false");
+	expect_eq(bit_is_single(0x100000), true, "bit_is_single(0x1000000) == true");
+	expect_eq(bit_is_single(0), false, "bit_is_single(0) == false");
 	expect_eq(first_bit(0x123), 0, "first_bit(0x123) == 0");
 	expect_eq(first_bit(0x123456), 1, "first_bit(0x123456) == 1");
+	expect_eq(first_bit(0ull), 64, "first_bit(0ull) == 64");
 	expect_eq(last_bit(0x123), 8, "last_bit(0x123) == 8");
 	expect_eq(last_bit(0x123456), 20, "last_bit(0x123456) == 20");
+	expect_eq(last_bit(0), -1, "last_bit(0) == -1");
 	expect_eq(bswap_16(0x1234), 0x3412, "bswap_16(0x1234) == 0x3412");
-	expect_eq(bswap_32(0x123456), 0x56341200, "bswap_32(0x123456) == 0x56341200");
+	expect_eq(bswap_32(0x00123456), 0x56341200, "bswap_32(0x00123456) == 0x56341200");
 	expect_eq(bswap_64(0x0000001234560000), 0x563412000000, "bswap_64(0x0000001234560000) == 0x563412000000");
 	expect_eq(transpose(0x12345678), 0x3050f01060a00, "transpose(0x12345678) == 0x3050f01060a00")
 	expect_eq(horizontal_mirror(0x12345678), 0x0482c6a1e, "horizontal_mirror(0x12345678) == 0x482c6a1e")

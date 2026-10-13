@@ -3,7 +3,7 @@
  *
  * @brief Statistics header.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -47,10 +47,10 @@
 	#define SEARCH_UPDATE_INTERNAL_NODES(n)
 #endif
 #if COUNT_NODES & 2
-	/** node counter for pattern changes */
+	/** node counter for eval nodes */
 	#define SEARCH_UPDATE_EVAL_NODES(n) (++(n))
 #else
-	/** no node counter for pattern changes */
+	/** no node counter for eval nodes */
 	#define SEARCH_UPDATE_EVAL_NODES(n)
 #endif
 #if COUNT_NODES & 4
@@ -83,6 +83,8 @@ typedef struct Statistics {
 	uint64_t n_NWS_endgame;
 	uint64_t n_PVS_shallow;
 	uint64_t n_NWS_shallow;
+	uint64_t n_NWS_local_endgame;
+	uint64_t n_NWS_shallow_endgame;
 	uint64_t n_solve;
 	uint64_t n_solve_0;
 	uint64_t n_solve_1;

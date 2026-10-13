@@ -3,7 +3,7 @@
  *
  * Board management header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -34,7 +34,7 @@ int board_set(Board*, const char*);
 int board_from_FEN(Board*, const char*);
 int board_compare(const Board*, const Board*);
 bool board_equal(const Board*, const Board*);
-void board_symetry(const Board*, const int, Board*);
+void board_symmetry(const Board*, const int, Board*);
 int board_unique(const Board*, Board*);
 void board_check(const Board*);
 void board_rand(Board*, int, struct Random*);
@@ -60,7 +60,6 @@ int board_count_empties(const Board *board);
 uint64_t board_flip(const Board*, const int);
 
 uint64_t flip(const int, const uint64_t P, const uint64_t O);
-int count_last_flip(const int, const uint64_t);
 bool can_move(const uint64_t, const uint64_t);
 uint64_t get_moves_6x6(const uint64_t, const uint64_t);
 bool can_move_6x6(const uint64_t, const uint64_t);

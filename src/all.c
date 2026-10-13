@@ -3,7 +3,7 @@
  *
  * @brief Gather all other files to facilitate compiler inter-procedural optimization.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */

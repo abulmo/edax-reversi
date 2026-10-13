@@ -2,13 +2,13 @@
  * @file count_last_flip_bmi.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * This implementation uses BMI1 instructions, lzcnt and tzcnt.
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Toshihiko Okuhara
  * @version 4.7
  *
@@ -17,7 +17,7 @@
 #include "bit.h"
 
 /** precomputed count flip array */
-static const unsigned char COUNT_FLIP[8][256] = {
+static const uint8_t COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -143,30 +143,30 @@ static const uint64_t mask_d[2][64] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 
-int count_last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
-	uint64_t	P8, P7, P9;
+	uint64_t P8, P7, P9;
 	int	n_flipped;
-	int	x = pos & 7;
-	int	y = pos & 0x38;
-	int	ry = y ^ 0x38;
+	const int h = x & 7;
+	const int v = x & 0x38;
+	const int rv = v ^ 0x38;
 
-	n_flipped = COUNT_FLIP[x][(unsigned char) (P >> y)];
+	n_flipped = COUNT_FLIP[h][(P >> v) & 0xff];
 
-	P8 = P & (0x0101010101010101ULL << x);
-	P7 = P & mask_d[0][pos];
-	P9 = P & mask_d[1][pos];
+	P8 = P & (0x0101010101010101ULL << h);
+	P7 = P & mask_d[0][x];
+	P9 = P & mask_d[1][x];
 
-	n_flipped += ((((int) __tzcnt_u64((P8 >> y) >> 8) + (int) __lzcnt64((P8 << ry) << 8)) & 0x38)
-		+ ((int) __tzcnt_u64((P7 >> y) >> 8) & 0x38)
-		+ ((int) __tzcnt_u64((P9 >> y) >> 8) & 0x38)
-		+ ((int) __lzcnt64((P7 << ry) << 8) & 0x38)
-		+ ((int) __lzcnt64((P9 << ry) << 8) & 0x38)) >> 2;
+	n_flipped += ((((int) __tzcnt_u64((P8 >> v) >> 8) + (int) __lzcnt64((P8 << rv) << 8)) & 0x38)
+		+ ((int) __tzcnt_u64((P7 >> v) >> 8) & 0x38)
+		+ ((int) __tzcnt_u64((P9 >> v) >> 8) & 0x38)
+		+ ((int) __lzcnt64((P7 << rv) << 8) & 0x38)
+		+ ((int) __lzcnt64((P9 << rv) << 8) & 0x38)) >> 2;
 
 	return n_flipped;
 }

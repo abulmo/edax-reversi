@@ -2,7 +2,7 @@
  * @file count_last_flip_lzcnt.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
@@ -18,7 +18,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -168,43 +168,43 @@ static const uint64_t mask_d[16][2] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 
-int count_last_flip(int pos, uint64_t P)
+int static inline count_last_flip(int x, uint64_t P)
 {
 	uint64_t P8, P7, P9;
 	int	n_flipped;
-	int	x = pos & 7;
+	int	h = x & 7;
 
-	n_flipped = COUNT_FLIP[x][(uint8_t) (P >> (pos & 0x38))];
+	n_flipped = COUNT_FLIP[h][(uint8_t) (P >> (x & 0x38))];
 
-	if (pos < 0x20) {
+	if (x < 0x20) {
 		P = vertical_mirror(P);
-		pos ^= 0x38;
+		x ^= 0x38;
 	}
 
-	if (pos & 0x10) {	// 0 1 2 3 4 5 6 7 -> 0 1 4 5 4 5 0 1
+	if (x & 0x10) {	// 0 1 2 3 4 5 6 7 -> 0 1 4 5 4 5 0 1
 		P = vertical_mirror(P);
-		pos ^= 0x38;
+		x ^= 0x38;
 	}
 
-	if (pos < 0x10) {
-		P >>= (pos + 1);
+	if (x < 0x10) {
+		P >>= (x + 1);
 		P8 = P & 0x0080808080808080;
 		n_flipped += ((P8 & -P8) * 0x00004080c1014180) >> 60;
-		P7 = P & mask_9_7[x][0];
+		P7 = P & mask_9_7[h][0];
 		n_flipped += ((P7 & -P7) * 0x0001040c2050c000) >> 60;
-		P9 = P & mask_9_7[x][1];
+		P9 = P & mask_9_7[h][1];
 		n_flipped += ((P9 & -P9) * 0x000010100c080503) >> 60;
 	} else {
-		n_flipped += COUNT_FLIP[pos >> 3][packV(P, x)];
-		P7 = P & mask_d[pos - 0x20][0];
-		n_flipped += COUNT_FLIP[x][packD(P7)];
-		P9 = P & mask_d[pos - 0x20][1];
-		n_flipped += COUNT_FLIP[x][packD(P9)];
+		n_flipped += COUNT_FLIP[x >> 3][packV(P, h)];
+		P7 = P & mask_d[x - 0x20][0];
+		n_flipped += COUNT_FLIP[h][packD(P7)];
+		P9 = P & mask_d[x - 0x20][1];
+		n_flipped += COUNT_FLIP[h][packD(P9)];
 	}
 	return n_flipped;
 }

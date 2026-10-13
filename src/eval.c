@@ -3,7 +3,7 @@
  *
  * Evaluation function.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -167,8 +167,8 @@ static const CoordinateToFeature EVAL_X2F[] = {
 	{6, {{ 3,    27}, { 7,     9}, { 9,    27}, {13,     3}, {23,     1}, {35,     1}}},               /* f8 */
 	{5, {{ 3,   729}, { 7,    27}, { 9,     9}, {19,     1}, {32,     1}}},                            /* g8 */
 	{7, {{ 3,  6561}, { 7,   243}, { 9,     3}, {11,     3}, {13,     1}, {15,     1}, {28,     1}}},  /* h8 */
-	{0, {{ 0,     0},}}, // offset
-	{0, {{ 0,     0},}} // hack to get 3 * 16 features
+	{0, {{ 0,     0},}}, // pass
+	{0, {{ 0,     0},}}  // hack to get 3 * 16 features
 };
 #endif
 
@@ -472,14 +472,12 @@ static const uint32_t FEATURE_OFFSET[] = {
 /** Evaluation weights by color & ply */
 static int16_t *EVAL_WEIGHT[65][2];
 
-/** number of (unpacked) weights */
-static const uint32_t EVAL_N_WEIGHT = 226315;
-
-/** number of plies */
-static const uint32_t EVAL_N_PLY = 61;
-
-/** number of features */
-static const uint32_t EVAL_N_FEATURE = 47;
+/** number of weights / features / plies*/
+enum uint32_t {
+	EVAL_N_WEIGHT = 226315, //< number of weights
+	EVAL_N_FEATURE = 47,    //< number of features
+	EVAL_N_PLY = 61         //< number of plies (0 to 60)
+ };
 
 /** eval weight load status */
 static int EVAL_LOADED = 0;
@@ -503,10 +501,10 @@ static uint32_t opponent_feature(uint32_t l, uint32_t d)
 }
 
 /**
- * @brief player's symetric feature.
+ * @brief player's symmetric feature.
  *
- * Compute a symetric feature.
- * @param sym symetries.
+ * Compute a symmetric feature.
+ * @param sym symmetries.
  * @param n feature length.
  * @param j feature.
  * @return player's feature.
@@ -523,6 +521,14 @@ static uint32_t player_feature(const int sym[], uint32_t n, uint32_t l)
 	return f;
 }
 
+/**
+ * @brief Allocate memory for a packed feature.
+ *
+ * On allocatation failure, emit a fatal_error.
+ *
+ * @param size The number of features.
+ * @return A pointer to the packed feature.
+ */
 static int** alloc_pack(size_t size)
 {
 	int **pack = (int**) malloc (2 * sizeof (int*));
@@ -534,6 +540,10 @@ static int** alloc_pack(size_t size)
 	return pack;
 }
 
+/**
+ * @brief Free memory of a packed feature.
+ * @param A pointer to the packed feature.
+ */
 static void free_pack(int **pack)
  {
 	free(pack[1]);
@@ -544,11 +554,15 @@ static void free_pack(int **pack)
 /**
  * @brief Unpack a feature
  *
+ * @param length The legth of the feature.
+ * @param size The number of features.
+ * @param sym An array with symmetric indexes.
+ * @return a pointer to the unpacked features.
  */
 static int **unpack(const uint32_t length, const uint32_t size, const int sym[])
 {
 	uint32_t i, j, n;
-	int ** pack = alloc_pack(size);
+	int **pack = alloc_pack(size);
 
 	for (i = n = 0; i < size; ++i) {
 		j = player_feature(sym, length, i);
@@ -581,20 +595,20 @@ void eval_open(const char* file)
 	static const int sym_S10[] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
 	static const int sym_C10[] = { 9, 8, 7, 6, 4, 5, 3, 2, 1, 0 };
 	static const int sym_C9[]  = { 0, 2, 1, 4, 3, 5, 7, 6, 8};
-	/** feature symetry packing */
+	/** feature symmetry packing */
 	int **EVAL_C10, **EVAL_S10, **EVAL_C9, **EVAL_S8, **EVAL_S7, **EVAL_S6, **EVAL_S5, **EVAL_S4;
 
 	if (EVAL_LOADED++) return;
 
 	// create unpacking tables
-	// linear symetries
+	// linear symmetries
 	EVAL_S10 = unpack(10, 59049, sym_S10);     // 10 squares (edge +X ) : 59049 -> 29646
 	EVAL_S8  = unpack( 8,  6561, sym_S10 + 2); // 8 squares : 6561 -> 3321
 	EVAL_S7  = unpack( 7,  2187, sym_S10 + 3); // 7 squares : 2187 -> 1134
 	EVAL_S6  = unpack( 6,   729, sym_S10 + 4); // 6 squares :  729 ->  378
 	EVAL_S5  = unpack( 5,   243, sym_S10 + 5); // 5 squares :  243 ->  135
 	EVAL_S4  = unpack( 4,    81, sym_S10 + 6); // 4 squares :   81  -> 45
-	// corner symetries
+	// corner symmetries
 	EVAL_C9  = unpack( 9, 19683, sym_C9);      // 9 corner squares 19683 -> 1006
 	EVAL_C10 = unpack(10, 59049, sym_C10);     // 10 squares (angle + X) : 59049 -> 29889
 
@@ -1048,7 +1062,6 @@ void eval_pass(Eval *eval)
  * @param ply;
  */
 int eval_accumulate(const Eval *eval) {
-
 // the vectorised version is ~10% slower than the standard version below on zen3, so I (Richard Delorme) disabled it.
 #if 0 && USE_SIMD && defined(__AVX2__)
 
@@ -1094,6 +1107,7 @@ int eval_accumulate(const Eval *eval) {
 	sum = _mm_cvtsi128_si32(s2) + _mm_extract_epi32(s2, 1);
 
 #else
+	_Static_assert(EVAL_N_FEATURE == 47, "Update eval_accumulate when features change");
 
 	const uint32_t *o = WEIGHT_OFFSET;
 	const int16_t *w0 = EVAL_WEIGHT[eval->ply][eval->player];

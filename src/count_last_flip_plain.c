@@ -2,7 +2,7 @@
  * @file count_last_flip_plain.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
@@ -18,7 +18,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 /** precomputed count flip array */
-static const unsigned char COUNT_FLIP[8][256] = {
+static const uint8_t COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -154,21 +154,21 @@ static const uint64_t mask_d[2][64] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-int count_last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
-	unsigned char n_flipped;
-	int x = pos & 0x07;
-	int y = pos >> 3;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[x];
+	uint_fast8_t n_flipped;
+	const int h = x & 7;
+	const uint8_t *COUNT_FLIP_H = COUNT_FLIP[h];
+	const uint8_t *COUNT_FLIP_V = COUNT_FLIP[x >> 3];
 
-	n_flipped  = COUNT_FLIP[y][(((P >> x) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56];
-	n_flipped += COUNT_FLIP_X[(unsigned char) (P >> (y * 8))];
-	n_flipped += COUNT_FLIP_X[((P & mask_d[0][pos]) * 0x0101010101010101ULL) >> 56];
-	n_flipped += COUNT_FLIP_X[((P & mask_d[1][pos]) * 0x0101010101010101ULL) >> 56];
+	n_flipped  = COUNT_FLIP_V[(((P >> h) & 0x0101010101010101ULL) * 0x0102040810204080ULL) >> 56];
+	n_flipped += COUNT_FLIP_H[(P >> (x & 0x38)) & 0xff];
+	n_flipped += COUNT_FLIP_H[((P & mask_d[0][x]) * 0x0101010101010101ULL) >> 56];
+	n_flipped += COUNT_FLIP_H[((P & mask_d[1][x]) * 0x0101010101010101ULL) >> 56];
 
 	return n_flipped;
 }

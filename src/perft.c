@@ -3,7 +3,7 @@
  *
  * @brief Move generator test.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 /**
+ * struct GameStatistics
  * Gathered statistiscs
  */
 typedef struct {
@@ -349,12 +350,12 @@ void estimate_games(const Board *board, const int64_t n, const bool count_pass, 
 	puts("------------------------------------------------------------------");
 	for (i = 1; m[i] || en[i]; ++i) {
 		m[i] /= n;
-		s[i] = sqrt((s[i] / n - m[i] * m[i])/n);
+		s[i] = sqrt((s[i] / n - m[i] * m[i])/ (n - 1));
 		printf("%5d: %e +/- %e; ", i, m[i], s[i]);
 
 		if (en[i]) {
 			em[i] /= n;
-			es[i] = sqrt((es[i] / n - em[i] * em[i])/n);
+			es[i] = sqrt((es[i] / n - em[i] * em[i]) / (n - 1));
 			printf("%e +/- %e;", em[i], es[i]);
 		}
 		putchar('\n');
@@ -486,7 +487,7 @@ static void gamehash_init(GameHashTable *hash, int bitsize)
 	hash->mask = (1 << bitsize) - 1;
 	hash->array = (GameHash*) aligned_alloc(64, adjust_size(64, hash->size * sizeof (GameHash)));
 	if (hash->array == NULL) fatal_error("Cannot allocate perft hashtable.\n");
-	for (i = 0; i < hash->size + 3; ++i) hash->array[i] = GAME_HASH_INIT;
+	for (i = 0; i < hash->size; ++i) hash->array[i] = GAME_HASH_INIT;
 	hash->n_tries = hash->n_hits = 0;
 }
 
@@ -746,7 +747,7 @@ static void positionarray_init(PosArray *array)
 }
 
 /**
- * @brief array supression.
+ * @brief array suppression.
  * @param array Array of positions.
  */
 static void positionarray_delete(PosArray *array)
@@ -1044,7 +1045,7 @@ static void shapearray_init(ShapeArray *array)
 }
 
 /**
- * @brief array supression.
+ * @brief array suppression.
  * @param array Array of shapes.
  */
 static void shapearray_delete(ShapeArray *array)

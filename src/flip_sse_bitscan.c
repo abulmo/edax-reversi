@@ -37,7 +37,7 @@
  * If the OUTFLANK search is in MSB to LSB direction, CONTIG_X tables
  * are used to determine coutiguous opponent discs.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -271,40 +271,48 @@ static inline __m128i flipmask (__m128i outflank) {
 }
 
 /**
- * Compute flipped discs when playing on square pos.
+ * Compute flipped discs when playing on square x.
  *
- * @param Board board.
- * @param pos player's move.
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
  * @return flipped disc pattern.
  */
-uint64_t flip(const int pos, const uint64_t P, const uint64_t O)
+uint64_t flip(const int x, const uint64_t P, const uint64_t O)
 {
 	__m128i	outflank17, outflank89, PP, OO;
 	uint64_t flipped, outflankr1, outflankr7, outflankr8, outflankr9;
 	const __m128i minusone = _mm_set1_epi32(-1);
 
-	outflankr1 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[pos][0], maskr[pos][0])) & P;
-	flipped  = (-outflankr1 * 2) & maskr[pos][0];
-	outflankr7 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[pos][1], maskr[pos][1])) & P;
-	flipped |= (-outflankr7 * 2) & maskr[pos][1];
-	outflankr8 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[pos][2], maskr[pos][2])) & P;
-	flipped |= (-outflankr8 * 2) & maskr[pos][2];
-	outflankr9 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[pos][3], maskr[pos][3])) & P;
-	flipped |= (-outflankr9 * 2) & maskr[pos][3];
+	outflankr1 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[x][0], maskr[x][0])) & P;
+	flipped  = (-outflankr1 * 2) & maskr[x][0];
+	outflankr7 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[x][1], maskr[x][1])) & P;
+	flipped |= (-outflankr7 * 2) & maskr[x][1];
+	outflankr8 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[x][2], maskr[x][2])) & P;
+	flipped |= (-outflankr8 * 2) & maskr[x][2];
+	outflankr9 = (0x8000000000000000ULL >> count_opp_reverse(O, masko[x][3], maskr[x][3])) & P;
+	flipped |= (-outflankr9 * 2) & maskr[x][3];
 
 	PP = _mm_set1_epi64x(P);
 	OO = _mm_and_si128(_mm_set1_epi64x(O), _mm_set_epi32(0x7e7e7e7e, 0x7e7e7e7e, -1, -1));
-	outflank89 = _mm_and_si128(_mm_andnot_si128(maskl[pos][1].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[pos][1].v2), minusone)), PP);
+	outflank89 = _mm_and_si128(_mm_andnot_si128(maskl[x][1].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[x][1].v2), minusone)), PP);
 	OO = _mm_unpackhi_epi64(OO, OO);
-	outflank17 = _mm_and_si128(_mm_andnot_si128(maskl[pos][0].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[pos][0].v2), minusone)), PP);
-	outflank89 = _mm_andnot_si128(maskl[pos][1].v2, _mm_sub_epi64(outflank89, _mm_sub_epi64(flipmask(outflank89), minusone)));
-	outflank17 = _mm_andnot_si128(maskl[pos][0].v2, _mm_sub_epi64(outflank17, _mm_sub_epi64(flipmask(outflank17), minusone)));
+	outflank17 = _mm_and_si128(_mm_andnot_si128(maskl[x][0].v2, _mm_sub_epi64(_mm_or_si128(OO, maskl[x][0].v2), minusone)), PP);
+	outflank89 = _mm_andnot_si128(maskl[x][1].v2, _mm_sub_epi64(outflank89, _mm_sub_epi64(flipmask(outflank89), minusone)));
+	outflank17 = _mm_andnot_si128(maskl[x][0].v2, _mm_sub_epi64(outflank17, _mm_sub_epi64(flipmask(outflank17), minusone)));
 	outflank17 = _mm_or_si128(outflank17, outflank89);
 	outflank17 = _mm_or_si128(outflank17, _mm_shuffle_epi32(outflank17, SWAP64));
 
 	return flipped | _mm_cvtsi128_si64(outflank17);
 }
 
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
 uint64_t board_flip(const Board *board, const int x)
 {
 	return flip(x, board->player, board->opponent);

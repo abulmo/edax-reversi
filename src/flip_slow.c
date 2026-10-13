@@ -3,7 +3,7 @@
  *
  * This module verifies if the move generator is correct.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -14,6 +14,14 @@
 
 #ifndef NDEBUG
 
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param P player's bitboard.
+ * @param O opponent's bitboard.
+ * @param x0 player's move.
+ * @return flipped disc pattern.
+ */
 uint64_t flip_slow(const uint64_t P, const uint64_t O, const int x0)
 {
 	int x, d, dir[8] = {-9,-8,-7,-1,1,7,8,9};

@@ -2,7 +2,7 @@
  * @file count_last_flip_bitscan.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move
+ * A function is provided to count the number of flipped disc of the last move
  * for each square of the board. These functions are gathered into an array of
  * functions, so that a fast access to each function is allowed. The generic
  * form of the function take as input the player bitboard and return twice
@@ -27,7 +27,7 @@
  * For top to bottom flip, LS1B isolation (http://chessprogramming.wikispaces.com/
  * General+Setwise+Operations) is used to get the outflank bit.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme - Toshihiko Okuhara
  * @version 4.7
  *
@@ -36,7 +36,7 @@
 #include <stdint.h>
 
 /** precomputed count flip array */
-static const char COUNT_FLIP_R[128] = {
+static const uint8_t COUNT_FLIP_R[128] = {
 	 0,  0,  2,  0,  4,  0,  2,  0,  6,  0,  2,  0,  4,  0,  2,  0,
 	 8,  0,  2,  0,  4,  0,  2,  0,  6,  0,  2,  0,  4,  0,  2,  0,
 	10,  0,  2,  0,  4,  0,  2,  0,  6,  0,  2,  0,  4,  0,  2,  0,
@@ -47,7 +47,7 @@ static const char COUNT_FLIP_R[128] = {
 	 8,  0,  2,  0,  4,  0,  2,  0,  6,  0,  2,  0,  4,  0,  2,  0
 };
 
-static const char COUNT_FLIP_2[256] = {
+static const uint8_t COUNT_FLIP_2[256] = {
 	 0,  2,  0,  0,  0,  2,  0,  0,  0,  2,  0,  0,  0,  2,  0,  0,  2,  4,  2,  2,  2,  4,  2,  2,  0,  2,  0,  0,  0,  2,  0,  0,
 	 4,  6,  4,  4,  4,  6,  4,  4,  0,  2,  0,  0,  0,  2,  0,  0,  2,  4,  2,  2,  2,  4,  2,  2,  0,  2,  0,  0,  0,  2,  0,  0,
 	 6,  8,  6,  6,  6,  8,  6,  6,  0,  2,  0,  0,  0,  2,  0,  0,  2,  4,  2,  2,  2,  4,  2,  2,  0,  2,  0,  0,  0,  2,  0,  0,
@@ -58,7 +58,7 @@ static const char COUNT_FLIP_2[256] = {
 	 4,  6,  4,  4,  4,  6,  4,  4,  0,  2,  0,  0,  0,  2,  0,  0,  2,  4,  2,  2,  2,  4,  2,  2,  0,  2,  0,  0,  0,  2,  0,  0
 };
 
-static const char COUNT_FLIP_3[256] = {
+static const uint8_t COUNT_FLIP_3[256] = {
 	 0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0,
 	 2,  6,  4,  4,  2,  2,  2,  2,  2,  6,  4,  4,  2,  2,  2,  2,  0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0,
 	 4,  8,  6,  6,  4,  4,  4,  4,  4,  8,  6,  6,  4,  4,  4,  4,  0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0,
@@ -69,7 +69,7 @@ static const char COUNT_FLIP_3[256] = {
 	 2,  6,  4,  4,  2,  2,  2,  2,  2,  6,  4,  4,  2,  2,  2,  2,  0,  4,  2,  2,  0,  0,  0,  0,  0,  4,  2,  2,  0,  0,  0,  0
 };
 
-static const char COUNT_FLIP_4[256] = {
+static const uint8_t COUNT_FLIP_4[256] = {
 	 0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,
 	 0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,
 	 2,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,
@@ -80,7 +80,7 @@ static const char COUNT_FLIP_4[256] = {
 	 0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  4,  4,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-static const char COUNT_FLIP_5[256] = {
+static const uint8_t COUNT_FLIP_5[256] = {
 	 0,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	 0,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	 0,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -91,7 +91,7 @@ static const char COUNT_FLIP_5[256] = {
 	 0,  8,  6,  6,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-static const char COUNT_FLIP_L[128] = {
+static const uint8_t COUNT_FLIP_L[128] = {
 	 0, 12, 10, 10,  8,  8,  8,  8,  6,  6,  6,  6,  6,  6,  6,  6,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
 	 2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
 	 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -120,7 +120,7 @@ static inline int count_V_flip_reverse (uint64_t P, int ofs) {
  * Count last flipped discs when playing on square A1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A1(const uint64_t P)
 {
@@ -140,7 +140,7 @@ static int count_last_flip_A1(const uint64_t P)
  * Count last flipped discs when playing on square B1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B1(const uint64_t P)
 {
@@ -160,7 +160,7 @@ static int count_last_flip_B1(const uint64_t P)
  * Count last flipped discs when playing on square C1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C1(const uint64_t P)
 {
@@ -179,7 +179,7 @@ static int count_last_flip_C1(const uint64_t P)
  * Count last flipped discs when playing on square D1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D1(const uint64_t P)
 {
@@ -198,7 +198,7 @@ static int count_last_flip_D1(const uint64_t P)
  * Count last flipped discs when playing on square E1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E1(const uint64_t P)
 {
@@ -217,7 +217,7 @@ static int count_last_flip_E1(const uint64_t P)
  * Count last flipped discs when playing on square F1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F1(const uint64_t P)
 {
@@ -236,7 +236,7 @@ static int count_last_flip_F1(const uint64_t P)
  * Count last flipped discs when playing on square G1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G1(const uint64_t P)
 {
@@ -256,7 +256,7 @@ static int count_last_flip_G1(const uint64_t P)
  * Count last flipped discs when playing on square H1.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H1(const uint64_t P)
 {
@@ -276,7 +276,7 @@ static int count_last_flip_H1(const uint64_t P)
  * Count last flipped discs when playing on square A2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A2(const uint64_t P)
 {
@@ -296,7 +296,7 @@ static int count_last_flip_A2(const uint64_t P)
  * Count last flipped discs when playing on square B2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B2(const uint64_t P)
 {
@@ -316,7 +316,7 @@ static int count_last_flip_B2(const uint64_t P)
  * Count last flipped discs when playing on square C2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C2(const uint64_t P)
 {
@@ -335,7 +335,7 @@ static int count_last_flip_C2(const uint64_t P)
  * Count last flipped discs when playing on square D2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D2(const uint64_t P)
 {
@@ -354,7 +354,7 @@ static int count_last_flip_D2(const uint64_t P)
  * Count last flipped discs when playing on square E2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E2(const uint64_t P)
 {
@@ -373,7 +373,7 @@ static int count_last_flip_E2(const uint64_t P)
  * Count last flipped discs when playing on square F2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F2(const uint64_t P)
 {
@@ -392,7 +392,7 @@ static int count_last_flip_F2(const uint64_t P)
  * Count last flipped discs when playing on square G2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G2(const uint64_t P)
 {
@@ -412,7 +412,7 @@ static int count_last_flip_G2(const uint64_t P)
  * Count last flipped discs when playing on square H2.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H2(const uint64_t P)
 {
@@ -432,7 +432,7 @@ static int count_last_flip_H2(const uint64_t P)
  * Count last flipped discs when playing on square A3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A3(const uint64_t P)
 {
@@ -449,7 +449,7 @@ static int count_last_flip_A3(const uint64_t P)
  * Count last flipped discs when playing on square B3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B3(const uint64_t P)
 {
@@ -466,7 +466,7 @@ static int count_last_flip_B3(const uint64_t P)
  * Count last flipped discs when playing on square C3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C3(const uint64_t P)
 {
@@ -484,7 +484,7 @@ static int count_last_flip_C3(const uint64_t P)
  * Count last flipped discs when playing on square D3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D3(const uint64_t P)
 {
@@ -502,7 +502,7 @@ static int count_last_flip_D3(const uint64_t P)
  * Count last flipped discs when playing on square E3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E3(const uint64_t P)
 {
@@ -520,7 +520,7 @@ static int count_last_flip_E3(const uint64_t P)
  * Count last flipped discs when playing on square F3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F3(const uint64_t P)
 {
@@ -538,7 +538,7 @@ static int count_last_flip_F3(const uint64_t P)
  * Count last flipped discs when playing on square G3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G3(const uint64_t P)
 {
@@ -555,7 +555,7 @@ static int count_last_flip_G3(const uint64_t P)
  * Count last flipped discs when playing on square H3.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H3(const uint64_t P)
 {
@@ -572,7 +572,7 @@ static int count_last_flip_H3(const uint64_t P)
  * Count last flipped discs when playing on square A4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A4(const uint64_t P)
 {
@@ -589,7 +589,7 @@ static int count_last_flip_A4(const uint64_t P)
  * Count last flipped discs when playing on square B4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B4(const uint64_t P)
 {
@@ -606,7 +606,7 @@ static int count_last_flip_B4(const uint64_t P)
  * Count last flipped discs when playing on square C4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C4(const uint64_t P)
 {
@@ -624,7 +624,7 @@ static int count_last_flip_C4(const uint64_t P)
  * Count last flipped discs when playing on square D4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D4(const uint64_t P)
 {
@@ -642,7 +642,7 @@ static int count_last_flip_D4(const uint64_t P)
  * Count last flipped discs when playing on square E4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E4(const uint64_t P)
 {
@@ -660,7 +660,7 @@ static int count_last_flip_E4(const uint64_t P)
  * Count last flipped discs when playing on square F4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F4(const uint64_t P)
 {
@@ -678,7 +678,7 @@ static int count_last_flip_F4(const uint64_t P)
  * Count last flipped discs when playing on square G4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G4(const uint64_t P)
 {
@@ -695,7 +695,7 @@ static int count_last_flip_G4(const uint64_t P)
  * Count last flipped discs when playing on square H4.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H4(const uint64_t P)
 {
@@ -712,7 +712,7 @@ static int count_last_flip_H4(const uint64_t P)
  * Count last flipped discs when playing on square A5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A5(const uint64_t P)
 {
@@ -729,7 +729,7 @@ static int count_last_flip_A5(const uint64_t P)
  * Count last flipped discs when playing on square B5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B5(const uint64_t P)
 {
@@ -746,7 +746,7 @@ static int count_last_flip_B5(const uint64_t P)
  * Count last flipped discs when playing on square C5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C5(const uint64_t P)
 {
@@ -764,7 +764,7 @@ static int count_last_flip_C5(const uint64_t P)
  * Count last flipped discs when playing on square D5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D5(const uint64_t P)
 {
@@ -782,7 +782,7 @@ static int count_last_flip_D5(const uint64_t P)
  * Count last flipped discs when playing on square E5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E5(const uint64_t P)
 {
@@ -800,7 +800,7 @@ static int count_last_flip_E5(const uint64_t P)
  * Count last flipped discs when playing on square F5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F5(const uint64_t P)
 {
@@ -818,7 +818,7 @@ static int count_last_flip_F5(const uint64_t P)
  * Count last flipped discs when playing on square G5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G5(const uint64_t P)
 {
@@ -835,7 +835,7 @@ static int count_last_flip_G5(const uint64_t P)
  * Count last flipped discs when playing on square H5.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H5(const uint64_t P)
 {
@@ -852,7 +852,7 @@ static int count_last_flip_H5(const uint64_t P)
  * Count last flipped discs when playing on square A6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_A6(const uint64_t P)
 {
@@ -869,7 +869,7 @@ static int count_last_flip_A6(const uint64_t P)
  * Count last flipped discs when playing on square B6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_B6(const uint64_t P)
 {
@@ -886,7 +886,7 @@ static int count_last_flip_B6(const uint64_t P)
  * Count last flipped discs when playing on square C6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_C6(const uint64_t P)
 {
@@ -904,7 +904,7 @@ static int count_last_flip_C6(const uint64_t P)
  * Count last flipped discs when playing on square D6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_D6(const uint64_t P)
 {
@@ -922,7 +922,7 @@ static int count_last_flip_D6(const uint64_t P)
  * Count last flipped discs when playing on square E6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_E6(const uint64_t P)
 {
@@ -940,7 +940,7 @@ static int count_last_flip_E6(const uint64_t P)
  * Count last flipped discs when playing on square F6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_F6(const uint64_t P)
 {
@@ -958,7 +958,7 @@ static int count_last_flip_F6(const uint64_t P)
  * Count last flipped discs when playing on square G6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_G6(const uint64_t P)
 {
@@ -975,7 +975,7 @@ static int count_last_flip_G6(const uint64_t P)
  * Count last flipped discs when playing on square H6.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 static int count_last_flip_H6(const uint64_t P)
 {
@@ -992,7 +992,7 @@ static int count_last_flip_H6(const uint64_t P)
  * Count last flipped discs when playing on square A7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_A7(const uint64_t P)
@@ -1015,7 +1015,7 @@ static int count_last_flip_A7(const uint64_t P) {
  * Count last flipped discs when playing on square B7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_B7(const uint64_t P)
@@ -1038,7 +1038,7 @@ static int count_last_flip_B7(const uint64_t P) {
  * Count last flipped discs when playing on square C7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_C7(const uint64_t P)
@@ -1061,7 +1061,7 @@ static int count_last_flip_C7(const uint64_t P) {
  * Count last flipped discs when playing on square D7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_D7(const uint64_t P)
@@ -1084,7 +1084,7 @@ static int count_last_flip_D7(const uint64_t P) {
  * Count last flipped discs when playing on square E7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_E7(const uint64_t P)
@@ -1107,7 +1107,7 @@ static int count_last_flip_E7(const uint64_t P) {
  * Count last flipped discs when playing on square F7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_F7(const uint64_t P)
@@ -1130,7 +1130,7 @@ static int count_last_flip_F7(const uint64_t P) {
  * Count last flipped discs when playing on square G7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_G7(const uint64_t P)
@@ -1153,7 +1153,7 @@ static int count_last_flip_G7(const uint64_t P) {
  * Count last flipped discs when playing on square H7.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_H7(const uint64_t P)
@@ -1176,7 +1176,7 @@ static int count_last_flip_H7(const uint64_t P) {
  * Count last flipped discs when playing on square A8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_A8(const uint64_t P)
@@ -1199,7 +1199,7 @@ static int count_last_flip_A8(const uint64_t P) {
  * Count last flipped discs when playing on square B8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_B8(const uint64_t P)
@@ -1222,7 +1222,7 @@ static int count_last_flip_B8(const uint64_t P) {
  * Count last flipped discs when playing on square C8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_C8(const uint64_t P)
@@ -1245,7 +1245,7 @@ static int count_last_flip_C8(const uint64_t P) {
  * Count last flipped discs when playing on square D8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_D8(const uint64_t P)
@@ -1268,7 +1268,7 @@ static int count_last_flip_D8(const uint64_t P) {
  * Count last flipped discs when playing on square E8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_E8(const uint64_t P)
@@ -1291,7 +1291,7 @@ static int count_last_flip_E8(const uint64_t P) {
  * Count last flipped discs when playing on square F8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_F8(const uint64_t P)
@@ -1314,7 +1314,7 @@ static int count_last_flip_F8(const uint64_t P) {
  * Count last flipped discs when playing on square G8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_G8(const uint64_t P)
@@ -1337,7 +1337,7 @@ static int count_last_flip_G8(const uint64_t P) {
  * Count last flipped discs when playing on square H8.
  *
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 #ifdef __LZCNT__
 static int count_last_flip_H8(const uint64_t P)
@@ -1357,7 +1357,7 @@ static int count_last_flip_H8(const uint64_t P) {
 #endif
 
 /**
- * Count last flipped discs when plassing.
+ * Count last flipped discs when passing.
  *
  * @param P player's disc pattern (unused).
  * @return zero.
@@ -1389,6 +1389,13 @@ int (*last_flip[])(const uint64_t) = {
 	count_last_flip_pass,
 };
 
-int count_last_flip(const int x, const uint64_t P) {
+/**
+ * Count last flipped discs when playing on the last empty.
+ *
+ * @param x the last empty square.
+ * @param P player's disc pattern.
+ * @return flipped disc count * 2.
+ */
+static inline int count_last_flip(const int x, const uint64_t P) {
 	return last_flip[x](P);
 }

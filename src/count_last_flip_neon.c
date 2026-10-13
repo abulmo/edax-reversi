@@ -2,7 +2,7 @@
  * @file count_last_flip_neon.c
  *
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * The basic principle is to read into an array a precomputed result. Doing
  * this is easy for a single line ; as we can use arrays of the form:
@@ -17,7 +17,7 @@
  * For optimization purpose, the value returned is twice the number of flipped
  * disc, to facilitate the computation of disc difference.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -27,7 +27,7 @@
 #include "simd.h"
 
 /** precomputed count flip array */
-const unsigned char COUNT_FLIP[8][256] = {
+const uint8_t COUNT_FLIP[8][256] = {
 	{
 		 0,  0,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
 		 8,  8,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,  6,  6,  0,  0,  2,  2,  0,  0,  4,  4,  0,  0,  2,  2,  0,  0,
@@ -227,7 +227,7 @@ const uint64x2_t mask_dvhd[64][2] = {
 	{{ 0x0204081020408000, 0x0000ff0000000000 }, { 0x0808080808080808, 0x2010080402010000 }},
 	{{ 0x0408102040800000, 0x0000ff0000000000 }, { 0x1010101010101010, 0x4020100804020100 }},
 	{{ 0x0810204080000000, 0x0000ff0000000000 }, { 0x2020202020202020, 0x8040201008040201 }},
-	{{ 0x1020408000000000, 0x0000ff0000000000 }, { 0x4040404040404040, 0x0080402010080402 }},
+	{{ 0x1020408000000000, 0x0000fflipped disc count * 2.f0000000000 }, { 0x4040404040404040, 0x0080402010080402 }},
 	{{ 0x2040800000000000, 0x0000ff0000000000 }, { 0x8080808080808080, 0x0000804020100804 }},
 	{{ 0x0001020408102040, 0x00ff000000000000 }, { 0x0101010101010101, 0x0201000000000000 }},
 	{{ 0x0102040810204080, 0x00ff000000000000 }, { 0x0202020202020202, 0x0402010000000000 }},
@@ -251,42 +251,41 @@ const uint64x2_t mask_dvhd[64][2] = {
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-
-int count_last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
-	unsigned int	n_flips;// n_flips_1,n_flips_2;
-	const unsigned char *COUNT_FLIP_X = COUNT_FLIP[pos & 7];
-	const unsigned char *COUNT_FLIP_Y = COUNT_FLIP[pos >> 3];
-	uint64x2_t	PP = vdupq_n_u64(P);
-	uint64x2_t	II;
+	uint32_t n_flips;
+	const uint8_t *COUNT_FLIP_H = COUNT_FLIP[x & 7];
+	const uint8_t *COUNT_FLIP_V = COUNT_FLIP[x >> 3];
+	uint64x2_t PP = vdupq_n_u64(P);
+	uint64x2_t II;
 	// vaddvq
 #if COUNT_LAST_FLIP == COUNT_LAST_FLIP_NEON_VADDVQ
 	unsigned int t;
 	const uint64x2_t dmask = { 0x0808040402020101, 0x8080404020201010 };
 
 	PP = vreinterpretq_u64_u8(vzip1q_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(PP)));
-	II = vandq_u64(PP, mask_dvhd[pos][0]);	// 2 dirs interleaved
+	II = vandq_u64(PP, mask_dvhd[x][0]);	// 2 dirs interleaved
 	t = vaddvq_u16(vreinterpretq_u16_u64(II));
-	n_flips  = COUNT_FLIP_X[t >> 8];
-	n_flips += COUNT_FLIP_X[t & 0xFF];
-	II = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1]))), dmask);
+	n_flips  = COUNT_FLIP_H[t >> 8];
+	n_flips += COUNT_FLIP_H[t & 0xFF];
+	II = vandq_u64(vreinterpretq_u64_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[x][1]))), dmask);
 	t = vaddvq_u16(vreinterpretq_u16_u64(II));
-	n_flips += COUNT_FLIP_Y[t >> 8];
-	n_flips += COUNT_FLIP_Y[t & 0xFF];
+	n_flips += COUNT_FLIP_V[t >> 8];
+	n_flips += COUNT_FLIP_V[t & 0xFF];
 
 #else // Neon kindergarten
 	const uint64x2_t dmask = { 0x1020408001020408, 0x1020408001020408 };
-	II = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[pos][0])))));
-	n_flips  = COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 2)];
-	n_flips += COUNT_FLIP_X[vgetq_lane_u32(vreinterpretq_u32_u64(II), 0)];
-	II = vreinterpretq_u64_s8(vnegq_s8(vreinterpretq_s8_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[pos][1])))));
+	II = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vreinterpretq_u8_u64(vandq_u64(PP, mask_dvhd[x][0])))));
+	n_flips  = COUNT_FLIP_H[vgetq_lane_u32(vreinterpretq_u32_u64(II), 2)];
+	n_flips += COUNT_FLIP_H[vgetq_lane_u32(vreinterpretq_u32_u64(II), 0)];
+	II = vreinterpretq_u64_s8(vnegq_s8(vreinterpretq_s8_u8(vtstq_u8(vreinterpretq_u8_u64(PP), vreinterpretq_u8_u64(mask_dvhd[x][1])))));
 	II = vpaddlq_u32(vmulq_u32(vreinterpretq_u32_u64(dmask), vreinterpretq_u32_u64(II)));
-	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
-	n_flips += COUNT_FLIP_Y[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
+	n_flips += COUNT_FLIP_V[vgetq_lane_u8(vreinterpretq_u8_u64(II), 11)];
+	n_flips += COUNT_FLIP_V[vgetq_lane_u8(vreinterpretq_u8_u64(II), 3)];
 #endif
 	return n_flips;
 }

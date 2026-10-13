@@ -5,7 +5,7 @@
  *
  * Of course, only the "reversi" variant is supported.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  *
@@ -30,8 +30,8 @@ typedef struct {
 } XBoardStats;
 
 /**
- * @brief Search oberver.
- * @param result Search Result.
+ * @brief Search observer.
+ * @param result Search result.
  */
 static void xboard_observer(Result *result)
 {
@@ -79,7 +79,6 @@ void ui_init_xboard(UI *ui)
 	search->options.separator = NULL;
 	ui->book.search = search;
 	book_load(&ui->book, options.book_file);
-	search->id = 1;
 	search_set_observer(search, xboard_observer);
 	options.level = 60;
 	play->type = ui->type;
@@ -250,7 +249,7 @@ static void xboard_check_game_over(Play *play)
 	int n_discs[2];
 	const Board *board = &play->board;
 	const char *(color[2]) = {"Black", "White"};
-	const int player = WHITE; // !!!!
+	const int player = WHITE; // Return the score from the white perspective as expected by XBoard
 	const int opponent = !player;
 
 	if (play_is_game_over(play)) {

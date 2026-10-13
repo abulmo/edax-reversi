@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -130,7 +131,7 @@ typedef struct GGSAdmin {
 /* GGSEvent. Deals with input from ggs */
 typedef struct GGSEvent {
 	int socket;                 /**< socket */
-	bool loop;                  /**< loop */
+	atomic_bool loop;           /**< loop */
 	char *buffer;               /**< read buffer */
 	thrd_t thread;              /**< thread */
 	mtx_t mutex;                /**< mutex */
@@ -339,7 +340,7 @@ static bool ggs_parse_move(int *move, const char *word) {
 }
 
 /**
- * @brief ggs_parse_move
+ * @brief ggs_parse_time
  *
  * Translate input word into time (as ms).
  *
@@ -428,6 +429,7 @@ static bool ggs_player_set(GGSPlayer *player, const char *name, const char *rati
 	if (name == NULL || *name == '\0') return false;
 
 	parse_word(name, word, WORD_SIZE);
+	free(player->name);
 	player->name = string_duplicate(word);
 
 	rating = parse_skip_spaces(rating);
@@ -468,22 +470,7 @@ static void ggs_match_type_set(GGSMatchType *type, const char *word) {
 
 
 /**
- * @brief ggs_player_free
- *
- * Free a GGS player structure.
- *
- * @param player GGS player.
- */
-static void ggs_player_free(GGSPlayer *player) {
-	assert(player);
-	free(player->name);
-	player->name = NULL;
-}
-
-/**
- * @brief ggs_MBR_free
- *
- * Free a GGS MatchOn/Off / Board / Request structure.
+ * @brief Free a GGS MatchOn/Off / Board / Request structure.
  *
  * @param v GGS match/Board or Request structure.
  */
@@ -491,15 +478,15 @@ static void ggs_MBR_free(void* v) {
 	GGSMatch *m = (GGSMatch*) v;
 	assert(m);
 	free(m->id);
-	m->id = 0;
-	ggs_player_free(m->player);
-	ggs_player_free(m->player + 1);
+	m->id = NULL;
+	free(m->player[0].name);
+	free(m->player[1].name);
+	m->player[0].name = NULL;
+	m->player[1].name = NULL;
 }
 
 /**
- * @brief ggs_match_check_destination
- *
- * Check if Edax is concerned by the match.
+ * @brief Check if Edax is concerned by the match.
  *
  * @param player GGS player.
  * @param me Edax's login name.
@@ -529,7 +516,7 @@ static bool ggs_request(GGSRequest *request, Text *text)
 		if (strcmp("+", word) == 0) {
 			if (*line) {
 				line = parse_word(line, word, WORD_SIZE);
-				request->id = string_duplicate(word);
+				free(request->id); request->id = string_duplicate(word);
 				return true;
 			}
 		}
@@ -565,7 +552,7 @@ static bool ggs_match(GGSMatch *match, Text *text, char * on_off)
 	match->id = string_duplicate(word);
 
 	line = parse_word(line, word, WORD_SIZE);
-	if (!ggs_player_set(&(match->player[0]), line, word))return false;
+	if (!ggs_player_set(&(match->player[0]), line, word)) return false;
 
 	line = parse_skip_word(line);
 
@@ -625,6 +612,7 @@ static bool ggs_board(GGSBoard *board, Text *text)
 	char word[WORD_SIZE];
 	int ii = 1, i, j;
 
+
 	if (text->n_lines < 17) return false;
 
 	if (*line == '\0') return false;
@@ -643,7 +631,7 @@ static bool ggs_board(GGSBoard *board, Text *text)
 
 	if (*line == '\0') return false;
 	line = parse_word(line, word, WORD_SIZE);
-	board->id = string_duplicate(word);
+	free(board->id); board->id = string_duplicate(word);
 
 	if (*line == '\0') return false;
 	line = parse_word(line, word, WORD_SIZE);
@@ -656,7 +644,7 @@ static bool ggs_board(GGSBoard *board, Text *text)
 			board->komi = 0;
 		} else {
 			board->match_type.is_komi = 1;
-			ggs_parse_double(&board->komi, word + 1);
+			if (!ggs_parse_double(&board->komi, word + 1)) return false;
 		}
 	}
 
@@ -678,7 +666,7 @@ static bool ggs_board(GGSBoard *board, Text *text)
 			for (i = 0; i < board->move_list_n; i++) {
 				++ii;
 				parse_field(text->line[ii] + 6, word, WORD_SIZE, '/');
-				ggs_parse_move(board->move_list + i, word);
+				if (!ggs_parse_move(board->move_list + i, word)) return false;
 			}
 		} else ii = 2;
 	}
@@ -687,13 +675,12 @@ static bool ggs_board(GGSBoard *board, Text *text)
 
 	line = parse_skip_word(text->line[ii]);
 	line = parse_word(line, word, WORD_SIZE);
-	ggs_parse_int(&board->move_no, word);
-	ggs_parse_move(&board->move, line);
+	if (!ggs_parse_int(&board->move_no, word)) return false;
+	if (!ggs_parse_move(&board->move, line)) return false;
 
 	++ii;
 	line = parse_word(text->line[ii], word, WORD_SIZE);
-	if (!ggs_player_set(board->player, word + 1, line))
-		return false;
+	if (!ggs_player_set(board->player, word + 1, line)) return false;
 	line = parse_skip_word(line + 1);
 	line = parse_word(line, word, WORD_SIZE);
 	board->color[0] = word[0];
@@ -748,7 +735,7 @@ static bool ggs_os_on(Text *text)
  * PS: os = (o)thello (s)ervice
  *
  * @param text GGS input text.
- * @return 'true' if the text is a valid board.
+ * @return 'true' if the text is a valid os off.
  */
 static bool ggs_os_off(Text *text)
 {
@@ -775,7 +762,7 @@ static int ggs_admin(GGSAdmin *admin, Text *text)
 	line = parse_word(line, word, WORD_SIZE);
 	for (i = 0; *admin_list[i]; i++) {
 		if (strncmp(admin_list[i], word, strlen(admin_list[i])) == 0) {
-			admin->command = string_duplicate(line);
+			free(admin->command); admin->command = string_duplicate(line);
 			strcpy(admin->name, admin_list[i]);
 			return true;
 		}
@@ -816,7 +803,7 @@ static bool ggs_alert(Text *text)
  * Parse a login request from a GGS input text.
  *
  * @param text GGS input text.
- * @return 'true' if the text is "ALERT".
+ * @return 'true' if the text is a correct login.
  */
 static bool ggs_login(Text *text)
 {
@@ -829,7 +816,7 @@ static bool ggs_login(Text *text)
  * Parse a login password from a GGS input text.
  *
  * @param text GGS input text.
- * @return 'true' if the text is "ALERT".
+ * @return 'true' if the text is a correct password.
  */
 static bool ggs_password(Text *text)
 {
@@ -851,7 +838,7 @@ static int ggs_event_loop(void *v)
 	char buffer[BUCKET_SIZE + 1] = "";
 	int r, l;
 
-	while (event->loop) {
+	while (atomic_load(&event->loop)) {
 		r = recv(event->socket, buffer, BUCKET_SIZE, 0);
 		if (r > 0) {
 			mtx_lock(&event->mutex);
@@ -862,7 +849,7 @@ static int ggs_event_loop(void *v)
 				*buffer = '\0';
 			mtx_unlock(&event->mutex);
 		} else {
-			event->loop = false;
+			atomic_store(&event->loop, false);
 		}
 	}
 
@@ -900,7 +887,7 @@ static void ggs_event_init(GGSEvent *event)
 	memset(&hints, 0, sizeof (struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = 0;
 	hints.ai_protocol = getprotobyname("tcp")->p_proto;
 	hints.ai_canonname = NULL;
 	hints.ai_addr = NULL;
@@ -1020,9 +1007,12 @@ static void ggs_client_send(GGSClient *client, const char *fmt, ...) {
 		va_end(ap);
 
 		if (message_length > 0 && message_length < size) break;
-
-		if (message_length > 0) size = message_length + 1;
-		else size *= 2;
+		else if (message_length >= size) size = message_length + 1; //  truncated message
+		else if (message_length < 0) {
+			log_send(&ggs_log, "ERROR: ", "invalid buffer sent %s", buffer);
+			printf("ERROR: invalid buffer sent %s", buffer);
+			break; // error
+		}
 		free(buffer);
 	}
 
@@ -1359,7 +1349,7 @@ static void ui_ggs_update(UI *ui) {
 void ui_init_ggs(UI *ui) {
 	const int n_task = options.n_task;
 
-	ui->ggs = (GGSClient*) malloc (sizeof (GGSClient));
+	ui->ggs = (GGSClient*) calloc (1, sizeof (GGSClient));
 	if (ui->ggs == NULL) fatal_error("ui_init_ggs: cannot allocate the GGS client\n");
 
 	play_init(ui->play, &ui->book);

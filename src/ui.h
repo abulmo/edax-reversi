@@ -3,7 +3,7 @@
  *
  * @brief User interface header.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -39,6 +39,7 @@ typedef struct UI {
 } UI;
 
 bool ui_switch(UI*, const char*);
+void ui_print(FILE*, const char*, ...);
 
 void ui_event_init(UI*);
 bool ui_event_peek(UI*, char**, char**);

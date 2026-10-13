@@ -13,12 +13,13 @@
  *  - With "-follow-cassio" Edax will follow more closely Cassio's search request. By default, it
  * searches with settings that make it better in tournament mode against Roxane, Cassio, etc.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Stéphane Nicolet
  * @version 4.7
  */
 
+#include "ui.h"
 #include "cassio.h"
 
 #include "event.h"
@@ -49,10 +50,9 @@ typedef struct Engine {
 	struct {
 		Board board[ENGINE_N_POSITION];    /** Last position */
 		int n;               /** # of last position */
-	} last_position;
-	bool is_searching;
+	} last_position;         /** last position structure */
+	bool is_searching;       /** flag indicating taht the engine is searching */
 } Engine;
-
 
 /**
  * @brief Send a message on stdout.
@@ -65,8 +65,8 @@ static void engine_send(const char *format, ...)
 
 	va_start(args, format);
 	vprintf(format, args);
-	va_end(args);
 	putchar('\n'); fflush(stdout);
+	va_end(args);
 
 	if (log_is_open(&engine_log)) {
 		time_stamp(engine_log.f);
@@ -105,7 +105,6 @@ static void engine_get_input(Engine *engine)
 	buffer = parse_word(buffer_with_garbage, protocol, 32);
 
 	if (strcmp(protocol, "ENGINE-PROTOCOL") == 0) {
-		buffer = string_duplicate(buffer);
 		parse_word(buffer, cmd, 32);
 		string_to_lowercase(cmd);
 		// stop or quit: Interrupt immediately the current search & remove unprocessed messages.
@@ -129,7 +128,7 @@ static void engine_get_input(Engine *engine)
 				event->loop = false;
 			}
 			// add the message (including quit) to a queue for later processing.
-			event_add_message(event, buffer);
+			event_add_message(event, string_duplicate(buffer));
 			mtx_lock(&event->cond_mutex);
 				cnd_signal(&event->condition);
 			mtx_unlock(&event->cond_mutex);
@@ -168,7 +167,6 @@ static void engine_wait_input(Engine *engine, char **cmd, char **param)
 static int engine_input_loop(void *v)
 {
 	Engine *engine = (Engine*) v;
-
 
 	while (engine->event.loop && !feof(stdin) && !ferror(stdin)) {
 		engine_get_input(engine);
@@ -234,7 +232,7 @@ static void engine_observer(Result *result)
 
 /**
  * @brief Create engine search.
- * @return a pointer to a newly allocated search structure.
+ * @return a pointer to a newly allocated search structure.				fclose(stdin);
  */
 static Search* engine_create_search(void)
 {
@@ -265,6 +263,7 @@ static Search* engine_create_search(void)
  * @param beta Beta bound.
  * @param depth Target depth to reach.
  * @param precision Target precision to reach.
+ * @return the result of he search as a score.
  */
 static int engine_open(Search *search, const Board *board, const int player, const int alpha, const int beta, const int depth, const int precision)
 {
@@ -379,6 +378,7 @@ void* engine_init(void)
 	Engine *engine;
 
 	log_open(&engine_log, options.ui_log_file);
+	debug("engine_init");
 
 	engine = (Engine*) malloc(sizeof (Engine));
 	if (engine == NULL) {
@@ -409,8 +409,6 @@ void engine_free(void *v)
 	}
 	log_close(&engine_log);
 }
-
-
 
 void feed_all_hash_table(Search *search, Board *board, const int depth, const int selectivity, const int lower, const int upper, const int move)
 {
@@ -586,7 +584,7 @@ static bool skip_search(Engine *engine, int *old_score)
  * @param alpha Alpha bound.
  * @param beta Beta bound.
  * @param depth Search depth.
- * @param precision Probcut percentage.
+ * @param precision Probcut percentage.engine_wait_input
  */
 double engine_midgame_search(void *v, const char *position, const double alpha, const double beta, const int depth, const int precision)
 {
@@ -684,7 +682,8 @@ void engine_stop(void *v)
 }
 
 /**
- * @brief Loop event
+ * @brief Loop event				fclose(stdin);
+
  */
 void engine_loop(void)
 {
@@ -814,4 +813,38 @@ void engine_loop(void)
 			engine_send("ready.");
 		}
 	}
+}
+
+/**
+ * @brief Initialize the Cassio User interface
+ *
+ * TODO: move stuff from engine_loop here ?
+ *
+ * @param ui The User Interface
+ */
+void ui_init_cassio(UI *ui) {
+	(void) ui;
+}
+
+/**
+ * @brief Call engine_loop.
+ *
+ * TODO: move stuff from engine_loop here ?
+ *
+ * @param ui The User Interface
+ */
+void ui_loop_cassio(UI *ui) {
+	(void) ui;
+	engine_loop();
+}
+
+/**
+ * @brief Free ressources used by the Cassio User interface
+ *
+ * TODO: move stuff from engine_loop here ?
+ *
+ * @param ui The User Interface
+ */
+void ui_free_cassio(UI *ui) {
+	(void) ui;
 }

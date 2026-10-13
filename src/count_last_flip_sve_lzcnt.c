@@ -1,7 +1,7 @@
 /**
  * @file count_last_flip_sve_lzcnt.c
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * Count last flip using the flip_sve_lzcnt way.
  * For optimization purpose, the value returned is twice the number of flipped
@@ -21,9 +21,9 @@ extern const V8DI MASK_LR[66];
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
 
 #ifndef __ARM_FEATURE_SVE2
@@ -32,14 +32,14 @@ extern const V8DI MASK_LR[66];
 #define svbsl1n_u64(op1,op2,op3)	svorr_u64_m(pg, (op2), svbic_u64_x(pg, (op3), (op1)))
 #endif
 
-int last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
 	svuint64_t	PP, p_flip, p_oflank, p_eraser, p_cap, mask;
 	svbool_t	pg;
 	const uint64_t	(*pmask)[8];
 
 	PP = svdup_u64(P);
-	pmask = &MASK_LR[pos];
+	pmask = &MASK_LR[x];
 	pg = svwhilelt_b64(0, 4);
 
 	mask = svld1_u64(pg, *pmask + 4);	// right: clear all bits lower than outflank
@@ -54,7 +54,7 @@ int last_flip(int pos, uint64_t P)
 	p_cap = svbic_x(pg, svqsub(p_oflank, 1), p_oflank);
 	p_flip = svbsl_u64(p_cap, p_flip, mask);
 
-	if (svcntd() == 2) {	// sve128 only
+	#if __ARM_FEATURE_SVE_BITS == 128 //SVE 128 bits only
 		mask = svld1_u64(pg, *pmask + 6);	// right: set all bits higher than outflank
 		p_oflank = svand_x(pg, mask, PP);
 		p_oflank = svand_x(pg, svclz_z(pg, p_oflank), 63);
@@ -66,7 +66,7 @@ int last_flip(int pos, uint64_t P)
 		// set all bits lower than oflank, using satulation if oflank = 0
 		p_cap = svbic_x(pg, svqsub(p_oflank, 1), p_oflank);
 		p_flip = svbsl_u64(p_cap, p_flip, mask);
-	}
+	#endif
 
 	return svaddv_u64(pg, svcnt_u64_x(pg, p_flip)) * 2;
 }

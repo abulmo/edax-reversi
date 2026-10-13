@@ -3,7 +3,7 @@
  *
  * Various macro / constants to control algorithm usage.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -15,51 +15,51 @@
 #include <stdbool.h>
 
 /**
- * @brief The list of move generator
+ * @brief The list of move generators
  *
- * x86-64 code tested on an AMD Ryzen 9 5950x @ 4.2 Ghz using the command "-bench 20 -n 1 -q"
+ * x86-64 code tested on an AMD Ryzen 9 5950x @ 4.0 Ghz using the command "-bench 20 -n 1 -q"
  * ARM code has been tested on a rpi 5 @ 2.7 Ghz
  */
 // standard C only                         // x86-64-v3 | v2        |  ARM neon
-#define MOVE_GENERATOR_KINDERGARTEN   1    // 61.9 Mnps | 53.4 Mnps | 33.9 Mnps
-#define MOVE_GENERATOR_ROXANE         2    // 59.4 Mnps | 51.0      | 34.7 Mnps
+#define MOVE_GENERATOR_KINDERGARTEN   1    // 56.8 Mnps | 53.9 Mnps | 33.9 Mnps
+#define MOVE_GENERATOR_ROXANE         2    // 53.0 Mnps | 46.6      | 34.7 Mnps
 
 // simd for X86-64
 // need sse support                        // v3        | v2
-#define MOVE_GENERATOR_CARRY_64       3    // 65.3 Mnps | 58.1
-#define MOVE_GENERATOR_BITSCAN        4    // 65.6 Mnps | 57.0
-#define MOVE_GENERATOR_SSE            5    // 59.9 Mnps | 53.5
-#define MOVE_GENERATOR_SSE_BITSCAN    6    // 63.3 Mnps | 49.9
+#define MOVE_GENERATOR_CARRY_64       3    // 60.0 Mnps | 55.9*
+#define MOVE_GENERATOR_BITSCAN        4    // 59.8 Mnps | 55.1
+#define MOVE_GENERATOR_SSE            5    // 54.4 Mnps | 51.4
+#define MOVE_GENERATOR_SSE_BITSCAN    6    // 57.4 Mnps | 41.7
 // need avx2 support
-#define MOVE_GENERATOR_AVX_ACEPCK     7    // 71.4 Mnps *
-#define MOVE_GENERATOR_AVX_CVTPS      8    // 65.0 Mnps
-#define MOVE_GENERATOR_AVX_LZCNT      9    // 69.1 Mnps
-#define MOVE_GENERATOR_AVX_PPFILL    10    // 70.7 Mnps
-#define MOVE_GENERATOR_AVX_PPSEQ     11    // 67.3 Mnps
+#define MOVE_GENERATOR_AVX_ACEPCK     7    // 64.3 Mnps *
+#define MOVE_GENERATOR_AVX_CVTPS      8    // 58.8 Mnps
+#define MOVE_GENERATOR_AVX_LZCNT      9    // 63.0 Mnps
+#define MOVE_GENERATOR_AVX_PPFILL    10    // 64.0 Mnps
+#define MOVE_GENERATOR_AVX_PPSEQ     11    // 61.2 Mnps
 // need fast bmi2 support
-#define MOVE_GENERATOR_BMI2          12    // 68.6 Mnps
+#define MOVE_GENERATOR_BMI2          12    // 62.4 Mnps
 // need avx512 support
 #define MOVE_GENERATOR_AVX512CD      13    // untested (unsupported on Zen 3 cpus)
 // ARM64                                   // ARM neon
-#define MOVE_GENERATOR_NEON_BITSCAN  14    // 37.7 Mnps
+#define MOVE_GENERATOR_NEON_BITSCAN  14    // 37.7 Mnps *
 #define MOVE_GENERATOR_NEON_LZCNT    15    // 32.8 Mnps
 #define MOVE_GENERATOR_NEON_PPFILL   16    // 31.9 Mnps
 #define MOVE_GENERATOR_NEON_RBIT     17    // 33.1 Mnps
 #define MOVE_GENERATOR_SVE_LZCNT     19    // untested
 
 // standard C                              // x86-64-v3 | v2      | ARM neon
-#define COUNT_LAST_FLIP_KINDERGARTEN  1    // 69.5 Mnps | 56.4    | 37.7
-#define COUNT_LAST_FLIP_CARRY_64      2    // 69.9 Mnps | 56.0    | 37.6
-#define COUNT_LAST_FLIP_PLAIN         3    // 70.3 Mnps | 58.3    | 33.7
+#define COUNT_LAST_FLIP_KINDERGARTEN  1    // 61.8 Mnps | 52.7    | 37.7
+#define COUNT_LAST_FLIP_CARRY_64      2    // 61.5 Mnps | 53.2    | 37.6
+#define COUNT_LAST_FLIP_PLAIN         3    // 63.5 Mnps | 55.5    | 33.7
 // simd for x86-64
 // need sse
-#define COUNT_LAST_FLIP_SSE           4    // 70.0 Mnps | 58.4
-#define COUNT_LAST_FLIP_LZCNT         5    // 68.1 Mnps | 56.9
-#define COUNT_LAST_FLIP_BITSCAN       6    // 70.1 Mnps | 56.3
+#define COUNT_LAST_FLIP_SSE           4    // 63.0 Mnps | 56.4 *
+#define COUNT_LAST_FLIP_LZCNT         5    // 61.9 Mnps | 54.5
+#define COUNT_LAST_FLIP_BITSCAN       6    // 61.6 Mnps | 53.30
 // need avx2
-#define COUNT_LAST_FLIP_AVX_PPFILL    7    // 68.0 Mnps
-#define COUNT_LAST_FLIP_BMI2          8    // 71.4 Mnps
-#define COUNT_LAST_FLIP_BMI           9    // 67.4 Mnps
+#define COUNT_LAST_FLIP_AVX_PPFILL    7    // 61.7 Mnps
+#define COUNT_LAST_FLIP_BMI2          8    // 64.1 Mnps *
+#define COUNT_LAST_FLIP_BMI           9    // 60.8 Mnps
 // need avx512
 #define COUNT_LAST_FLIP_AVX512CD     10    // untested (unsupported on Zen 3 cpus)
 // ARM64 neon
@@ -156,8 +156,14 @@
 /** PV extension (solve PV alone sooner) */
 #define USE_PV_EXTENSION true
 
+/** Thread local hash table size */
+#define THREAD_LOCAL_HASH_SIZE 10
+
 /** Swith from endgame to shallow search (faster but less node efficient) at this depth. */
-#define DEPTH_TO_SHALLOW_SEARCH 7
+#define DEPTH_TO_SHALLOW_SEARCH 6
+
+/** Switch from midgame to endgame search (faster but less node efficient) at this depth. */
+#define DEPTH_TO_LOCAL_ENDGAME 10
 
 /** Switch from midgame to endgame search (faster but less node efficient) at this depth. */
 #define DEPTH_MIDGAME_TO_ENDGAME 15

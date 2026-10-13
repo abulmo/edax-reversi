@@ -3,7 +3,7 @@
  *
  * Edax play control.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -538,7 +538,7 @@ void play_stop_pondering(Play *play)
 	while (play->state == IS_PONDERING) {
 		info("[stop pondering]\n");
 		search_stop_all(&play->search, STOP_PONDERING);
-		relax(10);
+		relax(1);
 	}
 
 	if (play->ponder.launched) {
@@ -546,7 +546,6 @@ void play_stop_pondering(Play *play)
 		if (play->search.stop == RUNNING) {
 			info("[stop running search?]");
 			search_stop_all(&play->search, STOP_PONDERING);
-			relax(10);
 		}
 		thrd_join(play->ponder.thread, NULL);
 		play->ponder.launched = false;
@@ -722,7 +721,7 @@ static int play_alternative(Play *play, Move *played, Move *alternative, int *de
 		hash_exclude_move(&search->pv_table, &search->board, board_get_hash_code(&search->board), played->x);
 		hash_exclude_move(&search->hash_table, &search->board, board_get_hash_code(&search->board), played->x);
 		hash_exclude_move(&search->shallow_table, &search->board, board_get_hash_code(&search->board), played->x);
-		// also remove moves leading to symetrical positions
+		// also remove moves leading to symmetrical positions
 		board_next(&play->board, played->x, &board);
 		board_unique(&board, &excluded);
 		foreach_move (move, &search->movelist) {
@@ -885,7 +884,7 @@ static int play_book_alternative(Play *play, Move *played, Move* alternative)
 
 		if (exclude && exclude->x == played->x) {
 			played->score = exclude->score;
-			// also remove moves leading to symetrical positions
+			// also remove moves leading to symmetrical positions
 			board_next(&play->board, played->x, &board);
 			board_unique(&board, &excluded);
 			foreach_move (move, &movelist) {
@@ -1167,9 +1166,9 @@ bool play_force_go(Play *play, Move *move)
 		board_unique(&play->board, &unique);
 		if (board_equal(&unique, play->force.unique + play->force.i_move)) {
 			for (s = 1; s < 8; ++s) {
-				board_symetry(play->force.real + play->force.i_move, s, &sym);
+				board_symmetry(play->force.real + play->force.i_move, s, &sym);
 				if (board_equal(&play->board, &sym)) {
-					x = symetry(play->force.move[play->force.i_move].x, s);
+					x = symmetry(play->force.move[play->force.i_move].x, s);
 					board_get_move(&play->board, x, move);
 					return true;
 				}
@@ -1181,22 +1180,22 @@ bool play_force_go(Play *play, Move *move)
 }
 
 /**
- * @brief Get the symetry of the actual position.
+ * @brief Get the symmetry of the actual position.
  *
  * @param play Play.
- * @param sym Symetry.
+ * @param sym Symmetry.
  */
-void play_symetry(Play *play, const int sym)
+void play_symmetry(Play *play, const int sym)
 {
 	int i, x;
 	Move move = MOVE_INIT;
 	Board board;
 
-	board_symetry(&play->initial_board, sym, &play->initial_board);
-	board_symetry(&play->board, sym, &play->board);
+	board_symmetry(&play->initial_board, sym, &play->initial_board);
+	board_symmetry(&play->board, sym, &play->board);
 	board = play->initial_board;
 	for (i = 0; i  < play->n_game; ++i) {
-		x = symetry(play->game[i].x, sym);
+		x = symmetry(play->game[i].x, sym);
 		board_get_move(&board, x, &move);
 		board_update(&board, &move);
 		play->game[i] = move;

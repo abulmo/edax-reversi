@@ -3,7 +3,7 @@
  *
  * @brief Move generator test header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7

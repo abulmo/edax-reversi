@@ -3,7 +3,7 @@
  *
  * @brief Move & list of moves management - header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -48,7 +48,7 @@ extern const Move MOVE_PASS;
 
 
 /* function declarations */
-int symetry(int, const int);
+int symmetry(int, const int);
 
 void move_print(const int, const int, FILE*);
 bool move_wipeout(const Move*, const struct Board*);
@@ -98,4 +98,3 @@ void movehash_delete(MoveHash*);
 bool movehash_append(MoveHash*, const struct Board*, const int);
 
 #endif
-

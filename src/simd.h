@@ -3,7 +3,7 @@
  *
  * vector  operations header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -24,33 +24,40 @@
 #include <stdalign.h>
 #include <stdint.h>
 
+/**
+ * union V8DI to represent an array of 8 64 bits as smaller array of parallel vector.
+ */
+
 typedef union {
-	alignas(64) uint64_t v1[8];
+	alignas(64) uint64_t v1[8]; //< an array of 8 64 bit integers.
 	#ifdef __SSE2__
-		__m128i	v2[4];
+		__m128i	v2[4];          //< an array of 4 2x64 bit integers.
 	#endif
 	#ifdef __AVX2__
-		__m256i	v4[2];
+		__m256i	v4[2];          //< an array of 2 4x64 bit integers.
 	#endif
 	#ifdef __AVX512VL__
-		__m512i	v8;
+		__m512i	v8;             //< one 8x64 bit integer.
 	#endif
 } V8DI;
 
+/**
+ * union V8DI to represent an array of 4 64 bits as smaller array of parallel vector.
+ */
 typedef union {
-	alignas(32) uint64_t v1[4];
+	alignas(32) uint64_t v1[4];  //< an array of 4 64 bit integers.
 	#ifdef __SSE2__
-		__m128i	v2[2];
+		__m128i	v2[2];           //< an array of 2 2x64 bit integers.
 	#endif
 	#ifdef __AVX2__
-		__m256i	v4;
+		__m256i	v4;              // one 4x64 bit integer.
 	#endif
 } V4DI;
 
 typedef union {
-	alignas(16) uint64_t v1[2];
+	alignas(16) uint64_t v1[2]; //< an array of 2 64 bit integers.
 	#ifdef __SSE2__
-		__m128i	v2;
+		__m128i	v2;             //< 1 2x64 bit integer.
 	#endif
 } V2DI;
 

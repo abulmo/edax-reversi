@@ -3,7 +3,7 @@
  *
  * A simple protocol to communicate with Cassio.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Stéphane Nicolet
  * @version 4.7

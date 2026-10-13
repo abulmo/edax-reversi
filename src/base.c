@@ -3,7 +3,7 @@
  *
  * Header file for game base management.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -31,9 +31,9 @@
  * @brief Set wthor header.
  *
  * @param wheader Wthor's file header.
- * @param n_games Game number;
- * @param n  Tourney/player number;
- * @param year Tournament year;
+ * @param n_games Game number.
+ * @param n  Tourney/player number.
+ * @param year Tournament year.
  */
 static void wthor_header_set(WthorHeader *wheader, unsigned int n_games, unsigned int n, unsigned int year)
 {
@@ -59,7 +59,8 @@ static void wthor_header_set(WthorHeader *wheader, unsigned int n_games, unsigne
  * @brief Read wthor header.
  *
  * @param wheader Wthor's file header.
- * @param f Input stream .
+ * @param f Input stream.
+ * @return false if a mistake occurred.
  */
 static bool wthor_header_read(WthorHeader *wheader, FILE *f)
 {
@@ -86,10 +87,11 @@ static bool wthor_header_read(WthorHeader *wheader, FILE *f)
 }
 
 /**
- * @brief Read wthor header.
+ * @brief Write wthor header.
  *
  * @param wheader Wthor's file header.
  * @param f Input stream .
+ * @return false if a mistake occurred.
  */
 static bool wthor_header_write(WthorHeader *wheader, FILE *f)
 {
@@ -175,7 +177,7 @@ static void wthor_players_load(WthorBase *base, const char *file)
 }
 
 /**
- * @brief Load wthor players.
+ * @brief Save wthor players.
  *
  * @param base Wthor base.
  * @param file File name.
@@ -214,6 +216,7 @@ static void wthor_players_save(WthorBase *base, const char *file)
  *
  * @param base Wthor base.
  * @param name Player's name.
+ * @return the index of the player in the database.
  */
 int wthor_player_get(WthorBase *base, const char *name)
 {
@@ -303,6 +306,7 @@ void wthor_init(WthorBase *base)
  *
  * @param base Wthor game base.
  * @param file Game file.
+ * @return true on success.
  */
 bool wthor_load(WthorBase *base, const char *file)
 {
@@ -327,7 +331,7 @@ bool wthor_load(WthorBase *base, const char *file)
 				r = (fread(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
 				if (!r) warn("Error while reading %s\n", file);
 			} else {
-				warn("Cannot allocate whor games\n");
+				warn("Cannot allocate wthor games\n");
 			}
 		}
 		fclose(f);
@@ -358,29 +362,32 @@ void wthor_free(WthorBase *base)
  *
  * @param base Wthor game base.
  * @param file Game file name.
+ * @return true on success.
  */
 bool wthor_save(WthorBase *base, const char *file)
 {
 	FILE *f;
 	char path[FILENAME_MAX];
-	int r = 0;
+	uint32_t r = 0;
 
 	path_get_dir(file, path); strcat(path, "WTHOR.JOU");
 	wthor_players_save(base, path);
 
 	if ((f = fopen(file, "wb")) != NULL) {
 		wthor_header_set(&base->header, base->n_games, 0, 0);
-		r = wthor_header_write(&base->header, f);
-		if (base->game) {
-			r += (fwrite(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
+		if (wthor_header_write(&base->header, f) && base->game) {
+			r = (fwrite(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
+			if (r != base->n_games) {
+				warn("Error while writing %s\n", file);
+				r = 0;
+			}
 		}
-		if (r != base->n_games) warn("Error while writing %s\n", file);
 		fclose(f);
 	} else {
 		warn("Cannot open file %s\n", file);
 	}
 
-	return r;
+	return r != 0;
 }
 
 /**
@@ -388,11 +395,12 @@ bool wthor_save(WthorBase *base, const char *file)
  *
  * @param base Generic game base.
  * @param wthor Wthor Game base.
+ * @return true on success.
  */
 bool base_to_wthor(const Base *base, WthorBase *wthor)
 {
 	bool ok = true;
-	int i, j;
+	size_t i, j;
 
 	j = wthor->n_games;
 	wthor->n_games = j + base->n_games;
@@ -415,16 +423,16 @@ bool base_to_wthor(const Base *base, WthorBase *wthor)
  * @brief print a wthor game.
  *
  * @param base Wthor game base.
- * @param i game intex
+ * @param i game index
  * @param f output stream.
  */
-void wthor_print_game(WthorBase *base, int i, FILE *f)
+void wthor_print_game(WthorBase *base, size_t i, FILE *f)
 {
 	Game game;
 
-	if (0 <= i && i < base->n_games) {
+	if (i < base->n_games) {
 
-		fprintf(f, "Game #%d: %s: %4d - %s vs. %s: ",
+		fprintf(f, "Game #%zu: %s: %4d - %s vs. %s: ",
 			i, base->tournament[base->game[i].tournament],
 			base->header.game_year,
 			base->player[base->game[i].black],
@@ -694,7 +702,7 @@ void base_append(Base *base, const Game *game)
  */
 void base_unique(Base *base)
 {
-	int i, j, k;
+	size_t i, j, k;
 	bool found;
 
 	for (i = k = 0; i < base->n_games; ++i) {
@@ -718,7 +726,7 @@ bool base_load(Base *base, const char *file)
 	Game game;
 	FILE *f;
 	char ext[8];
-	int l;
+	size_t l;
 	WthorHeader header;
 
 	l = strlen(file); strcpy(ext, file + l - 4); string_to_lowercase(ext);
@@ -747,7 +755,7 @@ bool base_load(Base *base, const char *file)
 		if (ferror(f) || feof(f)) break;
 		base_append(base, &game);
 	}
-	info("[loading games done (%d games loaded)]\n", base->n_games);
+	info("[loading games done (%zu games loaded)]\n", base->n_games);
 
 	fclose(f);
 
@@ -765,7 +773,7 @@ void base_save(const Base *base, const char *file, const bool append)
 	void (*save)(const Game*, FILE*) = game_export_text;
 	FILE *f;
 	char ext[8];
-	int i, l;
+	size_t i, l;
 	WthorBase wbase;
 	Base old;
 
@@ -815,7 +823,7 @@ void base_save(const Base *base, const char *file, const bool append)
  */
 void base_to_problem(Base *base, const int n_empties, const char *problem)
 {
-	int i;
+	size_t i;
 	Board board;
 	char s[80];
 	FILE *f;
@@ -841,7 +849,7 @@ void base_to_problem(Base *base, const int n_empties, const char *problem)
  */
 void base_to_FEN(Base *base, const int n_empties, const char *problem)
 {
-	int i;
+	size_t i;
 	Board board;
 	FILE *f;
 
@@ -867,7 +875,7 @@ void base_to_FEN(Base *base, const int n_empties, const char *problem)
  */
 void base_analyze(Base *base, Search *search, const int n_empties, const bool apply_correction)
 {
-	int i;
+	size_t i;
 	int n_error;
 
 	for (i = 0; i < base->n_games; ++i) {
@@ -875,25 +883,28 @@ void base_analyze(Base *base, Search *search, const int n_empties, const bool ap
 		game_export_text(base->game + i, stdout);
 		n_error = game_analyze(base->game + i, search, n_empties, apply_correction);
 		if (n_error) {
-			printf("Game #%d contains %d errors", i, n_error);
+			printf("Game #%zu contains %d errors", i, n_error);
 			if (apply_correction) {
 				if (game_analyze(base->game + i, search, n_empties, false)) printf("... correction failed! ***BUG DETECTED!***\n");
 				else printf("... corrected!\n");
 			} else putchar('\n');
 		}
-		printf("%d/%d %.1f %% done.\r", i + 1, base->n_games, 100.0 * (i + 1) / base->n_games); fflush(stdout);
+		printf("%zu/%zu %.1f %% done.\r", i + 1, base->n_games, 100.0 * (i + 1) / base->n_games); fflush(stdout);
 	}
 }
 
 /**
- * @brief Base analysis.
+ * @brief Base completion.
+ *
+ * Terminate the games in the database.
  *
  * @param base Game base.
  * @param search Search engine.
+ * @param level Search level.
  */
 void base_complete(Base *base, Search *search, const int level)
 {
-	int i = 0, n = 0;
+	size_t i = 0, n = 0;
 	int64_t t = real_clock();
 	const int64_t DELAY = 20 * 60 * 1000; // 20 minutes
 	char tmp_file[32];
@@ -912,14 +923,14 @@ void base_complete(Base *base, Search *search, const int level)
 	while (i < base->n_games) {
 		if (game_complete(base->game + i, search, level) > 0) ++n;
 		++i;
-		printf("%d - %d games completed / %d (%.1f %% done).\r", i, n, base->n_games, 100.0 * i / base->n_games);
+		printf("%zu/%zu - %zu games completed / %zu (%.1f %% done).\r", i, base->n_games, n, base->n_games, 100.0 * i / base->n_games);
 		if (real_clock() - t > DELAY) { // as completion can be very long, save the base every 20 minutes.
 			t = real_clock();
 			base_save(base, tmp_file, false);
 		}
 		fflush(stdout);
 	}
-	printf("%d - %d games completed / %d (all done).          \n", i, n, base->n_games);
+	printf("%zu - %zu games completed / %zu (all done).          \n", i, n, base->n_games);
 }
 
 /**
@@ -935,7 +946,7 @@ void base_compare(const char *file_1, const char *file_2)
 	Base base_1, base_2;
 	PositionHash hash;
 	Board board;
-	int i, j;
+	size_t i, j;
 	int64_t n_1, n_2, n_2_only;
 
 	base_init(&base_1);

@@ -1,7 +1,7 @@
 /**
  * @file count_last_flip_avx_ppfill.c
  *
- * A function is provided to count the number of fipped disc of the last move.
+ * A function is provided to count the number of flipped disc of the last move.
  *
  * Count last flip using the flip_avx_ppfill way.
  * For optimization purpose, the value returned is twice the number of flipped
@@ -21,18 +21,17 @@ extern const V8DI MASK_LR[66];
 /**
  * Count last flipped discs when playing on the last empty.
  *
- * @param pos the last empty square.
+ * @param x the last empty square.
  * @param P player's disc pattern.
- * @return flipped disc count.
+ * @return flipped disc count * 2.
  */
-
-int count_last_flip(int pos, uint64_t P)
+static inline int count_last_flip(const int x, const uint64_t P)
 {
 	__m256i PP = _mm256_set1_epi64x(P);
 	__m256i	flip, outflank, eraser, rmask, lmask;
 	__m128i	flip2;
 
-	rmask = MASK_LR[pos].v4[1];
+	rmask = MASK_LR[x].v4[1];
 		// isolate player MS1B by clearing lower shadow bits
 	outflank = _mm256_and_si256(PP, rmask);
 	eraser = _mm256_srlv_epi64(outflank, _mm256_set_epi64x(7, 9, 8, 1));
@@ -44,7 +43,7 @@ int count_last_flip(int pos, uint64_t P)
 		// clear if no player bit, i.e. all opponent
 	flip = _mm256_andnot_si256(_mm256_cmpeq_epi64(flip, rmask), flip);
 
-	lmask = MASK_LR[pos].v4[0];
+	lmask = MASK_LR[x].v4[0];
 		// look for player LS1B
 	outflank = _mm256_and_si256(PP, lmask);
 	outflank = _mm256_and_si256(outflank, _mm256_sub_epi64(_mm256_setzero_si256(), outflank));	// LS1B

@@ -3,7 +3,7 @@
  *
  * Search's header file.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @version 4.7
  */
@@ -56,20 +56,21 @@ typedef struct Result {
 } Result;
 
 /** levels */
-extern struct Level {
+extern const struct Level {
 	int depth;         /** search depth */
 	int selectivity;   /** search selectivity level */
 } LEVEL[61][61];
 
 
-/** search stare */
+/** search state */
 typedef struct Search {
 	alignas(16) Board board;                      /**< othello board */
 	SquareList empties[BOARD_SIZE + 2];           /**< list of empty squares */
 	HashTable hash_table;                         /**< hashtable */
 	HashTable pv_table;                           /**< hashtable for the pv */
 	HashTable shallow_table;                      /**< hashtable for short search */
-	Eval eval;                                     /**< eval */
+	HashTable thread_table;                       /**< thread local hashtable*/
+	Eval eval;                                    /**< eval */
 	Random random;                                /**< random generator */
 	int n_empties;                                /**< number of empty squares */
 	int player;                                   /**< player color */
@@ -84,12 +85,12 @@ typedef struct Search {
 	int n_child;                                  /**< search child number */
 
 	struct {
-		int64_t extra;                            /**< extra alloted time */
+		int64_t extra;                            /**< extra allotted time */
 		int64_t spent;                            /**< time spent thinking */
 		bool extended;                            /**< flag to extend time only once */
 		bool can_update;                          /**< flag allowing to extend time */
-		int64_t mini;                             /**< minimal alloted time */
-		int64_t maxi;                             /**< maximal alloted time */
+		int64_t mini;                             /**< minimal allotted time */
+		int64_t maxi;                             /**< maximal allotted time */
 	} time;                                       /**< time */
 	MoveList movelist;                            /**< list of moves */
 	NodeType node_type[GAME_SIZE];                /**< node type (pv node, cut node, all node) */
@@ -232,7 +233,7 @@ static inline void search_set_state(Search *search, const Stop stop)
  * @brief Atomicly get the search running/waiting state.
  *
  * @param search Search.
- * @param stop State.
+ * @return Stop state.
  */
 static inline Stop search_get_state(Search *search)
 {

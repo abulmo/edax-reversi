@@ -5,7 +5,7 @@
  *
  * Note: Square Notation is inverted compared to Edax's one.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme, Bruno Causse, Stéphane Nicolet
  * @version 4.7
  */
@@ -2502,11 +2502,26 @@ uint64_t (*FLIP[])(const uint64_t, const uint64_t) = {
 	flip_pass, flip_pass
 };
 
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param x player's move.
+ * @param P player's disc pattern.
+ * @param O opponent's disc pattern.
+ * @return flipped disc pattern.
+ */
+uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
+	return FLIP[x](P, O);
+}
+
+/**
+ * Compute flipped discs when playing on square x.
+ *
+ * @param board Board.
+ * @param x player's move.
+ * @return flipped disc pattern.
+ */
 uint64_t board_flip(const Board *board, const int x)
 {
 	return FLIP[x](board->player, board->opponent);
-}
-
-uint64_t flip(const int x, const uint64_t P, const uint64_t O) {
-	return FLIP[x](P, O);
 }

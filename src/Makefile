@@ -33,7 +33,7 @@ endif
 
 #clang
 ifeq ($(CC),clang)
-	CFLAGS = -std=c17 -pedantic -W -Wall -Wextra -Wno-invalid-source-encoding -D_GNU_SOURCE=1
+	CFLAGS = -std=c17 -pedantic -W -Wall -Wextra -D_GNU_SOURCE=1
 	PGO_GEN = -fprofile-instr-generate
 	PGO_USE = -fprofile-instr-use=edax.profdata
 	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
@@ -45,15 +45,16 @@ ifeq ($(CC),clang)
 
 	ifeq ($(BUILD),optimize)
 		CFLAGS += -O3 -flto -ffast-math -fomit-frame-pointer -DNDEBUG
-	endif
-	ifeq ($(BUILD),profile)
+	else ifeq ($(BUILD),profile)
 		CFLAGS += -O2 -g -DNDEBUG -fno-inline-functions
-	endif
-	ifeq ($(BUILD),coverage)
+	else ifeq ($(BUILD),coverage)
 		CFLAGS += -O2 -fprofile-instr-generate -fcoverage-mapping -mllvm -runtime-counter-relocation -DNDEBUG
-	endif
-	ifeq ($(BUILD),debug)
+	else ifeq ($(BUILD),debug)
 		CFLAGS += -O0 -g -DDEBUG
+	else ifeq ($(BUILD),tsan)
+		CFLAGS += -O0 -g -fsanitize=thread
+	else ifeq ($(BUILD),asan)
+		CFLAGS += -O0 -g -fsanitize=address
 	endif
 
 	CFLAGS += -march=$(ARCH)
@@ -62,6 +63,30 @@ ifeq ($(CC),clang)
 		CFLAGS += -mdynamic-no-pic
 	endif
 endif
+
+#icx (intel compiler)
+ifeq ($(CC),icx)
+	CFLAGS = -std=c17 -W -Wall -Wextra -pedantic -D_GNU_SOURCE=1
+	PGO_GEN = -fprofile-instr-generate
+	PGO_USE = -fprofile-instr-use=edax.profdata
+	PGO = llvm-profdata merge -output=edax.profdata $(BIN)/*.profraw
+	ifeq ($(BUILD),optimize)
+		CFLAGS += -O3 -flto -DNDEBUG
+	else ifeq ($(BUILD),profile)
+		CFLAGS += -O3 -flto -fno-inline -DNDEBUG
+	else ifeq ($(BUILD),coverage)
+		CFLAGS += -O2 -fprofile-instr-generate -fcoverage-mapping -mllvm -runtime-counter-relocation -DNDEBUG
+	else ifeq ($(BUILD),debug)
+		CFLAGS += -O0 -g -DDEBUG
+	else ifeq ($(BUILD),tsan)
+		CFLAGS += -O0 -g -fsanitize=thread
+	else ifeq ($(BUILD),asan)
+		CFLAGS += -O0 -g -fsanitize=address
+	endif
+
+	CFLAGS += -march=$(ARCH)
+endif
+
 
 # gcc
 ifeq ($(CC),gcc)
@@ -80,6 +105,12 @@ ifeq ($(CC),gcc)
 	endif
 	ifeq ($(BUILD),debug)
 		CFLAGS += -O0 -g -DDEBUG
+	endif
+	ifeq ($(BUILD),tsan)
+		CFLAGS += -O0 -g -fsanitize=thread
+	endif
+	ifeq ($(BUILD),asan)
+		CFLAGS += -O0 -g -fsanitize=address
 	endif
 
 	CFLAGS += -march=$(ARCH)
@@ -164,7 +195,6 @@ pgo-build:
 	cd $(BIN); LLVM_PROFILE_FILE=base.profraw $(EXE) -l 18 -n 4 -complete pgo-load.txt pgo-save.txt
 	@rm -f $(BIN)/book.pgo $(BIN)/book.pgo.store $(BIN)/pgo-load.txt $(BIN)/pgo-save.txt
 	$(PGO)
-#	$(CC) $(CFLAGS) $(PGO_USE) $(DFLAGS) -S all.c
 	$(CC) $(CFLAGS) $(PGO_USE) $(DFLAGS) all.c -o $(BIN)/$(EXE) $(LIBS)
 
 pgo-rebuild:
@@ -173,17 +203,17 @@ pgo-rebuild:
 
 prof:
 	@echo "building edax for profiling..."
-	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=profile build
+	make ARCH=$(ARCH) OS=$(OS) BUILD=profile build
 
 cov:
 	@echo "building edax for coverage..."
-	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=coverage build
+	make ARCH=$(ARCH) OS=$(OS) BUILD=coverage build
 
 debug:
-	make ARCH=$(ARCH) COMP=$(COMP) OS=$(OS) BUILD=debug build
+	make ARCH=$(ARCH) OS=$(OS) BUILD=debug build
 
 android:
-	$(MAKE) build ARCH=armv8 OS=android COMP=gcc CC='arm-linux-androideabi-gcc'
+	$(MAKE) build ARCH=armv8 OS=android CC='arm-linux-androideabi-gcc'
 
 clean:
 	rm -f pgopti* *.dyn *.gc* *~ *.o *.prof* $(BIN)/*.profraw
