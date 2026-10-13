@@ -9,62 +9,39 @@ Edax is a very strong othello program. Its main features are:
 - multi-OS support to run under MS-Windows, Linux and Mac OS X.
 
 ## Installation
-From [the release section of github](https://github.com/abulmo/edax-reversi/releases), you must 7unzip both an executable of your favorite OS, and the evaluation weights (data/eval.dat) in the same directory.
-Only 64 bit executable with popcount support are provided.
+From [the release section of github](https://github.com/abulmo/edax-reversi/releases), you must 7unzip both an executable of your favorite OS and the source files.
+Only 64 bit executable are provided.
 
-## Run
-
-### local
+## Build
 
 ```sh
-mkdir -p bin
-cd src
-
-# e.g. OS X sample
-make pgo-build ARCH=armv8-5a COMP=clang OS=osx
-cd ..
-./bin/mEdax
-```
-
-### docker
-
-```sh
-docker build . -t edax
-docker run --name "edax" -v "$(pwd)/:/home/edax/" -it edax
-
-cd /home/edax/
-mkdir -p bin
-cd src
-make build ARCH=x86-64-v3 COMP=clang OS=linux
-
-cd ..
-curl -OL https://github.com/abulmo/edax-reversi/releases/download/v4.4/eval.7z # e.g. use v4.4 eval.dat
-7z x eval.7z
-
-./bin/lEdax-x64
+cd bin
+make -C ../src pgo-build ARCH=native
 ```
 
 ## Document
+You can extract the comments from the source code using Doxygen:
 
 ```sh
 cd src
 doxygen
 open ../doc/html/index.html
 ```
-## version 4.6
-version 4.6 is an evolution of version 4.4 that tried to incorporate changes made by Toshihiko Okuhara in version 4.5.3 and :
- - keep the code encapsulated: I revert many pieces of code from version 4.5.3 with manually inlined code.
- - remove assembly code (intrinsics are good enough)
- - make some changes easily reversible with a macro switch (USE_SIMD, USE_SOLID, etc.)
- - remove buggy code and/or buggy file path.
- - disable code (#if 0) that I found too slow on my cpu.
- - make soft CRC32c behave the same as the hardware CRC32c (version 4.5.3 is buggy here).
- - the code switch from c99 to c17 and use stdatomic.h threads.h (if available) stdalign.h
- - remove bench.c: most of the functions get optimized out and could not be measured.
- - support only 64 bit OSes. 
 
-## makefile
-the major change is that the ARCH options are no longer the same, as they are too many possible options to enable avx2, avx512, CRC32c, etc.
-Use make -help for a list of options. 
+## Version 4.7
+version 4.7 is an evolution of version 4.6 that:
+ - Fixes bugs
+ - Clean the code. Fix spelling mistake in the comments and variable names, etc.
+ - Enhance the speed by about 20%, particularly on multi-threaded run.
+ 
+## Speed comparison:
+For all the tests I used the command edax-VERSION -l 60 -h 24 -n 32 -solve problem/fforum-40-59.obf -q. The test are done on a PC with a Ryzen 9 5950x running at 4.2Ghz.
+I repeated the test 5 time & put the median time here:
+
+| VERSION |   4.0   |   4.4   |   4.6   |  4.5.5  |   4.7   |
+|---------|---------|---------|---------|---------|---------|
+|         | 1:07.92 | 0:43.45 | 0:29.89 | 0:24.77 | 0:22.61 |
+|---------|---------|---------|---------|---------|---------|
+
 
 
