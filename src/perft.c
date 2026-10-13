@@ -498,7 +498,7 @@ static void gamehash_init(GameHashTable *hash, int bitsize)
  */
 static void gamehash_delete(GameHashTable *hash)
 {
-	free(hash->array);
+	aligned_free(hash->array);
 }
 
 /**

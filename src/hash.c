@@ -58,7 +58,7 @@ void hash_init(HashTable *hash_table, const size_t size)
 	assert(((size + ALIGNMENT) * sizeof (Hash)) % ALIGNMENT == 0);
 
 	info("[ init hashtable with %zu entries]\n", size);
-	if (hash_table->hash != NULL) free(hash_table->hash);
+	if (hash_table->hash != NULL) aligned_free(hash_table->hash);
 	hash_table->hash = aligned_alloc(ALIGNMENT, (size + ALIGNMENT) * sizeof (Hash));
 	if (hash_table->hash == NULL) {
 		fatal_error("hash_init: cannot allocate the hash table\n");
@@ -162,7 +162,7 @@ void hash_clear(HashTable *hash_table)
 void hash_free(HashTable *hash_table)
 {
 	assert(hash_table != NULL && hash_table->hash != NULL);
-	free(hash_table->hash);
+	aligned_free(hash_table->hash);
 	hash_table->hash = NULL;
 	free(hash_table->spin);
 	hash_table->spin = NULL;

@@ -33,15 +33,18 @@ size_t adjust_size(const size_t, const size_t);
 #if defined __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300
 
 void* aligned_alloc(size_t, size_t);
+#define aligned_free(ptr) free(ptr)
 
 #elif defined(_MSC_VER)
 
 #include <malloc.h>
 
 #define aligned_alloc(alignment, size) _aligned_malloc((size), (alignment))
-#define free(ptr) _aligned_free((ptr))
-#define malloc(size) _aligned_malloc((size), 16)
-#define realloc(ptr, size) _aligned_realloc((ptr), (size), 16)
+#define aligned_free(ptr) _aligned_free(ptr)
+
+#else
+
+#define aligned_free(ptr) free(ptr)
 
 #endif
 

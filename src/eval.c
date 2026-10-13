@@ -781,7 +781,7 @@ void eval_init(Eval *eval)
  */
 void eval_free(Eval *eval)
 {
-	free(eval->feature);
+	aligned_free(eval->feature);
 }
 
 /**
