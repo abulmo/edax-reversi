@@ -14,7 +14,7 @@
  * When doing parallel search with a shared hashtable, a spined implementation
  * avoid concurrency collisions.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -57,7 +57,7 @@ void hash_init(HashTable *hash_table, const size_t size)
 	assert(HASH_N_WAY + 1 <= ALIGNMENT);
 	assert(((size + ALIGNMENT) * sizeof (Hash)) % ALIGNMENT == 0);
 
-	info("[ init hashtable of %zu entries]\n", size);
+	info("[ init hashtable with %zu entries]\n", size);
 	if (hash_table->hash != NULL) free(hash_table->hash);
 	hash_table->hash = aligned_alloc(ALIGNMENT, (size + ALIGNMENT) * sizeof (Hash));
 	if (hash_table->hash == NULL) {
@@ -66,10 +66,11 @@ void hash_init(HashTable *hash_table, const size_t size)
 	hash_table->hash_mask = size - 1;
 	hash_cleanup(hash_table);
 
-	hash_table->n_spin = 256 * MAX(get_cpu_number(), 1);
-	hash_table->spin_mask = hash_table->n_spin - 1;
-	hash_table->spin = (SpinLock*) malloc(hash_table->n_spin * sizeof (SpinLock));
-	for (uint32_t i = 0; i < hash_table->n_spin; ++i) spinlock_init(hash_table->spin + i);
+	uint32_t n_spin = 256 << last_bit(MAX(get_cpu_number(), 1));
+	hash_table->spin_mask = n_spin - 1;
+	hash_table->spin = (SpinLock*) malloc(n_spin * sizeof (SpinLock));
+	for (uint32_t i = 0; i < n_spin; ++i) spinlock_init(hash_table->spin + i);
+	info("[ init hashtable with %u spinlock]\n", n_spin);
 
 	HASH_STATS(hash_table->n_try   = 0;)
 	HASH_STATS(hash_table->n_found = 0;)
@@ -165,7 +166,6 @@ void hash_free(HashTable *hash_table)
 	hash_table->hash = NULL;
 	free(hash_table->spin);
 	hash_table->spin = NULL;
-	hash_table->n_spin = 0;
 }
 
 /**
@@ -239,14 +239,7 @@ static void data_upgrade(HashData *data, const HashStore *store)
  * All the data are set to a new value.
  *
  * @param data Hash Data.
- * @param date Search Date.
- * @param depth Search depth.
- * @param selectivity Search selectivity.
- * @param cost Search cost (log2(node count)).
- * @param alpha Alpha bound.
- * @param beta Beta bound.
- * @param score Best score.
- * @param move Best move.
+ * @param store Data to store.
  */
 static void data_new(HashData *data, const HashStore *store)
 {
@@ -311,7 +304,7 @@ static void hash_new(Hash *hash, SpinLock *spin, const Board* board, const HashS
 #endif
 {
 	spinlock_lock(spin);
-	HASH_STATS(if (date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
+	HASH_STATS(if (store->draft.u1.date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
 	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
@@ -343,7 +336,7 @@ static void hash_set(Hash *hash, SpinLock *spin, const Board *board, const HashD
 #endif
 {
 	spinlock_lock(spin);
-	HASH_STATS(if (date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
+	HASH_STATS(if (data->draft.u1.date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
 	HASH_STATS(++statistics.n_hash_new;)
 	HASH_COLLISIONS(hash->key = hash_code;)
 	hash->board = *board;
@@ -513,14 +506,9 @@ void hash_feed(HashTable *hash_table, const Board *board, const uint64_t hash_co
  * already exists with better data, nothing is stored.
  *
  * @param hash_table Hash table to update.
+ * @param board      Othello board..
  * @param hash_code  Hash code of an othello board.
- * @param alpha      Alpha bound when calling the alphabeta function.
- * @param depth      Search depth.
- * @param selectivity   Search selectivity.
- * @param cost       Search cost (i.e. log2(node count)).
- * @param beta       Beta bound when calling the alphabeta function.
- * @param score      Best score found.
- * @param move       Best move found.
+ * @param store      stuff to store.
  */
 void hash_store(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashStore *store)
 {
@@ -552,14 +540,9 @@ void hash_store(HashTable *hash_table, const Board *board, const uint64_t hash_c
  * Does the same as hash_store() except it always store the current search state
  *
  * @param hash_table Hash table to update.
+ * @param board      Othello board..
  * @param hash_code  Hash code of an othello board.
- * @param alpha      Alpha bound when calling the alphabeta function.
- * @param depth      Search depth.
- * @param selectivity   Search selectivity.
- * @param cost       Search cost (i.e. log2(node count)).
- * @param beta       Beta bound when calling the alphabeta function.
- * @param score      Best score found.
- * @param move       Best move found.
+ * @param store      stuff to store.
  */
 void hash_force(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashStore *store)
 {
@@ -694,4 +677,105 @@ void hash_print(const HashData *data, FILE *f)
 	fprintf(f, "%s }; ", move_to_string(data->move[1], WHITE, s_move));
 	fprintf(f, "score = [%+02d, %+02d] ; ", data->lower, data->upper);
 	fprintf(f, "draft = %2d:%2d:%2d@%d%%", data->draft.u1.date, data->draft.u1.cost, data->draft.u1.depth, p_selectivity[data->draft.u1.selectivity]);
+}
+
+void hash_init_thread_local(HashTable *hash_table, const size_t size) {
+	const size_t ALIGNMENT = 32;
+
+	assert(hash_table != NULL);
+	assert(bit_is_single(size));
+	assert(HASH_N_WAY + 1 <= ALIGNMENT);
+	assert(((size + ALIGNMENT) * sizeof (Hash)) % ALIGNMENT == 0);
+
+	info("[ init thread local hashtable with %zu entries]\n", size);
+	hash_table->hash = aligned_alloc(ALIGNMENT, (size + ALIGNMENT) * sizeof (Hash));
+	if (hash_table->hash == NULL) {
+		fatal_error("hash_init: cannot allocate the hash table\n");
+	}
+	hash_table->hash_mask = size - 1;
+	hash_table->spin = NULL;
+	hash_cleanup(hash_table);
+
+	//spin stuff is unused
+	HASH_STATS(hash_table->n_try   = 0;)
+	HASH_STATS(hash_table->n_found = 0;)
+	HASH_STATS(hash_table->n_store = 0;)
+}
+
+/**
+ * @brief Find an hash table entry according to the evaluated board hash codes.
+ *
+ * @param hash_table Hash table.
+ * @param hash_code Hash code of an othello board.
+ * @param data Output hash data.
+ * @return True the board was found, false otherwise.
+ */
+bool hash_get_thread_local(HashTable *hash_table, const Board *board, const uint64_t hash_code, HashData *data)
+{
+	Hash *hash;
+	bool ok = false;
+
+	hash = hash_table->hash + (hash_code & hash_table->hash_mask);
+
+	HASH_STATS(++statistics.n_hash_search;)
+	HASH_COLLISIONS(++statistics.n_hash_n;)
+	HASH_STATS(hash_table->n_try++;)
+	HASH_COLLISIONS(if (hash->key == hash_code) {)
+	HASH_COLLISIONS(	if (hash->key == hash_code && !board_equal(&hash->board, board)) {)
+	HASH_COLLISIONS(		++statistics.n_hash_collision;)
+	HASH_COLLISIONS(		printf("key = %" PRIu64 "\n", hash_code);)
+	HASH_COLLISIONS(		board_print(board, WHITE, stdout);)
+	HASH_COLLISIONS(		board_print(&hash->board, WHITE, stdout);)
+	HASH_COLLISIONS(	})
+	HASH_COLLISIONS(})
+
+	if (board_equal(&hash->board, board)) {
+		*data = hash->data;
+		HASH_STATS(++statistics.n_hash_found;)
+		HASH_STATS(hash_table->n_found++;)
+		hash->data.draft.u1.date = hash_table->date;
+		return true;
+	} else *data = HASH_DATA_INIT;
+	return ok;
+}
+
+/**
+ * @brief Store an hashtable item
+ *
+ * Find an hash table entry according to the evaluated board hash codes. Then
+ * update the entry if it already exists otherwise create a new one. Collisions
+ * are managed in such a way that better existing entries are always preserved
+ * and the new evaluated data is always added. Lower and  upper score bounds
+ * are then updated/set from the alpha, beta and score values according to the
+ * following alphabeta property (where alpha < beta):
+ *     -if (score >= beta) score is a lower bound of the real score
+ *     -if (score <= alpha) score is an upper bound of the real score
+ *     -if (alpha < score && score < beta) score equals the real score
+ * So:
+ *     -if (score < beta) update the upper bound of the hash entry
+ *     -if (score > alpha) update the lower bound of the hash entry
+ * The best move is also stored, but only if score >= alpha. In case the entry
+ * already exists with better data, nothing is stored.
+ *
+ * @param hash_table Hash table to update.
+ * @param board      Othello board..
+ * @param hash_code  Hash code of an othello board.
+ * @param store      stuff to store.
+ */
+void hash_store_thread_local(HashTable *hash_table, const Board *board, const uint64_t hash_code, const HashStore *store)
+{
+	Hash *hash = hash_table->hash + (hash_code & hash_table->hash_mask);
+	HASH_STATS(hash_table->n_store++;)
+
+	if (board_equal(&hash->board, board)) {
+		data_update(&hash->data,  store);
+		if (hash->data.lower > hash->data.upper) data_new(&hash->data, store);
+		return;
+	}
+
+	hash->board = *board;
+	data_new(&hash->data, store);
+	HASH_STATS(if (store->draft.u1.date == hash->data.draft.u1.date) ++statistics.n_hash_remove;)
+	HASH_STATS(++statistics.n_hash_new;)
+	HASH_COLLISIONS(hash->key = hash_code;)
 }
