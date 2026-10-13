@@ -31,7 +31,7 @@ open ../doc/html/index.html
 ## Version 4.7
 version 4.7 is an evolution of version 4.6 that:
  - Fixes bugs
- - Clean the code. Fix spelling mistake in the comments and variable names, etc.
+ - Clean the code. Fix spelling mistakes in the comments and variable names, etc.
  - Enhance the speed by about 20%, particularly on multi-threaded run.
  
 ## Speed comparison:
