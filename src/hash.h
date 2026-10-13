@@ -3,7 +3,7 @@
  *
  * Hash table's header.
  *
- * @date 1998 - 2025
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7
@@ -76,25 +76,27 @@ typedef struct Hash {
 typedef struct HashTable {
 	Hash *hash;                   /*!< hash table */
 	SpinLock *spin;               /*!< table with spinlocks */
-	uint64_t n_hash;              /*!< hash table size */
+	uint64_t unused;              /*!< here to align other fields */
 	uint64_t hash_mask;           /*!< a bit mask for hash entries */
-	uint32_t spin_mask;           /*!< a bit mask for lock entries */
-	uint32_t n_spin;              /*!< number of locks */
 	HASH_STATS(uint64_t n_try;)   /*!< number of probe attempt */
 	HASH_STATS(uint64_t n_found;) /*!< number of succesful probes */
 	HASH_STATS(uint64_t n_store;) /*!< number of stores */
+	uint32_t spin_mask;           /*!< a bit mask for lock entries */
 	uint8_t date;                 /*!< date */
 } HashTable;
 
 /* declaration */
 void hash_init(HashTable*, const size_t);
+void hash_init_thread_local(HashTable*, const size_t);
 void hash_cleanup(HashTable*);
 void hash_clear(HashTable*);
 void hash_free(HashTable*);
 void hash_prefetch(HashTable*, const uint64_t);
 void hash_store(HashTable*, const Board*, const uint64_t, const HashStore*);
+void hash_store_thread_local(HashTable*, const Board*, const uint64_t, const HashStore*);
 void hash_force(HashTable*, const Board*, const uint64_t, const HashStore*);
 bool hash_get(HashTable*, const Board*, const uint64_t, HashData*);
+bool hash_get_thread_local(HashTable*, const Board*, const uint64_t, HashData*);
 void hash_copy(const HashTable*, HashTable*);
 void hash_print(const HashData*, FILE*);
 void hash_feed(HashTable*, const Board*, const uint64_t, const HashData*);
@@ -120,7 +122,7 @@ static inline void draft_set(HashDraft *draft, const int depth, const int select
 }
 
 /**
- * @brief Fill a HashStore structure (exect its Draf part).
+ * @brief Fill a HashStore structure (except its Draft part).
  *
  * @param store The store structure to fill.
  * @param alpha Alpha bound.
