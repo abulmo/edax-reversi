@@ -30,18 +30,7 @@ cd ..
 
 ```sh
 docker build . -t edax
-docker run --name "edax" -v "$(pwd)/:/home/edax/" -it edax
-
-cd /home/edax/
-mkdir -p bin
-cd src
-make build ARCH=x86-64-v3 COMP=clang OS=linux
-
-cd ..
-curl -OL https://github.com/abulmo/edax-reversi/releases/download/v4.4/eval.7z # e.g. use v4.4 eval.dat
-7z x eval.7z
-
-./bin/lEdax-x64
+docker run --rm -it edax
 ```
 
 ## Document
