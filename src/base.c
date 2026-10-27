@@ -155,7 +155,7 @@ static void wthor_players_load(WthorBase *base, const char *file)
 		return;
 	}
 
-	if (wthor_header_read(&header, f)) {;
+	if (wthor_header_read(&header, f)) {
 		base->n_players = header.n;
 
 		base->player = (char (*)[20]) malloc(base->n_players * sizeof (*base->player));
@@ -227,15 +227,15 @@ int wthor_player_get(WthorBase *base, const char *name)
 	assert(base->player != NULL && base->n_players > 0);
 
 	for (i = 0; i < base->n_players; ++i) {
-	    if (strcmp(name, base->player[i]) == 0) return i;
+		if (strcmp(name, base->player[i]) == 0) return i;
 	}
 
 	n = base->n_players + 1;
 	player = (char (*)[20]) realloc(base->player, n * sizeof (*base->player));
 	if (player) {
-	    base->player = player;
-	    base->n_players = n;
-	    strncpy(base->player[i], name, 20); // used on purpose, as strncpy fills with '\0' the field name
+		base->player = player;
+		base->n_players = n;
+		strncpy(base->player[i], name, 20); // used on purpose, as strncpy fills with '\0' the field name
 		base->player[i][19] = '\0'; // force null terminated string
 	} else {
 		warn("Cannot allocate Wthor players' array\n");

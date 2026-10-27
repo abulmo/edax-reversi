@@ -2078,7 +2078,7 @@ void book_extend(Book *book, const Board *board)
  *
  * @param book opening book.
  * @param board The boardd positioin to add.
- * @param n_empties PLay moves until this number of empty squares on the board.
+ * @param n_empties Play moves until this number of empty squares on the board.
  */
 void book_play(Book *book, const Board *board, const int n_empties)
 {
@@ -2689,7 +2689,7 @@ void book_extract_skeleton(Book *book, Base *base)
 /**
  * @brief print a set of position.
  *
-4 * @param book Opening book.
+ * @param book Opening book.
  * @param n_empties Game stage.
  * @param n_positions Number of positions to extract.
  */

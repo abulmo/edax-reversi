@@ -984,7 +984,7 @@ static void ggs_client_free(GGSClient *client) {
  * @brief ggs_client_send
  *
  * Send a message to the GGS server.
- * This function uses vnsggs_printf with some workaround
+ * This function uses vnsprintf with some workaround
  * for MS-Windows incorrect behaviour.
  *
  * @param client GGS client.
