@@ -327,7 +327,7 @@ void estimate_games(const Board *board, const int64_t n, const bool count_pass, 
 	for (i = 0; i < 128; ++i) em[i] = es[i] = en[i] = 0.0;
 
 	board_print(board, BLACK, stdout);
-	printf("estimate games: trials %ld, pass %s, size %dx%d\n", n, bool_string[count_pass], size, size);
+	printf("estimate games: trials %" PRId64 ", pass %s, size %dx%d\n", n, bool_string[count_pass], size, size);
 
 	t = -cpu_clock();
 	for (j = 1; j <= n; ++j) {

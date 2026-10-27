@@ -2294,14 +2294,14 @@ void book_info(Book *book)
 	bprint("Edax Book %d.%d; ", VERSION, RELEASE);
 	bprint("%d-%d-%d ", book->date.year, book->date.month, book->date.day);
 	bprint("%d:%02d:%02d;\n", book->date.hour, book->date.minute, book->date.second);
-	bprint("Positions: %d (moves = %ld links + %ld leaves);\n", book->n_nodes, n_links, n_leaves);
+	bprint("Positions: %d (moves = %" PRIu64 " links + %" PRIu64 " leaves);\n", book->n_nodes, n_links, n_leaves);
 	for (i = 0; i < 61; ++i) {
 		if (n_level[i]) {
-			bprint("Level %d : %ld nodes\n", i, n_level[i]);
+			bprint("Level %d : %" PRIu64 " nodes\n", i, n_level[i]);
 		}
 	}
 	bprint("Depth: %d\n", 61 - book->options.n_empties);
-	bprint("Memory occupation: %ld\n", (int64_t) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
+	bprint("Memory occupation: %zu\n", (size_t) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
 	bprint("Hash balance: %d < %d < %d\n", min_array, (int) (book->n_nodes / book->n), max_array);
 }
 
@@ -2322,11 +2322,11 @@ void book_show(Book *book, Board *board)
 		book_get_game_stats(book, board, &stat);
 		n_games = stat.n_wins + stat.n_draws + stat.n_losses;
 		if (n_games) {
-			bprint("\nLines: %ld full games", n_games);
+			bprint("\nLines: %" PRIu64 " full games", n_games);
 			bprint(" with %.2f%% win, %.2f%% draw, %.2f%% loss",
 				100.0 * stat.n_wins / n_games, 100.0 * stat.n_draws / n_games, 100.0 * stat.n_losses / n_games);
 		}
-		bprint("\n       %ld incomplete lines.\n\n", stat.n_lines - n_games);
+		bprint("\n       %" PRId64 " incomplete lines.\n\n", (int64_t) (stat.n_lines - n_games));
 	}
 }
 

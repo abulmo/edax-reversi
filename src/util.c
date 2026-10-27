@@ -1057,7 +1057,7 @@ char* parse_int64(const char *string, int64_t *result)
 		char *end = s;
 		int64_t n = 0;
 
-		if (*s) n = strtol(s, &end, 10);
+		if (*s) n = strtoll(s, &end, 10);
 
 		if (end == s) {
 			errno = EINVAL;
