@@ -496,18 +496,47 @@ int NWS_local_endgame(Search *search, const int alpha)
 	SEARCH_STATS(++statistics.n_NWS_local_endgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
+#if USE_SOLID
+	// discs on all lines full do not participate to the game anymore,
+	// so we transfer them to the player side.
+	Board solid;
+	int solid_delta;
+	uint64_t full = 0;
+
+	// stability cutoff
+	if (search_SC_NWS_full(search, alpha, &score, &full)) return score;
+	solid = *board;
+	solid_delta = 0;
+	if (search->n_empties <= SOLID_DEPTH) {
+		full &= solid.opponent;
+		solid.opponent ^= full;
+		solid.player ^=full;
+		solid_delta = 2 * bit_count(full);
+	}
+	// transposition prefetch
+	hash_code = board_get_hash_code(&solid);
+	hash_prefetch(hash_table, hash_code);
+#else
 	hash_code = board_get_hash_code(board);
 	hash_prefetch(hash_table, hash_code);
 
 	// stability cutoff
 	if (search_SC_NWS(search, alpha, &score)) return score;
+#endif
 
 	search_get_movelist(search, &movelist);
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff
+#if USE_SOLID
+		if (hash_get_thread_local(hash_table, &solid, hash_code, &hash_data)) {
+			hash_data.lower -= solid_delta;
+			hash_data.upper -= solid_delta;
+			if (search_TC_NWS(&hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
+		}
+#else
 		if (hash_get_thread_local(hash_table, board, hash_code, &hash_data) && search_TC_NWS(&hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
-
+#endif
 		cost = -search->n_nodes;
 		movelist_evaluate_fast(&movelist, search, &hash_data);
 		bestscore = -SCORE_INF;
@@ -526,8 +555,13 @@ int NWS_local_endgame(Search *search, const int alpha)
 		if (search_get_state(search) == RUNNING) {
 			cost += search->n_nodes;
 			draft_set(&store.draft, search->n_empties, NO_SELECTIVITY, last_bit(cost), search->hash_table.date);
+#if USE_SOLID
+			store_set(&store, alpha + solid_delta, beta + solid_delta, bestscore + solid_delta, bestmove);
+			hash_store_thread_local(hash_table, &solid, hash_code, &store);
+#else
 			store_set(&store, alpha, beta, bestscore, bestmove);
 			hash_store_thread_local(hash_table, board, hash_code, &store);
+#endif
 		}
 	} else if (movelist.n_moves == 1) {
 		move = movelist_first(&movelist);
@@ -588,47 +622,17 @@ int NWS_endgame(Search *search, const int alpha)
 	SEARCH_STATS(++statistics.n_NWS_endgame);
 	SEARCH_UPDATE_INTERNAL_NODES(search->n_nodes);
 
-#if USE_SOLID
-	// discs on all lines full do not participate to the game anymore,
-	// so we transfer them to the player side.
-	Board solid;
-	int solid_delta;
-	uint64_t full = 0;
-
-	// stability cutoff
-	if (search_SC_NWS_full(search, alpha, &score, &full)) return score;
-	solid = *board;
-	solid_delta = 0;
-	if (search->n_empties <= SOLID_DEPTH) {
-		full &= solid.opponent;
-		solid.opponent ^= full;
-		solid.player ^=full;
-		solid_delta = 2 * bit_count(full);
-	}
-	// transposition prefetch
-	hash_code = board_get_hash_code(&solid);
-	hash_prefetch(hash_table, hash_code);
-#else
 	hash_code = board_get_hash_code(board);
 	hash_prefetch(hash_table, hash_code);
 
 	// stability cutoff
 	if (search_SC_NWS(search, alpha, &score)) return score;
-#endif
 
 	search_get_movelist(search, &movelist);
 
 	if (movelist.n_moves > 1) {
 		// transposition cutoff
-#if USE_SOLID
-		if (hash_get(hash_table, &solid, hash_code, &hash_data)) {
-			hash_data.lower -= solid_delta;
-			hash_data.upper -= solid_delta;
-			if (search_TC_NWS(&hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
-		}
-#else
 		if (hash_get(hash_table, board, hash_code, &hash_data) && search_TC_NWS(&hash_data, search->n_empties, NO_SELECTIVITY, alpha, &score)) return score;
-#endif
 		cost = -search->n_nodes;
 		movelist_evaluate_fast(&movelist, search, &hash_data);
 		bestscore = -SCORE_INF;
@@ -647,13 +651,8 @@ int NWS_endgame(Search *search, const int alpha)
 		if (search_get_state(search) == RUNNING) {
 			cost += search->n_nodes;
 			draft_set(&store.draft, search->n_empties, NO_SELECTIVITY, last_bit(cost), search->hash_table.date);
-#if USE_SOLID
-			store_set(&store, alpha + solid_delta, beta + solid_delta, bestscore + solid_delta, bestmove);
-			hash_store(hash_table, &solid, hash_code, &store);
-#else
 			store_set(&store, alpha, beta, bestscore, bestmove);
 			hash_store(hash_table, board, hash_code, &store);
-#endif
 		}
 	} else if (movelist.n_moves == 1) {
 		move = movelist_first(&movelist);
