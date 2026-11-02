@@ -500,14 +500,16 @@ int NWS_local_endgame(Search *search, const int alpha)
 	// discs on all lines full do not participate to the game anymore,
 	// so we transfer them to the player side.
 	Board solid;
-	int solid_delta;
+	int solid_delta, solid_delta_max;
 	uint64_t full = 0;
 
 	// stability cutoff
 	if (search_SC_NWS_full(search, alpha, &score, &full)) return score;
 	solid = *board;
 	solid_delta = 0;
-	if (search->n_empties <= SOLID_DEPTH) {
+	// apply only if solid_delta will not alter the winner, i.e. the null window is apart enough from 0.
+	solid_delta_max = 2 * bit_count(full);
+	if ((search->n_empties <= SOLID_DEPTH) && ((solid_delta_max < alpha) || (-solid_delta_max > beta))) {
 		full &= solid.opponent;
 		solid.opponent ^= full;
 		solid.player ^=full;
