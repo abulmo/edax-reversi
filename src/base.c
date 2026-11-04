@@ -312,7 +312,7 @@ bool wthor_load(WthorBase *base, const char *file)
 {
 	FILE *f;
 	char path[FILENAME_MAX];
-	int r = 0;
+	bool r = false;
 
 	wthor_init(base);
 
@@ -328,7 +328,7 @@ bool wthor_load(WthorBase *base, const char *file)
 
 			base->game = (WthorGame*) malloc(base->n_games * sizeof (WthorGame));
 			if (base->game) {
-				r = (fread(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
+				r = (fread(base->game, sizeof (WthorGame), base->n_games, f) == (size_t) base->n_games);
 				if (!r) warn("Error while reading %s\n", file);
 			} else {
 				warn("Cannot allocate wthor games\n");
@@ -341,7 +341,7 @@ bool wthor_load(WthorBase *base, const char *file)
 		warn("Cannot open file %s\n", file);
 	}
 
-	return r != 0;
+	return r;
 }
 
 /**
@@ -368,7 +368,7 @@ bool wthor_save(WthorBase *base, const char *file)
 {
 	FILE *f;
 	char path[FILENAME_MAX];
-	uint32_t r = 0;
+	bool r = false;
 
 	path_get_dir(file, path); strcat(path, "WTHOR.JOU");
 	wthor_players_save(base, path);
@@ -376,10 +376,9 @@ bool wthor_save(WthorBase *base, const char *file)
 	if ((f = fopen(file, "wb")) != NULL) {
 		wthor_header_set(&base->header, base->n_games, 0, 0);
 		if (wthor_header_write(&base->header, f) && base->game) {
-			r = (fwrite(base->game, sizeof (WthorGame), base->n_games, f) == (unsigned) base->n_games);
-			if (r != base->n_games) {
+			r = (fwrite(base->game, sizeof (WthorGame), base->n_games, f) == (size_t) base->n_games);
+			if (!r) {
 				warn("Error while writing %s\n", file);
-				r = 0;
 			}
 		}
 		fclose(f);
@@ -387,7 +386,7 @@ bool wthor_save(WthorBase *base, const char *file)
 		warn("Cannot open file %s\n", file);
 	}
 
-	return r != 0;
+	return r;
 }
 
 /**
