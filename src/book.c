@@ -2515,26 +2515,26 @@ void book_add_game(Book *book, const Game *game)
  */
 void book_add_base(Book *book, const Base *base)
 {
-	size_t i;
+	uint32_t i;
 	char file[FILENAME_MAX + 1];
 	int64_t t0, t;
 
 	file_add_ext(options.book_file, ".gam", file);
 
 	book_clean(book);
-	bprint("Adding %d games to book...\n", base->n_games);
+	bprint("Adding %" PRIu32 " games to book...\n", base->n_games);
 	t0 = real_clock();
 	for (i = 0; i < base->n_games; ++i) {
 		book_add_game(book, base->game + i);
 		t = real_clock();
 		if (t - t0 > 1000) {
-		    bprint("Adding games...%d/%d done: %d positions, %d links\r", i + 1, base->n_games, book->stats.n_nodes, book->stats.n_links);
+		    bprint("Adding games...%" PRIu32 "/%" PRIu32 " done: %d positions, %d links\r", i + 1, base->n_games, book->stats.n_nodes, book->stats.n_links);
 			t0 = t;
 		}
 		if (book->search->options.verbosity) putchar('\n');
 
 	}
-	bprint("Adding games...%d/%d done: %d positions, %d links\n", i, base->n_games, book->stats.n_nodes, book->stats.n_links);
+	bprint("Adding games...%" PRIu32 "/%" PRIu32 " done: %d positions, %d links\n", i, base->n_games, book->stats.n_nodes, book->stats.n_links);
 	bprint("%d games added to book\n", i);
 
 	book_save(book, file);
@@ -2603,7 +2603,7 @@ void book_check_game(Book *book, MoveHash *hash, const Game *game, BookCheckGame
  */
 void book_check_base(Book *book, const Base *base)
 {
-	size_t i;
+	uint32_t i;
 	BookCheckGame stat = {0, 0, 0};
 	MoveHash hash;
 
@@ -2613,7 +2613,7 @@ void book_check_base(Book *book, const Base *base)
 		book_check_game(book, &hash, base->game + i, &stat);
 	}
 	movehash_delete(&hash);
-    bprint("Positions : %llu missing, %llu good, %llu bad (%.2f%% bad)\n", stat.missing, stat.good, stat.bad, (100.0 * stat.bad)/(stat.bad + stat.good));
+	bprint("Positions : %" PRIu64 " missing, %" PRIu64 " good, %" PRIu64 " bad (%.2f%% bad)\n", stat.missing, stat.good, stat.bad, (100.0 * stat.bad)/(stat.bad + stat.good));
 }
 
 
