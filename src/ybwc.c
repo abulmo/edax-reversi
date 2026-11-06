@@ -121,7 +121,7 @@ static Task* get_helper(Node *parent, Node *node, Move *move)
 			if (parent->n_slave < SPLIT_MAX_SLAVES && parent->is_waiting && !parent->is_helping) {
 				parent->is_helping = true;
 				task = &parent->help;
-				task_init(task) ;
+				task_init(task);
 				task_set(task, node, move);
 				cnd_broadcast(&parent->condition);
 			}

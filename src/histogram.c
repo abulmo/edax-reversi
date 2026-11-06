@@ -41,16 +41,16 @@ void histogram_print(uint64_t h[129][65])
 			x = (i - 64);
 		for (j = 0; j < 65; ++j) {
 			y = 2 * j - 64;
-			printf("; %" PRId64, h[i][j]);
+			printf("; %" PRIu64, h[i][j]);
 			n += h[i][j];
 			s += y * h[i][j];
 			s2 += (x - y) * (x - y) * h[i][j];
 		}
 		s /= n;
 		s2 /= (n - 1);
-		if (n > 5) printf("; %" PRId64 "; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
-		else if (n > 0) printf("; %" PRId64 "; %.2f; %.2f", n, s, sqrt(s2));
-		else printf("; %" PRId64, n);
+		if (n > 5) printf("; %" PRIu64 "; %.2f; %.2f; %.2f; %.2f", n, s, sqrt(s2), x - s, sqrt(s2 - (x - s) * (x - s)));
+		else if (n > 0) printf("; %" PRIu64 "; %.2f; %.2f", n, s, sqrt(s2));
+		else printf("; %" PRIu64, n);
 	}
 
 	printf("\n");
@@ -89,9 +89,9 @@ void histogram_print(uint64_t h[129][65])
 				}
 			}
 		}
-		printf("; %" PRId64, n);
+		printf("; %" PRIu64, n);
 	}
-	printf("; %" PRId64 "\n", N);
+	printf("; %" PRIu64 "\n", N);
 	printf("mean"); for (j = 0; j < 65; ++j) printf("; %.2f", mean[j]); printf("\n");
 	printf("median"); for (j = 0; j < 65; ++j) printf("; %.2f", median[j]); printf("\n");
 	printf("error"); for (j = 0; j < 65; ++j) printf("; %.2f", sqrt(variance[j])); printf("\n");

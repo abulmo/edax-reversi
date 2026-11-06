@@ -232,7 +232,7 @@ static void engine_observer(Result *result)
 
 /**
  * @brief Create engine search.
- * @return a pointer to a newly allocated search structure.				fclose(stdin);
+ * @return a pointer to a newly allocated search structure.
  */
 static Search* engine_create_search(void)
 {
@@ -682,8 +682,7 @@ void engine_stop(void *v)
 }
 
 /**
- * @brief Loop event				fclose(stdin);
-
+ * @brief Loop event
  */
 void engine_loop(void)
 {

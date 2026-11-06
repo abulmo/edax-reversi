@@ -2078,7 +2078,7 @@ void book_extend(Book *book, const Board *board)
  *
  * @param book opening book.
  * @param board The boardd positioin to add.
- * @param n_empties PLay moves until this number of empty squares on the board.
+ * @param n_empties Play moves until this number of empty squares on the board.
  */
 void book_play(Book *book, const Board *board, const int n_empties)
 {
@@ -2294,14 +2294,14 @@ void book_info(Book *book)
 	bprint("Edax Book %d.%d; ", VERSION, RELEASE);
 	bprint("%d-%d-%d ", book->date.year, book->date.month, book->date.day);
 	bprint("%d:%02d:%02d;\n", book->date.hour, book->date.minute, book->date.second);
-	bprint("Positions: %d (moves = %ld links + %ld leaves);\n", book->n_nodes, n_links, n_leaves);
+	bprint("Positions: %d (moves = %" PRIu64 " links + %" PRIu64 " leaves);\n", book->n_nodes, n_links, n_leaves);
 	for (i = 0; i < 61; ++i) {
 		if (n_level[i]) {
-			bprint("Level %d : %ld nodes\n", i, n_level[i]);
+			bprint("Level %d : %" PRIu64 " nodes\n", i, n_level[i]);
 		}
 	}
 	bprint("Depth: %d\n", 61 - book->options.n_empties);
-	bprint("Memory occupation: %ld\n", (int64_t) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
+	bprint("Memory occupation: %zu\n", (size_t) (book->n_nodes * sizeof (Position) + book->n * sizeof (PositionArray) + n_links * sizeof (Link)));
 	bprint("Hash balance: %d < %d < %d\n", min_array, (int) (book->n_nodes / book->n), max_array);
 }
 
@@ -2322,11 +2322,11 @@ void book_show(Book *book, Board *board)
 		book_get_game_stats(book, board, &stat);
 		n_games = stat.n_wins + stat.n_draws + stat.n_losses;
 		if (n_games) {
-			bprint("\nLines: %ld full games", n_games);
+			bprint("\nLines: %" PRIu64 " full games", n_games);
 			bprint(" with %.2f%% win, %.2f%% draw, %.2f%% loss",
 				100.0 * stat.n_wins / n_games, 100.0 * stat.n_draws / n_games, 100.0 * stat.n_losses / n_games);
 		}
-		bprint("\n       %ld incomplete lines.\n\n", stat.n_lines - n_games);
+		bprint("\n       %" PRId64 " incomplete lines.\n\n", (int64_t) (stat.n_lines - n_games));
 	}
 }
 
@@ -2522,19 +2522,19 @@ void book_add_base(Book *book, const Base *base)
 	file_add_ext(options.book_file, ".gam", file);
 
 	book_clean(book);
-	bprint("Adding %d games to book...\n", base->n_games);
+	bprint("Adding %zu games to book...\n", base->n_games);
 	t0 = real_clock();
 	for (i = 0; i < base->n_games; ++i) {
 		book_add_game(book, base->game + i);
 		t = real_clock();
 		if (t - t0 > 1000) {
-		    bprint("Adding games...%d/%d done: %d positions, %d links\r", i + 1, base->n_games, book->stats.n_nodes, book->stats.n_links);
+		    bprint("Adding games...%zu/%zu done: %d positions, %d links\r", i + 1, base->n_games, book->stats.n_nodes, book->stats.n_links);
 			t0 = t;
 		}
 		if (book->search->options.verbosity) putchar('\n');
 
 	}
-	bprint("Adding games...%d/%d done: %d positions, %d links\n", i, base->n_games, book->stats.n_nodes, book->stats.n_links);
+	bprint("Adding games...%zu/%zu done: %d positions, %d links\n", i, base->n_games, book->stats.n_nodes, book->stats.n_links);
 	bprint("%d games added to book\n", i);
 
 	book_save(book, file);
@@ -2613,7 +2613,7 @@ void book_check_base(Book *book, const Base *base)
 		book_check_game(book, &hash, base->game + i, &stat);
 	}
 	movehash_delete(&hash);
-    bprint("Positions : %llu missing, %llu good, %llu bad (%.2f%% bad)\n", stat.missing, stat.good, stat.bad, (100.0 * stat.bad)/(stat.bad + stat.good));
+	bprint("Positions : %" PRIu64 " missing, %" PRIu64 " good, %" PRIu64 " bad (%.2f%% bad)\n", stat.missing, stat.good, stat.bad, (100.0 * stat.bad)/(stat.bad + stat.good));
 }
 
 
@@ -2689,7 +2689,7 @@ void book_extract_skeleton(Book *book, Base *base)
 /**
  * @brief print a set of position.
  *
-4 * @param book Opening book.
+ * @param book Opening book.
  * @param n_empties Game stage.
  * @param n_positions Number of positions to extract.
  */

@@ -3,7 +3,7 @@
  *
  * @brief Main file.
  *
-  * @date 1998 - 2026
+ * @date 1998 - 2026
  * @author Richard Delorme
  * @author Toshihiko Okuhara
  * @version 4.7

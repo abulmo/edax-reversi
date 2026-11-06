@@ -593,7 +593,7 @@ void line_print(const Line *line, int width, const char *separator, FILE *f)
 		move_print(line->move[i], player, f);
 	}
 	for (len = MIN(len, width); len > w; len -= w) {
-		fputc(' ', f);fputc(' ', f); if (separator) fputs(separator, f);
+		fputc(' ', f); fputc(' ', f); if (separator) fputs(separator, f);
 	}
 }
 

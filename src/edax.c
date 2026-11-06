@@ -259,7 +259,7 @@ void help_book(void)
 }
 
 /**
- * @brief print base's help.
+ * @brief print test's help.
  */
 void help_test(void)
 {
@@ -708,7 +708,7 @@ void ui_loop_edax(UI *ui)
 				// create a new empty book
 				} else if (strcmp(book_cmd, "new") == 0) {
 					val_1 = 21; book_param = parse_int(book_param, &val_1);
-					val_2 = 36;	book_param = parse_int(book_param, &val_2);
+					val_2 = 36; book_param = parse_int(book_param, &val_2);
 					book_free(book);
 					book_new(book, val_1, 61 - val_2);
 

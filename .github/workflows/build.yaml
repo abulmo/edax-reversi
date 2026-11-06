@@ -42,11 +42,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup MSVC x64 Environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
     - name: build
       run: |-
         mkdir -p bin
         cd src
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake -fnmakefile vc-x64
       shell: cmd
 

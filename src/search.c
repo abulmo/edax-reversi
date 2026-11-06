@@ -250,7 +250,7 @@ void search_init(Search *search)
 	/* evaluation function */
 	eval_init(&search->eval);
 
-	// radom generator
+	// random generator
 	random_seed(&search->random, real_clock());
 
 	/* task stack */
